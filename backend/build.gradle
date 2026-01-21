@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.jackpot'
-version = '0.0.1-SNAPSHOT'
+version = '0.0.1'
 description = 'hyundai softeer 7th team jackpot project'
 
 java {
