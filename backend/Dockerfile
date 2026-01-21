@@ -1,4 +1,4 @@
-FROM amazoncorretto:21
+FROM amazoncorretto:17
 WORKDIR /app
 COPY ./build/libs/narratix-0.0.1.jar /app/app.jar
 
