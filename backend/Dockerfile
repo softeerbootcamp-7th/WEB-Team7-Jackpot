@@ -1,6 +1,6 @@
 FROM amazoncorretto:21
 WORKDIR /app
-COPY ./build/libs/narratix-0.0.1.jar app/app.jar
+COPY ./build/libs/narratix-0.0.1.jar /app/app.jar
 
 ARG SPRING_PROFILES_ACTIVE=prod
 ENV SPRING_PROFILES_ACTIVE=$SPRING_PROFILES_ACTIVE
