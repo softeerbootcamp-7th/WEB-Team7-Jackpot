@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  chat:
+  narratix:
     image: ${DOCKER_IMAGE_URL}
     container_name: narratix-container
     restart: always # 컨테이너 종료시 컨테이너를 자동으로 띄움
