@@ -15,7 +15,7 @@ function App() {
         {/* <Route path="/recruit" element={<RecruitPage />}/> */}
       </Routes>
     </BrowserRouter>
-  )
+  );
 }
 
-export default App
+export default App;
