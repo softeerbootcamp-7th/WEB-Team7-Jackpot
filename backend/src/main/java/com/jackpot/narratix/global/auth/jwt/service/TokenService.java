@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class TokenService {
 
-    private final JwtProvider jwtProvider;
+    private final JwtGenerator jwtGenerator;
     private final JwtValidator jwtValidator;
     private final JwtTokenParser jwtTokenParser;
 
@@ -19,10 +19,13 @@ public class TokenService {
         Token token = jwtTokenParser.parseToken(rawToken);
         jwtValidator.validateToken(token);
         String userId = token.getSubject();
-        return jwtProvider.reissueToken(userId);
+        return jwtGenerator.generateAccessToken(userId);
     }
 
     public TokenResponse issueToken(String subjectId) {
-        return jwtProvider.issueToken(subjectId);
+        return TokenResponse.of(
+                jwtGenerator.generateAccessToken(subjectId),
+                jwtGenerator.generateRefreshToken(subjectId)
+        );
     }
 }
