@@ -1,1 +1,96 @@
 @import 'tailwindcss';
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('/fonts/PretendardVariable.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  font-family: 'Pretendard', sans-serif;
+}
+
+@theme {
+  /* Colors */
+  --color-gray-50: #f8f8f8;
+  --color-gray-100: #efefef;
+  --color-gray-200: #dcdcdc;
+  --color-gray-300: #bdbdbd;
+  --color-gray-400: #989898;
+  --color-gray-500: #7c7c7c;
+  --color-gray-600: #656565;
+  --color-gray-700: #525252;
+  --color-gray-800: #464646;
+  --color-gray-900: #3d3d3d;
+  --color-gray-950: #292929;
+
+  --color-purple-50: #f0f2fd;
+  --color-purple-100: #e3e8fc;
+  --color-purple-200: #ccd3f9;
+  --color-purple-300: #aeb7f3;
+  --color-purple-400: #8d91ec;
+  --color-purple-500: #7371e3;
+  --color-purple-600: #5b4dd3;
+  --color-purple-700: #5547bb;
+  --color-purple-800: #453b98;
+  --color-purple-900: #3c3679;
+  --color-purple-950: #242046;
+
+  --color-blue-50: #eef7ff;
+  --color-blue-100: #d9ecff;
+  --color-blue-200: #bcdeff;
+  --color-blue-300: #8ecaff;
+  --color-blue-400: #59acff;
+  --color-blue-500: #2783ff;
+  --color-blue-600: #1b69f5;
+  --color-blue-700: #1453e1;
+  --color-blue-800: #1743b6;
+  --color-blue-900: #193c8f;
+  --color-blue-950: #142657;
+
+  --color-red-600: #ed2015;
+  --color-green-500: #28c840;
+
+  /* Spacing */
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  --spacing-7: 28px;
+  --spacing-8: 32px;
+  --spacing-9: 36px;
+  --spacing-10: 40px;
+  --spacing-12: 48px;
+  --spacing-16: 64px;
+  --spacing-20: 80px;
+  --spacing-24: 96px;
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-base: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 32px;
+  --radius-full: 9999px;
+
+  /* Font Family */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, sans-serif;
+  --font-pretendard: Pretendard, sans-serif;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-base:
+    0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
