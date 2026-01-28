@@ -4,7 +4,6 @@ import com.jackpot.narratix.global.auth.jwt.domain.AccessToken;
 import com.jackpot.narratix.global.auth.jwt.domain.RefreshToken;
 import io.jsonwebtoken.Jwts;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -89,8 +88,7 @@ class JwtGeneratorTest {
     }
 
     @Test
-    @DisplayName("생성된 토큰에 올바른 subject 포함")
-    void generatedToken_ContainsCorrectSubject() {
+    void 생성된_토큰에_올바른_subject_포함() {
         // given
         String expectedSubject = "user@example.com";
 
