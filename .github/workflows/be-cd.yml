@@ -91,6 +91,6 @@ jobs:
             cd ~
             sudo chmod +x ./app/backend/script/*.sh
             ./app/backend/script/deploy.sh
-            docker image prune -f
+            sudo docker image prune -f
             
             
