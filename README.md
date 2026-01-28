@@ -186,8 +186,8 @@ main
 
 ### Branch Naming & PR Title
 
-- Branch 명: `역할` / 작업성격` / `#이슈번호-작업한_내용`
-- Git Pull Request 제목: [`역할`/`작업성격`] `작업한 내용`
+- Branch 명: `작업성격` / `#이슈번호-작업한_내용`
+- Git Pull Request 제목: [`작업성격`] `작업한 내용`
 
 ---
 
