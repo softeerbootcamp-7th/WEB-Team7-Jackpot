@@ -1,0 +1,27 @@
+### VS Code ###
+.vscode/
+
+# Compiled class file #
+*.class
+
+# Log file #
+*.log
+
+# IDE settings #
+.idea/
+*.iml
+
+# build #
+.gradle
+build
+out
+
+# Mac OS
+.DS_Store
+**/.DS_Store
+
+# secret #
+application-local.yml
+application-test.yml
+application-dev.yml
+application-prod.yml

@@ -9,7 +9,7 @@
 <p>
 <a href="https://www.notion.so/2ea14885339b80f6b2d0fe64b05460ed?pvs=21"><img src="https://img.shields.io/badge/잭팟_팀_노션-000000?style=flat&logo=notion&logoColor=white" alt="Notion" /></a>
   |  
-<a href="https://github.com/softeerbootcamp-7th/Team7-Jackpot/wiki/Jackpot's-Home"><img src="https://img.shields.io/badge/잭팟_Wiki-181717?style=flat&logo=github&logoColor=white" alt="Wiki" /></a>
+<a href="https://github.com/softeerbootcamp-7th/Team7-Jackpot/wiki"><img src="https://img.shields.io/badge/잭팟_Wiki-181717?style=flat&logo=github&logoColor=white" alt="Wiki" /></a>
   |  
 <a href="https://github.com/softeerbootcamp-7th/Team7-Jackpot/issues"><img src="https://img.shields.io/badge/잭팟_Issues-181717?style=flat&logo=github&logoColor=white" alt="Issue" /></a>
 </p>
@@ -186,8 +186,8 @@ main
 
 ### Branch Naming & PR Title
 
-- Branch 명: `작업성격` / `작업한_내용`
-- Git Pull Request 제목: [`역할`/`작업성격`] `작업한 내용`
+- Branch 명: `작업성격` / `#이슈번호-작업한_내용`
+- Git Pull Request 제목: [`작업성격`] `작업한 내용`
 
 ---
 
