@@ -1,6 +1,8 @@
 package com.jackpot.narratix.global.auth.jwt.service;
 
+import com.jackpot.narratix.global.auth.jwt.domain.AccessToken;
 import com.jackpot.narratix.global.auth.jwt.domain.RefreshToken;
+import com.jackpot.narratix.global.auth.jwt.domain.Token;
 import com.jackpot.narratix.global.auth.jwt.service.dto.TokenResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -11,11 +13,12 @@ public class TokenService {
 
     private final JwtProvider jwtProvider;
     private final JwtValidator jwtValidator;
+    private final JwtTokenParser jwtTokenParser;
 
-    public RefreshToken reissueToken(String rawRefreshToken) {
-        jwtValidator.validateRefreshToken(rawRefreshToken);
-        RefreshToken refreshToken = jwtProvider.parseRefreshToken(rawRefreshToken);
-        String userId = refreshToken.getSubject();
+    public AccessToken reissueToken(String rawToken) {
+        Token token = jwtTokenParser.parseToken(rawToken);
+        jwtValidator.validateToken(token);
+        String userId = token.getSubject();
         return jwtProvider.reissueToken(userId);
     }
 
