@@ -1,6 +1,6 @@
-import CardIcon from './icons/CardIcon';
-import RightArrow from './icons/RightArrow';
-import CoverLetterPreview from './CoverLetterPreview';
+import CoverLetterPreview from '@/components/home/CoverLetterPreview';
+import CardIcon from '@/components/home/icons/CardIcon';
+import RightArrow from '@/components/home/icons/RightArrow';
 
 const CoverLetterOverview = () => {
   return (
