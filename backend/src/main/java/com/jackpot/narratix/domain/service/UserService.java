@@ -1,5 +1,6 @@
 package com.jackpot.narratix.domain.service;
 
+import com.jackpot.narratix.domain.controller.dto.LoginRequest;
 import com.jackpot.narratix.domain.entity.User;
 import com.jackpot.narratix.domain.entity.UserAuth;
 import com.jackpot.narratix.domain.repository.UserAuthRepository;
@@ -17,7 +18,7 @@ public class UserService {
     private final UserAuthRepository userAuthRepository;
 
     public boolean isIdDuplicated(String id) {
-        return userRepository.existsById(id);
+        return userAuthRepository.existsById(id);
     }
 
     @Transactional
@@ -38,4 +39,13 @@ public class UserService {
                 .build();
         userAuthRepository.save(auth);
     }
+
+    public void login(LoginRequest loginRequest) {
+        UserAuth auth = userAuthRepository.findById(loginRequest.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 아이디"));
+        if (!auth.getPassword().equals(loginRequest.getPassword())) {
+            throw new IllegalArgumentException("비밀번호 틀림");
+        }
+    }
 }
+
