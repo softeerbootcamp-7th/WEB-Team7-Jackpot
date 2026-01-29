@@ -1,14 +1,25 @@
 package com.jackpot.narratix.domain.controller;
 
+import com.jackpot.narratix.domain.controller.dto.JoinRequest;
+import com.jackpot.narratix.domain.controller.dto.UserTokenResponse;
 import com.jackpot.narratix.domain.service.UserService;
+import com.jackpot.narratix.global.auth.jwt.service.JwtGenerator;
+import com.jackpot.narratix.global.auth.jwt.service.TokenService;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.mapping.Join;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
+    private final JwtGenerator jwtGenerator;
+    private final TokenService tokenService;
 
     @PostMapping("/auth")
     public boolean checkId(@RequestBody String userId) {
@@ -16,13 +27,33 @@ public class UserController {
     }
 
     @PostMapping("/auth/join")
-    public void join(@RequestBody String userId, String password, String passwordConfirm, String nickname) {
-        userService.join(userId, password, nickname);
+    public ResponseEntity<UserTokenResponse> join(@RequestBody JoinRequest request) {
+
+        if (!request.getPassword().equals(request.getPasswordConfirm())) {
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다");
+        }
+
+        userService.join(request.getUserId(), request.getPassword(), request.getNickname());
+
+        var tokens = tokenService.issueToken(request.getUserId());
+
+        String accessTokenValue = tokens.getAccessToken();
+        String refreshTokenValue = tokens.getRefreshToken();
+
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshTokenValue)
+                .httpOnly(true)
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(new UserTokenResponse(accessTokenValue));
     }
 
     @PostMapping("/auth/login")
     public void login(@RequestBody String userId, String password) {
-        //userService.login(userId, password);
+        userService.login(userId, password);
     }
 }
+
+
 
