@@ -1,6 +1,7 @@
 package com.jackpot.narratix.domain.controller;
 
 import com.jackpot.narratix.domain.controller.dto.JoinRequest;
+import com.jackpot.narratix.domain.controller.dto.LoginRequest;
 import com.jackpot.narratix.domain.controller.dto.UserTokenResponse;
 import com.jackpot.narratix.domain.service.UserService;
 import com.jackpot.narratix.global.auth.jwt.service.JwtGenerator;
@@ -50,8 +51,22 @@ public class UserController {
     }
 
     @PostMapping("/auth/login")
-    public void login(@RequestBody String userId, String password) {
-        userService.login(userId, password);
+    public ResponseEntity<UserTokenResponse> login(@RequestBody LoginRequest request) {
+        userService.login(request);
+
+        var tokens = tokenService.issueToken(request.getUserId());
+
+        String accessTokenValue = tokens.getAccessToken();
+        String refreshTokenValue = tokens.getRefreshToken();
+
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshTokenValue)
+                .httpOnly(true)
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(new UserTokenResponse(accessTokenValue));
+
     }
 }
 
