@@ -16,21 +16,17 @@ interface FormDataType {
   nickname: string;
 }
 const SignUpPage = () => {
-  const [idData, setIdData] = useState<string>('');
-  const [passwordData, setPasswordData] = useState<string>('');
-  const [passwordCheckData, setPasswordCheckData] = useState<string>('');
-  const [nicknameData, setNicknameData] = useState<string>('');
-  const isActived: boolean =
-    idData !== '' &&
-    passwordData !== '' &&
-    passwordCheckData !== '' &&
-    nicknameData !== '';
   const [formData, setFormData] = useState<FormDataType>({
     id: '',
     password: '',
     passwordCheck: '',
     nickname: '',
   });
+
+  const isActived: boolean = Object.values(formData).every(
+    (each) => each !== '',
+  );
+
   const buttonActiveStyle: string = isActived
     ? 'bg-gray-900 text-white cursor-pointer'
     : 'bg-gray-50 text-gray-400';
@@ -72,6 +68,7 @@ const SignUpPage = () => {
             className={`w-full ${buttonActiveStyle} px-5 py-[12px] rounded-lg`}
             type='submit'
             value='회원가입'
+            disabled={!isActived}
           />
         </form>
       </div>
