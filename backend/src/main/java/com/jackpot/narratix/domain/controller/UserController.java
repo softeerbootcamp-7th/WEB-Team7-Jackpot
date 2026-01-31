@@ -5,6 +5,7 @@ import com.jackpot.narratix.domain.controller.dto.LoginRequest;
 import com.jackpot.narratix.domain.controller.dto.UserTokenResponse;
 import com.jackpot.narratix.domain.service.UserService;
 import com.jackpot.narratix.global.auth.jwt.service.TokenService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -25,7 +26,7 @@ public class UserController {
     }
 
     @PostMapping("/auth/join")
-    public ResponseEntity<UserTokenResponse> join(@RequestBody JoinRequest request) {
+    public ResponseEntity<UserTokenResponse> join(@Valid @RequestBody JoinRequest request) {
 
         if (!request.getPassword().equals(request.getPasswordConfirm())) {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다");
@@ -34,7 +35,7 @@ public class UserController {
     }
 
     @PostMapping("/auth/login")
-    public ResponseEntity<UserTokenResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<UserTokenResponse> login(@Valid @RequestBody LoginRequest request) {
 
         userService.login(request);
 
