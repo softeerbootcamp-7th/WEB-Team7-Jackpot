@@ -18,6 +18,7 @@ import java.util.Map;
 public class Notification extends BaseTimeEntity {
 
     @Id
+    @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 

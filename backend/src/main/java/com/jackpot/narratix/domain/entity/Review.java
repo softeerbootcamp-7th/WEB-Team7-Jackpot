@@ -13,17 +13,18 @@ import lombok.NoArgsConstructor;
 public class Review extends BaseTimeEntity {
 
     @Id
+    @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotNull
-    @JoinColumn(name = "qna_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "qna_id", nullable = false)
     private QnA qna;
 
     @NotNull
-    @JoinColumn(name = "user_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Column(name = "comment", nullable = true)

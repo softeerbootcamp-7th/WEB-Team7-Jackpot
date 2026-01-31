@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 public class QnA extends BaseTimeEntity {
 
     @Id
+    @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
