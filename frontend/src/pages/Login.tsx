@@ -31,7 +31,7 @@ const LoginPage = () => {
         src={loginBackground}
         aria-label='백그라운드 이미지'
       />
-      <div className='w-[392px] h-[392px] flex flex-col items-center gap-6'>
+      <div className='w-[392px] h-[392px] flex flex-col justify-center items-center gap-6'>
         <div className='flex flex-col items-center gap-3'>
           <img src={titleLogo} aria-label='타이틀 로고' />
           <div className='text-center justify-start text-gray-600 text-lg font-bold line-clamp-1 select-none'>
