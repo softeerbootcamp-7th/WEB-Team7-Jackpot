@@ -5,6 +5,8 @@ import titleLogo from '/images/titleLogo.svg';
 
 import InputBarInSignUp from '@/components/signUp/InputBarInSignUp';
 
+import { INPUT_BAR_IN_SIGNUP } from '@/constants/constantsInSignUpPage';
+
 import '@/index.css';
 
 const SignUpPage = () => {
@@ -37,6 +39,13 @@ const SignUpPage = () => {
     setNicknameData(e.target.value);
   };
 
+  const saveHandlers = {
+    id: saveUserId,
+    password: saveUserPassword,
+    passwordCheck: saveUserPasswordCheck,
+    nickname: saveUserNickname,
+  }
+
   return (
     <div className='flex items-center ps-[30px] py-[30px] gap-[140px]'>
       <img
@@ -53,33 +62,15 @@ const SignUpPage = () => {
         </div>
         <form className='flex flex-col justify-center items-center gap-[60px]'>
           <div className='w-[392px] flex flex-col justify-center items-center gap-[18px]'>
-            <InputBarInSignUp
-              hintText='아이디'
-              type='text'
-              placeholder='아이디를 입력해주세요'
-              onChange={saveUserId}
-            />
-
-            <InputBarInSignUp
-              hintText='비밀번호'
-              type='password'
-              placeholder='영문 숫자 조합 8자 이상으로 설정해주세요'
-              onChange={saveUserPassword}
-            />
-
-            <InputBarInSignUp
-              hintText='비밀번호 확인'
-              type='password'
-              placeholder='설정하신 비밀번호를 입력해주세요'
-              onChange={saveUserPasswordCheck}
-            />
-
-            <InputBarInSignUp
-              hintText='사용자 이름'
-              type='text'
-              placeholder='네러틱스에서 사용하고 싶은 이름을 설정해주세요'
-              onChange={saveUserNickname}
-            />
+            {INPUT_BAR_IN_SIGNUP.map((each) => (
+              <InputBarInSignUp
+                key={each.ID}
+                hintText={each.HINT_TEXT}
+                type={each.TYPE}
+                placeholder={each.PLACEHOLDER}
+                onChange={saveHandlers[each.ID]}
+              />
+            ))}
           </div>
           <input
             className={`w-full ${buttonActiveStyle} px-5 py-[12px] rounded-lg`}
