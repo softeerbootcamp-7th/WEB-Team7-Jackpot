@@ -5,6 +5,7 @@ import titleLogo from '/images/titleLogo.svg';
 import { useNavigate } from 'react-router';
 
 import InputBar from '@/components/common/InputBar';
+import SubmitButton from '@/components/common/SubmitButton';
 
 import {
   INPUT_BAR_IN_LOGIN,
@@ -28,10 +29,6 @@ const LoginPage = () => {
   const isActived: boolean = Object.values(formData).every(
     (each) => each !== '',
   );
-
-  const buttonActiveStyle: string = isActived
-    ? 'bg-gray-900 text-white cursor-pointer'
-    : 'bg-gray-50 text-gray-400';
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -69,12 +66,7 @@ const LoginPage = () => {
                 />
               ))}
             </div>
-            <input
-              className={`w-full ${buttonActiveStyle} px-5 py-[12px] rounded-lg`}
-              type='submit'
-              disabled={!isActived}
-              value='로그인'
-            />
+            <SubmitButton isActived={isActived} value='로그인' />
           </form>
         </div>
         <button

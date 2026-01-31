@@ -3,6 +3,7 @@ import { useState } from 'react';
 import loginBackground from '/images/loginBackgroundImage.png';
 import titleLogo from '/images/titleLogo.svg';
 
+import SubmitButton from '@/components/common/SubmitButton';
 import InputBarInSignUp from '@/components/signUp/InputBarInSignUp';
 
 import { INPUT_BAR_IN_SIGNUP } from '@/constants/constantsInSignUpPage';
@@ -26,10 +27,6 @@ const SignUpPage = () => {
   const isActived: boolean = Object.values(formData).every(
     (each) => each !== '',
   );
-
-  const buttonActiveStyle: string = isActived
-    ? 'bg-gray-900 text-white cursor-pointer'
-    : 'bg-gray-50 text-gray-400';
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -64,12 +61,7 @@ const SignUpPage = () => {
               />
             ))}
           </div>
-          <input
-            className={`w-full ${buttonActiveStyle} px-5 py-[12px] rounded-lg`}
-            type='submit'
-            value='회원가입'
-            disabled={!isActived}
-          />
+          <SubmitButton isActived={isActived} value='회원가입' />
         </form>
       </div>
     </div>
