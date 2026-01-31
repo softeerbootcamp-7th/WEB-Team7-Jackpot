@@ -1,5 +1,6 @@
 package com.jackpot.narratix.domain.service;
 
+import com.jackpot.narratix.domain.controller.dto.JoinRequest;
 import com.jackpot.narratix.domain.controller.dto.LoginRequest;
 import com.jackpot.narratix.domain.entity.User;
 import com.jackpot.narratix.domain.entity.UserAuth;
@@ -22,20 +23,20 @@ public class UserService {
     }
 
     @Transactional
-    public void join(String id, String password, String nickname) {
-        if (isIdDuplicated(id)) {
+    public void join(JoinRequest request) {
+        if (isIdDuplicated(request.getUserId())) {
             throw new IllegalArgumentException("이미 존재하는 아이디");
         }
 
         User user = User.builder()
-                .id(id)
-                .nickname(nickname)
+                .id(request.getUserId())
+                .nickname(request.getNickname())
                 .build();
         userRepository.save(user);
 
         UserAuth auth = UserAuth.builder()
-                .userId(id)
-                .password(password)
+                .userId(request.getUserId())
+                .password(request.getPassword())
                 .build();
         userAuthRepository.save(auth);
     }
