@@ -1,4 +1,4 @@
-package com.jackpot.narratix.domain.entity;
+package com.jackpot.narratix.domain.entity.enums;
 
 public enum NotificationType {
 

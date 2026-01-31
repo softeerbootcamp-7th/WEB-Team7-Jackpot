@@ -1,4 +1,4 @@
-package com.jackpot.narratix.domain.entity;
+package com.jackpot.narratix.domain.entity.enums;
 
 public enum ApplyHalfType {
     FIRST_HALF, SECOND_HALF

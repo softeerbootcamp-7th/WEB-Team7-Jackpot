@@ -1,5 +1,6 @@
 package com.jackpot.narratix.domain.entity;
 
+import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
