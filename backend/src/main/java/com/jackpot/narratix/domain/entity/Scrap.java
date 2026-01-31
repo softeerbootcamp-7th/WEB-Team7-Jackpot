@@ -13,6 +13,10 @@ import lombok.NoArgsConstructor;
 public class Scrap {
 
     @Id
+    @Column(name = "qna_id")
+    private Long qnaId;
+
+    @MapsId
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "qna_id")
     private QnA qna;
