@@ -9,6 +9,12 @@ import { INPUT_BAR_IN_SIGNUP } from '@/constants/constantsInSignUpPage';
 
 import '@/index.css';
 
+interface FormDataType {
+  id: string;
+  password: string;
+  passwordCheck: string;
+  nickname: string;
+}
 const SignUpPage = () => {
   const [idData, setIdData] = useState<string>('');
   const [passwordData, setPasswordData] = useState<string>('');
@@ -19,32 +25,22 @@ const SignUpPage = () => {
     passwordData !== '' &&
     passwordCheckData !== '' &&
     nicknameData !== '';
+  const [formData, setFormData] = useState<FormDataType>({
+    id: '',
+    password: '',
+    passwordCheck: '',
+    nickname: '',
+  });
   const buttonActiveStyle: string = isActived
     ? 'bg-gray-900 text-white cursor-pointer'
     : 'bg-gray-50 text-gray-400';
 
-  const saveUserId = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setIdData(e.target.value);
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    key: keyof FormDataType,
+  ) => {
+    setFormData((prev) => ({ ...prev, [key]: e.target.value }));
   };
-
-  const saveUserPassword = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPasswordData(e.target.value);
-  };
-
-  const saveUserPasswordCheck = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPasswordCheckData(e.target.value);
-  };
-
-  const saveUserNickname = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNicknameData(e.target.value);
-  };
-
-  const saveHandlers = {
-    id: saveUserId,
-    password: saveUserPassword,
-    passwordCheck: saveUserPasswordCheck,
-    nickname: saveUserNickname,
-  }
 
   return (
     <div className='flex items-center ps-[30px] py-[30px] gap-[140px]'>
@@ -68,7 +64,7 @@ const SignUpPage = () => {
                 hintText={each.HINT_TEXT}
                 type={each.TYPE}
                 placeholder={each.PLACEHOLDER}
-                onChange={saveHandlers[each.ID]}
+                onChange={(e) => handleInputChange(e, each.ID)}
               />
             ))}
           </div>
