@@ -23,6 +23,7 @@ public class QnA extends BaseTimeEntity {
     private CoverLetter coverLetter;
 
     @NotNull
+    @Enumerated(EnumType.STRING)
     @Column(name = "question_category", nullable = false)
     private QuestionCategoryType questionCategory;
 
@@ -30,7 +31,6 @@ public class QnA extends BaseTimeEntity {
     @Column(name = "question", nullable = false, columnDefinition = "TEXT")
     private String question;
 
-    @NotNull
     @Column(name = "answer", nullable = true, columnDefinition = "TEXT")
     private String answer;
 }
