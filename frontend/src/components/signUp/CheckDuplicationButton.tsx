@@ -1,8 +1,8 @@
-interface CheckDuplicationButton {
+interface CheckDuplicationButtonProps {
   isActived: boolean;
 }
 
-const CheckDuplicationButton = ({ isActived }: CheckDuplicationButton) => {
+const CheckDuplicationButton = ({ isActived }: CheckDuplicationButtonProps) => {
   const buttonActiveStyle: string = isActived
     ? 'bg-gray-900 text-white cursor-pointer'
     : 'bg-gray-100 text-gray-400';
