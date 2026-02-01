@@ -1,9 +1,6 @@
 package com.jackpot.narratix.domain.entity;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,8 +12,10 @@ import lombok.NoArgsConstructor;
 public class User {
 
     @Id
+    @Column(length = 12, nullable = false)
     private String id;
 
+    @Column(length = 15, nullable = false)
     private String nickname;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
