@@ -4,7 +4,7 @@ import InputBar from '@/components/common/InputBar';
 import SubmitButton from '@/components/common/SubmitButton';
 import useAuthForm from '@/hooks/auth/useAuthForm';
 
-import { INPUT_BAR_IN_LOGIN } from '@/constants/constatnsInLoginPage';
+import { INPUT_BAR_IN_LOGIN } from '@/constants/constantsInLoginPage';
 import { validateId } from '@/utils/auth/validation';
 
 const LoginForm = () => {
