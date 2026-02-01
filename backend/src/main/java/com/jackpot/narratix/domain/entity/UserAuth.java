@@ -28,8 +28,7 @@ public class UserAuth {
     private User user;
 
     @Builder
-    public UserAuth(String userId, String password) {
-        this.userId = userId;
+    public UserAuth(String password) {
         this.password = password;
     }
 

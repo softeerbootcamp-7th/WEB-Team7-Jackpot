@@ -28,9 +28,13 @@ public class UserService {
         if (isIdDuplicated(request.getUserId())) {
             throw new IllegalArgumentException("이미 존재하는 아이디");
         }
+        try {
+            User user = createUser(request);
+            userRepository.save(user);
 
-        User user = createUser(request);
-        userRepository.save(user); // Cascade로 UserAuth도 자동 저장됨
+        } catch (Exception e) {
+            throw new RuntimeException("이미 존재하는 아이디로, 회원가입 실패", e);
+        }
     }
 
     private User createUser(JoinRequest request) {
@@ -42,7 +46,6 @@ public class UserService {
         String hashedPassword = BCrypt.hashpw(request.getPassword(), BCrypt.gensalt(11));
 
         UserAuth auth = UserAuth.builder()
-                .userId(request.getUserId())
                 .password(hashedPassword)
                 .build();
 
