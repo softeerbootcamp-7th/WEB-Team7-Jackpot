@@ -24,3 +24,5 @@ export const INPUT_BAR_IN_SIGNUP = [
     PLACEHOLDER: '네러틱스에서 사용하고 싶은 이름을 설정해주세요',
   },
 ] as const;
+
+export const SUB_TITLE = '회원가입' as const;
