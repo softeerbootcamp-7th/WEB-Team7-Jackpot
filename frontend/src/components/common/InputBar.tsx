@@ -11,7 +11,7 @@ const InputBar = ({
 }: InputBarProps) => {
   return (
     <input
-      className='w-full bg-gray-50 px-5 py-[14px] rounded-lg'
+      className='w-full bg-gray-50 px-5 py-[0.875rem] rounded-lg'
       type={type}
       placeholder={placeholder}
       onChange={onChange}

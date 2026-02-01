@@ -10,7 +10,7 @@ const SubmitButton = ({isActived, value}: SubmitButtonProps) => {
 
   return (
     <input
-      className={`w-full ${buttonActiveStyle} px-5 py-[12px] rounded-lg`}
+      className={`w-full ${buttonActiveStyle} px-5 py-[0.75rem] rounded-lg`}
       type='submit'
       disabled={!isActived}
       value={value}

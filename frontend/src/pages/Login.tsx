@@ -42,13 +42,13 @@ const LoginPage = () => {
   };
 
   return (
-    <div className='flex items-center ps-[30px] py-[30px] gap-[140px]'>
+    <div className='flex items-center ps-[1.875rem] py-[1.875rem] gap-[8.75rem]'>
       <img
-        className='w-[1048px] h-auto rounded-[40px]'
+        className='w-[65.5rem] h-auto rounded-[2.5rem]'
         src={loginBackground}
         aria-label='백그라운드 이미지'
       />
-      <div className='w-[392px] h-[392px] flex flex-col justify-center items-center gap-6'>
+      <div className='w-[24.5rem] h-[24.5rem] flex flex-col justify-center items-center gap-6'>
         <LogoAndSubTitle
           TitleLogoComponent={TitleLogo}
           subTitle={SUB_TITLE}
@@ -56,7 +56,7 @@ const LoginPage = () => {
         />
         <div>
           <form className='flex flex-col justify-center items-center gap-6'>
-            <div className='w-[392px] flex flex-col justify-center items-center gap-3'>
+            <div className='w-[24.5rem] flex flex-col justify-center items-center gap-3'>
               {INPUT_BAR_IN_LOGIN.map((each) => (
                 <InputBar
                   key={each.ID}
