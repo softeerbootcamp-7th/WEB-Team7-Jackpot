@@ -1,11 +1,18 @@
 interface TitleLogoProps {
   width?: string;
   height?: string;
+  ariaLabel?: string;
 }
 
-const TitleLogo = ({ width = '259', height = '51' }: TitleLogoProps) => {
+const TitleLogo = ({
+  width = '259',
+  height = '51',
+  ariaLabel = 'Narratix 로고',
+}: TitleLogoProps) => {
   return (
     <svg
+      role='img'
+      aria-label={ariaLabel}
       width={width}
       height={height}
       viewBox='0 0 259 51'
