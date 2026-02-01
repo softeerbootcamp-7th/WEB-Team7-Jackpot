@@ -13,6 +13,7 @@ import {
   SUB_TITLE,
 } from '@/constants/constatnsInLoginPage';
 import type { AuthFormData } from '@/types/auth';
+import { validateId } from '@/utils/auth/validation';
 
 import '@/index.css';
 

@@ -17,7 +17,7 @@ import {
   validateId,
   validateNickname,
   validatePassword,
-} from '@/utils/signUp/validation';
+} from '@/utils/auth/validation';
 
 import '@/index.css';
 
