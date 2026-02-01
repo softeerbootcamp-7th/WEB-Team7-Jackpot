@@ -137,8 +137,8 @@ const SignUpPage = () => {
       validateId(formData.id) &&
       validatePassword(formData.password) &&
       formData.password === formData.passwordCheck &&
-      formData.nickname.length >= 2 &&
-      validateNickname(formData.nickname),
+      (formData.nickname || '').length >= 2 &&
+      validateNickname(formData.nickname || ''),
   };
 
   return (
