@@ -1,10 +1,11 @@
 import { useState } from 'react';
 
 import loginBackground from '/images/loginBackgroundImage.png';
-import titleLogo from '/images/titleLogo.svg';
 import { useNavigate } from 'react-router';
 
+import TitleLogo from '@/components/common/icons/TitleLogo';
 import InputBar from '@/components/common/InputBar';
+import LogoAndSubTitle from '@/components/common/LogoAndSubTitle';
 import SubmitButton from '@/components/common/SubmitButton';
 
 import {
@@ -48,12 +49,11 @@ const LoginPage = () => {
         aria-label='백그라운드 이미지'
       />
       <div className='w-[392px] h-[392px] flex flex-col justify-center items-center gap-6'>
-        <div className='flex flex-col items-center gap-3'>
-          <img src={titleLogo} aria-label='타이틀 로고' />
-          <div className='text-center justify-start text-gray-600 text-lg font-bold line-clamp-1 select-none'>
-            {SUB_TITLE}
-          </div>
-        </div>
+        <LogoAndSubTitle
+          TitleLogoComponent={TitleLogo}
+          subTitle={SUB_TITLE}
+          subTitleColor='text-gray-600'
+        />
         <div>
           <form className='flex flex-col justify-center items-center gap-6'>
             <div className='w-[392px] flex flex-col justify-center items-center gap-3'>

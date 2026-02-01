@@ -1,12 +1,16 @@
 import { useState } from 'react';
 
 import loginBackground from '/images/loginBackgroundImage.png';
-import titleLogo from '/images/titleLogo.svg';
 
+import TitleLogo from '@/components/common/icons/TitleLogo';
+import LogoAndSubTitle from '@/components/common/LogoAndSubTitle';
 import SubmitButton from '@/components/common/SubmitButton';
 import InputBarInSignUp from '@/components/signUp/InputBarInSignUp';
 
-import { INPUT_BAR_IN_SIGNUP } from '@/constants/constantsInSignUpPage';
+import {
+  INPUT_BAR_IN_SIGNUP,
+  SUB_TITLE,
+} from '@/constants/constantsInSignUpPage';
 
 import '@/index.css';
 
@@ -43,12 +47,11 @@ const SignUpPage = () => {
         aria-label='백그라운드 이미지'
       />
       <div className='w-[392px] h-[392px] flex flex-col justify-center items-center gap-6'>
-        <div className='flex flex-col items-center gap-3'>
-          <img src={titleLogo} aria-label='타이틀 로고' />
-          <div className='text-center justify-start text-gray-950 text-lg font-bold line-clamp-1 select-none'>
-            회원가입
-          </div>
-        </div>
+        <LogoAndSubTitle
+          TitleLogoComponent={TitleLogo}
+          subTitle={SUB_TITLE}
+          subTitleColor='text-gray-950'
+        />
         <form className='flex flex-col justify-center items-center gap-[60px]'>
           <div className='w-[392px] flex flex-col justify-center items-center gap-[18px]'>
             {INPUT_BAR_IN_SIGNUP.map((each) => (
