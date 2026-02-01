@@ -1,5 +1,6 @@
 package com.jackpot.narratix.domain.controller;
 
+import com.jackpot.narratix.domain.controller.dto.CheckIdRequest;
 import com.jackpot.narratix.domain.controller.dto.JoinRequest;
 import com.jackpot.narratix.domain.controller.dto.LoginRequest;
 import com.jackpot.narratix.domain.controller.dto.UserTokenResponse;
@@ -21,8 +22,11 @@ public class UserController {
     private final TokenService tokenService;
 
     @PostMapping("/auth")
-    public boolean checkId(@RequestBody String userId) {
-        return userService.isIdDuplicated(userId);
+    public ResponseEntity<Void> checkId(@Valid @RequestBody CheckIdRequest request) {
+        if (userService.isIdDuplicated(request.getUserId())) {
+            throw new IllegalArgumentException("이미 사용 중인 아이디입니다");
+        }
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/auth/join")
