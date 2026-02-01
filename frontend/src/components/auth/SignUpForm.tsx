@@ -37,7 +37,12 @@ const SignUpForm = () => {
 
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
-      const newMsg = { ...statusMsg };
+      const newMsg: AuthFormData = {
+        id: '',
+        password: '',
+        passwordCheck: '',
+        nickname: '',
+      };
       let isMatch = false;
 
       if (formData.id) {
@@ -86,7 +91,7 @@ const SignUpForm = () => {
     }, 1000);
 
     return () => clearTimeout(debounceTimer);
-  }, [formData, statusMsg]);
+  }, [formData]);
 
   const isActived: isActivedType = {
     id: validateId(formData.id),
