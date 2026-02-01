@@ -31,6 +31,7 @@ const LoginForm = () => {
         <SubmitButton isActived={isActived} value='로그인' />
       </form>
       <button
+        type='button'
         onClick={() => navigate('/signup')}
         className='text-gray-600 font-medium text-base cursor-pointer'
       >
