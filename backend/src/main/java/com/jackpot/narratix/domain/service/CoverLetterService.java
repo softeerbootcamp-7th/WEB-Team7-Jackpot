@@ -8,11 +8,15 @@ import com.jackpot.narratix.domain.entity.User;
 import com.jackpot.narratix.domain.repository.CoverLetterRepository;
 import com.jackpot.narratix.domain.repository.QnARepository;
 import com.jackpot.narratix.domain.repository.UserRepository;
+import com.jackpot.narratix.global.exception.BaseException;
+import com.jackpot.narratix.global.exception.GlobalErrorCode;
 import jakarta.transaction.Transactional;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -38,4 +42,13 @@ public class CoverLetterService {
         return new CreateCoverLetterResponse(newCoverLetter.getId());
     }
 
+    public void deleteCoverLetterById(String userId, @NotNull Long coverLetterId) {
+        Optional<CoverLetter> coverLetterOptional = coverLetterRepository.findById(coverLetterId);
+        if(coverLetterOptional.isEmpty()) return;
+        if(!coverLetterOptional.get().getUser().getId().equals(userId)){
+            throw new BaseException(GlobalErrorCode.FORBIDDEN);
+        }
+
+        coverLetterRepository.deleteById(coverLetterId);
+    }
 }
