@@ -56,7 +56,7 @@ class CoverLetterControllerTest {
         // given
         CreateQuestionRequest questionRequest = new CreateQuestionRequest(
                 "지원동기를 작성해주세요.",
-                QuestionCategoryType.MOTIVATION
+                QuestionCategoryType.MOTIVATION.getDescription()
         );
 
         CreateCoverLetterRequest request = new CreateCoverLetterRequest(
@@ -86,7 +86,7 @@ class CoverLetterControllerTest {
         // given
         CreateQuestionRequest questionRequest = new CreateQuestionRequest(
                 "지원동기를 작성해주세요.",
-                QuestionCategoryType.MOTIVATION
+                QuestionCategoryType.MOTIVATION.getDescription()
         );
 
         CreateCoverLetterRequest request = new CreateCoverLetterRequest(
@@ -112,7 +112,7 @@ class CoverLetterControllerTest {
         // given: 채용 분기가 null
         CreateQuestionRequest questionRequest = new CreateQuestionRequest(
                 "지원동기를 작성해주세요.",
-                QuestionCategoryType.MOTIVATION
+                QuestionCategoryType.MOTIVATION.getDescription()
         );
 
         CreateCoverLetterRequest request = new CreateCoverLetterRequest(
@@ -138,7 +138,7 @@ class CoverLetterControllerTest {
         // Given: 직무명이 null
         CreateQuestionRequest questionRequest = new CreateQuestionRequest(
                 "지원동기를 작성해주세요.",
-                QuestionCategoryType.MOTIVATION
+                QuestionCategoryType.MOTIVATION.getDescription()
         );
 
         CreateCoverLetterRequest request = new CreateCoverLetterRequest(
@@ -164,7 +164,7 @@ class CoverLetterControllerTest {
         // Given: 마감일이 null
         CreateQuestionRequest questionRequest = new CreateQuestionRequest(
                 "지원동기를 작성해주세요.",
-                QuestionCategoryType.MOTIVATION
+                QuestionCategoryType.MOTIVATION.getDescription()
         );
 
         CreateCoverLetterRequest request = new CreateCoverLetterRequest(
@@ -194,7 +194,7 @@ class CoverLetterControllerTest {
         // Given: 질문이 1개
         CreateQuestionRequest questionRequest = new CreateQuestionRequest(
                 "지원동기를 작성해주세요.",
-                QuestionCategoryType.MOTIVATION
+                QuestionCategoryType.MOTIVATION.getDescription()
         );
 
         CreateCoverLetterRequest request = new CreateCoverLetterRequest(
@@ -220,15 +220,15 @@ class CoverLetterControllerTest {
         // Given: 질문이 3개
         CreateQuestionRequest question1 = new CreateQuestionRequest(
                 "지원동기를 작성해주세요.",
-                QuestionCategoryType.MOTIVATION
+                QuestionCategoryType.MOTIVATION.getDescription()
         );
         CreateQuestionRequest question2 = new CreateQuestionRequest(
                 "협업 경험을 작성해주세요.",
-                QuestionCategoryType.TEAMWORK_EXPERIENCE
+                QuestionCategoryType.TEAMWORK_EXPERIENCE.getDescription()
         );
         CreateQuestionRequest question3 = new CreateQuestionRequest(
                 "가치관을 작성해주세요.",
-                QuestionCategoryType.VALUES
+                QuestionCategoryType.VALUES.getDescription()
         );
 
         CreateCoverLetterRequest request = new CreateCoverLetterRequest(
@@ -275,19 +275,19 @@ class CoverLetterControllerTest {
         // Given: 질문이 4개
         CreateQuestionRequest question1 = new CreateQuestionRequest(
                 "지원동기를 작성해주세요.",
-                QuestionCategoryType.MOTIVATION
+                QuestionCategoryType.MOTIVATION.getDescription()
         );
         CreateQuestionRequest question2 = new CreateQuestionRequest(
                 "협업 경험을 작성해주세요.",
-                QuestionCategoryType.TEAMWORK_EXPERIENCE
+                QuestionCategoryType.TEAMWORK_EXPERIENCE.getDescription()
         );
         CreateQuestionRequest question3 = new CreateQuestionRequest(
                 "가치관을 작성해주세요.",
-                QuestionCategoryType.VALUES
+                QuestionCategoryType.VALUES.getDescription()
         );
         CreateQuestionRequest question4 = new CreateQuestionRequest(
                 "직무역량을 작성해주세요.",
-                QuestionCategoryType.JOB_SKILL
+                QuestionCategoryType.JOB_SKILL.getDescription()
         );
 
         CreateCoverLetterRequest request = new CreateCoverLetterRequest(

@@ -2,6 +2,7 @@ package com.jackpot.narratix.domain.entity.enums;
 
 import java.util.Arrays;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,6 +24,7 @@ public enum QuestionCategoryType {
     SOCIAL_TOPIC("사회이슈"),
     OTHER("기타");
 
+    @JsonValue
     private final String description;
 
     public static QuestionCategoryType fromDescription(String description) {
