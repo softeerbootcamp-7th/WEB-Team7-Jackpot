@@ -23,7 +23,7 @@ public class UserAuth extends BaseTimeEntity {
 
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
-    @JoinColumn(name = "userId")
+    @JoinColumn(name = "user_id")
     private User user;
 
     @Builder
