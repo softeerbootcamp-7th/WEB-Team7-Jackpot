@@ -24,4 +24,10 @@ public class User extends BaseTimeEntity {
     @NotBlank
     @Column(name = "nickname", nullable = false)
     private String nickname;
+
+    public static User createUserReference(String userId) {
+        User user = new User();
+        user.id = userId;
+        return user;
+    }
 }
