@@ -14,25 +14,25 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
 
-    @PostMapping("/auth")
+    @PostMapping("/checkid")
     public ResponseEntity<Void> checkId(@Valid @RequestBody CheckIdRequest request) {
         userService.checkIdAvailable(request.getUserId());
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/auth/join")
+    @PostMapping("/join")
     public ResponseEntity<UserTokenResponse> join(@Valid @RequestBody JoinRequest request) {
-        var tokens = userService.join(request);
+        TokenResponse tokens = userService.join(request);
         return createTokenResponse(tokens);
     }
 
-    @PostMapping("/auth/login")
+    @PostMapping("/login")
     public ResponseEntity<UserTokenResponse> login(@Valid @RequestBody LoginRequest request) {
         var tokens = userService.login(request);
         return createTokenResponse(tokens);
