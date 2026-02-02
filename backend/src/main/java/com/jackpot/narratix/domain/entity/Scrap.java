@@ -7,21 +7,21 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
+@Table(name = "scrap")
 @Getter
-@Table(name = "user_auth")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class UserAuth extends BaseTimeEntity {
+public class Scrap {
 
     @Id
-    @Column(name = "user_id")
-    private String userId;
+    @Column(name = "qna_id")
+    private Long qnaId;
 
     @MapsId
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "qna_id")
+    private QnA qna;
 
     @NotNull
-    @Column(name = "password", nullable = false)
-    private String password;
+    @Column(name = "user_id", nullable = false)
+    private String userId;
 }
