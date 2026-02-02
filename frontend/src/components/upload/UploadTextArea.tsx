@@ -1,6 +1,9 @@
+import { useState } from 'react';
+
 import TextDocumentIcon from './icons/TextDocumentIcon';
 
 const UploadTextArea = () => {
+  const [tabState, setTabState] = useState<1 | 2 | 3>(1);
   return (
     <div className='flex flex-col gap-6'>
       <div className='px-[1.5rem] py-[1.25rem] rounded-lg select-none bg-purple-50 select-none'>
@@ -16,13 +19,22 @@ const UploadTextArea = () => {
         </div>
       </div>
       <div className='text-[1.125rem]'>
-        <button className='px-4 py-2 font-bold text-gray-600 bg-gray-50 rounded-lg cursor-pointer'>
+        <button
+          onClick={() => setTabState(1)}
+          className={`px-4 py-2 cursor-pointer rounded-lg ${tabState === 1 ? 'bg-gray-50 font-bold text-gray-600' : 'text-gray-400'}`}
+        >
           자기소개서 01
         </button>
-        <button className='px-4 py-2 text-gray-400 cursor-pointer'>
+        <button
+          onClick={() => setTabState(2)}
+          className={`px-4 py-2 cursor-pointer rounded-lg ${tabState === 2 ? 'bg-gray-50 font-bold text-gray-600' : 'text-gray-400'}`}
+        >
           자기소개서 02
         </button>
-        <button className='px-4 py-2 text-gray-400 cursor-pointer'>
+        <button
+          onClick={() => setTabState(3)}
+          className={`px-4 py-2 cursor-pointer rounded-lg ${tabState === 3 ? 'bg-gray-50 font-bold text-gray-600' : 'text-gray-400'}`}
+        >
           자기소개서 03
         </button>
       </div>
@@ -49,7 +61,10 @@ const UploadTextArea = () => {
               </div>
             </div>
           </div>
-          <textarea id='text' className='w-full min-h-64 resize-none outline-none bg-gray-50 rounded-lg'></textarea>
+          <textarea
+            id='text'
+            className='w-full min-h-64 resize-none outline-none bg-gray-50 rounded-lg'
+          ></textarea>
         </div>
       </div>
     </div>
