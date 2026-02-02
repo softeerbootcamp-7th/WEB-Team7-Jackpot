@@ -4,18 +4,11 @@ import DocumentBoxIcon from '@/components/upload/icons/DocumentBoxIcon';
 import FileUploadIcon from '@/components/upload/icons/FileUploadIcon';
 import TextUploadIcon from '@/components/upload/icons/TextUploadIcon';
 import StepItem from '@/components/upload/StepItem';
+import TabButton from '@/components/upload/TabButton';
 import UploadAreaLayout from '@/components/upload/UploadFileArea';
 
 const UploadPage = () => {
-  const [uploadTab, setUploadTab] = useState<0 | 1>(0);
-
-  const handleTabChange = () => {
-    if (uploadTab) {
-      setUploadTab(0);
-    } else {
-      setUploadTab(1);
-    }
-  };
+  const [uploadTab, setUploadTab] = useState<'file' | 'text'>('file');
 
   return (
     <div>
@@ -38,20 +31,18 @@ const UploadPage = () => {
         <div className='flex flex-col gap-4 p-4 border border-gray-100 rounded-2xl'>
           <div className='flex items-center justify-between'>
             <div className='flex items-center'>
-              <button
-                className='flex items-center gap-[0.375rem] px-[1.125rem] py-3 bg-purple-50 rounded-lg cursor-pointer'
-                onClick={handleTabChange}
-              >
-                <FileUploadIcon />
-                <div className='text-purple-600 font-bold'>파일 업로드하기</div>
-              </button>
-              <button
-                className='flex items-center gap-[0.375rem] px-[1.125rem] py-3 rounded-lg cursor-pointer'
-                onClick={handleTabChange}
-              >
-                <TextUploadIcon />
-                <div className='text-gray-600 font-normal'>텍스트 붙여넣기</div>
-              </button>
+              <TabButton
+                isActived={uploadTab === 'file'}
+                onClick={() => setUploadTab('file')}
+                icon={<FileUploadIcon />}
+                label='파일 업로드하기'
+              />
+              <TabButton
+                isActived={uploadTab === 'text'}
+                onClick={() => setUploadTab('text')}
+                icon={<TextUploadIcon />}
+                label='텍스트 붙여넣기'
+              />
             </div>
             <div className='flex items-center gap-6'>
               <div className='flex items-center text-gray-400 gap-1 select-none'>
@@ -66,7 +57,7 @@ const UploadPage = () => {
               </button>
             </div>
           </div>
-          {uploadTab ? <></> : <UploadAreaLayout />}
+          {uploadTab === 'file' ? <UploadAreaLayout /> : <></>}
         </div>
       </div>
     </div>
