@@ -116,7 +116,7 @@ const SignUpForm = () => {
           return (
             <InputBarInSignUp
               key={each.ID}
-              hintText={each.HINT_TEXT}
+              label={each.LABEL}
               type={each.TYPE}
               placeholder={each.PLACEHOLDER}
               maxLength={each.MAX_LENGTH}
