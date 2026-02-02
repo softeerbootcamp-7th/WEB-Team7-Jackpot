@@ -25,6 +25,8 @@ public class UserService {
     private final TokenService tokenService;
     private final EntityManager entityManager;
 
+    private static final int BCRYPT_SALT_ROUNDS = 11;
+
     public boolean isIdDuplicated(String id) {
         return userAuthRepository.existsById(id);
     }
@@ -64,7 +66,7 @@ public class UserService {
                 .nickname(request.getNickname())
                 .build();
 
-        String hashedPassword = BCrypt.hashpw(request.getPassword(), BCrypt.gensalt(11));
+        String hashedPassword = BCrypt.hashpw(request.getPassword(), BCrypt.gensalt(BCRYPT_SALT_ROUNDS));
 
         UserAuth auth = UserAuth.builder()
                 .password(hashedPassword)
