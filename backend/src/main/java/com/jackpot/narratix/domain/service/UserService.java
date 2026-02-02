@@ -57,7 +57,7 @@ public class UserService {
         } catch (DataIntegrityViolationException e) {
             throw new BaseException(UserErrorCode.DUPLICATE_USER_ID);
         } catch (Exception e) {
-            throw new BaseException(GlobalErrorCode.INTERNAL_SERVER_ERROR);
+            throw new BaseException(GlobalErrorCode.INTERNAL_SERVER_ERROR, e);
         }
     }
 
