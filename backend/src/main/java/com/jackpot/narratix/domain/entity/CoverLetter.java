@@ -46,9 +46,9 @@ public class CoverLetter extends BaseTimeEntity{
     @Column(name = "deadline", nullable = false)
     private LocalDate deadline;
 
-    public static CoverLetter from(String userId, CreateCoverLetterRequest request){
+    public static CoverLetter from(User user, CreateCoverLetterRequest request){
         CoverLetter coverLetter = new CoverLetter();
-        coverLetter.user = User.createUserReference(userId);
+        coverLetter.user = user;
         coverLetter.companyName = request.getCompanyName();
         coverLetter.applyYear = request.getApplyYear();
         coverLetter.applyHalf = request.getApplyHalf();
