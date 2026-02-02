@@ -5,7 +5,7 @@ import com.jackpot.narratix.domain.controller.dto.JoinRequest;
 import com.jackpot.narratix.domain.controller.dto.LoginRequest;
 import com.jackpot.narratix.domain.controller.dto.UserTokenResponse;
 import com.jackpot.narratix.domain.service.UserService;
-import com.jackpot.narratix.global.auth.jwt.service.TokenService;
+import com.jackpot.narratix.global.auth.jwt.service.dto.TokenResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
-    private final TokenService tokenService;
 
     @PostMapping("/auth")
     public ResponseEntity<Void> checkId(@Valid @RequestBody CheckIdRequest request) {
@@ -29,21 +28,17 @@ public class UserController {
 
     @PostMapping("/auth/join")
     public ResponseEntity<UserTokenResponse> join(@Valid @RequestBody JoinRequest request) {
-        userService.join(request);
-        return createTokenResponse(request.getUserId());
+        var tokens = userService.join(request);
+        return createTokenResponse(tokens);
     }
 
     @PostMapping("/auth/login")
     public ResponseEntity<UserTokenResponse> login(@Valid @RequestBody LoginRequest request) {
-
-        userService.login(request);
-
-        return createTokenResponse(request.getUserId());
+        var tokens = userService.login(request);
+        return createTokenResponse(tokens);
     }
 
-    private ResponseEntity<UserTokenResponse> createTokenResponse(String userId) {
-
-        var tokens = tokenService.issueToken(userId);
+    private ResponseEntity<UserTokenResponse> createTokenResponse(TokenResponse tokens) {
         String accessTokenValue = tokens.getAccessToken();
         String refreshTokenValue = tokens.getRefreshToken();
 
