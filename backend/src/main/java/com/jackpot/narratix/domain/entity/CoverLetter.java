@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "coverletter")
@@ -44,6 +46,9 @@ public class CoverLetter extends BaseTimeEntity{
 
     @Column(name = "deadline", nullable = true)
     private LocalDate deadline;
+
+    @OneToMany(mappedBy = "coverletter", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<QnA> qnAs = new ArrayList<>();
 
     public static CoverLetter from(User user, CreateCoverLetterRequest request){
         CoverLetter coverLetter = new CoverLetter();
