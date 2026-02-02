@@ -2,6 +2,9 @@ package com.jackpot.narratix.global.auth.jwt.service;
 
 import com.jackpot.narratix.global.auth.jwt.JwtConstants;
 import com.jackpot.narratix.global.auth.jwt.domain.Token;
+import com.jackpot.narratix.global.auth.jwt.exception.JwtError;
+import com.jackpot.narratix.global.auth.jwt.exception.JwtException;
+import com.jackpot.narratix.global.exception.BaseException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -34,15 +37,15 @@ public class JwtTokenParser {
                     .parseSignedClaims(rawToken)
                     .getPayload();
         } catch (ExpiredJwtException e) {
-            return e.getClaims();
+            throw new BaseException(JwtError.EXPIRED_TOKEN);
         }
     }
 
     private String extractPrefix(String accessToken) {
+        accessToken = accessToken.trim();
         if (StringUtils.hasText(accessToken) && accessToken.startsWith(JwtConstants.BEARER)) {
             return accessToken.substring(JwtConstants.BEARER.length());
         }
-        // TODO: 커스텀 예외 처리 추가
-        throw new IllegalArgumentException();
+        throw new JwtException(JwtError.MALFORMED_TOKEN);
     }
 }
