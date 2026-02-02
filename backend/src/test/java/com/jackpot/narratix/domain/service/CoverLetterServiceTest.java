@@ -11,6 +11,8 @@ import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
 import com.jackpot.narratix.domain.repository.CoverLetterRepository;
 import com.jackpot.narratix.domain.repository.QnARepository;
 import com.jackpot.narratix.domain.repository.UserRepository;
+import com.jackpot.narratix.global.exception.BaseException;
+import com.jackpot.narratix.global.exception.GlobalErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,8 +23,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
@@ -157,5 +161,70 @@ class CoverLetterServiceTest {
         assertThat(response.coverLetterId()).isEqualTo(1L);
 
         verify(coverLetterRepository, times(1)).save(any(CoverLetter.class));
+    }
+
+    @Test
+    @DisplayName("자기소개서 삭제 성공")
+    void deleteCoverLetterById_Success() {
+        // given
+        String userId = "testUser123";
+        Long coverLetterId = 1L;
+
+        User mockUser = mock(User.class);
+        given(mockUser.getId()).willReturn(userId);
+
+        CoverLetter mockCoverLetter = mock(CoverLetter.class);
+        given(mockCoverLetter.getUser()).willReturn(mockUser);
+
+        given(coverLetterRepository.findById(coverLetterId)).willReturn(Optional.of(mockCoverLetter));
+
+        // when
+        coverLetterService.deleteCoverLetterById(userId, coverLetterId);
+
+        // then
+        verify(coverLetterRepository, times(1)).findById(coverLetterId);
+        verify(coverLetterRepository, times(1)).deleteById(coverLetterId);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 자기소개서 삭제 시 아무 일도 일어나지 않음")
+    void deleteCoverLetterById_NonExistCoverLetter() {
+        // given
+        String userId = "testUser123";
+        Long coverLetterId = 999L;
+
+        given(coverLetterRepository.findById(coverLetterId)).willReturn(Optional.empty());
+
+        // when
+        coverLetterService.deleteCoverLetterById(userId, coverLetterId);
+
+        // then
+        verify(coverLetterRepository, times(1)).findById(coverLetterId);
+        verify(coverLetterRepository, never()).deleteById(anyLong());
+    }
+
+    @Test
+    @DisplayName("다른 사용자의 자기소개서 삭제 시 권한 예외 발생")
+    void deleteCoverLetterById_Forbidden() {
+        // given
+        String userId = "testUser123";
+        String anotherUserId = "anotherUser456";
+        Long coverLetterId = 1L;
+
+        User mockUser = mock(User.class);
+        given(mockUser.getId()).willReturn(anotherUserId);
+
+        CoverLetter mockCoverLetter = mock(CoverLetter.class);
+        given(mockCoverLetter.getUser()).willReturn(mockUser);
+
+        given(coverLetterRepository.findById(coverLetterId)).willReturn(Optional.of(mockCoverLetter));
+
+        // when & then
+        assertThatThrownBy(() -> coverLetterService.deleteCoverLetterById(userId, coverLetterId))
+                .isInstanceOf(BaseException.class)
+                .hasFieldOrPropertyWithValue("errorCode", GlobalErrorCode.FORBIDDEN);
+
+        verify(coverLetterRepository, times(1)).findById(coverLetterId);
+        verify(coverLetterRepository, never()).deleteById(anyLong());
     }
 }
