@@ -1,7 +1,7 @@
 package com.jackpot.narratix.global.auth.jwt.service;
 
 import com.jackpot.narratix.global.auth.jwt.domain.Token;
-import io.jsonwebtoken.JwtException;
+import com.jackpot.narratix.global.auth.jwt.exception.JwtException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

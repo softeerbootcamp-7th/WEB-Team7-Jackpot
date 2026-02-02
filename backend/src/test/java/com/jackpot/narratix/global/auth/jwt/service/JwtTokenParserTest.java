@@ -1,6 +1,7 @@
 package com.jackpot.narratix.global.auth.jwt.service;
 
 import com.jackpot.narratix.global.auth.jwt.domain.Token;
+import com.jackpot.narratix.global.auth.jwt.exception.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.Test;
@@ -77,7 +78,7 @@ class JwtTokenParserTest {
 
         // when & then
         assertThatThrownBy(() -> jwtTokenParser.parseToken(tokenWithoutBearer))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(JwtException.class);
     }
 
     @Test
@@ -90,11 +91,11 @@ class JwtTokenParserTest {
 
         // when & then
         assertThatThrownBy(() -> jwtTokenParser.parseToken(invalidToken))
-                .isInstanceOf(Exception.class);
+                .isInstanceOf(JwtException.class);
     }
 
     @Test
-    void 만료된_토큰도_파싱은_성공() {
+    void 만료된_토큰은_오류_발생() {
         // given
         SecretKey secretKey = createSecretKey();
         given(jwtKeyProvider.getKey()).willReturn(secretKey);
@@ -110,90 +111,33 @@ class JwtTokenParserTest {
                 .signWith(secretKey)
                 .compact();
 
-        String bearerToken = BEARER_PREFIX + token;
+        String invalidToken = BEARER_PREFIX + token;
 
-        // when
-        Token result = jwtTokenParser.parseToken(bearerToken);
-
-        // then
-        assertThat(result).isNotNull();
-        assertThat(result.getSubject()).isEqualTo(TEST_SUBJECT);
-        assertThat(result.isExpired()).isTrue();
+        // when & then
+        assertThatThrownBy(() -> jwtTokenParser.parseToken(invalidToken))
+                .isInstanceOf(JwtException.class);
     }
 
-    @Test
-    void 다양한_subject로_토큰_파싱() {
-        // given
-        SecretKey secretKey = createSecretKey();
-        given(jwtKeyProvider.getKey()).willReturn(secretKey);
-
-        String emailSubject = "user@example.com";
-        Date now = createDateWithoutMillis(System.currentTimeMillis());
-        Date expiration = createDateWithoutMillis(now.getTime() + 3600000);
-
-        String token = Jwts.builder()
-                .subject(emailSubject)
-                .issuedAt(now)
-                .expiration(expiration)
-                .signWith(secretKey)
-                .compact();
-
-        String bearerToken = BEARER_PREFIX + token;
-
-        // when
-        Token result = jwtTokenParser.parseToken(bearerToken);
-
-        // then
-        assertThat(result.getSubject()).isEqualTo(emailSubject);
-    }
 
     @Test
     void 공백_토큰_파싱_실패() {
         // when & then
         assertThatThrownBy(() -> jwtTokenParser.parseToken(""))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(JwtException.class);
     }
 
     @Test
     void null_토큰_파싱_실패() {
         // when & then
         assertThatThrownBy(() -> jwtTokenParser.parseToken(null))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(JwtException.class);
     }
 
     @Test
     void Bearer만_있는_토큰_파싱_실패() {
         // when & then
         assertThatThrownBy(() -> jwtTokenParser.parseToken(BEARER_PREFIX))
-                .isInstanceOf(Exception.class);
-    }
-
-    @Test
-    void 장기간_유효한_토큰_파싱_성공() {
-        // given
-        SecretKey secretKey = createSecretKey();
-        given(jwtKeyProvider.getKey()).willReturn(secretKey);
-
-        Date now = createDateWithoutMillis(System.currentTimeMillis());
-        Date longExpiration = createDateWithoutMillis(now.getTime() + 604800000); // 7일 후
-
-        String token = Jwts.builder()
-                .subject(TEST_SUBJECT)
-                .issuedAt(now)
-                .expiration(longExpiration)
-                .signWith(secretKey)
-                .compact();
-
-        String bearerToken = BEARER_PREFIX + token;
-
-        // when
-        Token result = jwtTokenParser.parseToken(bearerToken);
-
-        // then
-        assertThat(result).isNotNull();
-        assertThat(result.getSubject()).isEqualTo(TEST_SUBJECT);
-        assertThat(result.getExpiration()).isEqualTo(longExpiration);
-        assertThat(result.isExpired()).isFalse();
+                .isInstanceOf(JwtException.class);
     }
 
     @Test

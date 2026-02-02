@@ -4,10 +4,10 @@ import com.jackpot.narratix.global.auth.jwt.JwtConstants;
 import com.jackpot.narratix.global.auth.jwt.domain.Token;
 import com.jackpot.narratix.global.auth.jwt.exception.JwtError;
 import com.jackpot.narratix.global.auth.jwt.exception.JwtException;
-import com.jackpot.narratix.global.exception.BaseException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -37,11 +37,16 @@ public class JwtTokenParser {
                     .parseSignedClaims(rawToken)
                     .getPayload();
         } catch (ExpiredJwtException e) {
-            throw new BaseException(JwtError.EXPIRED_TOKEN);
+            throw new JwtException(JwtError.EXPIRED_TOKEN);
+        } catch (MalformedJwtException e){
+            throw new JwtException(JwtError.MALFORMED_TOKEN);
         }
     }
 
     private String extractPrefix(String accessToken) {
+        if(accessToken == null) {
+            throw new JwtException(JwtError.MALFORMED_TOKEN);
+        }
         accessToken = accessToken.trim();
         if (StringUtils.hasText(accessToken) && accessToken.startsWith(JwtConstants.BEARER)) {
             return accessToken.substring(JwtConstants.BEARER.length());
