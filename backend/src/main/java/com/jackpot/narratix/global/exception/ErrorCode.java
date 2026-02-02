@@ -1,7 +1,9 @@
 package com.jackpot.narratix.global.exception;
 
+import org.springframework.http.HttpStatus;
+
 public interface ErrorCode {
 
-    int getStatus();
+    HttpStatus getStatus();
     String getMessage();
 }
