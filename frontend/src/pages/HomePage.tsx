@@ -1,6 +1,6 @@
-import SummaryOverview from '@/components/home/SummaryOverview';
 import CoverLetterOverview from '@/components/home/CoverLetterOverview';
 import ScheduleOverview from '@/components/home/ScheduleOverview';
+import SummaryOverview from '@/components/home/SummaryOverview';
 
 const HomePage = () => {
   return (
