@@ -49,11 +49,11 @@ public class CoverLetter extends BaseTimeEntity{
     public static CoverLetter from(User user, CreateCoverLetterRequest request){
         CoverLetter coverLetter = new CoverLetter();
         coverLetter.user = user;
-        coverLetter.companyName = request.getCompanyName();
-        coverLetter.applyYear = request.getApplyYear();
-        coverLetter.applyHalf = request.getApplyHalf();
-        coverLetter.jobPosition = request.getJobPosition();
-        coverLetter.deadline = request.getDeadline();
+        coverLetter.companyName = request.companyName();
+        coverLetter.applyYear = request.applyYear();
+        coverLetter.applyHalf = request.applyHalf();
+        coverLetter.jobPosition = request.jobPosition();
+        coverLetter.deadline = request.deadline();
         return coverLetter;
     }
 }

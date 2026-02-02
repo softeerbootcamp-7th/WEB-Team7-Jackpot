@@ -2,17 +2,10 @@ package com.jackpot.narratix.domain.controller.request;
 
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 
-@Getter
-@AllArgsConstructor(access = lombok.AccessLevel.PRIVATE)
-public class CreateQuestionRequest {
+public record CreateQuestionRequest(@NotNull String question, @NotNull QuestionCategoryType category) {
 
-    @NotNull
-    private final String question;
-
-    @NotNull
-    private final QuestionCategoryType category;
-
+    public CreateQuestionRequest(String question, String category) {
+        this(question, QuestionCategoryType.fromDescription(category));
+    }
 }

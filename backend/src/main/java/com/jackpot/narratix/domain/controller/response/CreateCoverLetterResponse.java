@@ -1,10 +1,5 @@
 package com.jackpot.narratix.domain.controller.response;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+public record CreateCoverLetterResponse(Long coverLetterId) {
 
-@AllArgsConstructor(access = AccessLevel.PUBLIC)
-public class CreateCoverLetterResponse {
-
-    private final Long coverLetterId;
 }

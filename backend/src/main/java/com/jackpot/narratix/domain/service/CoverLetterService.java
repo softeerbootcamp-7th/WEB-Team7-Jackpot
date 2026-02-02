@@ -27,7 +27,7 @@ public class CoverLetterService {
         User userReference = userRepository.getReferenceById(userId);
         CoverLetter coverLetter = CoverLetter.from(userReference, createCoverLetterRequest);
 
-        List<QnA> qnAs = createCoverLetterRequest.getQuestions()
+        List<QnA> qnAs = createCoverLetterRequest.questions()
                 .stream()
                 .map(question -> QnA.newQnA(coverLetter, question))
                 .toList();
