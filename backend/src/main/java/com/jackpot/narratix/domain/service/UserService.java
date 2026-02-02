@@ -4,10 +4,12 @@ import com.jackpot.narratix.domain.controller.dto.JoinRequest;
 import com.jackpot.narratix.domain.controller.dto.LoginRequest;
 import com.jackpot.narratix.domain.entity.User;
 import com.jackpot.narratix.domain.entity.UserAuth;
+import com.jackpot.narratix.domain.exception.UserErrorCode;
 import com.jackpot.narratix.domain.repository.UserAuthRepository;
-import com.jackpot.narratix.domain.repository.UserRepository;
 import com.jackpot.narratix.global.auth.jwt.service.TokenService;
 import com.jackpot.narratix.global.auth.jwt.service.dto.TokenResponse;
+import com.jackpot.narratix.global.exception.BaseException;
+import com.jackpot.narratix.global.exception.GlobalErrorCode;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.mindrot.jbcrypt.BCrypt;
@@ -32,18 +34,18 @@ public class UserService {
 
     public void checkIdAvailable(String userId) {
         if (isIdDuplicated(userId)) {
-            throw new IllegalArgumentException("이미 사용 중인 아이디입니다");
+            throw new BaseException(UserErrorCode.DUPLICATE_USER_ID);
         }
     }
 
     @Transactional
     public TokenResponse join(JoinRequest request) {
         if (!request.getPassword().equals(request.getPasswordConfirm())) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다");
+            throw new BaseException(UserErrorCode.PASSWORD_MISMATCH);
         }
 
         if (isIdDuplicated(request.getUserId())) {
-            throw new IllegalArgumentException("이미 존재하는 아이디");
+            throw new BaseException(UserErrorCode.DUPLICATE_USER_ID);
         }
 
         try {
@@ -53,9 +55,9 @@ public class UserService {
             return tokenService.issueToken(request.getUserId());
 
         } catch (DataIntegrityViolationException e) {
-            throw new IllegalArgumentException("이미 존재하는 아이디로 가입할 수 없습니다", e);
+            throw new BaseException(UserErrorCode.DUPLICATE_USER_ID, e);
         } catch (Exception e) {
-            throw new RuntimeException("회원가입 처리 중 오류가 발생했습니다", e);
+            throw new BaseException(GlobalErrorCode.INTERNAL_SERVER_ERROR, e);
         }
     }
 
@@ -74,10 +76,10 @@ public class UserService {
 
     public TokenResponse login(LoginRequest loginRequest) {
         UserAuth auth = userAuthRepository.findById(loginRequest.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("아이디 또는 비밀번호가 일치하지 않습니다"));
+                .orElseThrow(() -> new BaseException(UserErrorCode.INVALID_LOGIN));
 
         if (!BCrypt.checkpw(loginRequest.getPassword(), auth.getPassword())) {
-            throw new IllegalArgumentException("아이디 또는 비밀번호가 일치하지 않습니다");
+            throw new BaseException(UserErrorCode.INVALID_LOGIN);
         }
         return tokenService.issueToken(loginRequest.getUserId());
     }
