@@ -28,8 +28,11 @@ public class User extends BaseTimeEntity {
         this.nickname = nickname;
     }
 
-    public void setUserAuth(UserAuth userAuth) {
-        this.userAuth = userAuth;
-        userAuth.setUser(this);
+    public void addAuth(String password) {
+        this.userAuth = UserAuth.builder()
+                .user(this)
+                .password(password)
+                .build();
     }
+
 }

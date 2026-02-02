@@ -28,11 +28,7 @@ public class UserAuth extends BaseTimeEntity {
 
     @Builder
     public UserAuth(User user, String password) {
-        this.password = password;
-        this.setUser(user);
-    }
-
-    void setUser(User user) {
         this.user = user;
+        this.password = password;
     }
 }

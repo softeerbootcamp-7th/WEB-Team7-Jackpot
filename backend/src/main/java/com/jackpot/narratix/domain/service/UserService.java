@@ -68,11 +68,8 @@ public class UserService {
 
         String hashedPassword = BCrypt.hashpw(request.getPassword(), BCrypt.gensalt(BCRYPT_SALT_ROUNDS));
 
-        UserAuth auth = UserAuth.builder()
-                .password(hashedPassword)
-                .build();
+        user.addAuth(hashedPassword);
 
-        user.setUserAuth(auth);
         return user;
     }
 
