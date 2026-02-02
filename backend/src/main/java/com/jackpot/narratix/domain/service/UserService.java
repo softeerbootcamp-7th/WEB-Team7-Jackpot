@@ -8,8 +8,10 @@ import com.jackpot.narratix.domain.repository.UserAuthRepository;
 import com.jackpot.narratix.domain.repository.UserRepository;
 import com.jackpot.narratix.global.auth.jwt.service.TokenService;
 import com.jackpot.narratix.global.auth.jwt.service.dto.TokenResponse;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.mindrot.jbcrypt.BCrypt;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +23,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserAuthRepository userAuthRepository;
     private final TokenService tokenService;
+    private final EntityManager entityManager;
 
     public boolean isIdDuplicated(String id) {
         return userAuthRepository.existsById(id);
@@ -44,11 +47,15 @@ public class UserService {
 
         try {
             User user = createUser(request);
-            userRepository.save(user);
+            entityManager.persist(user);
+            entityManager.flush();
+            return tokenService.issueToken(request.getUserId());
+
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalArgumentException("이미 존재하는 아이디로 가입할 수 없습니다", e);
         } catch (Exception e) {
-            throw new RuntimeException("이미 존재하는 아이디로, 회원가입 실패", e);
+            throw new RuntimeException("회원가입 처리 중 오류가 발생했습니다", e);
         }
-        return tokenService.issueToken(request.getUserId());
     }
 
     private User createUser(JoinRequest request) {
