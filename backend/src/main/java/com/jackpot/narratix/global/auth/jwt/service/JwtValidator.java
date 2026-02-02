@@ -3,7 +3,6 @@ package com.jackpot.narratix.global.auth.jwt.service;
 import com.jackpot.narratix.global.auth.jwt.domain.Token;
 import com.jackpot.narratix.global.auth.jwt.exception.JwtError;
 import com.jackpot.narratix.global.auth.jwt.exception.JwtException;
-import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -16,8 +15,8 @@ public class JwtValidator {
             if (token.isExpired()) {
                 throw new JwtException(JwtError.EXPIRED_TOKEN);
             }
-        } catch (ExpiredJwtException e) {
-            throw new JwtException(JwtError.EXPIRED_TOKEN);
+        } catch (NullPointerException e) {
+            throw new JwtException(JwtError.MALFORMED_TOKEN);
         } catch (Exception e) {
             throw new JwtException(JwtError.INVALID_TOKEN);
         }
