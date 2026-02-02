@@ -7,12 +7,14 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "users")
 @Getter
+@AllArgsConstructor(access = AccessLevel.PUBLIC)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User extends BaseTimeEntity {
 
@@ -25,9 +27,4 @@ public class User extends BaseTimeEntity {
     @Column(name = "nickname", nullable = false)
     private String nickname;
 
-    public static User createUserReference(String userId) {
-        User user = new User();
-        user.id = userId;
-        return user;
-    }
 }
