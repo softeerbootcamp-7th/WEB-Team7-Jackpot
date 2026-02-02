@@ -55,7 +55,7 @@ public class UserService {
             return tokenService.issueToken(request.getUserId());
 
         } catch (DataIntegrityViolationException e) {
-            throw new BaseException(UserErrorCode.DUPLICATE_USER_ID);
+            throw new BaseException(UserErrorCode.DUPLICATE_USER_ID, e);
         } catch (Exception e) {
             throw new BaseException(GlobalErrorCode.INTERNAL_SERVER_ERROR, e);
         }
