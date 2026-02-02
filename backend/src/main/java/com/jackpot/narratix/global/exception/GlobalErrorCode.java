@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 @AllArgsConstructor
-public enum GlobalErrorCode implements ErrorCode{
+public enum GlobalErrorCode implements ErrorCode {
 
     INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "잘못된 파라미터 입력 값입니다"),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 에러입니다");

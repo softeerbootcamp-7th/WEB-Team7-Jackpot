@@ -18,6 +18,7 @@ public class ErrorResponse {
     public static ErrorResponse of(ErrorCode errorCode) {
         return new ErrorResponse(errorCode.getMessage(), Collections.emptyList());
     }
+
     public static ErrorResponse of(ErrorCode errorCode, BindingResult bindingResult) {
         return new ErrorResponse(errorCode.getMessage(), bindingResult.getFieldErrors());
     }
