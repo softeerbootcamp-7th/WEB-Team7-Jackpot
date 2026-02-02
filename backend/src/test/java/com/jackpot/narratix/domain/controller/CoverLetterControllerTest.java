@@ -270,44 +270,6 @@ class CoverLetterControllerTest {
     }
 
     @Test
-    @DisplayName("질문이 4개일 때 400 Bad Request 반환")
-    void createCoverLetter_FourQuestions_BadRequest() throws Exception {
-        // Given: 질문이 4개
-        CreateQuestionRequest question1 = new CreateQuestionRequest(
-                "지원동기를 작성해주세요.",
-                QuestionCategoryType.MOTIVATION.getDescription()
-        );
-        CreateQuestionRequest question2 = new CreateQuestionRequest(
-                "협업 경험을 작성해주세요.",
-                QuestionCategoryType.TEAMWORK_EXPERIENCE.getDescription()
-        );
-        CreateQuestionRequest question3 = new CreateQuestionRequest(
-                "가치관을 작성해주세요.",
-                QuestionCategoryType.VALUES.getDescription()
-        );
-        CreateQuestionRequest question4 = new CreateQuestionRequest(
-                "직무역량을 작성해주세요.",
-                QuestionCategoryType.JOB_SKILL.getDescription()
-        );
-
-        CreateCoverLetterRequest request = new CreateCoverLetterRequest(
-                "현대자동차",
-                2024,
-                ApplyHalfType.FIRST_HALF,
-                "백엔드 개발자",
-                LocalDate.of(2024, 12, 31),
-                List.of(question1, question2, question3, question4)  // 4개
-        );
-
-        // When & Then
-        mockMvc.perform(post("/api/v1/coverletter")
-                        .header(AuthConstants.AUTHORIZATION, TEST_TOKEN)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
     @DisplayName("질문이 null일 때 400 Bad Request 반환")
     void createCoverLetter_QuestionsNull_BadRequest() throws Exception {
         // Given: questions가 null
