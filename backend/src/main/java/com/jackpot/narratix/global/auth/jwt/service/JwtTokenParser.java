@@ -37,9 +37,9 @@ public class JwtTokenParser {
                     .parseSignedClaims(rawToken)
                     .getPayload();
         } catch (ExpiredJwtException e) {
-            throw new JwtException(JwtError.EXPIRED_TOKEN);
+            throw new JwtException(JwtError.EXPIRED_TOKEN, e);
         } catch (MalformedJwtException e){
-            throw new JwtException(JwtError.MALFORMED_TOKEN);
+            throw new JwtException(JwtError.MALFORMED_TOKEN, e);
         }
     }
 

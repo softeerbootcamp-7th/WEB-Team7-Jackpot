@@ -16,9 +16,9 @@ public class JwtValidator {
                 throw new JwtException(JwtError.EXPIRED_TOKEN);
             }
         } catch (NullPointerException e) {
-            throw new JwtException(JwtError.MALFORMED_TOKEN);
+            throw new JwtException(JwtError.MALFORMED_TOKEN, e);
         } catch (Exception e) {
-            throw new JwtException(JwtError.INVALID_TOKEN);
+            throw new JwtException(JwtError.INVALID_TOKEN, e);
         }
     }
 }

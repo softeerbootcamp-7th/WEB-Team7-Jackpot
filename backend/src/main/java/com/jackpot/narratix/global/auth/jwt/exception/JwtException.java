@@ -7,4 +7,8 @@ public class JwtException extends BaseException {
     public JwtException(JwtError jwtError) {
         super(jwtError);
     }
+
+    public JwtException(JwtError jwtError, Throwable cause) {
+        super(jwtError, cause);
+    }
 }
