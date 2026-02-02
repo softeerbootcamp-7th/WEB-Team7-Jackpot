@@ -1,12 +1,13 @@
 package com.jackpot.narratix.domain.entity;
 
+import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "coverletter")
@@ -43,5 +44,16 @@ public class CoverLetter extends BaseTimeEntity{
 
     @NotNull
     @Column(name = "deadline", nullable = false)
-    private LocalDateTime deadline;
+    private LocalDate deadline;
+
+    public static CoverLetter from(String userId, CreateCoverLetterRequest request){
+        CoverLetter coverLetter = new CoverLetter();
+        coverLetter.user = User.createUserReference(userId);
+        coverLetter.companyName = request.getCompanyName();
+        coverLetter.applyYear = request.getApplyYear();
+        coverLetter.applyHalf = request.getApplyHalf();
+        coverLetter.jobPosition = request.getJobPosition();
+        coverLetter.deadline = request.getDeadline();
+        return coverLetter;
+    }
 }
