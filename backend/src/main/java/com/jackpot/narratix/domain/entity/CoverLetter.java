@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 @Entity
 @Table(name = "coverletter")
@@ -57,6 +58,6 @@ public class CoverLetter extends BaseTimeEntity{
     }
 
     public boolean isOwner(String userId){
-        return this.user.getId().equals(userId);
+        return Objects.equals(this.user.getId(), userId);
     }
 }
