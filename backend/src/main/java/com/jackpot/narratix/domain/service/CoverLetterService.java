@@ -39,20 +39,22 @@ public class CoverLetterService {
         CoverLetter coverLetter = coverLetterRepository.findById(coverLetterId)
                 .orElseThrow(() -> new BaseException(CoverLetterErrorCode.COVER_LETTER_NOT_FOUND));
 
-        if(!coverLetter.isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
+        if (!coverLetter.isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
 
         return CoverLetterResponse.of(coverLetter);
     }
+
     @Transactional
     public void deleteCoverLetterById(String userId, Long coverLetterId) {
         Optional<CoverLetter> coverLetterOptional = coverLetterRepository.findById(coverLetterId);
-        if(coverLetterOptional.isEmpty()) return;
-        if(!coverLetterOptional.get().isOwner(userId)){
+        if (coverLetterOptional.isEmpty()) return;
+        if (!coverLetterOptional.get().isOwner(userId)) {
             throw new BaseException(GlobalErrorCode.FORBIDDEN);
         }
 
         coverLetterRepository.deleteById(coverLetterId);
     }
+
     @Transactional(readOnly = true)
     public TotalCoverLetterCountResponse getTotalCoverLetterCount(String userId, LocalDate date) {
         ApplyHalfType applyHalf = ApplyHalfType.calculateApplyHalfType(date);
