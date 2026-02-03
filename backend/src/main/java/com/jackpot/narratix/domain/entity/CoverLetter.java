@@ -27,9 +27,8 @@ public class CoverLetter extends BaseTimeEntity{
     private Long id;
 
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Column(name = "user_id", nullable = false)
+    private String userId;
 
     @NotNull
     @Column(name = "company_name", nullable = false)
@@ -54,9 +53,9 @@ public class CoverLetter extends BaseTimeEntity{
     @OneToMany(mappedBy = "coverLetter", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<QnA> qnAs = new ArrayList<>();
 
-    public static CoverLetter from(User user, CreateCoverLetterRequest request){
+    public static CoverLetter from(String userId, CreateCoverLetterRequest request){
         CoverLetter coverLetter = new CoverLetter();
-        coverLetter.user = user;
+        coverLetter.userId = userId;
         coverLetter.companyName = request.companyName();
         coverLetter.applyYear = request.applyYear();
         coverLetter.applyHalf = request.applyHalf();
@@ -66,7 +65,7 @@ public class CoverLetter extends BaseTimeEntity{
     }
 
     public boolean isOwner(String userId){
-        return Objects.equals(this.user.getId(), userId);
+        return Objects.equals(this.userId, userId);
     }
 
     public void edit(String userId, EditCoverLetterRequest request){
