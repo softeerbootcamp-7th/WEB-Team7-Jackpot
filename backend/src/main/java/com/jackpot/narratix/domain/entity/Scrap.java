@@ -13,4 +13,10 @@ public class Scrap {
 
     @EmbeddedId
     private ScrapId id;
+
+    public static Scrap of(String userId, Long qnaId) {
+        Scrap scrap = new Scrap();
+        scrap.id = new ScrapId(userId, qnaId);
+        return scrap;
+    }
 }
