@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import CoverLetterList from '@/components/upload/CoverLetterList';
-import TextDocumentIcon from '@/components/upload/icons/TextDocumentIcon';
+import { UploadPageIcons } from '@/components/upload/icons/index';
 
 const UploadTextArea = () => {
   const [tabState, setTabState] = useState<1 | 2 | 3>(1);
@@ -22,7 +22,7 @@ const UploadTextArea = () => {
     <div className='flex flex-col gap-6'>
       <div className='px-[1.5rem] py-[1.25rem] rounded-lg select-none bg-purple-50 select-none'>
         <div className='flex w-full items-center gap-[0.625rem]'>
-          <TextDocumentIcon />
+          <UploadPageIcons.TextDocumentIcon />
           <div className='font-bold text-purple-600 text-[1.375rem]'>
             최대 3개의 텍스트형 자기소개서를 업로드할 수 있어요.
           </div>

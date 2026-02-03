@@ -1,5 +1,4 @@
-import FileUploadIcon from '@/components/upload/icons/FileUploadIcon';
-import TextUploadIcon from '@/components/upload/icons/TextUploadIcon';
+import { UploadPageIcons } from '@/components/upload/icons/index';
 import TabButton from '@/components/upload/TabButton';
 
 import type { ContentAreaHeaderProps } from '@/types/upload';
@@ -15,8 +14,16 @@ const ContentAreaHeader = ({
   setUploadTab,
 }: ContentAreaHeaderProps) => {
   const tabData: TabDataType[] = [
-    { label: '파일 업로드하기', targetTab: 'file', icon: <FileUploadIcon /> },
-    { label: '텍스트 붙여넣기', targetTab: 'text', icon: <TextUploadIcon /> },
+    {
+      label: '파일 업로드하기',
+      targetTab: 'file',
+      icon: <UploadPageIcons.FileUploadIcon />,
+    },
+    {
+      label: '텍스트 붙여넣기',
+      targetTab: 'text',
+      icon: <UploadPageIcons.TextUploadIcon />,
+    },
   ];
 
   return (

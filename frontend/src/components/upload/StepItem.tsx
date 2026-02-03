@@ -1,28 +1,25 @@
-import AILabelingIcon from '@/components/upload/icons/AILabelingIcon';
-import CompleteSavedIcon from '@/components/upload/icons/CompleteSavedIcon';
-import FirstStepIcon from '@/components/upload/icons/FirstStepIcon';
-import UploadIcon from '@/components/upload/icons/UploadIcon';
+import { UploadPageIcons } from '@/components/upload/icons/index';
 
 const StepItem = () => {
   return (
     <div className='flex flex-col justify-center items-center gap-7 select-none'>
       <div className='relative w-[30.25rem] h-[9.375rem]'>
         <div className='absolute inset-0 z-0'>
-          <FirstStepIcon />
+          <UploadPageIcons.FirstStepIcon />
         </div>
         <div className='absolute inset-0 z-10 flex select-none'>
           <div className='absolute flex flex-col items-center text-white top-1/2 left-[4.6875rem] -translate-x-1/2 -translate-y-1/2'>
-            <UploadIcon color='white' />
+            <UploadPageIcons.UploadIcon color='white' />
             <div className='font-bold text-xs mt-1'>step 01</div>
             <div className='font-bold text-base'>자료 업로드</div>
           </div>
           <div className='absolute flex flex-col items-center top-1/2 left-[242px] -translate-x-1/2 -translate-y-1/2 text-gray-300'>
-            <AILabelingIcon color='var(--color-gray-200)' />
+            <UploadPageIcons.AILabelingIcon color='var(--color-gray-200)' />
             <div className='font-bold text-xs mt-1'>step 02</div>
             <div className='font-bold text-base'>AI 라벨링</div>
           </div>
           <div className='absolute flex flex-col items-center top-1/2 left-[408px] -translate-x-1/2 -translate-y-1/2 text-gray-300'>
-            <CompleteSavedIcon color='var(--color-gray-200)' />
+            <UploadPageIcons.CompleteSavedIcon color='var(--color-gray-200)' />
             <div className='font-bold text-xs mt-1'>step 03</div>
             <div className='font-bold text-base'>저장 완료</div>
           </div>

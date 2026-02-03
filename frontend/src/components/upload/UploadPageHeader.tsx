@@ -1,10 +1,10 @@
-import DocumentBoxIcon from '@/components/upload/icons/DocumentBoxIcon';
+import { UploadPageIcons } from '@/components/upload/icons/index';
 
 const UploadPageHeader = () => {
   return (
     <div className='mb-12 select-none'>
       <div className='flex w-full items-center gap-[0.625rem]'>
-        <DocumentBoxIcon />
+        <UploadPageIcons.DocumentBoxIcon />
         <div className='font-bold text-gray-950 text-[1.75rem]'>
           자료 업로드
         </div>

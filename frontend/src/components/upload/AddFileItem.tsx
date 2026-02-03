@@ -1,9 +1,9 @@
-import AddFileIcon from '@/components/upload/icons/AddFileIcon';
+import { UploadPageIcons } from '@/components/upload/icons/index';
 
 const AddFileItem = () => {
   return (
     <button className='w-[25.5rem] h-[23.5rem] flex flex-col justify-center items-center rounded-lg bg-gray-50 gap-5 cursor-pointer'>
-      <AddFileIcon />
+      <UploadPageIcons.AddFileIcon />
       <div className='flex flex-col text-center text-gray-400 gap-2 select-none'>
         <div className='font-bold text-2xl'>
           이곳을 클릭하시거나,
