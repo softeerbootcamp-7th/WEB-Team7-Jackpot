@@ -28,12 +28,10 @@ public class CoverLetterService {
 
     private final CoverLetterRepository coverLetterRepository;
     private final QnARepository qnARepository;
-    private final UserRepository userRepository;
 
     @Transactional
     public CreateCoverLetterResponse createNewCoverLetter(String userId, CreateCoverLetterRequest createCoverLetterRequest) {
-        User userReference = userRepository.getReferenceById(userId);
-        CoverLetter coverLetter = CoverLetter.from(userReference, createCoverLetterRequest);
+        CoverLetter coverLetter = CoverLetter.from(userId, createCoverLetterRequest);
 
         List<QnA> qnAs = createCoverLetterRequest.questions()
                 .stream()
@@ -59,7 +57,7 @@ public class CoverLetterService {
     public void deleteCoverLetterById(String userId, Long coverLetterId) {
         Optional<CoverLetter> coverLetterOptional = coverLetterRepository.findById(coverLetterId);
         if(coverLetterOptional.isEmpty()) return;
-        if(!coverLetterOptional.get().getUser().getId().equals(userId)){
+        if(!coverLetterOptional.get().getUserId().equals(userId)){
             throw new BaseException(GlobalErrorCode.FORBIDDEN);
         }
 
