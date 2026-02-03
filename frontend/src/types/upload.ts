@@ -9,3 +9,7 @@ export interface CoverLetterListProps {
   tabState: 1 | 2 | 3;
   setTabState: (newValue: 1 | 2 | 3) => void;
 }
+
+export interface PaginationButtonIconProps {
+  color: string;
+}
