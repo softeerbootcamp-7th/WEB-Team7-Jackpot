@@ -3,6 +3,7 @@ package com.jackpot.narratix.domain.controller;
 import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
 import com.jackpot.narratix.domain.controller.request.CreateQuestionRequest;
 import com.jackpot.narratix.domain.controller.response.CreateCoverLetterResponse;
+import com.jackpot.narratix.domain.controller.response.TotalCoverLetterCountResponse;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
 import com.jackpot.narratix.domain.service.CoverLetterService;
@@ -25,6 +26,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -270,44 +272,6 @@ class CoverLetterControllerTest {
     }
 
     @Test
-    @DisplayName("질문이 4개일 때 400 Bad Request 반환")
-    void createCoverLetter_FourQuestions_BadRequest() throws Exception {
-        // Given: 질문이 4개
-        CreateQuestionRequest question1 = new CreateQuestionRequest(
-                "지원동기를 작성해주세요.",
-                QuestionCategoryType.MOTIVATION.getDescription()
-        );
-        CreateQuestionRequest question2 = new CreateQuestionRequest(
-                "협업 경험을 작성해주세요.",
-                QuestionCategoryType.TEAMWORK_EXPERIENCE.getDescription()
-        );
-        CreateQuestionRequest question3 = new CreateQuestionRequest(
-                "가치관을 작성해주세요.",
-                QuestionCategoryType.VALUES.getDescription()
-        );
-        CreateQuestionRequest question4 = new CreateQuestionRequest(
-                "직무역량을 작성해주세요.",
-                QuestionCategoryType.JOB_SKILL.getDescription()
-        );
-
-        CreateCoverLetterRequest request = new CreateCoverLetterRequest(
-                "현대자동차",
-                2024,
-                ApplyHalfType.FIRST_HALF,
-                "백엔드 개발자",
-                LocalDate.of(2024, 12, 31),
-                List.of(question1, question2, question3, question4)  // 4개
-        );
-
-        // When & Then
-        mockMvc.perform(post("/api/v1/coverletter")
-                        .header(AuthConstants.AUTHORIZATION, TEST_TOKEN)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
     @DisplayName("질문이 null일 때 400 Bad Request 반환")
     void createCoverLetter_QuestionsNull_BadRequest() throws Exception {
         // Given: questions가 null
@@ -325,6 +289,39 @@ class CoverLetterControllerTest {
                         .header(AuthConstants.AUTHORIZATION, TEST_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("자기소개서 총 개수 조회 성공")
+    void getTotalCoverLetterCount_Success() throws Exception {
+        // given
+        LocalDate date = LocalDate.of(2024, 12, 31);
+        TotalCoverLetterCountResponse response = TotalCoverLetterCountResponse.builder()
+                .coverLetterCount(5)
+                .qnaCount(12)
+                .seasonCoverLetterCount(3)
+                .build();
+
+        given(coverLetterService.getTotalCoverLetterCount(any(), any(LocalDate.class)))
+                .willReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/api/v1/coverletter/count")
+                        .header(AuthConstants.AUTHORIZATION, TEST_TOKEN)
+                        .param("date", date.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.coverLetterCount").value(5))
+                .andExpect(jsonPath("$.qnaCount").value(12))
+                .andExpect(jsonPath("$.seasonCoverLetterCount").value(3));
+    }
+
+    @Test
+    @DisplayName("자기소개서 총 개수 조회 시 date가 없으면 400 Bad Request 반환")
+    void getTotalCoverLetterCount_DateMissing_BadRequest() throws Exception {
+        // when & then
+        mockMvc.perform(get("/api/v1/coverletter/count")
+                        .header(AuthConstants.AUTHORIZATION, TEST_TOKEN))
                 .andExpect(status().isBadRequest());
     }
 }
