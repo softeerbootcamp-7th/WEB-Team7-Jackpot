@@ -47,6 +47,7 @@ public class QnA extends BaseTimeEntity {
         qna.coverLetter = coverLetter;
         qna.questionCategory = request.category();
         qna.question = request.question();
+        qna.userId = coverLetter.getUserId();
         return qna;
     }
 }
