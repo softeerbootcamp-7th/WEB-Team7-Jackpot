@@ -10,9 +10,9 @@ import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import com.jackpot.narratix.domain.repository.CoverLetterRepository;
 import com.jackpot.narratix.domain.repository.QnARepository;
 import com.jackpot.narratix.domain.repository.UserRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -41,6 +41,7 @@ public class CoverLetterService {
         return new CreateCoverLetterResponse(newCoverLetter.getId());
     }
 
+    @Transactional(readOnly = true)
     public TotalCoverLetterCountResponse getTotalCoverLetterCount(String userId, LocalDate date) {
         ApplyHalfType applyHalf = ApplyHalfType.caculateApplyHalfType(date);
         int applyYear = date.getYear();
