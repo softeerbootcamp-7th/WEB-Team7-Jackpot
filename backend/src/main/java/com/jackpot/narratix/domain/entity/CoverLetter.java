@@ -61,6 +61,9 @@ public class CoverLetter extends BaseTimeEntity{
         coverLetter.applyHalf = request.applyHalf();
         coverLetter.jobPosition = request.jobPosition();
         coverLetter.deadline = request.deadline();
+        coverLetter.qnAs = request.questions().stream()
+                .map(question -> QnA.newQnA(coverLetter, question))
+                .toList();
         return coverLetter;
     }
 
