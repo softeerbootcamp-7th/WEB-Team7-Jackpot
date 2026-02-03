@@ -305,7 +305,7 @@ class CoverLetterControllerTest {
     }
 
     @Test
-    @DisplayName("자기소개서 삭제 시 coverLetterId가 null이면 400 Bad Request 반환")
+    @DisplayName("자기소개서 삭제 시 coverLetterId가 전달되지 않으면 400 Bad Request 반환")
     void deleteCoverLetterById_CoverLetterIdNull_BadRequest() throws Exception {
         // when & then
         mockMvc.perform(delete("/api/v1/coverletter")
