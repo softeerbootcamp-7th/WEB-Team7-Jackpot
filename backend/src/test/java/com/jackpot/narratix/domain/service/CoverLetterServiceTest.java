@@ -15,6 +15,9 @@ import com.jackpot.narratix.domain.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -22,6 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -160,22 +164,21 @@ class CoverLetterServiceTest {
         verify(coverLetterRepository, times(1)).save(any(CoverLetter.class));
     }
 
-    @Test
+    @ParameterizedTest
     @DisplayName("자기소개서 총 개수 조회 - repository 메서드 호출 검증")
-    void getTotalCoverLetterCount_RepositoryMethodCalls() {
+    @MethodSource("provideDateAndHalfType")
+    void getTotalCoverLetterCount_RepositoryMethodCalls(String dateStr, ApplyHalfType applyHalfType) {
         // given
         String userId = "testUser123";
-        LocalDate date = LocalDate.of(2024, 7, 15); // 하반기
+        LocalDate date = LocalDate.parse(dateStr);
+        int expectedYear = date.getYear();
         int expectedCoverLetterCount = 10;
         int expectedQnaCount = 25;
         int expectedSeasonCount = 5;
 
-        ApplyHalfType expectedApplyHalf = ApplyHalfType.SECOND_HALF;
-        int expectedYear = 2024;
-
         given(coverLetterRepository.countByUserId(userId)).willReturn(expectedCoverLetterCount);
         given(qnARepository.countByUserId(userId)).willReturn(expectedQnaCount);
-        given(coverLetterRepository.countByUserIdAndApplyYearAndApplyHalf(userId, expectedYear, expectedApplyHalf))
+        given(coverLetterRepository.countByUserIdAndApplyYearAndApplyHalf(userId, expectedYear, applyHalfType))
                 .willReturn(expectedSeasonCount);
 
         // when
@@ -190,6 +193,13 @@ class CoverLetterServiceTest {
         verify(coverLetterRepository, times(1)).countByUserId(userId);
         verify(qnARepository, times(1)).countByUserId(userId);
         verify(coverLetterRepository, times(1))
-                .countByUserIdAndApplyYearAndApplyHalf(userId, expectedYear, expectedApplyHalf);
+                .countByUserIdAndApplyYearAndApplyHalf(userId, expectedYear, applyHalfType);
+    }
+
+    static Stream<Arguments> provideDateAndHalfType() {
+        return Stream.of(
+                Arguments.of("2026-06-30", ApplyHalfType.FIRST_HALF),
+                Arguments.of("2024-07-01", ApplyHalfType.SECOND_HALF)
+        );
     }
 }
