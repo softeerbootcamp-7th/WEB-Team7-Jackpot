@@ -19,6 +19,9 @@ public class LibraryService {
     private final QnARepository qnARepository;
 
     public List<String> getLibraryList(String userId, GetLibraryListRequest request) {
+        if (request.type() == null) {
+            throw new BaseException(LibraryErrorCode.INVALID_LIBRARY_TYPE);
+        }
         return switch (request.type()) {
             case COMPANY -> getCompanyName(userId);
             case QUESTION -> getQuestionCategory(userId);
