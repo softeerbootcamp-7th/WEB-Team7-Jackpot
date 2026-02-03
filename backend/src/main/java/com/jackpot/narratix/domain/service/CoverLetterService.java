@@ -41,6 +41,7 @@ public class CoverLetterService {
         return new CreateCoverLetterResponse(newCoverLetter.getId());
     }
 
+    @Transactional
     public void deleteCoverLetterById(String userId, Long coverLetterId) {
         Optional<CoverLetter> coverLetterOptional = coverLetterRepository.findById(coverLetterId);
         if(coverLetterOptional.isEmpty()) return;
