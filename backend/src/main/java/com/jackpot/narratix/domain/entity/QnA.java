@@ -26,6 +26,10 @@ public class QnA extends BaseTimeEntity {
     private CoverLetter coverLetter;
 
     @NotNull
+    @Column(name = "user_id", nullable = false)
+    private String userId;
+
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "question_category", nullable = false)
     private QuestionCategoryType questionCategory;
