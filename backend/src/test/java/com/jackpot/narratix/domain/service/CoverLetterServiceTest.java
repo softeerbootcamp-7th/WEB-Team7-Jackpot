@@ -7,7 +7,6 @@ import com.jackpot.narratix.domain.controller.response.CoverLetterResponse;
 import com.jackpot.narratix.domain.controller.response.CreateCoverLetterResponse;
 import com.jackpot.narratix.domain.controller.response.TotalCoverLetterCountResponse;
 import com.jackpot.narratix.domain.entity.CoverLetter;
-import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
 import com.jackpot.narratix.domain.exception.CoverLetterErrorCode;
@@ -21,7 +20,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -307,8 +305,8 @@ class CoverLetterServiceTest {
                 LocalDate.of(2025, 6, 30)
         );
 
-        User user = new User(userId, "testuser");
-        CoverLetter coverLetter = CoverLetter.from(user,
+        CoverLetter coverLetter = CoverLetter.from(
+                userId,
                 new CreateCoverLetterRequest(
                         "원래 기업명",
                         2024,
@@ -351,8 +349,8 @@ class CoverLetterServiceTest {
                 null  // 마감일을 null로 변경
         );
 
-        User user = new User(userId, "testuser");
-        CoverLetter coverLetter = CoverLetter.from(user,
+        CoverLetter coverLetter = CoverLetter.from(
+                userId,
                 new CreateCoverLetterRequest(
                         "원래 기업명",
                         2024,
@@ -418,8 +416,8 @@ class CoverLetterServiceTest {
                 LocalDate.of(2025, 6, 30)
         );
 
-        User user = new User(userId, "testuser");
-        CoverLetter coverLetter = CoverLetter.from(user,
+        CoverLetter coverLetter = CoverLetter.from(
+                userId,
                 new CreateCoverLetterRequest(
                         "원래 기업명",
                         2024,
