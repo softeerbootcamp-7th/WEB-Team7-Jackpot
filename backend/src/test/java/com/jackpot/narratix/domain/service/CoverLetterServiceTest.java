@@ -7,13 +7,11 @@ import com.jackpot.narratix.domain.controller.response.CreateCoverLetterResponse
 import com.jackpot.narratix.domain.controller.response.TotalCoverLetterCountResponse;
 import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.QnA;
-import com.jackpot.narratix.domain.entity.User;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
 import com.jackpot.narratix.domain.exception.CoverLetterErrorCode;
 import com.jackpot.narratix.domain.repository.CoverLetterRepository;
 import com.jackpot.narratix.domain.repository.QnARepository;
-import com.jackpot.narratix.domain.repository.UserRepository;
 import com.jackpot.narratix.global.exception.BaseException;
 import com.jackpot.narratix.global.exception.GlobalErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -51,9 +49,6 @@ class CoverLetterServiceTest {
     @Mock
     private QnARepository qnARepository;
 
-    @Mock
-    private UserRepository userRepository;
-
     @Test
     @DisplayName("자기소개서 생성 성공")
     void createNewCoverLetter_성공() {
@@ -75,11 +70,9 @@ class CoverLetterServiceTest {
                 questions
         );
 
-        User mockUser = mock(User.class);
         CoverLetter mockCoverLetter = mock(CoverLetter.class);
         Long expectedCoverLetterId = 1L;
 
-        given(userRepository.getReferenceById(userId)).willReturn(mockUser);
         given(coverLetterRepository.save(any(CoverLetter.class))).willReturn(mockCoverLetter);
         given(mockCoverLetter.getId()).willReturn(expectedCoverLetterId);
 
@@ -90,7 +83,6 @@ class CoverLetterServiceTest {
         assertThat(response).isNotNull();
         assertThat(response.coverLetterId()).isEqualTo(expectedCoverLetterId);
 
-        verify(userRepository, times(1)).getReferenceById(userId);
         verify(coverLetterRepository, times(1)).save(any(CoverLetter.class));
         verify(qnARepository, times(1)).saveAll(anyList());
     }
@@ -116,11 +108,9 @@ class CoverLetterServiceTest {
                 questions
         );
 
-        User mockUser = mock(User.class);
         CoverLetter mockCoverLetter = mock(CoverLetter.class);
         given(mockCoverLetter.getId()).willReturn(1L);
 
-        given(userRepository.getReferenceById(userId)).willReturn(mockUser);
         given(coverLetterRepository.save(any(CoverLetter.class))).willReturn(mockCoverLetter);
 
         ArgumentCaptor<List<QnA>> qnAListCaptor = ArgumentCaptor.forClass(List.class);
@@ -154,11 +144,9 @@ class CoverLetterServiceTest {
                 questions
         );
 
-        User mockUser = mock(User.class);
         CoverLetter mockCoverLetter = mock(CoverLetter.class);
         given(mockCoverLetter.getId()).willReturn(1L);
 
-        given(userRepository.getReferenceById(userId)).willReturn(mockUser);
         given(coverLetterRepository.save(any(CoverLetter.class))).willReturn(mockCoverLetter);
 
         // when
@@ -178,7 +166,8 @@ class CoverLetterServiceTest {
         String userId = "testUser123";
         Long coverLetterId = 1L;
 
-        CoverLetter coverLetter = CoverLetter.from(new User(userId, "testuser"),
+        CoverLetter coverLetter = CoverLetter.from(
+                userId,
                 new CreateCoverLetterRequest(
                         "테스트기업",
                         2024,
@@ -251,12 +240,9 @@ class CoverLetterServiceTest {
         String userId = "testUser123";
         Long coverLetterId = 1L;
 
-        User mockUser = mock(User.class);
-        given(mockUser.getId()).willReturn(userId);
-
         CoverLetter mockCoverLetter = mock(CoverLetter.class);
-        given(mockCoverLetter.getUser()).willReturn(mockUser);
 
+        given(mockCoverLetter.getUserId()).willReturn(userId);
         given(coverLetterRepository.findById(coverLetterId)).willReturn(Optional.of(mockCoverLetter));
 
         // when
@@ -289,15 +275,11 @@ class CoverLetterServiceTest {
     void deleteCoverLetterById_Forbidden() {
         // given
         String userId = "testUser123";
-        String anotherUserId = "anotherUser456";
+        String otherUserId = "otherTestUser123";
         Long coverLetterId = 1L;
 
-        User mockUser = mock(User.class);
-        given(mockUser.getId()).willReturn(anotherUserId);
-
         CoverLetter mockCoverLetter = mock(CoverLetter.class);
-        given(mockCoverLetter.getUser()).willReturn(mockUser);
-
+        given(mockCoverLetter.getUserId()).willReturn(otherUserId);
         given(coverLetterRepository.findById(coverLetterId)).willReturn(Optional.of(mockCoverLetter));
 
         // when & then
