@@ -8,7 +8,6 @@ import com.jackpot.narratix.domain.controller.response.TotalCoverLetterCountResp
 import com.jackpot.narratix.domain.service.CoverLetterService;
 import com.jackpot.narratix.global.auth.UserId;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +30,7 @@ public class CoverLetterController {
         return ResponseEntity.ok(coverLetterService.createNewCoverLetter(userId, createCoverLetterRequest));
     }
 
-    @PatchMapping
+    @PutMapping
     public ResponseEntity<Void> editCoverLetter(
             @UserId String userId,
             @RequestBody @Valid EditCoverLetterRequest editCoverLetterRequest
@@ -43,7 +42,7 @@ public class CoverLetterController {
     @GetMapping
     public ResponseEntity<CoverLetterResponse> findCoverLetterById(
             @UserId String userId,
-            @RequestParam @Valid @NotNull Long coverLetterId
+            @RequestParam Long coverLetterId
     ) {
         return ResponseEntity.ok(coverLetterService.findCoverLetterById(userId, coverLetterId));
     }
