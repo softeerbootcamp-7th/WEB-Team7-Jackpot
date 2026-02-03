@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.util.Objects;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "coverletter")
@@ -61,7 +62,7 @@ public class CoverLetter extends BaseTimeEntity{
         coverLetter.deadline = request.deadline();
         coverLetter.qnAs = request.questions().stream()
                 .map(question -> QnA.newQnA(coverLetter, question))
-                .toList();
+                .collect(Collectors.toCollection(ArrayList::new));
         return coverLetter;
     }
 
