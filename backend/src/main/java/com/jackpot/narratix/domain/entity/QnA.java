@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @Table(name = "qna")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PUBLIC)
 public class QnA extends BaseTimeEntity {
 
     @Id
@@ -47,6 +47,7 @@ public class QnA extends BaseTimeEntity {
         qna.coverLetter = coverLetter;
         qna.questionCategory = request.category();
         qna.question = request.question();
+        qna.userId = coverLetter.getUserId();
         return qna;
     }
 }
