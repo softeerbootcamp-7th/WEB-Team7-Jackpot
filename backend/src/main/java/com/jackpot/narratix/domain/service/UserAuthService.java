@@ -23,7 +23,7 @@ public class UserAuthService {
         UserAuth auth = userAuthRepository.findById(loginRequest.getUserId())
                 .orElseThrow(() -> new BaseException(UserErrorCode.INVALID_LOGIN));
 
-        if (auth.checkPassword(loginRequest.getPassword())) {
+        if (!auth.checkPassword(loginRequest.getPassword())) {
             throw new BaseException(UserErrorCode.INVALID_LOGIN);
         }
         return tokenService.issueToken(loginRequest.getUserId());
