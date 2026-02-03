@@ -16,4 +16,9 @@ public class QnARepositoryImpl implements QnARepository {
     public void saveAll(List<QnA> qnAs) {
         qnAJpaRepository.saveAll(qnAs);
     }
+
+    @Override
+    public Integer countByUserId(String userId) {
+        return qnAJpaRepository.countByUserId(userId);
+    }
 }

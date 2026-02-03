@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface QnAJpaRepository extends JpaRepository<QnA, Long> {
+
+    Integer countByUserId(String userId);
 }
