@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.Objects;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,5 +60,9 @@ public class CoverLetter extends BaseTimeEntity{
         coverLetter.jobPosition = request.jobPosition();
         coverLetter.deadline = request.deadline();
         return coverLetter;
+    }
+
+    public boolean isOwner(String userId){
+        return Objects.equals(this.user.getId(), userId);
     }
 }

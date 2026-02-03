@@ -2,12 +2,14 @@ package com.jackpot.narratix.domain.service;
 
 import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
 import com.jackpot.narratix.domain.controller.request.CreateQuestionRequest;
+import com.jackpot.narratix.domain.controller.response.CoverLetterResponse;
 import com.jackpot.narratix.domain.controller.response.CreateCoverLetterResponse;
 import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.User;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
+import com.jackpot.narratix.domain.exception.CoverLetterErrorCode;
 import com.jackpot.narratix.domain.repository.CoverLetterRepository;
 import com.jackpot.narratix.domain.repository.QnARepository;
 import com.jackpot.narratix.domain.repository.UserRepository;
@@ -20,6 +22,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -161,6 +164,79 @@ class CoverLetterServiceTest {
         assertThat(response.coverLetterId()).isEqualTo(1L);
 
         verify(coverLetterRepository, times(1)).save(any(CoverLetter.class));
+    }
+
+    @Test
+    @DisplayName("자기소개서 조회 성공")
+    void findCoverLetterById_Success() {
+        // given
+        String userId = "testUser123";
+        Long coverLetterId = 1L;
+
+        CoverLetter coverLetter = CoverLetter.from(new User(userId, "testuser"),
+                new CreateCoverLetterRequest(
+                        "테스트기업",
+                        2024,
+                        ApplyHalfType.FIRST_HALF,
+                        "백엔드 개발자",
+                        LocalDate.of(2024, 12, 31),
+                        List.of()
+                )
+        );
+        ReflectionTestUtils.setField(coverLetter, "id", coverLetterId);
+
+        given(coverLetterRepository.findById(coverLetterId)).willReturn(Optional.of(coverLetter));
+
+        // when
+        CoverLetterResponse response = coverLetterService.findCoverLetterById(userId, coverLetterId);
+
+        // then
+        assertThat(response.coverLetterId()).isEqualTo(coverLetterId);
+        assertThat(response.companyName()).isEqualTo("테스트기업");
+        assertThat(response.applyYear()).isEqualTo(2024);
+        assertThat(response.applyHalf()).isEqualTo(ApplyHalfType.FIRST_HALF);
+        assertThat(response.jobPosition()).isEqualTo("백엔드 개발자");
+        assertThat(response.deadline()).isEqualTo(LocalDate.of(2024, 12, 31));
+
+        verify(coverLetterRepository, times(1)).findById(coverLetterId);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 자기소개서 조회 시 예외 발생")
+    void findCoverLetterById_NotFound() {
+        // given
+        String userId = "testUser123";
+        Long coverLetterId = 999L;
+
+        given(coverLetterRepository.findById(coverLetterId)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> coverLetterService.findCoverLetterById(userId, coverLetterId))
+                .isInstanceOf(BaseException.class)
+                .hasFieldOrPropertyWithValue("errorCode", CoverLetterErrorCode.COVER_LETTER_NOT_FOUND);
+
+        verify(coverLetterRepository, times(1)).findById(coverLetterId);
+    }
+
+    @Test
+    @DisplayName("다른 사용자의 자기소개서 조회 시 권한 예외 발생")
+    void findCoverLetterById_Forbidden() {
+        // given
+        String userId = "testUser123";
+        Long coverLetterId = 1L;
+
+        CoverLetter mockCoverLetter = mock(CoverLetter.class);
+        given(mockCoverLetter.isOwner(userId)).willReturn(false);
+
+        given(coverLetterRepository.findById(coverLetterId)).willReturn(Optional.of(mockCoverLetter));
+
+        // when & then
+        assertThatThrownBy(() -> coverLetterService.findCoverLetterById(userId, coverLetterId))
+                .isInstanceOf(BaseException.class)
+                .hasFieldOrPropertyWithValue("errorCode", GlobalErrorCode.FORBIDDEN);
+
+        verify(coverLetterRepository, times(1)).findById(coverLetterId);
+        verify(mockCoverLetter, times(1)).isOwner(userId);
     }
 
     @Test
