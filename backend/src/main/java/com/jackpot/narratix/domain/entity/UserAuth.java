@@ -1,10 +1,10 @@
 package com.jackpot.narratix.domain.entity;
 
 import com.jackpot.narratix.domain.controller.dto.JoinRequest;
+import com.jackpot.narratix.domain.service.PasswordHashUtil;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.mindrot.jbcrypt.BCrypt;
 
 @Entity
 @Getter
@@ -34,16 +34,11 @@ public class UserAuth extends BaseTimeEntity {
                 .build();
         return UserAuth.builder()
                 .user(user)
-                .password(hashPassword(request.getPassword()))
+                .password(PasswordHashUtil.hashPassword(request.getPassword()))
                 .build();
     }
 
-    private static String hashPassword(String password){
-        final int BCRYPT_SALT_ROUNDS = 11;
-        return BCrypt.hashpw(password, BCrypt.gensalt(BCRYPT_SALT_ROUNDS));
-    }
-
     public boolean checkPassword(String password){
-        return BCrypt.checkpw(password, this.password);
+        return PasswordHashUtil.checkPassword(this.password, password);
     }
 }
