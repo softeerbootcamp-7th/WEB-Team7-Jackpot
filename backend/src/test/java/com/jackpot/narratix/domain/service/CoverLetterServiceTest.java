@@ -2,6 +2,7 @@ package com.jackpot.narratix.domain.service;
 
 import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
 import com.jackpot.narratix.domain.controller.request.CreateQuestionRequest;
+import com.jackpot.narratix.domain.controller.request.EditCoverLetterRequest;
 import com.jackpot.narratix.domain.controller.response.CoverLetterResponse;
 import com.jackpot.narratix.domain.controller.response.CreateCoverLetterResponse;
 import com.jackpot.narratix.domain.controller.response.TotalCoverLetterCountResponse;
@@ -346,5 +347,155 @@ class CoverLetterServiceTest {
                 Arguments.of("2026-06-30", ApplyHalfType.FIRST_HALF),
                 Arguments.of("2024-07-01", ApplyHalfType.SECOND_HALF)
         );
+    }
+
+    @Test
+    @DisplayName("자기소개서 수정 성공")
+    void editCoverLetter_Success() {
+        // given
+        String userId = "testUser123";
+        Long coverLetterId = 1L;
+
+        EditCoverLetterRequest editRequest = new EditCoverLetterRequest(
+                coverLetterId,
+                "수정된 기업명",
+                2025,
+                ApplyHalfType.SECOND_HALF,
+                "프론트엔드 개발자",
+                LocalDate.of(2025, 6, 30)
+        );
+
+        User user = new User(userId, "testuser");
+        CoverLetter coverLetter = CoverLetter.from(user,
+                new CreateCoverLetterRequest(
+                        "원래 기업명",
+                        2024,
+                        ApplyHalfType.FIRST_HALF,
+                        "백엔드 개발자",
+                        LocalDate.of(2024, 12, 31),
+                        List.of()
+                )
+        );
+        ReflectionTestUtils.setField(coverLetter, "id", coverLetterId);
+
+        given(coverLetterRepository.findByIdOrElseThrow(coverLetterId)).willReturn(coverLetter);
+
+        // when
+        coverLetterService.editCoverLetter(userId, editRequest);
+
+        // then
+        assertThat(coverLetter.getCompanyName()).isEqualTo("수정된 기업명");
+        assertThat(coverLetter.getApplyYear()).isEqualTo(2025);
+        assertThat(coverLetter.getApplyHalf()).isEqualTo(ApplyHalfType.SECOND_HALF);
+        assertThat(coverLetter.getJobPosition()).isEqualTo("프론트엔드 개발자");
+        assertThat(coverLetter.getDeadline()).isEqualTo(LocalDate.of(2025, 6, 30));
+
+        verify(coverLetterRepository, times(1)).findByIdOrElseThrow(coverLetterId);
+    }
+
+    @Test
+    @DisplayName("자기소개서 수정 시 마감일을 null로 변경 가능")
+    void editCoverLetter_DeadlineToNull() {
+        // given
+        String userId = "testUser123";
+        Long coverLetterId = 1L;
+
+        EditCoverLetterRequest editRequest = new EditCoverLetterRequest(
+                coverLetterId,
+                "수정된 기업명",
+                2025,
+                ApplyHalfType.SECOND_HALF,
+                "프론트엔드 개발자",
+                null  // 마감일을 null로 변경
+        );
+
+        User user = new User(userId, "testuser");
+        CoverLetter coverLetter = CoverLetter.from(user,
+                new CreateCoverLetterRequest(
+                        "원래 기업명",
+                        2024,
+                        ApplyHalfType.FIRST_HALF,
+                        "백엔드 개발자",
+                        LocalDate.of(2024, 12, 31),
+                        List.of()
+                )
+        );
+        ReflectionTestUtils.setField(coverLetter, "id", coverLetterId);
+
+        given(coverLetterRepository.findByIdOrElseThrow(coverLetterId)).willReturn(coverLetter);
+
+        // when
+        coverLetterService.editCoverLetter(userId, editRequest);
+
+        // then
+        assertThat(coverLetter.getDeadline()).isNull();
+        verify(coverLetterRepository, times(1)).findByIdOrElseThrow(coverLetterId);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 자기소개서 수정 시 예외 발생")
+    void editCoverLetter_NotFound() {
+        // given
+        String userId = "testUser123";
+        Long coverLetterId = 999L;
+
+        EditCoverLetterRequest editRequest = new EditCoverLetterRequest(
+                coverLetterId,
+                "수정된 기업명",
+                2025,
+                ApplyHalfType.SECOND_HALF,
+                "프론트엔드 개발자",
+                LocalDate.of(2025, 6, 30)
+        );
+
+        given(coverLetterRepository.findByIdOrElseThrow(coverLetterId))
+                .willThrow(new BaseException(CoverLetterErrorCode.COVER_LETTER_NOT_FOUND));
+
+        // when & then
+        assertThatThrownBy(() -> coverLetterService.editCoverLetter(userId, editRequest))
+                .isInstanceOf(BaseException.class)
+                .hasFieldOrPropertyWithValue("errorCode", CoverLetterErrorCode.COVER_LETTER_NOT_FOUND);
+
+        verify(coverLetterRepository, times(1)).findByIdOrElseThrow(coverLetterId);
+    }
+
+    @Test
+    @DisplayName("자기소개서 소유자가 아닌 유저가 수정을 시도하면 권한 예외 발생")
+    void editCoverLetter_OwnerForbidden() {
+        // given
+        String userId = "testUser123";
+        String otherUserId = "otherTestUser123";
+        Long coverLetterId = 1L;
+
+        EditCoverLetterRequest editRequest = new EditCoverLetterRequest(
+                coverLetterId,
+                "수정된 기업명",
+                2025,
+                ApplyHalfType.SECOND_HALF,
+                "프론트엔드 개발자",
+                LocalDate.of(2025, 6, 30)
+        );
+
+        User user = new User(userId, "testuser");
+        CoverLetter coverLetter = CoverLetter.from(user,
+                new CreateCoverLetterRequest(
+                        "원래 기업명",
+                        2024,
+                        ApplyHalfType.FIRST_HALF,
+                        "백엔드 개발자",
+                        LocalDate.of(2024, 12, 31),
+                        List.of()
+                )
+        );
+        ReflectionTestUtils.setField(coverLetter, "id", coverLetterId);
+
+        given(coverLetterRepository.findByIdOrElseThrow(coverLetterId)).willReturn(coverLetter);
+
+        // when & then
+        assertThatThrownBy(() -> coverLetterService.editCoverLetter(otherUserId, editRequest))
+                .isInstanceOf(BaseException.class)
+                .hasFieldOrPropertyWithValue("errorCode", GlobalErrorCode.FORBIDDEN);
+
+        verify(coverLetterRepository, times(1)).findByIdOrElseThrow(coverLetterId);
     }
 }
