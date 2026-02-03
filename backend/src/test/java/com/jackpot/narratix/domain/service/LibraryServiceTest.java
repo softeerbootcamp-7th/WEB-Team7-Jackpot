@@ -98,6 +98,23 @@ class LibraryServiceTest {
     }
 
     @Test
+    @DisplayName("문항유형 데이터가 없을 때 - 빈 리스트를 반환해야 함")
+    void getLibraryList_Question_Empty() {
+        // given
+        GetLibraryListRequest request = new GetLibraryListRequest(LibraryType.QUESTION);
+
+        given(qnARepository.findQuestionCategoryByUserId(userId))
+                .willReturn(List.of());
+
+        // when
+        List<String> result = libraryService.getLibraryList(userId, request);
+
+        // then
+        assertThat(result).isNotNull();
+        assertThat(result).isEmpty();
+    }
+
+    @Test
     @DisplayName("요청 타입이 NULL일 때 - 예외가 발생해야 함")
     void getLibraryList_NullType() {
         // given
