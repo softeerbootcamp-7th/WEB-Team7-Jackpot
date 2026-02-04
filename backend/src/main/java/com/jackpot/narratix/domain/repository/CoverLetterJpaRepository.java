@@ -20,7 +20,7 @@ public interface CoverLetterJpaRepository extends JpaRepository<CoverLetter, Lon
     @Query("SELECT DISTINCT c.companyName FROM CoverLetter c WHERE c.userId = :userId")
     List<String> findDistinctCompanyNamesByUserId(@Param("userId") String userId);
 
-    List<CoverLetter> findByUserIdAndDeadlineBetweenOrderByModifiedAtDesc(
+    List<CoverLetter> findByUserIdAndDeadlineBetweenOrderByDeadlineAscModifiedAtDesc(
             String userId, LocalDate startDate, LocalDate endDate, Pageable pageable
     );
 

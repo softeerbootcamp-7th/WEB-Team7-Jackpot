@@ -83,7 +83,7 @@ public class CoverLetterService {
     public CoverLettersDateRangeResponse getAllCoverLetterByDate(
             String userId, LocalDate startDate, LocalDate endDate, Integer size
     ) {
-        List<CoverLetter> coverLetters = coverLetterRepository.findByUserIdAndDeadlineBetweenOrderByModifiedAtDesc(
+        List<CoverLetter> coverLetters = coverLetterRepository.findInPeriod(
                 userId, startDate, endDate, Pageable.ofSize(size)
         );
 

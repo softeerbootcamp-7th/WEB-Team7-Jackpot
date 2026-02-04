@@ -20,7 +20,7 @@ public interface CoverLetterRepository {
 
     void deleteById(Long coverLetterId);
 
-    List<CoverLetter> findByUserIdAndDeadlineBetweenOrderByModifiedAtDesc(
+    List<CoverLetter> findInPeriod(
             String userId, LocalDate startDate, LocalDate endDate, Pageable pageable
     );
 

@@ -40,10 +40,10 @@ public class CoverLetterRepositoryImpl implements CoverLetterRepository {
     }
 
     @Override
-    public List<CoverLetter> findByUserIdAndDeadlineBetweenOrderByModifiedAtDesc(
+    public List<CoverLetter> findInPeriod(
             String userId, LocalDate startDate, LocalDate endDate, Pageable pageable
     ) {
-        return coverLetterJpaRepository.findByUserIdAndDeadlineBetweenOrderByModifiedAtDesc(
+        return coverLetterJpaRepository.findByUserIdAndDeadlineBetweenOrderByDeadlineAscModifiedAtDesc(
                 userId, startDate, endDate, pageable
         );
     }
