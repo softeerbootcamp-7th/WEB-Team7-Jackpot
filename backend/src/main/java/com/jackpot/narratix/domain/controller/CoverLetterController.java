@@ -5,6 +5,7 @@ import com.jackpot.narratix.domain.controller.request.EditCoverLetterRequest;
 import com.jackpot.narratix.domain.controller.response.CoverLetterResponse;
 import com.jackpot.narratix.domain.controller.response.CreateCoverLetterResponse;
 import com.jackpot.narratix.domain.controller.response.TotalCoverLetterCountResponse;
+import com.jackpot.narratix.domain.controller.response.UpcomingCoverLetterResponse;
 import com.jackpot.narratix.domain.service.CoverLetterService;
 import com.jackpot.narratix.global.auth.UserId;
 import jakarta.validation.Valid;
@@ -14,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -62,5 +64,14 @@ public class CoverLetterController {
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date
     ) {
         return ResponseEntity.ok(coverLetterService.getTotalCoverLetterCount(userId, date));
+    }
+
+    @GetMapping("/upcoming")
+    public ResponseEntity<List<UpcomingCoverLetterResponse>> getUpcomingCoverLetters(
+            @UserId String userId,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date,
+            @RequestParam Integer size
+    ) {
+        return ResponseEntity.ok(coverLetterService.getUpcomingCoverLetters(userId, date, size));
     }
 }
