@@ -1,9 +1,8 @@
+
 import ScheduleOverview from '@/features/home/components/ScheduleOverview';
 import SummaryOverview from '@/features/home/components/SummaryOverview';
 import CoverLetterOverview from '@/shared/components/CoverLetterOverview';
 import RightArrow from '@/shared/icons/RightArrow';
-
-// [박소민] px-75를 추가하여 일관된 콘텐츠가 보여지도록 구현하였습니다.
 
 const HomePage = () => {
   return (

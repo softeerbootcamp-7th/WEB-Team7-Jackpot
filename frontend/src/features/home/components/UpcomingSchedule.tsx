@@ -14,10 +14,10 @@ const UpcomingSchedule = ({ date, dDay, schedules }: UpcomingScheduleProps) => {
 
   // root 태그에 w-72
   return (
-    <div className='inline-flex h-52 flex-1 flex-col items-start justify-start gap-2.5 rounded-2xl p-4 outline outline-1 outline-offset-[-1px] outline-purple-100'>
-      <div className='inline-flex items-center justify-between self-stretch pl-1.5'>
+    <div className='w-72 h-52 flex-shrink-0 p-4 rounded-2xl outline outline-1 outline-offset-[-1px] outline-purple-100 inline-flex flex-col justify-start items-start gap-2.5'>
+      <div className='self-stretch pl-1.5 inline-flex justify-between items-center'>
         <div
-          className={`text-title-m line-clamp-1 justify-start font-bold ${
+          className={`justify-start text-xl font-bold leading-8 line-clamp-1 ${
             isUrgent ? 'text-purple-600' : 'text-gray-700'
           }`}
         >
@@ -48,11 +48,11 @@ const UpcomingSchedule = ({ date, dDay, schedules }: UpcomingScheduleProps) => {
                 isUrgent ? 'bg-purple-100' : 'bg-gray-100'
               }`}
             />
-            <div className='inline-flex h-11 flex-1 flex-col items-start justify-center'>
-              <div className='text-body-m line-clamp-1 justify-start font-bold text-gray-700'>
+            <div className='flex-1 h-11 inline-flex flex-col justify-center items-start'>
+              <div className='justify-start text-gray-700 text-base font-bold leading-6 line-clamp-1'>
                 {schedule.company}
               </div>
-              <div className='text-caption-m line-clamp-1 self-stretch text-left font-medium text-gray-400'>
+              <div className='self-stretch justify-start text-gray-400 text-xs font-medium leading-5 line-clamp-1'>
                 {schedule.position}
               </div>
             </div>

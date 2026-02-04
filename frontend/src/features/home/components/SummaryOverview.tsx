@@ -16,42 +16,42 @@ const mockSummary: SummaryType = {
 
 const SummaryOverview = () => {
   return (
-    <div className='inline-flex w-full items-center justify-start gap-3'>
-      <div className='flex h-28 flex-1 items-center justify-start gap-5 rounded-2xl px-10 py-5 outline outline-1 outline-offset-[-1px] outline-gray-100'>
-        <div className='relative h-10 w-10'>
+    <div className='w-[82.5rem] inline-flex justify-start items-center gap-3'>
+      <div className='flex-1 h-28 px-10 py-5 rounded-2xl outline outline-1 outline-offset-[-1px] outline-gray-100 flex justify-start items-center gap-5'>
+        <div className='w-10 h-10 relative'>
           <ThoughtIcon />
         </div>
         <div className='inline-flex flex-col items-start justify-start'>
           <div className='text-title-s font-medium text-gray-400'>
             졸린 경민님은 지금까지
           </div>
-          <div className='text-title-l justify-start font-bold text-gray-950'>
+          <div className='justify-start text-gray-950 text-xl font-bold  leading-9'>
             {mockSummary.coverLetterCnt}장의 자기소개서를 완성했어요
           </div>
         </div>
       </div>
-      <div className='flex h-28 flex-1 items-center justify-start gap-5 rounded-2xl px-10 py-5 outline outline-1 outline-offset-[-1px] outline-gray-100'>
-        <div className='relative h-10 w-10'>
+      <div className='flex-1 h-28 px-10 py-5 rounded-2xl outline outline-1 outline-offset-[-1px] outline-gray-100 flex justify-start items-center gap-5'>
+        <div className='w-10 h-10 relative'>
           <BooksIcon />
         </div>
         <div className='inline-flex flex-col items-start justify-start'>
           <div className='text-title-s justify-start font-medium text-gray-400'>
             끝까지 작성을 마친 답변들은
           </div>
-          <div className='text-title-l justify-start font-bold text-gray-950'>
+          <div className='justify-start text-gray-950 text-xl font-bold  leading-9'>
             총 {mockSummary.QnACnt}문항이에요
           </div>
         </div>
       </div>
-      <div className='flex h-28 flex-1 items-center justify-start gap-5 rounded-2xl px-10 py-5 outline outline-1 outline-offset-[-1px] outline-gray-100'>
-        <div className='relative h-10 w-10'>
+      <div className='flex-1 h-28 px-10 py-5 rounded-2xl outline outline-1 outline-offset-[-1px] outline-gray-100 flex justify-start items-center gap-5'>
+        <div className='w-10 h-10 relative'>
           <ScrollIcon />
         </div>
         <div className='inline-flex flex-col items-start justify-start'>
           <div className='text-title-s justify-start font-medium text-gray-400'>
             이번 시즌에는
           </div>
-          <div className='text-title-l justify-start font-bold text-gray-950'>
+          <div className='justify-start text-gray-950 text-xl font-bold  leading-9'>
             총 {mockSummary.applicationCount}개의 공고에 지원했어요
           </div>
         </div>

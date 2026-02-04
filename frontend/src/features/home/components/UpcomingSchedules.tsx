@@ -4,13 +4,13 @@ import RightArrow from '@/shared/icons/RightArrow';
 
 const UpcomingSchedules = () => {
   return (
-    <div className='inline-flex w-full flex-1 flex-col items-start justify-start gap-6'>
-      <div className='flex items-center justify-between'>
-        <div className='flex items-center justify-start gap-2.5'>
-          <div className='h-7 w-7'>
+    <div className='flex-1 inline-flex flex-col justify-start items-start gap-6'>
+      <div className='w-full inline-flex justify-between items-center'>
+        <div className='flex justify-start items-center gap-2.5'>
+          <div className='w-7 h-7 relative'>
             <AlarmIcon />
           </div>
-          <div className='text-title-l justify-start font-bold text-gray-950'>
+          <div className='justify-start text-gray-950 text-xl font-bold leading-9'>
             다가오는 일정
           </div>
         </div>
