@@ -8,6 +8,7 @@ type FolderProps = {
 const Folder = ({ name, onClick }: FolderProps) => {
   return (
     <button
+      type='button'
       onClick={onClick}
       className='inline-flex h-30 w-30 flex-col items-center justify-center gap-2.5 px-3 pt-5 pb-4'
     >

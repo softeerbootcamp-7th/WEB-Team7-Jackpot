@@ -20,7 +20,11 @@ const DocumentList = ({
   return (
     <div className={`w-full ${className}`}>
       <div className='inline-flex items-center justify-start gap-1 self-stretch px-3'>
-        <button onClick={() => handleFolderId(null)}>
+        <button
+          type='button'
+          aria-label='폴더 목록으로 돌아가기'
+          onClick={() => handleFolderId(null)}
+        >
           <ChevronLeftIcon />
         </button>
         <div className='flex flex-1 items-center justify-start gap-2'>
