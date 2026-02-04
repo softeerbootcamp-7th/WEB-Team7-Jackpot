@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface CoverLetterJpaRepository extends JpaRepository<CoverLetter, Long> {
@@ -16,4 +17,7 @@ public interface CoverLetterJpaRepository extends JpaRepository<CoverLetter, Lon
 
     @Query("SELECT DISTINCT c.companyName FROM CoverLetter c WHERE c.userId = :userId")
     List<String> findDistinctCompanyNamesByUserId(@Param("userId") String userId);
+
+    @Query("SELECT c FROM CoverLetter c WHERE c.userId = :userId AND c.deadline >= :date ORDER BY c.deadline ASC LIMIT :limit")
+    List<CoverLetter> findUpcomingCoverLettersByUserIdAndDate(@Param("userId") String userId, @Param("date") LocalDate date, @Param("limit") int limit);
 }

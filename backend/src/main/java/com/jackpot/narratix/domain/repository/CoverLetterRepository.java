@@ -3,6 +3,7 @@ package com.jackpot.narratix.domain.repository;
 import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,6 +20,8 @@ public interface CoverLetterRepository {
     void deleteById(Long coverLetterId);
 
     CoverLetter findByIdOrElseThrow(Long coverLetterId);
-  
+
     List<String> findCompanyNamesByUserId(String userId);
+
+    List<CoverLetter> findUpcomingCoverLettersByUserId(String userId, LocalDate date, int limit);
 }

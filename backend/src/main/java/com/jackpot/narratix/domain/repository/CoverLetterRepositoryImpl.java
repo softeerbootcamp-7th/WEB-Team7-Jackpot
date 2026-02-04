@@ -7,6 +7,7 @@ import com.jackpot.narratix.global.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,5 +51,10 @@ public class CoverLetterRepositoryImpl implements CoverLetterRepository {
     @Override
     public List<String> findCompanyNamesByUserId(String userId) {
         return coverLetterJpaRepository.findDistinctCompanyNamesByUserId(userId);
+    }
+
+    @Override
+    public List<CoverLetter> findUpcomingCoverLettersByUserId(String userId, LocalDate date, int limit) {
+        return coverLetterJpaRepository.findUpcomingCoverLettersByUserIdAndDate(userId, date, limit);
     }
 }
