@@ -1,36 +1,18 @@
 import { UploadPageIcons } from '@/components/upload/icons';
 import TabButton from '@/components/upload/TabButton';
 
+import { UPLOAD_TAB_DATA } from '@/constants/constantsInUploadPage';
 import type { FirstContentAreaHeaderProps } from '@/types/upload';
-
-interface TabDataType {
-  label: string;
-  targetTab: 'file' | 'text';
-  icon: React.ReactNode;
-}
 
 const FirstContentAreaHeader = ({
   uploadTab,
   setUploadTab,
   nextStep,
 }: FirstContentAreaHeaderProps) => {
-  const tabData: TabDataType[] = [
-    {
-      label: '파일 업로드하기',
-      targetTab: 'file',
-      icon: <UploadPageIcons.FileUploadIcon />,
-    },
-    {
-      label: '텍스트 붙여넣기',
-      targetTab: 'text',
-      icon: <UploadPageIcons.TextUploadIcon />,
-    },
-  ];
-
   return (
     <div className='flex items-center justify-between'>
       <div className='flex items-center'>
-        {tabData.map((data) => (
+        {UPLOAD_TAB_DATA.map((data) => (
           <TabButton
             key={data.targetTab}
             isActived={uploadTab === data.targetTab}

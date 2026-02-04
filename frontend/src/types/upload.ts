@@ -23,3 +23,39 @@ export interface StepInformationProps {
   loadingTitle?: string;
   loadingSubTitle?: string;
 }
+
+export interface RecruitSeasonType {
+  season: 'first' | 'second';
+  label: string;
+}
+
+interface ContentItemType {
+  companyName: string;
+  jobPosition: string;
+  recruitPeriod: {
+    year: number;
+    season: 'first' | 'second';
+  };
+  questionType: string;
+}
+
+export interface ContentStateType {
+  [key: number]: ContentItemType;
+}
+
+export interface DropdownStateType {
+  companyNameDropdown: boolean;
+  yearDropdown: boolean;
+  questionTypeDropdown: boolean;
+}
+
+export interface TabDataType {
+  tabName: string;
+  tabNumber: 1 | 2 | 3;
+}
+
+export interface UploadTabDataType {
+  label: string;
+  targetTab: 'file' | 'text';
+  icon: React.ReactNode;
+}

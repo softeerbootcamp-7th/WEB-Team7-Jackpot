@@ -3,46 +3,17 @@ import { useState } from 'react';
 import CoverLetterList from '@/components/upload/CoverLetterList';
 import { UploadPageIcons } from '@/components/upload/icons';
 
-import type { CoverLetterListProps } from '@/types/upload';
+import { RECRUIT_SEASON_LIST } from '@/constants/constantsInUploadPage';
+import type {
+  ContentStateType,
+  CoverLetterListProps,
+  DropdownStateType,
+} from '@/types/upload';
 
-interface RecruitSeasonType {
-  season: 'first' | 'second';
-  label: string;
-}
-
-interface ContentItemType {
-  companyName: string;
-  jobPosition: string;
-  recruitPeriod: {
-    year: number;
-    season: 'first' | 'second';
-  };
-  questionType: string;
-}
-
-interface ContentStateType {
-  [key: number]: ContentItemType;
-}
-
-interface DropdownStateType {
-  companyNameDropdown: boolean;
-  yearDropdown: boolean;
-  questionTypeDropdown: boolean;
-}
-
-const RECRUIT_SEASON_LIST: RecruitSeasonType[] = [
-  {
-    season: 'first',
-    label: '상반기',
-  },
-  {
-    season: 'second',
-    label: '하반기',
-  },
-];
-
+// [윤종근] - 추후에 지울 예정인 UI 테스트만을 위한 임시 데이터라서 constants에 옮기지 않았습니다.
 const COMPANY_NAME_LIST: string[] = ['현대자동차', '현대오토에버', '현대카드'];
 
+// [윤종근] - 추후에 지울 예정인 UI 테스트만을 위한 임시 데이터라서 constants에 옮기지 않았습니다.
 const QUESTION_TYPE_LIST: string[] = [
   '성장과정',
   '성장경험',
