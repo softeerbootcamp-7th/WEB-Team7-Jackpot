@@ -2,6 +2,7 @@ import UpcomingSchedule from '@/features/home/components/UpcomingSchedule';
 import AlarmIcon from '@/features/home/icons/AlarmClockIcon';
 import RightArrow from '@/shared/icons/RightArrow';
 
+
 const UpcomingSchedules = () => {
   return (
     <div className='flex-1 inline-flex flex-col justify-start items-start gap-6'>
