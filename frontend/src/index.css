@@ -13,44 +13,44 @@ body {
 
 @theme {
   /* Colors */
-  --color-gray-50: #f8f8f8;
-  --color-gray-100: #efefef;
-  --color-gray-200: #dcdcdc;
-  --color-gray-300: #bdbdbd;
-  --color-gray-400: #989898;
-  --color-gray-500: #7c7c7c;
-  --color-gray-600: #656565;
-  --color-gray-700: #525252;
-  --color-gray-800: #464646;
-  --color-gray-900: #3d3d3d;
-  --color-gray-950: #292929;
+  --color-gray-50: oklch(0.9791 0 0); /* #f8f8f8 */
+  --color-gray-100: oklch(0.9521 0 0); /* #efefef; */
+  --color-gray-200: oklch(0.8945 0 0); /* #dcdcdc; */
+  --color-gray-300: oklch(0.7984 0 0); /* #bdbdbd */
+  --color-gray-400: oklch(0.6797 0 0); /* #989898 */
+  --color-gray-500: oklch(0.5863 0 0); /* #7c7c7c */
+  --color-gray-600: oklch(0.5068 0 0); /* #656565 */
+  --color-gray-700: oklch(0.4386 0 0); /* #525252 */
+  --color-gray-800: oklch(0.3942 0 0); /* #464646 */
+  --color-gray-900: oklch(0.36 0 0); /* #3d3d3d */
+  --color-gray-950: oklch(0.2809 0 0); /* #292929 */
 
-  --color-purple-50: #f0f2fd;
-  --color-purple-100: #e3e8fc;
-  --color-purple-200: #ccd3f9;
-  --color-purple-300: #aeb7f3;
-  --color-purple-400: #8d91ec;
-  --color-purple-500: #7371e3;
-  --color-purple-600: #5b4dd3;
-  --color-purple-700: #5547bb;
-  --color-purple-800: #453b98;
-  --color-purple-900: #3c3679;
-  --color-purple-950: #242046;
+  --color-purple-50: oklch(0.9628 0.0148 277.85); /* #f0f2fd */
+  --color-purple-100: oklch(0.9332 0.0276 274.65); /* #e3e8fc */
+  --color-purple-200: oklch(0.8737 0.0531 277.03); /* #ccd3f9 */
+  --color-purple-300: oklch(0.7938 0.0858 277.64); /* #aeb7f3 */
+  --color-purple-400: oklch(0.6916 0.1327 280.41); /* #8d91ec */
+  --color-purple-500: oklch(0.6066 0.1683 280.93); /* #7371e3 */
+  --color-purple-600: oklch(0.5143 0.1977 281.61); /* #5b4dd3 */
+  --color-purple-700: oklch(0.4803 0.1752 283.07); /* #5547bb */
+  --color-purple-800: oklch(0.4181 0.1464 282.91); /* #453b98 */
+  --color-purple-900: oklch(0.3767 0.1104 283.81); /* #3c3679 */
+  --color-purple-950: oklch(0.2698 0.0687 285.62); /* #242046 */
 
-  --color-blue-50: #eef7ff;
-  --color-blue-100: #d9ecff;
-  --color-blue-200: #bcdeff;
-  --color-blue-300: #8ecaff;
-  --color-blue-400: #59acff;
-  --color-blue-500: #2783ff;
-  --color-blue-600: #1b69f5;
-  --color-blue-700: #1453e1;
-  --color-blue-800: #1743b6;
-  --color-blue-900: #193c8f;
-  --color-blue-950: #142657;
+  --color-blue-50: oklch(0.9717 0.0144 244.71); /* #eef7ff */
+  --color-blue-100: oklch(0.9348 0.0328 248.18); /* #d9ecff */
+  --color-blue-200: oklch(0.8868 0.0582 247.7); /* #bcdeff */
+  --color-blue-300: oklch(0.8177 0.0973 246.01); /* #8ecaff */
+  --color-blue-400: oklch(0.7286 0.1459 250.49); /* #59acff */
+  --color-blue-500: oklch(0.6261 0.202957 257.7684); /* #2783ff */
+  --color-blue-600: oklch(0.5638 0.2225 261.29); /* #1b69f5 */
+  --color-blue-700: oklch(0.5037 0.2241 262.98); /* #1453e1 */
+  --color-blue-800: oklch(0.4346 0.1879 263.99); /* #1743b6 */
+  --color-blue-900: oklch(0.3857 0.1436 263.7); /* #193c8f */
+  --color-blue-950: oklch(0.2855 0.0918 265.66); /* #142657 */
 
-  --color-red-600: #ed2015;
-  --color-green-500: #28c840;
+  --color-red-600: oklch(0.6039 0.2342 29.38); /* #ed2015 */
+  --color-green-500: oklch(0.728 0.2173 144.71); /* #28c840 */
 
   /* Spacing */
   --spacing-1: 4px;
@@ -95,33 +95,75 @@ body {
     0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 
   /* Gradients */
-  --gradient-a: linear-gradient(180deg, #aeb7f3 0%, #e3e8fc 100%);
-  --gradient-b: linear-gradient(180deg, #7371e3 0%, #aeb7f3 100%);
+  --gradient-a: linear-gradient(
+    180deg,
+    oklch(0.7938 0.0858 277.64) 0%,
+    oklch(0.9332 0.0276 274.65) 100%
+  ); /* #aeb7f3 #e3e8fc */
+  --gradient-b: linear-gradient(
+    180deg,
+    oklch(0.6066 0.1683 280.93) 0%,
+    oklch(0.7938 0.0858 277.64) 100%
+  ); /* #7371e3 #aeb7f3 */
   --gradient-c:
     radial-gradient(
       66.08% 66.08% at 9.93% 3%,
-      #6fe2ff 0%,
+      oklch(0.8564 0.1114 216.65) 0%,
       rgba(111, 221, 255, 0.5) 50%,
       rgba(111, 221, 255, 0) 100%
     ),
-    radial-gradient(
-      66.47% 66.47% at 60.16% 53.13%,
-      #6f75ff 0%,
-      rgba(111, 117, 255, 0.5) 50%,
-      rgba(111, 117, 255, 0) 100%
-    ),
-    radial-gradient(
-      56.36% 56.36% at 60.94% 70.31%,
-      #6f75ff 0%,
-      rgba(111, 117, 255, 0.5) 50%,
-      rgba(111, 117, 255, 0) 100%
-    ),
-    linear-gradient(
-      90deg,
-      rgba(92, 161, 255, 0) 0%,
-      rgba(92, 161, 255, 0.5) 0%,
-      #6f75ff 71.09%
-    );
+    /* #6fe2ff */
+      radial-gradient(
+        66.47% 66.47% at 60.16% 53.13%,
+        oklch(0.6299 0.2011 277.07) 0%,
+        rgba(111, 117, 255, 0.5) 50%,
+        rgba(111, 117, 255, 0) 100%
+      ),
+    /*  #6f75ff */
+      radial-gradient(
+        56.36% 56.36% at 60.94% 70.31%,
+        oklch(0.6299 0.2011 277.07) 0%,
+        rgba(111, 117, 255, 0.5) 50%,
+        rgba(111, 117, 255, 0) 100%
+      ),
+    /* #6f75ff */
+      linear-gradient(
+        90deg,
+        rgba(92, 161, 255, 0) 0%,
+        rgba(92, 161, 255, 0.5) 0%,
+        oklch(0.6299 0.2011 277.07) 71.09%
+      ); /* #6f75ff */
+
+  /* Typography Utilities */
+  --font-size-headline-l: 32px;
+  --font-size-headline-m: 28px;
+  --font-size-headline-s: 24px;
+  --font-size-title-l: 22px;
+  --font-size-title-m: 20px;
+  --font-size-title-s: 18px;
+  --font-size-body-l: 16px;
+  --font-size-body-m: 15px;
+  --font-size-body-s: 14px;
+  --font-size-caption-l: 13px;
+  --font-size-caption-m: 12px;
+  --font-size-caption-s: 11px;
+
+  /* Line Heights (이미지 하단 작은 회색 글씨 기준) */
+  --leading-headline-l: 48px;
+  --leading-headline-m: 44px;
+  --leading-headline-s: 36px;
+  --leading-title-l: 34px;
+  --leading-title-m: 30px;
+  --leading-title-s: 27px;
+  --leading-body-l: 24px;
+  --leading-body-m: 22px;
+  --leading-body-s: 22px;
+  --leading-caption-l: 20px;
+  --leading-caption-m: 18px;
+  --leading-caption-s: 16px;
+
+  /* Letter Spacing (이미지 -0.02em 반영) */
+  --tracking-tight-custom: -0.02em;
 }
 
 /* 커스텀 유틸리티 클래스 추가 */
@@ -136,5 +178,73 @@ body {
 
   .bg-gradient-c {
     background: var(--gradient-c);
+  }
+
+  /* Headline Styles */
+  .text-headline-l {
+    font-size: var(--font-size-headline-l);
+    line-height: var(--leading-headline-l);
+    letter-spacing: var(--tracking-tight-custom);
+  }
+  .text-headline-m {
+    font-size: var(--font-size-headline-m);
+    line-height: var(--leading-headline-m);
+    letter-spacing: var(--tracking-tight-custom);
+  }
+  .text-headline-s {
+    font-size: var(--font-size-headline-s);
+    line-height: var(--leading-headline-s);
+    letter-spacing: var(--tracking-tight-custom);
+  }
+
+  /* Title Styles */
+  .text-title-l {
+    font-size: var(--font-size-title-l);
+    line-height: var(--leading-title-l);
+    letter-spacing: var(--tracking-tight-custom);
+  }
+  .text-title-m {
+    font-size: var(--font-size-title-m);
+    line-height: var(--leading-title-m);
+    letter-spacing: var(--tracking-tight-custom);
+  }
+  .text-title-s {
+    font-size: var(--font-size-title-s);
+    line-height: var(--leading-title-s);
+    letter-spacing: var(--tracking-tight-custom);
+  }
+
+  /* Body Styles */
+  .text-body-l {
+    font-size: var(--font-size-body-l);
+    line-height: var(--leading-body-l);
+    letter-spacing: var(--tracking-tight-custom);
+  }
+  .text-body-m {
+    font-size: var(--font-size-body-m);
+    line-height: var(--leading-body-m);
+    letter-spacing: var(--tracking-tight-custom);
+  }
+  .text-body-s {
+    font-size: var(--font-size-body-s);
+    line-height: var(--leading-body-s);
+    letter-spacing: var(--tracking-tight-custom);
+  }
+
+  /* Caption Styles */
+  .text-caption-l {
+    font-size: var(--font-size-caption-l);
+    line-height: var(--leading-caption-l);
+    letter-spacing: var(--tracking-tight-custom);
+  }
+  .text-caption-m {
+    font-size: var(--font-size-caption-m);
+    line-height: var(--leading-caption-m);
+    letter-spacing: var(--tracking-tight-custom);
+  }
+  .text-caption-s {
+    font-size: var(--font-size-caption-s);
+    line-height: var(--leading-caption-s);
+    letter-spacing: var(--tracking-tight-custom);
   }
 }
