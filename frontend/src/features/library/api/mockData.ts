@@ -4,12 +4,6 @@ import type {
   QuestionListResponse,
 } from '../types';
 
-/* 
-Date Handling: modifiedAt 같은 날짜 데이터는 프론트엔드에서 보여줄 때 
-dayjs나 date-fns 같은 라이브러리를 사용해 "방금 전", "3일 전" 
-혹은 YYYY.MM.DD 포맷으로 변환하는 유틸 함수를 미리 만들어두면 좋습니다.
-*/
-
 // 기업 혹은 문항 폴더 리스트
 export const MOCK_LIBRARIES: LibraryResponse = {
   libraries: [
@@ -19,6 +13,17 @@ export const MOCK_LIBRARIES: LibraryResponse = {
     '입사 후 포부',
     '직무 수행 경험',
     '실패/극복 사례',
+    '현대자동차',
+    '기아',
+    '현대제철',
+    '현대오토에버',
+    '현대모비스',
+    '현대트랜시스',
+    '현대위아',
+    '현대엠시트',
+    '현대케피코',
+    '현대아이에이치엘',
+    '현대파텍스',
   ],
 };
 
@@ -31,7 +36,7 @@ export const MOCK_LIBRARIES: LibraryResponse = {
     '실패/극복 사례',
 */
 
-// Case 2: 기업 폴더 선택 시 (자소서 리스트)
+// 기업 폴더 선택 시 (자소서 리스트)
 export const MOCK_COVER_LETTERS: CoverLetterListResponse = {
   coverLetters: [
     {
@@ -70,7 +75,7 @@ export const MOCK_COVER_LETTERS: CoverLetterListResponse = {
   hasNext: true,
 };
 
-// Case 3: 문항 폴더 선택 시 (질문/답변 리스트)
+// 문항 폴더 선택 시 (질문/답변 리스트)
 export const MOCK_QUESTIONS: QuestionListResponse = {
   questions: [
     {
