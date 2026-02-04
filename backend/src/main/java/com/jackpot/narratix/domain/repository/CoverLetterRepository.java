@@ -24,7 +24,7 @@ public interface CoverLetterRepository {
             String userId, LocalDate startDate, LocalDate endDate, Pageable pageable
     );
 
-    Integer countByUserIdAndDeadlineBetween(String userId, LocalDate startDate, LocalDate endDate);
+    Long countByUserIdAndDeadlineBetween(String userId, LocalDate startDate, LocalDate endDate);
     CoverLetter findByIdOrElseThrow(Long coverLetterId);
 
     List<String> findCompanyNamesByUserId(String userId);

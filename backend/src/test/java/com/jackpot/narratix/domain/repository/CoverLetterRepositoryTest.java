@@ -302,7 +302,7 @@ class CoverLetterRepositoryTest {
         LocalDate endDate = LocalDate.of(2024, 12, 31);
 
         // when
-        Integer count = coverLetterJpaRepository.countByUserIdAndDeadlineBetween(userId, startDate, endDate);
+        Long count = coverLetterJpaRepository.countByUserIdAndDeadlineBetween(userId, startDate, endDate);
 
         // then
         assertThat(count).isEqualTo(3);
@@ -328,7 +328,7 @@ class CoverLetterRepositoryTest {
         LocalDate endDate = LocalDate.of(2024, 12, 31);
 
         // when
-        Integer countUser1 = coverLetterJpaRepository.countByUserIdAndDeadlineBetween(user1.getId(), startDate, endDate);
+        Long countUser1 = coverLetterJpaRepository.countByUserIdAndDeadlineBetween(user1.getId(), startDate, endDate);
 
         // then
         assertThat(countUser1).isEqualTo(2);
@@ -349,7 +349,7 @@ class CoverLetterRepositoryTest {
         LocalDate endDate = LocalDate.of(2024, 12, 31);
 
         // when
-        Integer count = coverLetterJpaRepository.countByUserIdAndDeadlineBetween(userId, startDate, endDate);
+        Long count = coverLetterJpaRepository.countByUserIdAndDeadlineBetween(userId, startDate, endDate);
 
         // then
         assertThat(count).isZero();

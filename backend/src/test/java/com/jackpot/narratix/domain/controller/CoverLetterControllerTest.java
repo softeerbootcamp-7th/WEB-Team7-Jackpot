@@ -395,7 +395,7 @@ class CoverLetterControllerTest {
                         ApplyHalfType.FIRST_HALF,
                         "백엔드 개발자",
                         LocalDate.of(2024, 6, 30),
-                        3
+                        3L
                 );
 
         CoverLettersDateRangeResponse.CoverLetterResponse coverLetter2 =
@@ -406,11 +406,11 @@ class CoverLetterControllerTest {
                         ApplyHalfType.SECOND_HALF,
                         "프론트엔드 개발자",
                         LocalDate.of(2024, 12, 15),
-                        5
+                        5L
                 );
 
         CoverLettersDateRangeResponse response = new CoverLettersDateRangeResponse(
-                2,
+                2L,
                 List.of(coverLetter1, coverLetter2)
         );
 
@@ -446,7 +446,7 @@ class CoverLetterControllerTest {
         LocalDate endDate = LocalDate.of(2024, 12, 31);
         Integer size = 10;
 
-        CoverLettersDateRangeResponse response = new CoverLettersDateRangeResponse(0, List.of());
+        CoverLettersDateRangeResponse response = new CoverLettersDateRangeResponse(0L, List.of());
 
         given(coverLetterService.getAllCoverLetterByDate(any(), any(LocalDate.class), any(LocalDate.class), any(Integer.class)))
                 .willReturn(response);

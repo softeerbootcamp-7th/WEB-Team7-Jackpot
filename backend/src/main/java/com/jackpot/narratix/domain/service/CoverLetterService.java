@@ -88,7 +88,7 @@ public class CoverLetterService {
         );
 
         if (coverLetters.isEmpty()) {
-            return CoverLettersDateRangeResponse.of(0, List.of());
+            return CoverLettersDateRangeResponse.of(0L, List.of());
         }
 
         return CoverLettersDateRangeResponse.of(
@@ -102,17 +102,17 @@ public class CoverLetterService {
     ) {
         List<Long> coverLetterIds = coverLetters.stream().map(CoverLetter::getId).toList();
 
-        Map<Long, Integer> qnaCountMap = qnARepository.countByCoverLetterIdIn(coverLetterIds)
+        Map<Long, Long> qnaCountMap = qnARepository.countByCoverLetterIdIn(coverLetterIds)
                 .stream()
                 .collect(Collectors.toMap(
-                        QnACountProjection::coverLetterId,
-                        QnACountProjection::count
+                        QnACountProjection::getCoverLetterId,
+                        QnACountProjection::getCount
                 ));
 
         return coverLetters.stream()
                 .map(coverLetter -> CoverLettersDateRangeResponse.CoverLetterResponse.of(
                         coverLetter,
-                        qnaCountMap.getOrDefault(coverLetter.getId(), 0)
+                        qnaCountMap.getOrDefault(coverLetter.getId(), 0L)
                 ))
                 .toList();
     }

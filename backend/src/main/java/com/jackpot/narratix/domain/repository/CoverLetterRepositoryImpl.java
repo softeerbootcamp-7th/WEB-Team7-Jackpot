@@ -49,7 +49,7 @@ public class CoverLetterRepositoryImpl implements CoverLetterRepository {
     }
 
     @Override
-    public Integer countByUserIdAndDeadlineBetween(String userId, LocalDate startDate, LocalDate endDate) {
+    public Long countByUserIdAndDeadlineBetween(String userId, LocalDate startDate, LocalDate endDate) {
         return coverLetterJpaRepository.countByUserIdAndDeadlineBetween(userId, startDate, endDate);
     }
 

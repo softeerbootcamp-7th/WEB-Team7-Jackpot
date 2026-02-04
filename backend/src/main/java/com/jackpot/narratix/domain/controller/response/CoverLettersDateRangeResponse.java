@@ -7,12 +7,12 @@ import java.time.LocalDate;
 import java.util.List;
 
 public record CoverLettersDateRangeResponse(
-    Integer totalCount,
+    Long totalCount,
     List<CoverLetterResponse> coverLetters
 ) {
 
     public static CoverLettersDateRangeResponse of(
-            Integer totalCoverLetterSize, List<CoverLetterResponse> coverLetters
+            Long totalCoverLetterSize, List<CoverLetterResponse> coverLetters
     ){
         return new CoverLettersDateRangeResponse(totalCoverLetterSize, coverLetters);
     }
@@ -24,10 +24,10 @@ public record CoverLettersDateRangeResponse(
             ApplyHalfType applyHalf,
             String jobPosition,
             LocalDate deadline,
-            Integer questionCount
+            Long questionCount
     ) {
 
-        public static CoverLetterResponse of(CoverLetter coverLetter, Integer questionCount){
+        public static CoverLetterResponse of(CoverLetter coverLetter, Long questionCount){
             return new CoverLetterResponse(
                     coverLetter.getId(),
                     coverLetter.getCompanyName(),

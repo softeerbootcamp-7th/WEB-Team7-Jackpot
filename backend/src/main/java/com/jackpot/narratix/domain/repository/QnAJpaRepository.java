@@ -22,5 +22,5 @@ public interface QnAJpaRepository extends JpaRepository<QnA, Long> {
             "FROM QnA qna " +
             "WHERE qna.coverLetter.id IN :coverLetterIds " +
             "GROUP BY qna.coverLetter.id")
-    List<QnACountProjection> countByCoverLetterIdIn(List<Long> coverLetterIds);
+    List<QnACountProjection> countByCoverLetterIdIn(@Param("coverLetterIds") List<Long> coverLetterIds);
 }
