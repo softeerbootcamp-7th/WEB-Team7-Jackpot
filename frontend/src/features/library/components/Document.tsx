@@ -1,6 +1,6 @@
 import { getDate } from '@/shared/utils/dates';
 
-interface DocumentListProps {
+interface DocumentProps {
   selectedDocumentId: number | null;
   content: object;
   handleDocumentId: (id: number | null) => void;
@@ -10,7 +10,7 @@ const Document = ({
   selectedDocumentId,
   content,
   handleDocumentId,
-}: DocumentListProps) => {
+}: DocumentProps) => {
   const {
     id,
     companyName,
@@ -31,7 +31,8 @@ const Document = ({
 
   return (
     <button
-      className={`w-full ${!selectedDocumentId && selectedDocumentId !== id && 'opacity-30'}`} // 수정
+      type='button'
+      className={`w-full ${selectedDocumentId !== null && selectedDocumentId !== id && 'opacity-30'}`} // 수정
       onClick={() => handleDocumentId(id)}
     >
       <div className='inline-flex w-full flex-col items-start justify-start gap-1 border-b border-gray-100 px-3 py-5'>
