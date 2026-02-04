@@ -1,6 +1,6 @@
-import CoverLetterPreview from '@/components/home/CoverLetterPreview';
-import CardIcon from '@/components/home/icons/CardIcon';
-import RightArrow from '@/components/home/icons/RightArrow';
+import CoverLetterPreview from '@/features/home/components/CoverLetterPreview';
+import CardIcon from '@/features/home/components/icons/CardIcon';
+import RightArrow from '@/features/home/components/icons/RightArrow';
 
 const previews = Array.from({ length: 6 });
 
