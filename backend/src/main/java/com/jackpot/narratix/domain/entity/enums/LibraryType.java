@@ -7,8 +7,6 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum LibraryType {
 
-    COMPANY("기업"),
-    QUESTION("문항");
+    COMPANY, QUESTION
 
-    private final String description;
 }
