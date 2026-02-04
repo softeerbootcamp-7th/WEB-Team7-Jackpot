@@ -2,6 +2,7 @@ package com.jackpot.narratix.domain.service;
 
 import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
 import com.jackpot.narratix.domain.controller.response.CoverLetterResponse;
+import com.jackpot.narratix.domain.controller.response.CoverLettersDateRangeResponse;
 import com.jackpot.narratix.domain.controller.response.CreateCoverLetterResponse;
 import com.jackpot.narratix.domain.controller.response.TotalCoverLetterCountResponse;
 import com.jackpot.narratix.domain.entity.CoverLetter;
@@ -12,10 +13,12 @@ import com.jackpot.narratix.domain.repository.QnARepository;
 import com.jackpot.narratix.global.exception.BaseException;
 import com.jackpot.narratix.global.exception.GlobalErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -38,20 +41,22 @@ public class CoverLetterService {
         CoverLetter coverLetter = coverLetterRepository.findById(coverLetterId)
                 .orElseThrow(() -> new BaseException(CoverLetterErrorCode.COVER_LETTER_NOT_FOUND));
 
-        if(!coverLetter.isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
+        if (!coverLetter.isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
 
         return CoverLetterResponse.of(coverLetter);
     }
+
     @Transactional
     public void deleteCoverLetterById(String userId, Long coverLetterId) {
         Optional<CoverLetter> coverLetterOptional = coverLetterRepository.findById(coverLetterId);
-        if(coverLetterOptional.isEmpty()) return;
-        if(!coverLetterOptional.get().isOwner(userId)){
+        if (coverLetterOptional.isEmpty()) return;
+        if (!coverLetterOptional.get().isOwner(userId)) {
             throw new BaseException(GlobalErrorCode.FORBIDDEN);
         }
 
         coverLetterRepository.deleteById(coverLetterId);
     }
+
     @Transactional(readOnly = true)
     public TotalCoverLetterCountResponse getTotalCoverLetterCount(String userId, LocalDate date) {
         ApplyHalfType applyHalf = ApplyHalfType.calculateApplyHalfType(date);
@@ -62,5 +67,26 @@ public class CoverLetterService {
                 .qnaCount(qnARepository.countByUserId(userId))
                 .seasonCoverLetterCount(coverLetterRepository.countByUserIdAndApplyYearAndApplyHalf(userId, applyYear, applyHalf))
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public CoverLettersDateRangeResponse getAllCoverLetterByDate(
+            String userId, LocalDate startDate, LocalDate endDate, Integer size
+    ) {
+        List<CoverLetter> coverLetters = coverLetterRepository.findByUserIdAndDeadlineBetweenOrderByModifiedAtDesc(
+                userId,
+                startDate,
+                endDate,
+                Pageable.ofSize(size)
+        );
+
+        return CoverLettersDateRangeResponse.of(
+                coverLetterRepository.countByUserIdAndDeadlineBetween(userId, startDate, endDate),
+                coverLetters.stream().map(
+                        coverLetter -> CoverLettersDateRangeResponse.CoverLetterResponse.of(
+                                coverLetter, qnARepository.countByCoverLetterId(coverLetter.getId())
+                        )
+                ).toList()
+        );
     }
 }
