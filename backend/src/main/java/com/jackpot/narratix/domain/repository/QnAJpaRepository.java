@@ -8,4 +8,6 @@ import org.springframework.stereotype.Repository;
 public interface QnAJpaRepository extends JpaRepository<QnA, Long> {
 
     Integer countByUserId(String userId);
+
+    Integer countByCoverLetterId(Long coverLetterId);
 }

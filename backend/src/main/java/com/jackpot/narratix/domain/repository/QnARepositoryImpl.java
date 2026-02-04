@@ -21,4 +21,9 @@ public class QnARepositoryImpl implements QnARepository {
     public Integer countByUserId(String userId) {
         return qnAJpaRepository.countByUserId(userId);
     }
+
+    @Override
+    public Integer countByCoverLetterId(Long coverLetterId) {
+        return qnAJpaRepository.countByCoverLetterId(coverLetterId);
+    }
 }
