@@ -3,7 +3,6 @@ package com.jackpot.narratix.domain.repository;
 import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -30,7 +29,10 @@ public class QnARepositoryImpl implements QnARepository {
     }
 
     @Override
-    public List<QnACountProjection> countByCoverLetterIdIn(@Param("coverLetterIds") List<Long> coverLetterIds) {
+    public List<QnACountProjection> countByCoverLetterIdIn(List<Long> coverLetterIds) {
+        if (coverLetterIds == null || coverLetterIds.isEmpty()) {
+            return List.of();
+        }
         return qnAJpaRepository.countByCoverLetterIdIn(coverLetterIds);
     }
 }
