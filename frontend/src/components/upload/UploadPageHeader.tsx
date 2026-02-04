@@ -1,4 +1,4 @@
-import { UploadPageIcons } from '@/components/upload/icons';
+import { UploadPageIcons as I } from '@/components/upload/icons';
 
 const UploadPageHeader = () => {
   return (
