@@ -2,6 +2,7 @@ import AddFileIcon from '@/components/upload/icons/AddFileIcon';
 import AILabelingIcon from '@/components/upload/icons/AILabelingIcon';
 import CompleteSavedIcon from '@/components/upload/icons/CompleteSavedIcon';
 import DocumentBoxIcon from '@/components/upload/icons/DocumentBoxIcon';
+import DropdownArrow from '@/components/upload/icons/DropdownArrow';
 import FileUploadIcon from '@/components/upload/icons/FileUploadIcon';
 import FirstStepIcon from '@/components/upload/icons/FirstStepIcon';
 import LeftPaginationButtonIcon from '@/components/upload/icons/LeftPaginationButtonIcon';
@@ -22,4 +23,5 @@ export const UploadPageIcons = {
   UploadIcon: UploadIcon,
   LeftPaginationButtonIcon: LeftPaginationButtonIcon,
   RightPaginationButtonIcon: RightPaginationButtonIcon,
+  DropdownArrow: DropdownArrow,
 };
