@@ -1,15 +1,14 @@
 package com.jackpot.narratix.domain.controller;
 
-import com.jackpot.narratix.domain.controller.request.GetLibraryListRequest;
 import com.jackpot.narratix.domain.controller.response.GetLibraryListResponse;
+import com.jackpot.narratix.domain.entity.enums.LibraryType;
 import com.jackpot.narratix.domain.service.LibraryService;
 import com.jackpot.narratix.global.auth.UserId;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -24,9 +23,9 @@ public class LibraryController {
     @GetMapping("/all")
     public ResponseEntity<GetLibraryListResponse> getLibraryList(
             @UserId String userId,
-            @Valid @ModelAttribute GetLibraryListRequest request
+            @RequestParam LibraryType libraryType
     ) {
-        List<String> libraryList = libraryService.getLibraryList(userId, request);
+        List<String> libraryList = libraryService.getLibraryList(userId, libraryType);
         return ResponseEntity.ok(new GetLibraryListResponse(libraryList));
     }
 }

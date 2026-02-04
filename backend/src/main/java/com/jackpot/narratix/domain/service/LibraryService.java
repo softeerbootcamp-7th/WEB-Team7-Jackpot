@@ -1,6 +1,6 @@
 package com.jackpot.narratix.domain.service;
 
-import com.jackpot.narratix.domain.controller.request.GetLibraryListRequest;
+import com.jackpot.narratix.domain.entity.enums.LibraryType;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
 import com.jackpot.narratix.domain.exception.LibraryErrorCode;
 import com.jackpot.narratix.domain.repository.CoverLetterRepository;
@@ -18,11 +18,8 @@ public class LibraryService {
     private final CoverLetterRepository coverLetterRepository;
     private final QnARepository qnARepository;
 
-    public List<String> getLibraryList(String userId, GetLibraryListRequest request) {
-        if (request.type() == null) {
-            throw new BaseException(LibraryErrorCode.INVALID_LIBRARY_TYPE);
-        }
-        return switch (request.type()) {
+    public List<String> getLibraryList(String userId, LibraryType libraryType) {
+        return switch (libraryType) {
             case COMPANY -> getCompanyName(userId);
             case QUESTION -> getQuestionCategory(userId);
             default -> throw new BaseException(LibraryErrorCode.INVALID_LIBRARY_TYPE);
