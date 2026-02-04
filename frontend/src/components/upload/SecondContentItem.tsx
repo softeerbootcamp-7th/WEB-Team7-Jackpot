@@ -9,6 +9,7 @@ import type {
   CoverLetterListProps,
   DropdownStateType,
 } from '@/types/upload';
+import { yearList } from '@/utils/upload/generateYearList';
 
 // [윤종근] - 추후에 지울 예정인 UI 테스트만을 위한 임시 데이터라서 constants에 옮기지 않았습니다.
 const COMPANY_NAME_LIST: string[] = ['현대자동차', '현대오토에버', '현대카드'];
@@ -21,7 +22,6 @@ const QUESTION_TYPE_LIST: string[] = [
 ];
 
 const SecondContentItem = ({ tabState, setTabState }: CoverLetterListProps) => {
-  const today = new Date();
   const [contents, setContents] = useState<ContentStateType>(
     [1, 2, 3].reduce(
       (acc, key) => ({
@@ -39,17 +39,6 @@ const SecondContentItem = ({ tabState, setTabState }: CoverLetterListProps) => {
       {},
     ),
   );
-
-  const generateYearList = (year: number) => {
-    const yearList = [];
-    for (let i = 0; i < 100; i += 1) {
-      yearList.push(year - i);
-    }
-
-    return yearList;
-  };
-
-  const yearList = generateYearList(today.getFullYear());
 
   const [isDropdownOpen, setIsDropdownOpen] = useState<DropdownStateType>({
     companyNameDropdown: false,
