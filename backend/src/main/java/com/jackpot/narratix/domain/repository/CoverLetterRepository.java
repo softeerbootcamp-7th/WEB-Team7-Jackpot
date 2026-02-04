@@ -5,6 +5,7 @@ import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface CoverLetterRepository {
@@ -23,5 +24,7 @@ public interface CoverLetterRepository {
 
     List<String> findCompanyNamesByUserId(String userId);
 
-    List<CoverLetter> findUpcomingCoverLettersByUserId(String userId, LocalDate date, int limit);
+    Map<LocalDate, List<CoverLetter>> findUpcomingCoverLettersGroupedByDeadline(
+            String userId, LocalDate date, int maxDeadLineSize, int maxCoverLetterSizePerDeadLine
+    );
 }

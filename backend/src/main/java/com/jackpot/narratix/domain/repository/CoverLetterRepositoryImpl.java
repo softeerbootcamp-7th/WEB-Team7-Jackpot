@@ -8,8 +8,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.groupingBy;
 
 @Repository
 @RequiredArgsConstructor
@@ -54,7 +56,15 @@ public class CoverLetterRepositoryImpl implements CoverLetterRepository {
     }
 
     @Override
-    public List<CoverLetter> findUpcomingCoverLettersByUserId(String userId, LocalDate date, int limit) {
-        return coverLetterJpaRepository.findUpcomingCoverLettersByUserIdAndDate(userId, date, limit);
+    public Map<LocalDate, List<CoverLetter>> findUpcomingCoverLettersGroupedByDeadline(
+            String userId, LocalDate date, int maxDeadLineSize, int maxCoverLetterSizePerDeadLine
+    ) {
+        List<CoverLetter> coverLetters = coverLetterJpaRepository
+                .findUpcomingCoverLettersGroupedByDeadline(userId, date, maxDeadLineSize, maxCoverLetterSizePerDeadLine);
+
+        return coverLetters.stream()
+                .collect(groupingBy(
+                        CoverLetter::getDeadline, LinkedHashMap::new, Collectors.toList()
+                ));
     }
 }
