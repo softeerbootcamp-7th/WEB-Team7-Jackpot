@@ -1,4 +1,4 @@
-import RightArrow from '../icons/RightArrow';
+import RightArrow from '../../../shared/icons/RightArrow';
 
 interface UpcomingScheduleProps {
   date: string;

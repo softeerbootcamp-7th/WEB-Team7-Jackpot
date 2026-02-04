@@ -1,5 +1,5 @@
-import CardIcon from '../../features/home/icons/CardIcon';
-import RightArrow from '../../features/home/icons/RightArrow';
+import RightArrow from '../icons/RightArrow';
+import { WritingCoverLetterIcon } from '../icons/WritingCoverLetter';
 import CoverLetterPreview from './CoverLetterPreview';
 
 const previews = Array.from({ length: 6 });
@@ -10,7 +10,7 @@ const CoverLetterOverview = () => {
       <div className='inline-flex items-center justify-between self-stretch'>
         <div className='flex items-center justify-start gap-2.5'>
           <div className='relative h-7 w-7'>
-            <CardIcon />
+            <WritingCoverLetterIcon />
           </div>
           <div className='justify-start text-xl leading-9 font-bold text-gray-950'>
             작성 중인 자기소개서

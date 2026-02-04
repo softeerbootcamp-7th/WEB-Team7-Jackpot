@@ -1,10 +1,10 @@
 // import useSearch from '../hooks/useSearch';
 // 나중에 로직 안 붙였습니다.
 
+import SearchInput from '../../../shared/components/SearchInput';
 import type { LibraryView } from '../types';
 import DocumentList from './DocumentList';
 import FolderList from './FolderList';
-import SearchInput from './SearchInput';
 
 interface SideBarProps {
   currentTab: LibraryView;

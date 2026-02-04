@@ -1,5 +1,4 @@
 import DetailView from '@/features/library/components/DetailView';
-import LibraryLayout from '@/features/library/components/LibraryLayout';
 import ScrapNum from '@/features/library/components/ScrapNum';
 import SideBar from '@/features/library/components/SideBar';
 import {
@@ -13,6 +12,7 @@ import useScrapNum from '@/features/library/hooks/useScrapNum';
 import ContentHeader from '@/shared/components/ContentHeader';
 import DataGuard from '@/shared/components/DataGuard';
 import EmptyCase from '@/shared/components/EmptyCase';
+import SidebarLayout from '@/shared/components/SidebarLayout';
 import TabBar from '@/shared/components/TabBar';
 
 const LibraryPage = () => {
@@ -47,7 +47,7 @@ const LibraryPage = () => {
   const hasData = folderList.length > 0;
 
   return (
-    <LibraryLayout
+    <SidebarLayout
       headerSlot={
         <>
           <ContentHeader {...libraryHeaderText} />
@@ -65,7 +65,7 @@ const LibraryPage = () => {
       >
         <DetailView />
       </DataGuard>
-    </LibraryLayout>
+    </SidebarLayout>
   );
 };
 
