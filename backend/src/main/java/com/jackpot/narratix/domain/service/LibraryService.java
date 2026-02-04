@@ -1,14 +1,21 @@
 package com.jackpot.narratix.domain.service;
 
+import com.jackpot.narratix.domain.controller.response.CompanyLibraryResponse;
+import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.enums.LibraryType;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
+import com.jackpot.narratix.domain.exception.CoverLetterErrorCode;
 import com.jackpot.narratix.domain.exception.LibraryErrorCode;
 import com.jackpot.narratix.domain.repository.CoverLetterRepository;
 import com.jackpot.narratix.domain.repository.QnARepository;
 import com.jackpot.narratix.global.exception.BaseException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -34,5 +41,32 @@ public class LibraryService {
         return qnARepository.findQuestionCategoryByUserId(userId).stream()
                 .map(QuestionCategoryType::getDescription)
                 .toList();
+    }
+
+    public CompanyLibraryResponse getCompanyLibraries(String userId, String companyName, int size, Long lastCoverLetterId) {
+
+        Pageable pageable = PageRequest.of(0, size);
+
+        Slice<CoverLetter> coverLetterSlice;
+
+        if (lastCoverLetterId == null) {
+            coverLetterSlice = coverLetterRepository.findByUserIdAndCompanyNameOrderByModifiedAtDesc(userId, companyName, pageable);
+        } else {
+            CoverLetter lastCoverLetter = coverLetterRepository.findById(lastCoverLetterId)
+                    .orElseThrow(() -> new BaseException(CoverLetterErrorCode.COVER_LETTER_NOT_FOUND));
+
+            coverLetterSlice = coverLetterRepository.findByUserIdAndCompanyNameOrderByModifiedAtDesc(
+                    userId,
+                    companyName,
+                    LocalDate.from(lastCoverLetter.getModifiedAt()),
+                    pageable
+            );
+
+        }
+
+        List<CoverLetter> coverLetters = coverLetterSlice.getContent();
+        boolean hasNext = coverLetterSlice.hasNext();
+
+        return CompanyLibraryResponse.of(coverLetters, hasNext);
     }
 }

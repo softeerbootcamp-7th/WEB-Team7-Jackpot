@@ -35,8 +35,10 @@ public class LibraryController {
             @UserId String userId,
             @RequestParam String companyName,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) Long lastCoverLetterId
+            @RequestParam(required = false) Long lastCoverLetterId // [변경] Cursor ID
     ) {
-        return ResponseEntity.ok(libraryService.getCompanyLibraries(userId, companyName, size, lastCoverLetterId));
+        return ResponseEntity.ok(
+                libraryService.getCompanyLibraries(userId, companyName, size, lastCoverLetterId)
+        );
     }
 }
