@@ -5,6 +5,7 @@ import { UploadPageIcons as I } from '@/components/upload/icons';
 
 import { RECRUIT_SEASON_LIST } from '@/constants/constantsInUploadPage';
 import type {
+  ContentItemType,
   ContentStateType,
   CoverLetterListProps,
   DropdownStateType,
@@ -88,48 +89,38 @@ const SecondContentItem = ({ tabState, setTabState }: CoverLetterListProps) => {
       },
     }));
   };
-  const handleClickContentsCompanyName = (key: number, newValue: string) => {
-    setContents((prev) => ({
-      ...prev,
-      [key]: {
-        ...prev[key],
-        companyName: newValue,
-      },
-    }));
-  };
-  const handleClickContentsQuestionType = (key: number, newValue: string) => {
-    setContents((prev) => ({
-      ...prev,
-      [key]: {
-        ...prev[key],
-        questionType: newValue,
-      },
-    }));
-  };
-  const handleContentsYear = (key: number, newValue: number) => {
-    setContents((prev) => ({
-      ...prev,
-      [key]: {
-        ...prev[key],
-        recruitPeriod: {
-          year: newValue,
-          season: prev[key].recruitPeriod.season,
+
+  const handleContentChange = (
+    key: number,
+    field: keyof ContentItemType | 'year' | 'season',
+    value: string | number,
+  ) => {
+    setContents((prev) => {
+      const currentItem = prev[key];
+
+      if (field === 'year' || field === 'season') {
+        return {
+          ...prev,
+          [key]: {
+            ...currentItem,
+            recruitPeriod: {
+              ...currentItem.recruitPeriod,
+              [field]: value,
+            },
+          },
+        };
+      }
+      return {
+        ...prev,
+        [key]: {
+          ...currentItem,
+          [field]: value,
         },
-      },
-    }));
+      };
+    });
   };
-  const handleContentsSeason = (key: number, newValue: 'first' | 'second') => {
-    setContents((prev) => ({
-      ...prev,
-      [key]: {
-        ...prev[key],
-        recruitPeriod: {
-          year: prev[key].recruitPeriod.year,
-          season: newValue,
-        },
-      },
-    }));
-  };
+
+  const currentData = contents[tabState];
 
   return (
     <div className='flex flex-col gap-6'>
@@ -145,7 +136,7 @@ const SecondContentItem = ({ tabState, setTabState }: CoverLetterListProps) => {
               <div className='relative inline-block'>
                 <input
                   type='text'
-                  value={contents[tabState].companyName}
+                  value={currentData.companyName}
                   onChange={(e) => handleContentsCompanyName(e, tabState)}
                   className={`w-full bg-gray-50 px-5 py-[0.875rem] rounded-lg focus:outline-none relative ${isDropdownOpen.companyNameDropdown ? 'z-20' : 'z-0'}`}
                   onClick={() =>
@@ -173,7 +164,11 @@ const SecondContentItem = ({ tabState, setTabState }: CoverLetterListProps) => {
                           <button
                             type='button'
                             onClick={() => {
-                              handleClickContentsCompanyName(tabState, name);
+                              handleContentChange(
+                                tabState,
+                                'companyName',
+                                name,
+                              );
                               setIsDropdownOpen((prev) => ({
                                 ...prev,
                                 companyNameDropdown: false,
@@ -197,7 +192,7 @@ const SecondContentItem = ({ tabState, setTabState }: CoverLetterListProps) => {
               </div>
               <input
                 type='text'
-                value={contents[tabState].jobPosition}
+                value={currentData.jobPosition}
                 onChange={(e) => handleContentsJobPosition(e, tabState)}
                 className='w-full bg-gray-50 px-5 py-[0.875rem] rounded-lg text-[15px] focus:outline-none'
               />
@@ -219,7 +214,7 @@ const SecondContentItem = ({ tabState, setTabState }: CoverLetterListProps) => {
                     }
                   >
                     <div className='font-medium'>
-                      {contents[tabState].recruitPeriod.year}
+                      {currentData.recruitPeriod.year}
                     </div>
                     <I.DropdownArrow isOpen={isDropdownOpen.yearDropdown} />
                   </button>
@@ -241,7 +236,7 @@ const SecondContentItem = ({ tabState, setTabState }: CoverLetterListProps) => {
                             <button
                               type='button'
                               onClick={() => {
-                                handleContentsYear(tabState, year);
+                                handleContentChange(tabState, 'year', year);
                                 setIsDropdownOpen((prev) => ({
                                   ...prev,
                                   yearDropdown: false,
@@ -266,18 +261,17 @@ const SecondContentItem = ({ tabState, setTabState }: CoverLetterListProps) => {
                           type='radio'
                           className='sr-only peer'
                           checked={
-                            contents[tabState].recruitPeriod.season ===
-                            each.season
+                            currentData.recruitPeriod.season === each.season
                           }
                           onChange={() =>
-                            handleContentsSeason(tabState, each.season)
+                            handleContentChange(tabState, 'season', each.season)
                           }
                         />
                         <div
-                          className={`flex justify-center rounded-md ${contents[tabState].recruitPeriod.season === each.season ? 'bg-white' : ''} px-8 py-[10px]`}
+                          className={`flex justify-center rounded-md ${currentData.recruitPeriod.season === each.season ? 'bg-white' : ''} px-8 py-[10px]`}
                         >
                           <span
-                            className={`${contents[tabState].recruitPeriod.season === each.season ? 'font-bold text-gray-950' : 'text-gray-400'}`}
+                            className={`${currentData.recruitPeriod.season === each.season ? 'font-bold text-gray-950' : 'text-gray-400'}`}
                           >
                             {each.label}
                           </span>
@@ -295,7 +289,7 @@ const SecondContentItem = ({ tabState, setTabState }: CoverLetterListProps) => {
               <div className='relative inline-block'>
                 <input
                   type='text'
-                  value={contents[tabState].questionType}
+                  value={currentData.questionType}
                   onChange={(e) => handleContentsQuestionType(e, tabState)}
                   className={`w-full bg-gray-50 px-5 py-[0.875rem] rounded-lg focus:outline-none relative ${isDropdownOpen.questionTypeDropdown ? 'z-20' : 'z-0'}`}
                   onClick={() =>
@@ -323,7 +317,11 @@ const SecondContentItem = ({ tabState, setTabState }: CoverLetterListProps) => {
                           <button
                             type='button'
                             onClick={() => {
-                              handleClickContentsQuestionType(tabState, name);
+                              handleContentChange(
+                                tabState,
+                                'questionType',
+                                name,
+                              );
                               setIsDropdownOpen((prev) => ({
                                 ...prev,
                                 questionTypeDropdown: false,

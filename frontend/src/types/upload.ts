@@ -29,7 +29,7 @@ export interface RecruitSeasonType {
   label: string;
 }
 
-interface ContentItemType {
+export interface ContentItemType {
   companyName: string;
   jobPosition: string;
   recruitPeriod: {
