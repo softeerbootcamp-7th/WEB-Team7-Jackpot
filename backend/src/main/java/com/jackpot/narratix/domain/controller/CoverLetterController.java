@@ -70,8 +70,11 @@ public class CoverLetterController {
     public ResponseEntity<List<UpcomingCoverLetterResponse>> getUpcomingCoverLetters(
             @UserId String userId,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date,
-            @RequestParam Integer size
+            @RequestParam Integer maxDeadLineSize,
+            @RequestParam Integer maxCoverLetterSizePerDeadLine
     ) {
-        return ResponseEntity.ok(coverLetterService.getUpcomingCoverLetters(userId, date, size));
+        return ResponseEntity.ok(
+                coverLetterService.getUpcomingCoverLetters(userId, date, maxDeadLineSize, maxCoverLetterSizePerDeadLine)
+        );
     }
 }
