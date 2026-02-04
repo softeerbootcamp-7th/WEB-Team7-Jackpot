@@ -2,6 +2,7 @@ package com.jackpot.narratix.domain.controller;
 
 import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
 import com.jackpot.narratix.domain.controller.request.CreateQuestionRequest;
+import com.jackpot.narratix.domain.controller.response.CoverLettersDateRangeResponse;
 import com.jackpot.narratix.domain.controller.response.CreateCoverLetterResponse;
 import com.jackpot.narratix.domain.controller.response.TotalCoverLetterCountResponse;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
@@ -12,6 +13,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -24,6 +28,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -400,5 +405,114 @@ class CoverLetterControllerTest {
         mockMvc.perform(get("/api/v1/coverletter/count")
                         .header(AuthConstants.AUTHORIZATION, TEST_TOKEN))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("날짜 범위로 자기소개서 리스트 조회 성공")
+    void getAllCoverLetterByDate_Success() throws Exception {
+        // given
+        LocalDate startDate = LocalDate.of(2024, 1, 1);
+        LocalDate endDate = LocalDate.of(2024, 12, 31);
+        Integer size = 10;
+
+        CoverLettersDateRangeResponse.CoverLetterResponse coverLetter1 =
+                new CoverLettersDateRangeResponse.CoverLetterResponse(
+                        1L,
+                        "현대자동차",
+                        2024,
+                        ApplyHalfType.FIRST_HALF,
+                        "백엔드 개발자",
+                        LocalDate.of(2024, 6, 30),
+                        3
+                );
+
+        CoverLettersDateRangeResponse.CoverLetterResponse coverLetter2 =
+                new CoverLettersDateRangeResponse.CoverLetterResponse(
+                        2L,
+                        "삼성전자",
+                        2024,
+                        ApplyHalfType.SECOND_HALF,
+                        "프론트엔드 개발자",
+                        LocalDate.of(2024, 12, 15),
+                        5
+                );
+
+        CoverLettersDateRangeResponse response = new CoverLettersDateRangeResponse(
+                2,
+                List.of(coverLetter1, coverLetter2)
+        );
+
+        given(coverLetterService.getAllCoverLetterByDate(any(), any(LocalDate.class), any(LocalDate.class), any(Integer.class)))
+                .willReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/api/v1/coverletter/all")
+                        .header(AuthConstants.AUTHORIZATION, TEST_TOKEN)
+                        .param("startDate", startDate.toString())
+                        .param("endDate", endDate.toString())
+                        .param("size", size.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalCount").value(2))
+                .andExpect(jsonPath("$.coverLetters").isArray())
+                .andExpect(jsonPath("$.coverLetters.length()").value(2))
+                .andExpect(jsonPath("$.coverLetters[0].coverLetterId").value(1))
+                .andExpect(jsonPath("$.coverLetters[0].companyName").value("현대자동차"))
+                .andExpect(jsonPath("$.coverLetters[0].applyYear").value(2024))
+                .andExpect(jsonPath("$.coverLetters[0].applyHalf").value("FIRST_HALF"))
+                .andExpect(jsonPath("$.coverLetters[0].jobPosition").value("백엔드 개발자"))
+                .andExpect(jsonPath("$.coverLetters[0].questionCount").value(3))
+                .andExpect(jsonPath("$.coverLetters[1].coverLetterId").value(2))
+                .andExpect(jsonPath("$.coverLetters[1].companyName").value("삼성전자"))
+                .andExpect(jsonPath("$.coverLetters[1].questionCount").value(5));
+    }
+
+    @Test
+    @DisplayName("날짜 범위로 자기소개서 리스트 조회 시 결과가 없을 때 빈 리스트 반환")
+    void getAllCoverLetterByDate_EmptyResult_Success() throws Exception {
+        // given
+        LocalDate startDate = LocalDate.of(2024, 1, 1);
+        LocalDate endDate = LocalDate.of(2024, 12, 31);
+        Integer size = 10;
+
+        CoverLettersDateRangeResponse response = new CoverLettersDateRangeResponse(0, List.of());
+
+        given(coverLetterService.getAllCoverLetterByDate(any(), any(LocalDate.class), any(LocalDate.class), any(Integer.class)))
+                .willReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/api/v1/coverletter/all")
+                        .header(AuthConstants.AUTHORIZATION, TEST_TOKEN)
+                        .param("startDate", startDate.toString())
+                        .param("endDate", endDate.toString())
+                        .param("size", size.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalCount").value(0))
+                .andExpect(jsonPath("$.coverLetters").isArray())
+                .andExpect(jsonPath("$.coverLetters.length()").value(0));
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideInvalidParametersForGetAllCoverLetterByDate")
+    @DisplayName("날짜 범위로 자기소개서 리스트 조회 시 필수 파라미터가 누락되거나 잘못되면 400 Bad Request 반환")
+    void getAllCoverLetterByDate_InvalidParameters_BadRequest(
+            String startDate, String endDate, String size
+    ) throws Exception {
+        // when & then
+        mockMvc.perform(get("/api/v1/coverletter/all")
+                        .header(AuthConstants.AUTHORIZATION, TEST_TOKEN)
+                        .param("startDate", startDate != null ? startDate : "")
+                        .param("endDate", endDate != null ? endDate : "")
+                        .param("size", size != null ? size : ""))
+                .andExpect(status().isBadRequest());
+    }
+
+    private static Stream<Arguments> provideInvalidParametersForGetAllCoverLetterByDate() {
+        return Stream.of(
+                Arguments.of(null, "2024-12-31", "10"),  // startDate 누락
+                Arguments.of("2024-01-01", null, "10"),  // endDate 누락
+                Arguments.of("2024-01-01", "2024-12-31", null),  // size 누락
+                Arguments.of("2024/01/01", "2024-12-31", "10"),  // 잘못된 날짜 포맷 (startDate)
+                Arguments.of("2024-01-01", "2024/12/31", "10")   // 잘못된 날짜 포맷 (endDate)
+        );
     }
 }
