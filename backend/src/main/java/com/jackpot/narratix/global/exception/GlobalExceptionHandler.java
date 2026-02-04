@@ -2,6 +2,7 @@ package com.jackpot.narratix.global.exception;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -26,6 +27,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
     protected ResponseEntity<ErrorResponse> handleMissingParameterException(MissingServletRequestParameterException e) {
+        ErrorResponse response = ErrorResponse.of(GlobalErrorCode.INVALID_INPUT_VALUE);
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    @ExceptionHandler(HttpMessageConversionException.class)
+    protected ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageConversionException e) {
+        log.warn("Invalid JSON format or data type: {}", e.getMessage());
         ErrorResponse response = ErrorResponse.of(GlobalErrorCode.INVALID_INPUT_VALUE);
         return ResponseEntity.badRequest().body(response);
     }

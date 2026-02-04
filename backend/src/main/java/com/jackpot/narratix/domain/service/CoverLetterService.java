@@ -1,6 +1,7 @@
 package com.jackpot.narratix.domain.service;
 
 import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
+import com.jackpot.narratix.domain.controller.request.EditCoverLetterRequest;
 import com.jackpot.narratix.domain.controller.response.CoverLetterResponse;
 import com.jackpot.narratix.domain.controller.response.CreateCoverLetterResponse;
 import com.jackpot.narratix.domain.controller.response.TotalCoverLetterCountResponse;
@@ -38,20 +39,22 @@ public class CoverLetterService {
         CoverLetter coverLetter = coverLetterRepository.findById(coverLetterId)
                 .orElseThrow(() -> new BaseException(CoverLetterErrorCode.COVER_LETTER_NOT_FOUND));
 
-        if(!coverLetter.isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
+        if (!coverLetter.isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
 
         return CoverLetterResponse.of(coverLetter);
     }
+
     @Transactional
     public void deleteCoverLetterById(String userId, Long coverLetterId) {
         Optional<CoverLetter> coverLetterOptional = coverLetterRepository.findById(coverLetterId);
-        if(coverLetterOptional.isEmpty()) return;
-        if(!coverLetterOptional.get().isOwner(userId)){
+        if (coverLetterOptional.isEmpty()) return;
+        if (!coverLetterOptional.get().isOwner(userId)) {
             throw new BaseException(GlobalErrorCode.FORBIDDEN);
         }
 
         coverLetterRepository.deleteById(coverLetterId);
     }
+
     @Transactional(readOnly = true)
     public TotalCoverLetterCountResponse getTotalCoverLetterCount(String userId, LocalDate date) {
         ApplyHalfType applyHalf = ApplyHalfType.calculateApplyHalfType(date);
@@ -62,5 +65,11 @@ public class CoverLetterService {
                 .qnaCount(qnARepository.countByUserId(userId))
                 .seasonCoverLetterCount(coverLetterRepository.countByUserIdAndApplyYearAndApplyHalf(userId, applyYear, applyHalf))
                 .build();
+    }
+
+    @Transactional
+    public void editCoverLetter(String userId, EditCoverLetterRequest editCoverLetterRequest) {
+        CoverLetter coverLetter = coverLetterRepository.findByIdOrElseThrow(editCoverLetterRequest.coverLetterId());
+        coverLetter.edit(userId, editCoverLetterRequest);
     }
 }

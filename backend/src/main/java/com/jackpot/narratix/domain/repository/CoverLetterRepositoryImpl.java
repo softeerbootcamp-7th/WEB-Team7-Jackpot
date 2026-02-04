@@ -2,6 +2,8 @@ package com.jackpot.narratix.domain.repository;
 
 import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
+import com.jackpot.narratix.domain.exception.CoverLetterErrorCode;
+import com.jackpot.narratix.global.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -27,6 +29,12 @@ public class CoverLetterRepositoryImpl implements CoverLetterRepository {
     @Override
     public void deleteById(Long coverLetterId) {
         coverLetterJpaRepository.deleteById(coverLetterId);
+    }
+
+    @Override
+    public CoverLetter findByIdOrElseThrow(Long coverLetterId) {
+        return coverLetterJpaRepository.findById(coverLetterId)
+                .orElseThrow(() -> new BaseException(CoverLetterErrorCode.COVER_LETTER_NOT_FOUND));
     }
 
     @Override

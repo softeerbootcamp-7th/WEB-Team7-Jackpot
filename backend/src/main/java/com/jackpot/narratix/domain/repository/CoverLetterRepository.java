@@ -18,5 +18,7 @@ public interface CoverLetterRepository {
 
     void deleteById(Long coverLetterId);
 
+    CoverLetter findByIdOrElseThrow(Long coverLetterId);
+  
     List<String> findCompanyNamesByUserId(String userId);
 }
