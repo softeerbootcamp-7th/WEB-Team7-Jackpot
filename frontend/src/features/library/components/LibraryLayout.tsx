@@ -1,7 +1,9 @@
+import type { ReactNode } from 'react';
+
 interface LibraryLayoutProps {
-  headerSlot: React.ReactNode;
-  sidebarSlot: React.ReactNode;
-  children: React.ReactNode;
+  headerSlot: ReactNode;
+  sidebarSlot: ReactNode;
+  children: ReactNode;
 }
 
 const LibraryLayout = ({
