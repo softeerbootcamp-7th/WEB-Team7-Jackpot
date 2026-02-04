@@ -458,15 +458,15 @@ class CoverLetterServiceTest {
 
         List<CoverLetter> coverLetters = List.of(coverLetter1, coverLetter2);
         List<QnACountProjection> qnaCounts = List.of(
-                new QnACountProjection(1L, 3),
-                new QnACountProjection(2L, 5)
+                new QnACountProjection(1L, 3L),
+                new QnACountProjection(2L, 5L)
         );
 
         given(coverLetterRepository.findInPeriod(
                 eq(userId), eq(startDate), eq(endDate), any(Pageable.class)
         )).willReturn(coverLetters);
         given(qnARepository.countByCoverLetterIdIn(List.of(1L, 2L))).willReturn(qnaCounts);
-        given(coverLetterRepository.countByUserIdAndDeadlineBetween(userId, startDate, endDate)).willReturn(2);
+        given(coverLetterRepository.countByUserIdAndDeadlineBetween(userId, startDate, endDate)).willReturn(2L);
 
         // when
         CoverLettersDateRangeResponse response = coverLetterService.getAllCoverLetterByDate(
@@ -535,7 +535,7 @@ class CoverLetterServiceTest {
                 eq(userId), eq(startDate), eq(endDate), any(Pageable.class)
         )).willReturn(coverLetters);
         given(qnARepository.countByCoverLetterIdIn(List.of(1L))).willReturn(List.of());
-        given(coverLetterRepository.countByUserIdAndDeadlineBetween(userId, startDate, endDate)).willReturn(1);
+        given(coverLetterRepository.countByUserIdAndDeadlineBetween(userId, startDate, endDate)).willReturn(1L);
 
         // when
         CoverLettersDateRangeResponse response = coverLetterService.getAllCoverLetterByDate(
