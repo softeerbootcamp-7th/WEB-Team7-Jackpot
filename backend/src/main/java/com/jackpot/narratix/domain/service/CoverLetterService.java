@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -76,8 +77,15 @@ public class CoverLetterService {
     }
 
     @Transactional(readOnly = true)
-    public List<UpcomingCoverLetterResponse> getUpcomingCoverLetters(String userId, LocalDate date, Integer size) {
-        return coverLetterRepository.findUpcomingCoverLettersByUserId(userId, date, size).stream()
+    public List<UpcomingCoverLetterResponse> getUpcomingCoverLetters(
+            String userId, LocalDate date, Integer maxDeadLineSize, Integer maxCoverLetterSizePerDeadLine
+    ) {
+        Map<LocalDate, List<CoverLetter>> groupedCoverLetters =
+                coverLetterRepository.findUpcomingCoverLettersGroupedByDeadline(
+                        userId, date, maxDeadLineSize, maxCoverLetterSizePerDeadLine
+                );
+
+        return groupedCoverLetters.entrySet().stream()
                 .map(UpcomingCoverLetterResponse::of)
                 .toList();
     }
