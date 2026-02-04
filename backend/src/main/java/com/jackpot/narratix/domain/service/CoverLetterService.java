@@ -10,6 +10,7 @@ import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import com.jackpot.narratix.domain.exception.CoverLetterErrorCode;
 import com.jackpot.narratix.domain.repository.CoverLetterRepository;
 import com.jackpot.narratix.domain.repository.QnARepository;
+import com.jackpot.narratix.domain.repository.dto.QnACountProjection;
 import com.jackpot.narratix.global.exception.BaseException;
 import com.jackpot.narratix.global.exception.GlobalErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -74,19 +77,36 @@ public class CoverLetterService {
             String userId, LocalDate startDate, LocalDate endDate, Integer size
     ) {
         List<CoverLetter> coverLetters = coverLetterRepository.findByUserIdAndDeadlineBetweenOrderByModifiedAtDesc(
-                userId,
-                startDate,
-                endDate,
-                Pageable.ofSize(size)
+                userId, startDate, endDate, Pageable.ofSize(size)
         );
+
+        if (coverLetters.isEmpty()) {
+            return CoverLettersDateRangeResponse.of(0, List.of());
+        }
 
         return CoverLettersDateRangeResponse.of(
                 coverLetterRepository.countByUserIdAndDeadlineBetween(userId, startDate, endDate),
-                coverLetters.stream().map(
-                        coverLetter -> CoverLettersDateRangeResponse.CoverLetterResponse.of(
-                                coverLetter, qnARepository.countByCoverLetterId(coverLetter.getId())
-                        )
-                ).toList()
+                buildCoverLetterResponsesWithQnaCount(coverLetters)
         );
+    }
+
+    private List<CoverLettersDateRangeResponse.CoverLetterResponse> buildCoverLetterResponsesWithQnaCount(
+            List<CoverLetter> coverLetters
+    ) {
+        List<Long> coverLetterIds = coverLetters.stream().map(CoverLetter::getId).toList();
+
+        Map<Long, Integer> qnaCountMap = qnARepository.countByCoverLetterIdIn(coverLetterIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        QnACountProjection::coverLetterId,
+                        QnACountProjection::count
+                ));
+
+        return coverLetters.stream()
+                .map(coverLetter -> CoverLettersDateRangeResponse.CoverLetterResponse.of(
+                        coverLetter,
+                        qnaCountMap.getOrDefault(coverLetter.getId(), 0)
+                ))
+                .toList();
     }
 }
