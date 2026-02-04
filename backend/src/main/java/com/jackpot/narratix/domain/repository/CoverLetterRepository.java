@@ -3,6 +3,7 @@ package com.jackpot.narratix.domain.repository;
 import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface CoverLetterRepository {
@@ -17,4 +18,5 @@ public interface CoverLetterRepository {
 
     void deleteById(Long coverLetterId);
 
+    List<String> findCompanyNamesByUserId(String userId);
 }
