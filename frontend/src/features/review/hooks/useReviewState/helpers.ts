@@ -159,21 +159,25 @@ export const buildReviewsFromApi = (
     createdAt: string;
   }>,
 ) => {
-  return taggedRanges.map((tagged) => {
-    const api = apiReviews.find((r) => String(r.id) === tagged.id);
+  return taggedRanges
+    .map((tagged) => {
+      const api = apiReviews.find((r) => String(r.id) === tagged.id);
 
-    return {
-      id: tagged.id,
-      selectedText: api?.originText || '',
-      revision: api?.suggest || '',
-      comment: api?.comment || '',
-      range: { start: tagged.start, end: tagged.end },
-      sender: api?.sender,
-      originText: api?.originText,
-      suggest: api?.suggest ?? null,
-      createdAt: api?.createdAt,
-    } as Review;
-  });
+      if (!api) return null;
+
+      return {
+        id: tagged.id,
+        selectedText: api.originText,
+        revision: api.suggest || '',
+        comment: api?.comment || '',
+        range: { start: tagged.start, end: tagged.end },
+        sender: api.sender,
+        originText: api.originText,
+        suggest: api?.suggest ?? null,
+        createdAt: api.createdAt,
+      } as Review;
+    })
+    .filter((review): review is Review => review !== null);
 };
 
 let internalReviewAutoId = 1000;
