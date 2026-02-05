@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import CoverLetterChipList from '@/features/review/components/coverLetter/CoverLetterChipList';
 import CoverLetterContent from '@/features/review/components/coverLetter/CoverLetterContent';
@@ -42,11 +42,11 @@ const CoverLetterSection = ({
   onPageChange,
 }: CoverLetterSectionProps) => {
   const [selection, setSelection] = useState<SelectionInfo | null>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   const handleDocumentMouseDown = useCallback(
     (e: MouseEvent) => {
-      const modalElement = document.querySelector('[data-modal="review"]');
-      if (modalElement?.contains(e.target as Node)) return;
+      if (modalRef.current?.contains(e.target as Node)) return;
 
       setSelection(null);
       if (editingReview) onCancelEdit();
@@ -84,8 +84,6 @@ const CoverLetterSection = ({
     if (editingReview) onCancelEdit();
   };
 
-  const showModal = selection !== null;
-
   return (
     <div className='flex flex-1 flex-col gap-[20px] overflow-hidden border-r border-gray-100 px-[2rem] py-[0.875rem]'>
       <CoverLetterChipList company={company} job={job} />
@@ -105,9 +103,9 @@ const CoverLetterSection = ({
         onChange={onPageChange}
       />
 
-      {showModal && selection && (
+      {selection && (
         <div
-          data-modal='review'
+          ref={modalRef}
           className='fixed z-50'
           role='presentation'
           style={{
