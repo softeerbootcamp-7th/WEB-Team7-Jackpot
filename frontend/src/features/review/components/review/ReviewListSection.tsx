@@ -6,12 +6,14 @@ interface ReviewListSectionProps {
   reviews: Review[];
   editingReview: Review | null;
   onEditReview: (id: string) => void;
+  onDeleteReview: (id: string) => void;
 }
 
 const ReviewListSection = ({
   reviews,
   editingReview,
   onEditReview,
+  onDeleteReview,
 }: ReviewListSectionProps) => {
   return (
     <div className='mx-[13px] flex w-[400px] flex-col items-start gap-0 overflow-hidden overflow-y-auto bg-white'>
@@ -23,6 +25,7 @@ const ReviewListSection = ({
               review={review}
               editingReview={editingReview}
               handleEditReview={onEditReview}
+              handleDeleteReview={onDeleteReview}
             />
           ))}
         </div>

@@ -12,12 +12,14 @@ interface ReviewCardProps {
   review: Review;
   editingReview: Review | null;
   handleEditReview: (id: string) => void;
+  handleDeleteReview: (id: string) => void;
 }
 
 const ReviewCard = ({
   review,
   editingReview,
   handleEditReview,
+  handleDeleteReview,
 }: ReviewCardProps) => {
   const [isDetail, setIsDetail] = useState(false);
   const hasEdit = !!review.revision;
@@ -67,6 +69,7 @@ const ReviewCard = ({
               <ActionButtons
                 reviewId={review.id}
                 handleEditReview={handleEditReview}
+                handleDeleteReview={handleDeleteReview}
               />
             )}
           </div>

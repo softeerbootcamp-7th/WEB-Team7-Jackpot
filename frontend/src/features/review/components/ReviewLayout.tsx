@@ -16,6 +16,7 @@ const ReviewLayout = () => {
     handlePageChange,
     handleEditReview,
     handleCancelEdit,
+    handleDeleteReview,
   } = useReviewState();
 
   if (!currentQna) return <div>로딩 중...</div>;
@@ -41,6 +42,7 @@ const ReviewLayout = () => {
         reviews={currentReviews}
         editingReview={editingReview}
         onEditReview={handleEditReview}
+        onDeleteReview={handleDeleteReview}
       />
     </div>
   );

@@ -87,6 +87,11 @@ export const useReviewState = (coverLetterId: number = 1) => {
     setEditingId(null);
   }, []);
 
+  const handleDeleteReview = useCallback((id: string) => {
+    // TODO: 서버와 연동하는 로직 추가 예정
+    setCurrentReviews((prev) => prev.filter((r) => r.id !== id));
+  }, []);
+
   const hasActiveEdit = editingId !== null;
 
   const pages = qnas.map((qna) => ({
@@ -113,6 +118,7 @@ export const useReviewState = (coverLetterId: number = 1) => {
     handlePageChange,
     handleAddReview,
     handleUpdateReview,
+    handleDeleteReview,
     handleEditReview,
     handleCancelEdit,
   };
