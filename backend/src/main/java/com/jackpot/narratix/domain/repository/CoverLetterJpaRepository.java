@@ -2,6 +2,7 @@ package com.jackpot.narratix.domain.repository;
 
 import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,6 +18,12 @@ public interface CoverLetterJpaRepository extends JpaRepository<CoverLetter, Lon
 
     @Query("SELECT DISTINCT c.companyName FROM CoverLetter c WHERE c.userId = :userId")
     List<String> findDistinctCompanyNamesByUserId(@Param("userId") String userId);
+
+    List<CoverLetter> findByUserIdAndDeadlineBetweenOrderByDeadlineAscModifiedAtDesc(
+            String userId, LocalDate startDate, LocalDate endDate, Pageable pageable
+    );
+
+    Long countByUserIdAndDeadlineBetween(String userId, LocalDate startDate, LocalDate endDate);
 
     /**
      * ROW_NUMBER() 줄: 같은 deadline로 묶인 그룹 내부에서 modified_at을 내림차순으로 정렬

@@ -4,6 +4,7 @@ import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
 import com.jackpot.narratix.domain.controller.request.CreateQuestionRequest;
 import com.jackpot.narratix.domain.controller.request.EditCoverLetterRequest;
 import com.jackpot.narratix.domain.controller.response.CoverLetterResponse;
+import com.jackpot.narratix.domain.controller.response.CoverLettersDateRangeResponse;
 import com.jackpot.narratix.domain.controller.response.CreateCoverLetterResponse;
 import com.jackpot.narratix.domain.controller.response.TotalCoverLetterCountResponse;
 import com.jackpot.narratix.domain.controller.response.UpcomingCoverLetterResponse;
@@ -13,8 +14,11 @@ import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
 import com.jackpot.narratix.domain.exception.CoverLetterErrorCode;
 import com.jackpot.narratix.domain.repository.CoverLetterRepository;
 import com.jackpot.narratix.domain.repository.QnARepository;
+import com.jackpot.narratix.domain.repository.dto.QnACountProjection;
 import com.jackpot.narratix.global.exception.BaseException;
 import com.jackpot.narratix.global.exception.GlobalErrorCode;
+import org.mockito.ArgumentCaptor;
+import org.springframework.data.domain.Pageable;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,10 +37,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static com.jackpot.narratix.domain.fixture.CoverLetterFixture.createMockCoverLetter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -444,6 +448,158 @@ class CoverLetterServiceTest {
     }
 
     @Test
+    @DisplayName("날짜 범위로 자기소개서 리스트 조회 성공 - QnA 개수 포함")
+    void getAllCoverLetterByDate_Success_WithQnaCount() {
+        // given
+        String userId = "testUser123";
+        LocalDate startDate = LocalDate.of(2024, 1, 1);
+        LocalDate endDate = LocalDate.of(2024, 12, 31);
+        Integer size = 10;
+
+        CoverLetter coverLetter1 = createMockCoverLetter(1L, userId, "현대자동차", LocalDate.of(2024, 6, 15));
+        CoverLetter coverLetter2 = createMockCoverLetter(2L, userId, "삼성전자", LocalDate.of(2024, 8, 20));
+
+        List<CoverLetter> coverLetters = List.of(coverLetter1, coverLetter2);
+        List<QnACountProjection> qnaCounts = List.of(
+                new QnACountProjection(1L, 3L),
+                new QnACountProjection(2L, 5L)
+        );
+
+        given(coverLetterRepository.findInPeriod(
+                eq(userId), eq(startDate), eq(endDate), any(Pageable.class)
+        )).willReturn(coverLetters);
+        given(qnARepository.countByCoverLetterIdIn(List.of(1L, 2L))).willReturn(qnaCounts);
+        given(coverLetterRepository.countByUserIdAndDeadlineBetween(userId, startDate, endDate)).willReturn(2L);
+
+        // when
+        CoverLettersDateRangeResponse response = coverLetterService.getAllCoverLetterByDate(
+                userId, startDate, endDate, size
+        );
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.totalCount()).isEqualTo(2);
+        assertThat(response.coverLetters()).hasSize(2);
+        assertThat(response.coverLetters().get(0).coverLetterId()).isEqualTo(1L);
+        assertThat(response.coverLetters().get(0).companyName()).isEqualTo("현대자동차");
+        assertThat(response.coverLetters().get(0).questionCount()).isEqualTo(3);
+        assertThat(response.coverLetters().get(1).coverLetterId()).isEqualTo(2L);
+        assertThat(response.coverLetters().get(1).companyName()).isEqualTo("삼성전자");
+        assertThat(response.coverLetters().get(1).questionCount()).isEqualTo(5);
+
+        verify(coverLetterRepository, times(1))
+                .findInPeriod(eq(userId), eq(startDate), eq(endDate), any(Pageable.class));
+        verify(qnARepository, times(1)).countByCoverLetterIdIn(List.of(1L, 2L));
+        verify(coverLetterRepository, times(1)).countByUserIdAndDeadlineBetween(userId, startDate, endDate);
+    }
+
+    @Test
+    @DisplayName("날짜 범위로 자기소개서 리스트 조회 - 빈 리스트 반환")
+    void getAllCoverLetterByDate_EmptyList() {
+        // given
+        String userId = "testUser123";
+        LocalDate startDate = LocalDate.of(2024, 1, 1);
+        LocalDate endDate = LocalDate.of(2024, 12, 31);
+        Integer size = 10;
+
+        given(coverLetterRepository.findInPeriod(
+                eq(userId), eq(startDate), eq(endDate), any(Pageable.class)
+        )).willReturn(List.of());
+
+        // when
+        CoverLettersDateRangeResponse response = coverLetterService.getAllCoverLetterByDate(
+                userId, startDate, endDate, size
+        );
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.totalCount()).isZero();
+        assertThat(response.coverLetters()).isEmpty();
+
+        verify(coverLetterRepository, times(1))
+                .findInPeriod(eq(userId), eq(startDate), eq(endDate), any(Pageable.class));
+        verify(qnARepository, never()).countByCoverLetterIdIn(any());
+        verify(coverLetterRepository, never()).countByUserIdAndDeadlineBetween(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("날짜 범위로 자기소개서 리스트 조회 - QnA가 없는 경우 0 반환")
+    void getAllCoverLetterByDate_WithoutQnA() {
+        // given
+        String userId = "testUser123";
+        LocalDate startDate = LocalDate.of(2024, 1, 1);
+        LocalDate endDate = LocalDate.of(2024, 12, 31);
+        Integer size = 10;
+
+        CoverLetter coverLetter = createMockCoverLetter(1L, userId, "네이버", LocalDate.of(2024, 5, 10));
+        List<CoverLetter> coverLetters = List.of(coverLetter);
+
+        given(coverLetterRepository.findInPeriod(
+                eq(userId), eq(startDate), eq(endDate), any(Pageable.class)
+        )).willReturn(coverLetters);
+        given(qnARepository.countByCoverLetterIdIn(List.of(1L))).willReturn(List.of());
+        given(coverLetterRepository.countByUserIdAndDeadlineBetween(userId, startDate, endDate)).willReturn(1L);
+
+        // when
+        CoverLettersDateRangeResponse response = coverLetterService.getAllCoverLetterByDate(
+                userId, startDate, endDate, size
+        );
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.totalCount()).isEqualTo(1);
+        assertThat(response.coverLetters()).hasSize(1);
+        assertThat(response.coverLetters().get(0).questionCount()).isZero();
+
+        verify(coverLetterRepository, times(1))
+                .findInPeriod(eq(userId), eq(startDate), eq(endDate), any(Pageable.class));
+        verify(qnARepository, times(1)).countByCoverLetterIdIn(List.of(1L));
+        verify(coverLetterRepository, times(1)).countByUserIdAndDeadlineBetween(userId, startDate, endDate);
+    }
+
+    @Test
+    @DisplayName("날짜 범위로 자기소개서 리스트 조회 - Pageable size 적용 확인")
+    void getAllCoverLetterByDate_PageableSizeApplied() {
+        // given
+        String userId = "testUser123";
+        LocalDate startDate = LocalDate.of(2024, 1, 1);
+        LocalDate endDate = LocalDate.of(2024, 12, 31);
+        Integer size = 5;
+
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+
+        given(coverLetterRepository.findInPeriod(
+                eq(userId), eq(startDate), eq(endDate), pageableCaptor.capture()
+        )).willReturn(List.of());
+
+        // when
+        coverLetterService.getAllCoverLetterByDate(userId, startDate, endDate, size);
+
+        // then
+        Pageable capturedPageable = pageableCaptor.getValue();
+        assertThat(capturedPageable.getPageSize()).isEqualTo(5);
+
+        verify(coverLetterRepository, times(1))
+                .findInPeriod(eq(userId), eq(startDate), eq(endDate), any(Pageable.class));
+    }
+
+    private CoverLetter createMockCoverLetter(Long id, String userId, String companyName, LocalDate deadline) {
+        CoverLetter coverLetter = CoverLetter.from(
+                userId,
+                new CreateCoverLetterRequest(
+                        companyName,
+                        2024,
+                        ApplyHalfType.FIRST_HALF,
+                        "백엔드 개발자",
+                        deadline,
+                        List.of()
+                )
+        );
+        ReflectionTestUtils.setField(coverLetter, "id", id);
+        return coverLetter;
+    }
+
+    @Test
     @DisplayName("다가오는 자기소개서 조회 성공")
     void getUpcomingCoverLetters_ThreeDeadlines_TwoEach() {
         // given
@@ -452,17 +608,17 @@ class CoverLetterServiceTest {
 
         // deadline 1: 2024-06-15 (자기소개서 3개, modifiedAt이 다름)
         LocalDate deadline1 = LocalDate.of(2026, 6, 15);
-        CoverLetter cl1 = createMockCoverLetter(1L, userId, "기업A", "직무A", deadline1);
-        CoverLetter cl2 = createMockCoverLetter(2L, userId, "기업B", "직무B", deadline1);
+        CoverLetter cl1 = createMockCoverLetter(1L, userId, "기업A", deadline1);
+        CoverLetter cl2 = createMockCoverLetter(2L, userId, "기업B", deadline1);
 
         // deadline 2: 2024-06-20 (자기소개서 2개)
         LocalDate deadline2 = LocalDate.of(2026, 6, 20);
-        CoverLetter cl4 = createMockCoverLetter(4L, userId, "기업D", "직무D", deadline2);
-        CoverLetter cl5 = createMockCoverLetter(5L, userId, "기업E", "직무E", deadline2);
+        CoverLetter cl4 = createMockCoverLetter(4L, userId, "기업D", deadline2);
+        CoverLetter cl5 = createMockCoverLetter(5L, userId, "기업E", deadline2);
 
         // deadline 3: 2024-06-25 (자기소개서 1개)
         LocalDate deadline3 = LocalDate.of(2026, 6, 25);
-        CoverLetter cl6 = createMockCoverLetter(6L, userId, "기업F", "직무F", deadline3);
+        CoverLetter cl6 = createMockCoverLetter(6L, userId, "기업F", deadline3);
 
 
         // Repository가 deadline별로 modifiedAt desc 정렬된 최대 2개씩, 최대 3개 deadline 반환

@@ -1,5 +1,6 @@
 package com.jackpot.narratix.domain.controller;
 
+import com.jackpot.narratix.domain.controller.response.CoverLettersDateRangeResponse;
 import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
 import com.jackpot.narratix.domain.controller.request.EditCoverLetterRequest;
 import com.jackpot.narratix.domain.controller.response.CoverLetterResponse;
@@ -64,6 +65,16 @@ public class CoverLetterController {
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date
     ) {
         return ResponseEntity.ok(coverLetterService.getTotalCoverLetterCount(userId, date));
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<CoverLettersDateRangeResponse> getAllCoverLetterByDate(
+            @UserId String userId,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
+            @RequestParam Integer size
+    ) {
+        return ResponseEntity.ok(coverLetterService.getAllCoverLetterByDate(userId, startDate, endDate, size));
     }
 
     @GetMapping("/upcoming")
