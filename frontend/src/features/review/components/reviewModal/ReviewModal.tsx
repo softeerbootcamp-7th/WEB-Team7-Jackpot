@@ -3,9 +3,8 @@ import { useState } from 'react';
 import CommentTab from '@/features/review/components/reviewModal/CommentTab';
 import RevisionTab from '@/features/review/components/reviewModal/RevisionTab';
 import TabSelector from '@/features/review/components/reviewModal/TabSelector';
+import { REVIEW_CONSTRAINTS } from '@/features/review/constants/review';
 import type { TabType } from '@/features/review/types/review';
-
-const MAX_COMMENT_LENGTH = 200;
 
 interface ReviewModalProps {
   selectedText: string;
@@ -27,7 +26,8 @@ const ReviewModal = ({
   const [tab, setTab] = useState<TabType>('revision');
 
   const isSubmitEnabled =
-    revision.trim().length > 0 || comment.trim().length > 0;
+    revision.trim().length > 0 &&
+    comment.length <= REVIEW_CONSTRAINTS.MAX_COMMENT_LENGTH;
 
   const handleSubmit = () => {
     if (!isSubmitEnabled) return;
@@ -65,9 +65,13 @@ const ReviewModal = ({
         <button
           type='button'
           onClick={handleSubmit}
-          disabled={!isSubmitEnabled || comment.length > MAX_COMMENT_LENGTH}
+          disabled={
+            !isSubmitEnabled ||
+            comment.length > REVIEW_CONSTRAINTS.MAX_COMMENT_LENGTH
+          }
           className={`rounded-xl px-4 py-2 text-base leading-6 font-bold ${
-            isSubmitEnabled && comment.length <= MAX_COMMENT_LENGTH
+            isSubmitEnabled &&
+            comment.length <= REVIEW_CONSTRAINTS.MAX_COMMENT_LENGTH
               ? 'bg-gray-950 text-white'
               : 'bg-gray-200 text-gray-400'
           }`}

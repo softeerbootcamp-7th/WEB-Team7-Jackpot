@@ -7,7 +7,6 @@ const RevisionTab = ({ revision, onRevisionChange }: RevisionTabProps) => {
   return (
     <div className='flex w-full flex-col items-start gap-2 rounded-2xl bg-gray-100 px-5 py-4'>
       <textarea
-        autoFocus
         value={revision}
         onChange={(e) => onRevisionChange(e.target.value)}
         placeholder='첨삭하실 내용을 적어주세요'

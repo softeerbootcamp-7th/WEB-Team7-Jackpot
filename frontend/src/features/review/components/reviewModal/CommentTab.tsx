@@ -21,7 +21,6 @@ const CommentTab = ({
 
       <div className='flex w-full flex-col items-start gap-2 rounded-2xl bg-gray-100 px-5 py-4'>
         <textarea
-          autoFocus
           value={comment}
           onChange={(e) => onCommentChange(e.target.value)}
           placeholder='첨삭하신 내용에 덧붙일 코멘트가 있다면 알려주세요'
