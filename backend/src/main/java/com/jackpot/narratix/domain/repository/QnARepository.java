@@ -1,5 +1,6 @@
 package com.jackpot.narratix.domain.repository;
 
+import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
 import com.jackpot.narratix.domain.repository.dto.QnACountProjection;
 
@@ -12,4 +13,6 @@ public interface QnARepository {
     List<QnACountProjection> countByCoverLetterIdIn(List<Long> coverLetterIds);
 
     List<QuestionCategoryType> findQuestionCategoryByUserId(String userId);
+
+    QnA findByIdOrElseThrow(Long qnaId);
 }

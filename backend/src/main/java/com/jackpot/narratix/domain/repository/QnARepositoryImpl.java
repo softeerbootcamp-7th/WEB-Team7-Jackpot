@@ -1,7 +1,10 @@
 package com.jackpot.narratix.domain.repository;
 
+import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
+import com.jackpot.narratix.domain.exception.QnAErrorCode;
 import com.jackpot.narratix.domain.repository.dto.QnACountProjection;
+import com.jackpot.narratix.global.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -22,6 +25,12 @@ public class QnARepositoryImpl implements QnARepository {
     @Override
     public List<QuestionCategoryType> findQuestionCategoryByUserId(String userId) {
         return qnAJpaRepository.findDistinctByQuestionCategory(userId);
+    }
+
+    @Override
+    public QnA findByIdOrElseThrow(Long qnaId) {
+        return qnAJpaRepository.findById(qnaId)
+                .orElseThrow(() -> new BaseException(QnAErrorCode.QNA_NOT_FOUND));
     }
 
     @Override
