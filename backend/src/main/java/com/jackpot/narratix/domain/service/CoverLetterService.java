@@ -2,12 +2,9 @@ package com.jackpot.narratix.domain.service;
 
 import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
 import com.jackpot.narratix.domain.controller.request.EditCoverLetterRequest;
-import com.jackpot.narratix.domain.controller.response.CoverLetterResponse;
-import com.jackpot.narratix.domain.controller.response.CoverLettersDateRangeResponse;
-import com.jackpot.narratix.domain.controller.response.CreateCoverLetterResponse;
-import com.jackpot.narratix.domain.controller.response.TotalCoverLetterCountResponse;
-import com.jackpot.narratix.domain.controller.response.UpcomingCoverLetterResponse;
+import com.jackpot.narratix.domain.controller.response.*;
 import com.jackpot.narratix.domain.entity.CoverLetter;
+import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import com.jackpot.narratix.domain.exception.CoverLetterErrorCode;
 import com.jackpot.narratix.domain.repository.CoverLetterRepository;
@@ -130,5 +127,13 @@ public class CoverLetterService {
         return groupedCoverLetters.entrySet().stream()
                 .map(UpcomingCoverLetterResponse::of)
                 .toList();
+    }
+
+    public QnAResponse getQnAById(String userId, Long qnaId) {
+        QnA qnA = qnARepository.findByIdOrElseThrow(qnaId);
+
+        if(!qnA.isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
+
+        return QnAResponse.of(qnA);
     }
 }
