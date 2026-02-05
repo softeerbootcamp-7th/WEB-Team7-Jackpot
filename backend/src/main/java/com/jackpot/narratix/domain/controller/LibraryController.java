@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -38,7 +39,7 @@ public class LibraryController {
             @UserId String userId,
             @RequestParam @NotBlank String companyName,
             @RequestParam(defaultValue = "10") @Min(1) int size,
-            @RequestParam(required = false) @Positive Long lastCoverLetterId
+            @RequestParam(required = false) @Positive Optional<Long> lastCoverLetterId
     ) {
         return ResponseEntity.ok(
                 libraryService.getCompanyLibraries(userId, companyName, size, lastCoverLetterId)

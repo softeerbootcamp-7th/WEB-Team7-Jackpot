@@ -19,6 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,54 +50,50 @@ public class LibraryService {
     }
 
     @Transactional(readOnly = true)
-    public CompanyLibraryResponse getCompanyLibraries(String userId, String companyName, int size, Long lastCoverLetterId) {
+    public CompanyLibraryResponse getCompanyLibraries(String userId, String companyName, int size, Optional<Long> lastCoverLetterId) {
 
         Pageable pageable = PageRequest.ofSize(size);
 
-        Slice<CoverLetter> coverLetterSlice;
+        Slice<CoverLetter> coverLetterSlice = getSliceByCursorId(
+                lastCoverLetterId,
+                coverLetterRepository::findByIdOrElseThrow,
+                lastCoverLetter -> coverLetterRepository.findByUserIdAndCompanyNameOrderByModifiedAtDesc(userId, companyName, lastCoverLetter.getModifiedAt(), pageable),
+                () -> coverLetterRepository.findByUserIdAndCompanyNameOrderByModifiedAtDesc(userId, companyName, pageable)
 
-        if (lastCoverLetterId == null) {
-            coverLetterSlice = coverLetterRepository.findByUserIdAndCompanyNameOrderByModifiedAtDesc(userId, companyName, pageable);
-        } else {
-            CoverLetter lastCoverLetter = coverLetterRepository.findByIdOrElseThrow(lastCoverLetterId);
-
-            coverLetterSlice = coverLetterRepository.findByUserIdAndCompanyNameOrderByModifiedAtDesc(
-                    userId,
-                    companyName,
-                    lastCoverLetter.getModifiedAt(),
-                    pageable
-            );
-
-        }
+        );
 
         List<CoverLetter> coverLetters = coverLetterSlice.getContent();
 
-        List<Long> coverLetterIds = coverLetters.stream()
-                .map(CoverLetter::getId)
-                .toList();
-
-        if (coverLetterIds.isEmpty()) {
-            return CompanyLibraryResponse.of(
-                    Collections.EMPTY_LIST,
-                    Collections.EMPTY_MAP,
-                    false
-            );
+        if (coverLetters.isEmpty()) {
+            return CompanyLibraryResponse.of(Collections.emptyList(), Collections.emptyMap(), false);
         }
 
-        List<QnACountProjection> counts = qnARepository.countByCoverLetterIdIn(coverLetterIds);
+        Map<Long, Long> qnaCountMap = fetchQnaCountMap(coverLetters);
+        boolean hasNext = coverLetterSlice.hasNext();
 
-        Map<Long, Long> qnaCountMap = counts.stream()
+        return CompanyLibraryResponse.of(coverLetters, qnaCountMap, hasNext);
+    }
+
+    private <T> Slice<T> getSliceByCursorId(
+            Optional<Long> lastId,
+            Function<Long, T> findByIdOrElseThrow,
+            Function<T, Slice<T>> findNextSlice,
+            Supplier<Slice<T>> findFirstSlice
+    ) {
+        return lastId
+                .map(id -> {
+                    T lastEntity = findByIdOrElseThrow.apply(id);
+                    return findNextSlice.apply(lastEntity);
+                })
+                .orElseGet(findFirstSlice);
+    }
+
+    private Map<Long, Long> fetchQnaCountMap(List<CoverLetter> coverLetters) {
+        List<Long> ids = coverLetters.stream().map(CoverLetter::getId).toList();
+        return qnARepository.countByCoverLetterIdIn(ids).stream()
                 .collect(Collectors.toMap(
                         QnACountProjection::getCoverLetterId,
                         QnACountProjection::getCount
                 ));
-
-        boolean hasNext = coverLetterSlice.hasNext();
-
-        return CompanyLibraryResponse.of(
-                coverLetters,
-                qnaCountMap,
-                hasNext
-        );
     }
 }

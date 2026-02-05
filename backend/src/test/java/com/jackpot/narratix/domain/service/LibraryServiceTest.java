@@ -20,13 +20,12 @@ import org.springframework.data.domain.SliceImpl;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class LibraryServiceTest {
@@ -122,13 +121,14 @@ class LibraryServiceTest {
     }
 
     @Test
-    @DisplayName("기업별 자소서 조회 - 첫 페이지 (lastId가 Null)일 때, 3개 인자 메서드가 호출")
+    @DisplayName("기업별 자소서 조회 - 첫 페이지 (lastId가 없을 때), 3개 인자 메서드가 호출")
     void getCompanyLibraries_FirstPage() {
         // given
         String userId = "user1";
         String companyName = "Samsung";
         int size = 10;
-        Long lastCoverLetterId = null;
+
+        Optional<Long> lastCoverLetterId = Optional.empty();
 
         CoverLetter resultMock = mock(CoverLetter.class);
         given(resultMock.getApplyHalf()).willReturn(ApplyHalfType.FIRST_HALF);
@@ -137,16 +137,21 @@ class LibraryServiceTest {
         List<CoverLetter> content = List.of(resultMock);
         Slice<CoverLetter> slice = new SliceImpl<>(content, PageRequest.of(0, size), true);
 
+        // Repository 모킹
         given(coverLetterRepository.findByUserIdAndCompanyNameOrderByModifiedAtDesc(
                 eq(userId), eq(companyName), any(Pageable.class))
         ).willReturn(slice);
+
+        given(qnARepository.countByCoverLetterIdIn(anyList())).willReturn(List.of());
 
         // when
         CompanyLibraryResponse response = libraryService.getCompanyLibraries(userId, companyName, size, lastCoverLetterId);
 
         // then
-        assertThat(response.coverLetters()).hasSize(1); // Mock 1개를 넣었으므로 사이즈 1
+        assertThat(response.coverLetters()).hasSize(1);
         assertThat(response.hasNext()).isTrue();
+
+        verify(coverLetterRepository, never()).findByIdOrElseThrow(anyLong());
 
         verify(coverLetterRepository).findByUserIdAndCompanyNameOrderByModifiedAtDesc(
                 eq(userId), eq(companyName), any(Pageable.class)
@@ -154,44 +159,45 @@ class LibraryServiceTest {
     }
 
     @Test
-    @DisplayName("기업별 자소서 조회 - 다음 페이지 (lastId가 있음)일 때, ID조회 후 4개 인자 메서드가 호출")
+    @DisplayName("기업별 자소서 조회 - 다음 페이지있을 때, modified_at 기준 조회")
     void getCompanyLibraries_NextPage() {
         // given
         String userId = "user1";
         String companyName = "Samsung";
         int size = 10;
-        Long lastId = 100L;
+        Optional<Long> lastCoverLetterId = Optional.of(100L);
 
         LocalDateTime mockDateTime = LocalDateTime.of(2024, 2, 4, 12, 0, 0);
 
         CoverLetter mockLastCoverLetter = mock(CoverLetter.class);
         given(mockLastCoverLetter.getModifiedAt()).willReturn(mockDateTime);
-        given(coverLetterRepository.findByIdOrElseThrow(lastId)).willReturn(mockLastCoverLetter);
+        given(coverLetterRepository.findByIdOrElseThrow(lastCoverLetterId.get())).willReturn(mockLastCoverLetter);
 
         CoverLetter resultMock = mock(CoverLetter.class);
-        given(resultMock.getApplyHalf()).willReturn(ApplyHalfType.FIRST_HALF);
         given(resultMock.getId()).willReturn(200L);
-
+        given(resultMock.getApplyHalf()).willReturn(ApplyHalfType.FIRST_HALF);
         List<CoverLetter> content = List.of(resultMock);
         Slice<CoverLetter> slice = new SliceImpl<>(content, PageRequest.of(0, size), false);
 
         given(coverLetterRepository.findByUserIdAndCompanyNameOrderByModifiedAtDesc(
-                eq(userId), eq(companyName), any(LocalDateTime.class), any(Pageable.class))
+                eq(userId), eq(companyName), eq(mockDateTime), any(Pageable.class))
         ).willReturn(slice);
 
+        given(qnARepository.countByCoverLetterIdIn(anyList())).willReturn(List.of());
+
         // when
-        CompanyLibraryResponse response = libraryService.getCompanyLibraries(userId, companyName, size, lastId);
+        CompanyLibraryResponse response = libraryService.getCompanyLibraries(userId, companyName, size, lastCoverLetterId);
 
         // then
         assertThat(response.coverLetters()).hasSize(1);
         assertThat(response.hasNext()).isFalse();
 
-        verify(coverLetterRepository).findByIdOrElseThrow(lastId);
+        verify(coverLetterRepository).findByIdOrElseThrow(lastCoverLetterId.get());
 
         verify(coverLetterRepository).findByUserIdAndCompanyNameOrderByModifiedAtDesc(
                 eq(userId),
                 eq(companyName),
-                eq(LocalDateTime.from(mockDateTime)),
+                eq(mockDateTime),
                 any(Pageable.class)
         );
     }
