@@ -76,6 +76,15 @@ export const useTextSelection = ({
   onSelectionChange,
 }: UseTextSelectionProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const selectionTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (selectionTimeoutRef.current !== null) {
+        window.clearTimeout(selectionTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // editingReview 처리
   useEffect(() => {
@@ -149,13 +158,15 @@ export const useTextSelection = ({
   const handleMouseUp = useCallback(() => {
     const sel = window.getSelection();
     if (!sel || sel.isCollapsed || !containerRef.current) return;
+    if (selectionTimeoutRef.current !== null) {
+      window.clearTimeout(selectionTimeoutRef.current);
+      selectionTimeoutRef.current = null;
+    }
 
     const range = sel.getRangeAt(0);
     if (!containerRef.current.contains(range.commonAncestorContainer)) return;
 
     const { start, end } = rangeToTextIndices(containerRef.current, range);
-
-    let timeoutId: number | undefined;
 
     if (isRangeOverlapping(start, end, reviews)) {
       sel.removeAllRanges();
@@ -190,7 +201,7 @@ export const useTextSelection = ({
         behavior: 'smooth',
       });
 
-      timeoutId = window.setTimeout(() => {
+      selectionTimeoutRef.current = window.setTimeout(() => {
         containerRef.current?.style.removeProperty('overflowY');
         onSelectionChange({
           selectedText,
@@ -208,10 +219,6 @@ export const useTextSelection = ({
       );
       if (modalInfo) onSelectionChange(modalInfo);
     }
-
-    return () => {
-      if (timeoutId) window.clearTimeout(timeoutId);
-    };
   }, [reviews, onSelectionChange]);
 
   const { before, after } = useMemo(() => {
