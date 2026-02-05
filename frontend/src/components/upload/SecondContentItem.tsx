@@ -129,91 +129,6 @@ const SecondContentItem = ({ tabState, setTabState }: CoverLetterListProps) => {
       <div className='flex gap-6'>
         <div className='flex-1'>
           <div className='flex flex-col gap-5 '>
-            <div className='flex flex-col gap-3'>
-              <div className='font-bold text-lg'>
-                채용 시기 <span className='text-red-600'>*</span>
-              </div>
-              <div className='flex gap-2 items-center'>
-                <div className='relative inline-block'>
-                  <button
-                    type='button'
-                    className={`flex-1 flex items-center justify-between gap-6 bg-gray-50 px-5 py-[14px] relative ${isDropdownOpen.yearDropdown ? 'z-20' : 'z-0'} rounded-lg cursor-pointer`}
-                    onClick={() =>
-                      setIsDropdownOpen((prev) => ({
-                        ...prev,
-                        yearDropdown: !prev.yearDropdown,
-                      }))
-                    }
-                  >
-                    <div className='font-medium'>
-                      {currentData.recruitPeriod.year}
-                    </div>
-                    <I.DropdownArrow isOpen={isDropdownOpen.yearDropdown} />
-                  </button>
-
-                  {isDropdownOpen.yearDropdown && (
-                    <>
-                      <div
-                        className='fixed inset-0 z-10 cursor-default'
-                        onClick={() =>
-                          setIsDropdownOpen((prev) => ({
-                            ...prev,
-                            yearDropdown: false,
-                          }))
-                        }
-                      />
-                      <div className='absolute z-20 w-56 max-h-32 mt-2 rounded-lg bg-white shadow-lg overflow-y-scroll select-none'>
-                        <div className='flex flex-col p-1 gap-1'>
-                          {yearList.map((year) => (
-                            <button
-                              type='button'
-                              onClick={() => {
-                                handleContentChange(tabState, 'year', year);
-                                setIsDropdownOpen((prev) => ({
-                                  ...prev,
-                                  yearDropdown: false,
-                                }));
-                              }}
-                              key={year}
-                              className='w-full text-left px-4 py-[14px] text-[13px] rounded-md text-gray-700 cursor-pointer font-medium hover:bg-gray-50 hover:text-gray-950 hover:font-bold focus:bg-gray-100 focus:text-gray-900 focus:outline-hidden'
-                            >
-                              {year}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
-                <div className='flex-3 flex justify-between px-1 py-1 bg-gray-50 rounded-lg'>
-                  {RECRUIT_SEASON_LIST.map((each) => (
-                    <div key={each.season} className='flex-grow'>
-                      <label className='items-center cursor-pointer select-none'>
-                        <input
-                          type='radio'
-                          className='sr-only peer'
-                          checked={
-                            currentData.recruitPeriod.season === each.season
-                          }
-                          onChange={() =>
-                            handleContentChange(tabState, 'season', each.season)
-                          }
-                        />
-                        <div
-                          className={`flex justify-center rounded-md ${currentData.recruitPeriod.season === each.season ? 'bg-white' : ''} px-8 py-[10px]`}
-                        >
-                          <span
-                            className={`${currentData.recruitPeriod.season === each.season ? 'font-bold text-gray-950' : 'text-gray-400'}`}
-                          >
-                            {each.label}
-                          </span>
-                        </div>
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
             <LabeledSelectInput
               label='기업명'
               value={currentData.companyName}
@@ -237,6 +152,28 @@ const SecondContentItem = ({ tabState, setTabState }: CoverLetterListProps) => {
                 handleContentChange(tabState, 'jobPosition', value)
               }
             />
+            <RecruitPeriodSelectInput
+              label='채용 시기'
+              yearValue={currentData.recruitPeriod.year}
+              seasonValue={currentData.recruitPeriod.season}
+              constantData={yearList}
+              handleYearChange={(value) =>
+                handleContentChange(tabState, 'year', value)
+              }
+              handleSeasonChange={(value) =>
+                handleContentChange(tabState, 'season', value)
+              }
+              handleDropdown={(isOpen) => {
+                setIsDropdownOpen((prev) => ({
+                  ...prev,
+                  yearDropdown: isOpen,
+                }));
+              }}
+              icon={<I.DropdownArrow isOpen={isDropdownOpen.yearDropdown} />}
+              isOpen={isDropdownOpen.yearDropdown}
+              dropdownDirection='bottom'
+            />
+
             <LabeledSelectInput
               label='문항 유형'
               value={currentData.questionType}
