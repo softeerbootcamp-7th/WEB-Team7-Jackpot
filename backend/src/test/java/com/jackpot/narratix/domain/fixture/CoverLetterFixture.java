@@ -121,18 +121,6 @@ public class CoverLetterFixture {
         }
     }
 
-    public static CoverLetter createMockCoverLetter(
-            Long id, String userId, String companyName, String jobPosition, LocalDate deadline
-    ) {
-        return builder()
-                .id(id)
-                .userId(userId)
-                .companyName(companyName)
-                .jobPosition(jobPosition)
-                .deadline(deadline)
-                .build();
-    }
-
     public static CoverLetter createCoverLetterWithDeadline(String userId, LocalDate deadline) {
         return builder()
                 .userId(userId)

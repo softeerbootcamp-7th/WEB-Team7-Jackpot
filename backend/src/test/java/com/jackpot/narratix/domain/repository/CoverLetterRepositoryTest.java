@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -589,5 +590,93 @@ class CoverLetterRepositoryTest {
 
         // then
         assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("유저 ID로 기업명 목록을 조회하면 중복이 제거된 리스트가 반환된다")
+    void findDistinctCompanyNamesByUserId() {
+        // given
+        User user = saveUser("user1", "유저1");
+        User otherUser = saveUser("user2", "유저2");
+
+        saveCoverLetterWithTime(user.getId(), "Samsung", LocalDateTime.now());
+        saveCoverLetterWithTime(user.getId(), "Samsung", LocalDateTime.now());
+        saveCoverLetterWithTime(user.getId(), "LG", LocalDateTime.now());
+
+        saveCoverLetterWithTime(otherUser.getId(), "Naver", LocalDateTime.now());
+
+        flushAndClear();
+
+        // when
+        List<String> companyNames = coverLetterJpaRepository.findDistinctCompanyNamesByUserId(user.getId());
+
+        // then
+        assertThat(companyNames).hasSize(2)
+                .containsExactlyInAnyOrder("Samsung", "LG");
+    }
+
+    @Test
+    @DisplayName("기업별 자소서 조회 (첫 페이지) - modifiedAt 내림차순으로 정렬되어야 한다")
+    void findFirstPageByCompany() {
+        // given
+        String userId = "user1";
+        String companyName = "Samsung";
+
+        CoverLetter old = saveCoverLetterWithTime(userId, companyName, LocalDateTime.now().minusDays(3));
+        CoverLetter middle = saveCoverLetterWithTime(userId, companyName, LocalDateTime.now().minusDays(2));
+        CoverLetter latest = saveCoverLetterWithTime(userId, companyName, LocalDateTime.now().minusDays(1));
+
+        flushAndClear();
+
+        // when
+        Slice<CoverLetter> result = coverLetterJpaRepository.findByUserIdAndCompanyNameOrderByModifiedAtDesc(
+                userId, companyName, PageRequest.of(0, 2)
+        );
+
+        // then
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.hasNext()).isTrue();
+
+        assertThat(result.getContent().get(0).getId()).isEqualTo(latest.getId());
+        assertThat(result.getContent().get(1).getId()).isEqualTo(middle.getId());
+    }
+
+    @Test
+    @DisplayName("기업별 자소서 조회 (다음 페이지)")
+    void findNextPageByCompany() {
+        // given
+        String userId = "user1";
+        String companyName = "Samsung";
+
+        CoverLetter old = saveCoverLetterWithTime(userId, companyName, LocalDateTime.now().minusDays(3));
+        CoverLetter middle = saveCoverLetterWithTime(userId, companyName, LocalDateTime.now().minusDays(2));
+        CoverLetter latest = saveCoverLetterWithTime(userId, companyName, LocalDateTime.now().minusDays(1));
+
+        flushAndClear();
+
+        // when
+        Slice<CoverLetter> result = coverLetterJpaRepository.findNextPageByCompany(
+                userId,
+                companyName,
+                LocalDateTime.from(latest.getModifiedAt()),
+                PageRequest.of(0, 2)
+        );
+
+        // then
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent().get(0).getId()).isEqualTo(middle.getId());
+        assertThat(result.getContent().get(1).getId()).isEqualTo(old.getId());
+        assertThat(result.hasNext()).isFalse();
+    }
+
+
+    private CoverLetter saveCoverLetterWithTime(String userId, String companyName, LocalDateTime modifiedAt) {
+        CoverLetter coverLetter = new CoverLetterFixtureBuilder()
+                .userId(userId)
+                .companyName(companyName)
+                .modifiedAt(modifiedAt)
+                .build();
+
+        return coverLetterJpaRepository.save(coverLetter);
     }
 }
