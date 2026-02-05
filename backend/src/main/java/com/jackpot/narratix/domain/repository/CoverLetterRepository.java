@@ -3,11 +3,10 @@ package com.jackpot.narratix.domain.repository;
 import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 
-import java.time.LocalDateTime;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,6 +27,7 @@ public interface CoverLetterRepository {
     );
 
     Long countByUserIdAndDeadlineBetween(String userId, LocalDate startDate, LocalDate endDate);
+
     CoverLetter findByIdOrElseThrow(Long coverLetterId);
 
     List<String> findCompanyNamesByUserId(String userId);

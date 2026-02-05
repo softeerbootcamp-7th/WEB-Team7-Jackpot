@@ -4,7 +4,6 @@ import com.jackpot.narratix.domain.controller.response.CompanyLibraryResponse;
 import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.enums.LibraryType;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
-import com.jackpot.narratix.domain.exception.CoverLetterErrorCode;
 import com.jackpot.narratix.domain.exception.LibraryErrorCode;
 import com.jackpot.narratix.domain.repository.CoverLetterRepository;
 import com.jackpot.narratix.domain.repository.QnARepository;
@@ -50,15 +49,14 @@ public class LibraryService {
     @Transactional(readOnly = true)
     public CompanyLibraryResponse getCompanyLibraries(String userId, String companyName, int size, Long lastCoverLetterId) {
 
-        Pageable pageable = PageRequest.of(0, size);
+        Pageable pageable = PageRequest.ofSize(size);
 
         Slice<CoverLetter> coverLetterSlice;
 
         if (lastCoverLetterId == null) {
             coverLetterSlice = coverLetterRepository.findByUserIdAndCompanyNameOrderByModifiedAtDesc(userId, companyName, pageable);
         } else {
-            CoverLetter lastCoverLetter = coverLetterRepository.findById(lastCoverLetterId)
-                    .orElseThrow(() -> new BaseException(CoverLetterErrorCode.COVER_LETTER_NOT_FOUND));
+            CoverLetter lastCoverLetter = coverLetterRepository.findByIdOrElseThrow(lastCoverLetterId);
 
             coverLetterSlice = coverLetterRepository.findByUserIdAndCompanyNameOrderByModifiedAtDesc(
                     userId,

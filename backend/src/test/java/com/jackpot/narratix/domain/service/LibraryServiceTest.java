@@ -20,7 +20,6 @@ import org.springframework.data.domain.SliceImpl;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -167,7 +166,7 @@ class LibraryServiceTest {
 
         CoverLetter mockLastCoverLetter = mock(CoverLetter.class);
         given(mockLastCoverLetter.getModifiedAt()).willReturn(mockDateTime);
-        given(coverLetterRepository.findById(lastId)).willReturn(Optional.of(mockLastCoverLetter));
+        given(coverLetterRepository.findByIdOrElseThrow(lastId)).willReturn(mockLastCoverLetter);
 
         CoverLetter resultMock = mock(CoverLetter.class);
         given(resultMock.getApplyHalf()).willReturn(ApplyHalfType.FIRST_HALF);
@@ -187,7 +186,7 @@ class LibraryServiceTest {
         assertThat(response.coverLetters()).hasSize(1);
         assertThat(response.hasNext()).isFalse();
 
-        verify(coverLetterRepository).findById(lastId);
+        verify(coverLetterRepository).findByIdOrElseThrow(lastId);
 
         verify(coverLetterRepository).findByUserIdAndCompanyNameOrderByModifiedAtDesc(
                 eq(userId),
