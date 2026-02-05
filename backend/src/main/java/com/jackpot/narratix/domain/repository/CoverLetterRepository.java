@@ -8,6 +8,7 @@ import org.springframework.data.domain.Slice;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface CoverLetterRepository {
@@ -31,6 +32,10 @@ public interface CoverLetterRepository {
     CoverLetter findByIdOrElseThrow(Long coverLetterId);
 
     List<String> findCompanyNamesByUserId(String userId);
+
+    Map<LocalDate, List<CoverLetter>> findUpcomingCoverLettersGroupedByDeadline(
+            String userId, LocalDate date, int maxDeadLineSize, int maxCoverLetterSizePerDeadLine
+    );
 
     Slice<CoverLetter> findByUserIdAndCompanyNameOrderByModifiedAtDesc(String userId, String companyName, Pageable pageable);
 

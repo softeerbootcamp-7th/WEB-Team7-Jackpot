@@ -6,6 +6,7 @@ import com.jackpot.narratix.domain.controller.response.CoverLetterResponse;
 import com.jackpot.narratix.domain.controller.response.CoverLettersDateRangeResponse;
 import com.jackpot.narratix.domain.controller.response.CreateCoverLetterResponse;
 import com.jackpot.narratix.domain.controller.response.TotalCoverLetterCountResponse;
+import com.jackpot.narratix.domain.controller.response.UpcomingCoverLetterResponse;
 import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import com.jackpot.narratix.domain.exception.CoverLetterErrorCode;
@@ -114,6 +115,20 @@ public class CoverLetterService {
                         coverLetter,
                         qnaCountMap.getOrDefault(coverLetter.getId(), 0L)
                 ))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<UpcomingCoverLetterResponse> getUpcomingCoverLetters(
+            String userId, LocalDate date, Integer maxDeadLineSize, Integer maxCoverLetterSizePerDeadLine
+    ) {
+        Map<LocalDate, List<CoverLetter>> groupedCoverLetters =
+                coverLetterRepository.findUpcomingCoverLettersGroupedByDeadline(
+                        userId, date, maxDeadLineSize, maxCoverLetterSizePerDeadLine
+                );
+
+        return groupedCoverLetters.entrySet().stream()
+                .map(UpcomingCoverLetterResponse::of)
                 .toList();
     }
 }
