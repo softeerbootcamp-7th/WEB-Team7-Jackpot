@@ -10,7 +10,7 @@ const MyApplicationCalendar = () => {
           <div className='relative h-7 w-7'>
             <CalendarIcon />
           </div>
-          <div className='justify-start text-xl leading-9 font-bold text-gray-950'>
+          <div className='text-title-l justify-start font-bold text-gray-950'>
             나의 지원 캘린더
           </div>
         </div>

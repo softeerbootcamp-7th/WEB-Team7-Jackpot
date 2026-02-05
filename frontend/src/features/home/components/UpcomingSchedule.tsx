@@ -16,7 +16,7 @@ const UpcomingSchedule = ({ date, dDay, schedules }: UpcomingScheduleProps) => {
     <div className='inline-flex h-52 w-72 flex-shrink-0 flex-col items-start justify-start gap-2.5 rounded-2xl p-4 outline outline-1 outline-offset-[-1px] outline-purple-100'>
       <div className='inline-flex items-center justify-between self-stretch pl-1.5'>
         <div
-          className={`line-clamp-1 justify-start text-xl leading-8 font-bold ${
+          className={`text-title-m line-clamp-1 justify-start font-bold ${
             isUrgent ? 'text-purple-600' : 'text-gray-700'
           }`}
         >
@@ -48,10 +48,10 @@ const UpcomingSchedule = ({ date, dDay, schedules }: UpcomingScheduleProps) => {
               }`}
             />
             <div className='inline-flex h-11 flex-1 flex-col items-start justify-center'>
-              <div className='line-clamp-1 justify-start text-base leading-6 font-bold text-gray-700'>
+              <div className='text-body-m line-clamp-1 justify-start font-bold text-gray-700'>
                 {schedule.company}
               </div>
-              <div className='line-clamp-1 justify-start self-stretch text-xs leading-5 font-medium text-gray-400'>
+              <div className='text-caption-m line-clamp-1 justify-start self-stretch font-medium text-gray-400'>
                 {schedule.position}
               </div>
             </div>

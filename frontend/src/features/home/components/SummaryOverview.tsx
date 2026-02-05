@@ -22,10 +22,10 @@ const SummaryOverview = () => {
           <ThoughtIcon />
         </div>
         <div className='inline-flex flex-col items-start justify-start'>
-          <div className='justify-start text-lg leading-7 font-medium text-gray-400'>
+          <div className='text-title-s justify-start font-medium text-gray-400'>
             졸린 경민님은 지금까지
           </div>
-          <div className='justify-start text-xl leading-9 font-bold text-gray-950'>
+          <div className='text-title-l justify-start font-bold text-gray-950'>
             {mockSummary.coverLetterCnt}장의 자기소개서를 완성했어요
           </div>
         </div>
@@ -35,10 +35,10 @@ const SummaryOverview = () => {
           <BooksIcon />
         </div>
         <div className='inline-flex flex-col items-start justify-start'>
-          <div className='justify-start text-lg leading-7 font-medium text-gray-400'>
+          <div className='text-title-s justify-start font-medium text-gray-400'>
             끝까지 작성을 마친 답변들은
           </div>
-          <div className='justify-start text-xl leading-9 font-bold text-gray-950'>
+          <div className='text-title-l justify-start font-bold text-gray-950'>
             총 {mockSummary.QnACnt}문항이에요
           </div>
         </div>
@@ -48,10 +48,10 @@ const SummaryOverview = () => {
           <ScrollIcon />
         </div>
         <div className='inline-flex flex-col items-start justify-start'>
-          <div className='justify-start text-lg leading-7 font-medium text-gray-400'>
+          <div className='text-title-s justify-start font-medium text-gray-400'>
             이번 시즌에는
           </div>
-          <div className='justify-start text-xl leading-9 font-bold text-gray-950'>
+          <div className='text-title-l justify-start font-bold text-gray-950'>
             총 {mockSummary.applicationCount}개의 공고에 지원했어요
           </div>
         </div>
