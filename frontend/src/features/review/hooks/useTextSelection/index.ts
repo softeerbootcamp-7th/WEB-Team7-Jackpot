@@ -80,6 +80,7 @@ export const useTextSelection = ({
   // editingReview 처리
   useEffect(() => {
     if (!editingReview || !containerRef.current) return;
+    let timeoutId: number | undefined;
 
     const { range, selectedText } = editingReview;
     const startPos = findNodeAtIndex(containerRef.current, range.start);
@@ -105,7 +106,7 @@ export const useTextSelection = ({
         behavior: 'smooth',
       });
 
-      setTimeout(() => {
+      timeoutId = window.setTimeout(() => {
         containerRef.current?.style.removeProperty('overflowY');
         const modalInfoAfter = calculateModalInfo(
           containerRef.current!,
@@ -122,6 +123,10 @@ export const useTextSelection = ({
       );
       if (modalInfo) onSelectionChange(modalInfo);
     }
+
+    return () => {
+      if (timeoutId) window.clearTimeout(timeoutId);
+    };
   }, [editingReview, onSelectionChange]);
 
   // 하이라이트 적용
@@ -147,6 +152,8 @@ export const useTextSelection = ({
     if (!containerRef.current.contains(range.commonAncestorContainer)) return;
 
     const { start, end } = rangeToTextIndices(containerRef.current, range);
+
+    let timeoutId: number | undefined;
 
     if (
       isRangeOverlapping(
@@ -187,7 +194,7 @@ export const useTextSelection = ({
         behavior: 'smooth',
       });
 
-      setTimeout(() => {
+      timeoutId = window.setTimeout(() => {
         containerRef.current?.style.removeProperty('overflowY');
         onSelectionChange({
           selectedText,
@@ -205,6 +212,10 @@ export const useTextSelection = ({
       );
       if (modalInfo) onSelectionChange(modalInfo);
     }
+
+    return () => {
+      if (timeoutId) window.clearTimeout(timeoutId);
+    };
   }, [reviews, onSelectionChange]);
 
   const { before, after } = useMemo(() => {
