@@ -18,9 +18,6 @@ public interface CoverLetterJpaRepository extends JpaRepository<CoverLetter, Lon
     @Query("SELECT DISTINCT c.companyName FROM CoverLetter c WHERE c.userId = :userId")
     List<String> findDistinctCompanyNamesByUserId(@Param("userId") String userId);
 
-    @Query("SELECT c FROM CoverLetter c WHERE c.userId = :userId AND c.deadline >= :date ORDER BY c.deadline ASC LIMIT :limit")
-    List<CoverLetter> findUpcomingCoverLettersByUserIdAndDate(@Param("userId") String userId, @Param("date") LocalDate date, @Param("limit") int limit);
-
     /**
      * ROW_NUMBER() 줄: 같은 deadline로 묶인 그룹 내부에서 modified_at을 내림차순으로 정렬
      * DENSE_RANK() 줄: 전체 자소서의 deadline을 오름차순으로 정렬 (반환되는 마감일 개수를 maxDeadLineSize 이하로 제한하기 위함)
