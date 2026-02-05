@@ -26,4 +26,5 @@ public interface QnARepository {
                                                                         QuestionCategoryType category,
                                                                         Pageable pageable);
 
+    QnA findByIdOrElseThrow(Long questionId);
 }

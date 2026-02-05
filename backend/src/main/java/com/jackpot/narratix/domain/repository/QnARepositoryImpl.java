@@ -2,7 +2,9 @@ package com.jackpot.narratix.domain.repository;
 
 import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
+import com.jackpot.narratix.domain.exception.QnAErrorcode;
 import com.jackpot.narratix.domain.repository.dto.QnACountProjection;
+import com.jackpot.narratix.global.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -50,5 +52,12 @@ public class QnARepositoryImpl implements QnARepository {
                                                                                Pageable pageable) {
         return qnAJpaRepository.findByUserIdAndQuestionCategoryOrderByModifiedAtDesc(userId, category, pageable);
     }
+
+    @Override
+    public QnA findByIdOrElseThrow(Long questionId) {
+        return qnAJpaRepository.findById(questionId)
+                .orElseThrow(() -> new BaseException(QnAErrorcode.QNA_NOT_FOUND));
+    }
+
 
 }
