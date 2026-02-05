@@ -2,6 +2,7 @@ package com.jackpot.narratix.domain.repository;
 
 import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
+import com.jackpot.narratix.domain.repository.dto.QnACountProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,9 +18,9 @@ public interface QnAJpaRepository extends JpaRepository<QnA, Long> {
     @Query("SELECT DISTINCT q.questionCategory FROM QnA q WHERE q.userId = :userId")
     List<QuestionCategoryType> findDistinctByQuestionCategory(@Param("userId") String userId);
 
-    @Query("SELECT q.coverLetter.id AS coverLetterId, COUNT(q) AS count " +
-            "FROM QnA q " +
-            "WHERE q.coverLetter.id IN :coverLetterIds " +
-            "GROUP BY q.coverLetter.id")
+    @Query("SELECT qna.coverLetter.id as coverLetterId, COUNT(qna) as count " +
+            "FROM QnA qna " +
+            "WHERE qna.coverLetter.id IN :coverLetterIds " +
+            "GROUP BY qna.coverLetter.id")
     List<QnACountProjection> countByCoverLetterIdIn(@Param("coverLetterIds") List<Long> coverLetterIds);
 }

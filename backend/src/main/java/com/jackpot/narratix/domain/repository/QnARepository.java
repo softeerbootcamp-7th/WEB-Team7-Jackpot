@@ -1,18 +1,15 @@
 package com.jackpot.narratix.domain.repository;
 
-import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
-import org.springframework.data.repository.query.Param;
+import com.jackpot.narratix.domain.repository.dto.QnACountProjection;
 
 import java.util.List;
 
 public interface QnARepository {
 
-    void saveAll(List<QnA> qnAs);
-
     Integer countByUserId(String userId);
 
-    List<QuestionCategoryType> findQuestionCategoryByUserId(String userId);
+    List<QnACountProjection> countByCoverLetterIdIn(List<Long> coverLetterIds);
 
-    List<QnACountProjection> countByCoverLetterIdIn(@Param("coverLetterIds") List<Long> coverLetterIds);
+    List<QuestionCategoryType> findQuestionCategoryByUserId(String userId);
 }

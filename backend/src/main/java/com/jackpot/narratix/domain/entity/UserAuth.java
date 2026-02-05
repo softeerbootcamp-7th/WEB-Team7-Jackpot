@@ -23,7 +23,7 @@ public class UserAuth extends BaseTimeEntity {
     private String password;
 
     @MapsId
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "user_id")
     private User user;
 

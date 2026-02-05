@@ -3,9 +3,11 @@ package com.jackpot.narratix.domain.repository;
 import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,6 +22,13 @@ public interface CoverLetterRepository {
     Optional<CoverLetter> findById(Long coverLetterId);
 
     void deleteById(Long coverLetterId);
+
+    List<CoverLetter> findInPeriod(
+            String userId, LocalDate startDate, LocalDate endDate, Pageable pageable
+    );
+
+    Long countByUserIdAndDeadlineBetween(String userId, LocalDate startDate, LocalDate endDate);
+    CoverLetter findByIdOrElseThrow(Long coverLetterId);
 
     List<String> findCompanyNamesByUserId(String userId);
 
