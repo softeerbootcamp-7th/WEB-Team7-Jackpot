@@ -3,8 +3,7 @@ import { useState } from 'react';
 import CommentTab from '@/features/review/components/reviewModal/CommentTab';
 import RevisionTab from '@/features/review/components/reviewModal/RevisionTab';
 import TabSelector from '@/features/review/components/reviewModal/TabSelector';
-
-type TabType = 'revision' | 'comment';
+import type { TabType } from '@/features/review/types/review';
 
 const MAX_COMMENT_LENGTH = 200;
 

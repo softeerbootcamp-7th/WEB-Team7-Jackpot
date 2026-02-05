@@ -1,6 +1,5 @@
 import { ReviewPageIcons } from '@/features/review/components/icons';
-
-type TabType = 'revision' | 'comment';
+import type { TabType } from '@/features/review/types/review';
 
 interface TabSelectorProps {
   tab: TabType;

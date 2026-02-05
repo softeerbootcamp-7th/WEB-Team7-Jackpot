@@ -12,3 +12,5 @@ export interface Review extends ReviewBase {
   suggest?: string | null;
   createdAt?: string;
 }
+
+export type TabType = 'revision' | 'comment';
