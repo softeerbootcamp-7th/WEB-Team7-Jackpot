@@ -50,14 +50,16 @@ class CoverLetterRepositoryTest {
         final String question3 = "프로젝트 경험을 설명해주세요.";
 
         User user = saveUser("testUser123", "테스터");
-        CoverLetter coverLetter = createCoverLetterWithQnAs(
-                user.getId(),
-                List.of(
-                        new QnAFixture(question1, QuestionCategoryType.MOTIVATION),
-                        new QnAFixture(question2, QuestionCategoryType.TEAMWORK_EXPERIENCE),
-                        new QnAFixture(question3, QuestionCategoryType.PERSONALITY)
+        CoverLetter coverLetter = builder()
+                .userId(user.getId())
+                .qnaFixtures(
+                        List.of(
+                                new QnAFixture(question1, QuestionCategoryType.MOTIVATION),
+                                new QnAFixture(question2, QuestionCategoryType.TEAMWORK_EXPERIENCE),
+                                new QnAFixture(question3, QuestionCategoryType.PERSONALITY)
+                        )
                 )
-        );
+                .build();
 
         // when
         CoverLetter savedCoverLetter = coverLetterJpaRepository.save(coverLetter);
@@ -86,13 +88,15 @@ class CoverLetterRepositoryTest {
         final String question1 = "지원 동기는 무엇인가요?";
         final String question2 = "팀워크 경험을 설명해주세요.";
         User user = saveUser("testUser456", "테스터2");
-        CoverLetter coverLetter = createCoverLetterWithQnAs(
-                user.getId(),
-                List.of(
-                        new QnAFixture(question1, QuestionCategoryType.MOTIVATION),
-                        new QnAFixture(question2, QuestionCategoryType.TEAMWORK_EXPERIENCE)
+        CoverLetter coverLetter = builder()
+                .userId(user.getId())
+                .qnaFixtures(
+                        List.of(
+                                new QnAFixture(question1, QuestionCategoryType.MOTIVATION),
+                                new QnAFixture(question2, QuestionCategoryType.TEAMWORK_EXPERIENCE)
+                        )
                 )
-        );
+                .build();
 
         CoverLetter savedCoverLetter = coverLetterJpaRepository.save(coverLetter);
         flushAndClear();
@@ -139,17 +143,37 @@ class CoverLetterRepositoryTest {
         LocalDateTime middleModifiedAt1 = LocalDateTime.of(2024, 6, 10, 12, 0); // 중간
         LocalDateTime mostRecentModifiedAt1 = LocalDateTime.of(2024, 6, 10, 14, 0); // 가장 최신
 
-        CoverLetter cl1 = createCoverLetterWithDeadlineAndModifiedAt(userId, deadline1, oldestModifiedAt1);
-        CoverLetter cl2 = createCoverLetterWithDeadlineAndModifiedAt(userId, deadline1, middleModifiedAt1);
-        CoverLetter cl3 = createCoverLetterWithDeadlineAndModifiedAt(userId, deadline1, mostRecentModifiedAt1);
+        CoverLetter cl1 = new CoverLetterFixtureBuilder()
+                .userId(userId)
+                .deadline(deadline1)
+                .modifiedAt(oldestModifiedAt1)
+                .build();
+        CoverLetter cl2 = new CoverLetterFixtureBuilder()
+                .userId(userId)
+                .deadline(deadline1)
+                .modifiedAt(middleModifiedAt1)
+                .build();
+        CoverLetter cl3 = new CoverLetterFixtureBuilder()
+                .userId(userId)
+                .deadline(deadline1)
+                .modifiedAt(mostRecentModifiedAt1)
+                .build();
 
         // deadline 2: 2024-06-20 (2개 자기소개서)
         LocalDate deadline2 = LocalDate.of(2024, 6, 20);
         LocalDateTime oldestModifiedAt2 = LocalDateTime.of(2024, 6, 15, 10, 0);
         LocalDateTime mostRecentModifiedAt2 = LocalDateTime.of(2024, 6, 15, 12, 0);
 
-        CoverLetter cl4 = createCoverLetterWithDeadlineAndModifiedAt(userId, deadline2, oldestModifiedAt2);
-        CoverLetter cl5 = createCoverLetterWithDeadlineAndModifiedAt(userId, deadline2, mostRecentModifiedAt2);
+        CoverLetter cl4 = builder()
+                .userId(userId)
+                .deadline(deadline2)
+                .modifiedAt(oldestModifiedAt2)
+                .build();
+        CoverLetter cl5 = builder()
+                .userId(userId)
+                .deadline(deadline2)
+                .modifiedAt(mostRecentModifiedAt2)
+                .build();
 
         // deadline 3: 2024-06-25 (1개 자기소개서)
         LocalDate deadline3 = LocalDate.of(2024, 6, 25);
