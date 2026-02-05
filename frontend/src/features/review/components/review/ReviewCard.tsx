@@ -35,8 +35,7 @@ const ReviewCard = ({
           <div className='flex flex-1 items-center gap-3'>
             <CardUserInfo
               name='귀여운 캥거루'
-              date='01월 15일'
-              time='오후 5:30'
+              dateTime='2025-01-15T17:30:00Z'
             />
           </div>
           <div className='py-0.5'>

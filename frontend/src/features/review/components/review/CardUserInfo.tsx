@@ -1,13 +1,13 @@
-const CardUserInfo = ({
-  name,
-  date,
-  time,
-}: {
+import { getKoreanDate, getKoreanTime } from '@/shared/utils/dates';
+
+interface CardUserInfoProps {
   name: string;
-  date: string;
-  time: string;
-}) => {
-  const dateTime = `${date.replace(/\./g, '-')}T${time}:00`;
+  dateTime: string;
+}
+
+const CardUserInfo = ({ name, dateTime }: CardUserInfoProps) => {
+  const date = getKoreanDate(dateTime);
+  const time = getKoreanTime(dateTime);
 
   return (
     <>
