@@ -2,7 +2,9 @@ package com.jackpot.narratix.domain.controller;
 
 import com.jackpot.narratix.domain.controller.response.CompanyLibraryResponse;
 import com.jackpot.narratix.domain.controller.response.LibraryListResponse;
+import com.jackpot.narratix.domain.controller.response.QuestionLibraryResponse;
 import com.jackpot.narratix.domain.entity.enums.LibraryType;
+import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
 import com.jackpot.narratix.domain.service.LibraryService;
 import com.jackpot.narratix.global.auth.UserId;
 import jakarta.validation.constraints.Min;
@@ -43,6 +45,18 @@ public class LibraryController {
     ) {
         return ResponseEntity.ok(
                 libraryService.getCompanyLibraries(userId, companyName, size, lastCoverLetterId)
+        );
+    }
+
+    @GetMapping("/question/all")
+    public ResponseEntity<QuestionLibraryResponse> getQuestionLibraries(
+            @UserId String userId,
+            @RequestParam @NotBlank QuestionCategoryType questionCategoryType,
+            @RequestParam(defaultValue = "10") @Min(1) int size,
+            @RequestParam(required = false) @Positive Optional<Long> lastQuestioinId
+    ) {
+        return ResponseEntity.ok(
+                libraryService.getQuestionLibraries(userId, questionCategoryType, size, lastQuestioinId)
         );
     }
 }
