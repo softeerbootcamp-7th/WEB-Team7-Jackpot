@@ -80,5 +80,9 @@ public interface CoverLetterJpaRepository extends JpaRepository<CoverLetter, Lon
             "AND c.deadline >= :startDate " +
             "AND c.deadline <= :endDate " +
             "ORDER BY c.deadline ASC")
-    List<LocalDate> findDeadlineByUserIdBetweenDeadline(String userId, LocalDate startDate, LocalDate endDate);
+    List<LocalDate> findDeadlineByUserIdBetweenDeadline(
+            @Param("userId") String userId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
 }
