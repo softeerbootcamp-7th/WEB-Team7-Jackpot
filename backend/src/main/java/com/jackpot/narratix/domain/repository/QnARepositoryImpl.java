@@ -31,8 +31,8 @@ public class QnARepositoryImpl implements QnARepository {
     }
 
     @Override
-    public QnA findByIdOrElseThrow(Long qnaId) {
-        return qnAJpaRepository.findById(qnaId)
+    public QnA findByIdOrElseThrow(Long qnAId) {
+        return qnAJpaRepository.findById(qnAId)
                 .orElseThrow(() -> new BaseException(QnAErrorCode.QNA_NOT_FOUND));
     }
 

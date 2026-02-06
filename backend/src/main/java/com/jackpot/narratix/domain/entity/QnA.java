@@ -9,6 +9,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
@@ -55,5 +56,10 @@ public class QnA extends BaseTimeEntity {
 
     public boolean isOwner(String userId){
         return Objects.equals(this.userId, userId);
+    }
+
+    public void editAnswer(String answer) {
+        this.answer = answer;
+        updateModifiedAt(LocalDateTime.now());
     }
 }

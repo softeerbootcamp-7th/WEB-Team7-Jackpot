@@ -2,6 +2,7 @@ package com.jackpot.narratix.domain.service;
 
 import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
 import com.jackpot.narratix.domain.controller.request.EditCoverLetterRequest;
+import com.jackpot.narratix.domain.controller.request.QnAEditRequest;
 import com.jackpot.narratix.domain.controller.response.*;
 import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.QnA;
@@ -162,5 +163,16 @@ public class CoverLetterService {
         if(!qnA.isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
 
         return QnAResponse.of(qnA);
+    }
+
+    @Transactional
+    public QnAEditResponse editQnA(String userId, QnAEditRequest request) {
+        QnA qnA = qnARepository.findByIdOrElseThrow(request.qnaId());
+
+        if(!qnA.isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
+
+        qnA.editAnswer(request.answer());
+
+        return new QnAEditResponse(qnA.getId(), qnA.getModifiedAt());
     }
 }
