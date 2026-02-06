@@ -622,7 +622,8 @@ class CoverLetterRepositoryTest {
         String userId = "user1";
         String companyName = "Samsung";
 
-        CoverLetter old = saveCoverLetterWithTime(userId, companyName, LocalDateTime.now().minusDays(3));
+        LocalDateTime oldDate = LocalDateTime.now().minusDays(3);
+        saveCoverLetterWithTime(userId, companyName, oldDate);
         CoverLetter middle = saveCoverLetterWithTime(userId, companyName, LocalDateTime.now().minusDays(2));
         CoverLetter latest = saveCoverLetterWithTime(userId, companyName, LocalDateTime.now().minusDays(1));
 
@@ -678,5 +679,160 @@ class CoverLetterRepositoryTest {
                 .build();
 
         return coverLetterJpaRepository.save(coverLetter);
+    }
+
+    @Test
+    @DisplayName("날짜 범위로 마감일 조회 시 경계값(startDate, endDate)에 있는 데이터도 포함된다")
+    void findDeadlineByUserIdBetweenDeadline_IncludesBoundaryValues() {
+        // given
+        User user = saveUser("testUser1515", "테스터18");
+        String userId = user.getId();
+
+        LocalDate startDate = LocalDate.of(2024, 6, 1);
+        LocalDate endDate = LocalDate.of(2024, 6, 30);
+
+        // startDate보다 하루 이전 (포함되지 않아야 함)
+        LocalDate beforeStartDate = startDate.minusDays(1);
+        CoverLetter beforeStart = createCoverLetterWithDeadline(userId, beforeStartDate);
+
+        // startDate와 정확히 같은 날짜 (포함되어야 함)
+        CoverLetter onStart = createCoverLetterWithDeadline(userId, startDate);
+
+        // startDate와 endDate 사이의 날짜 (포함되어야 함)
+        LocalDate inMiddleDate1 = startDate.plusDays(1);
+        CoverLetter inMiddle1 = createCoverLetterWithDeadline(userId, inMiddleDate1);
+        LocalDate inMiddleDate2 = endDate.minusDays(1);
+        CoverLetter inMiddle2 = createCoverLetterWithDeadline(userId, inMiddleDate2);
+
+        // endDate와 정확히 같은 날짜 (포함되어야 함)
+        CoverLetter onEnd = createCoverLetterWithDeadline(userId, endDate);
+
+        // endDate보다 하루 이후 (포함되지 않아야 함)
+        LocalDate afterEndDate = endDate.plusDays(1);
+        CoverLetter afterEnd = createCoverLetterWithDeadline(userId, afterEndDate);
+
+        coverLetterJpaRepository.save(beforeStart);
+        coverLetterJpaRepository.save(onStart);
+        coverLetterJpaRepository.save(inMiddle1);
+        coverLetterJpaRepository.save(inMiddle2);
+        coverLetterJpaRepository.save(onEnd);
+        coverLetterJpaRepository.save(afterEnd);
+        flushAndClear();
+
+        // when
+        List<LocalDate> result = coverLetterJpaRepository.findDeadlineByUserIdBetweenDeadline(
+                userId, startDate, endDate
+        );
+
+        // then
+        assertThat(result).hasSize(4)
+                .containsExactly(
+                        startDate, // 경계값 포함
+                        inMiddleDate1,
+                        inMiddleDate2,
+                        endDate // 경계값 포함
+                ).doesNotContain(
+                        beforeStartDate, // startDate 이전 제외
+                        afterEndDate // endDate 이후 제외
+                );
+    }
+
+    @Test
+    @DisplayName("날짜 범위로 마감일 조회 시 같은 마감일을 가진 여러 자기소개서가 있으면 중복된 날짜가 반환되지 않아야 한다")
+    void findDeadlineByUserIdBetweenDeadline_ReturnsMultipleSameDeadlines() {
+        // given
+        User user = saveUser("testUser1616", "테스터19");
+        String userId = user.getId();
+
+        LocalDate startDate = LocalDate.of(2024, 6, 1);
+        LocalDate endDate = LocalDate.of(2024, 6, 30);
+        LocalDate sameDeadline = LocalDate.of(2024, 6, 15);
+
+        // 같은 마감일을 가진 자기소개서 3개
+        CoverLetter coverLetter1 = createCoverLetterWithDeadline(userId, sameDeadline);
+        CoverLetter coverLetter2 = createCoverLetterWithDeadline(userId, sameDeadline);
+        CoverLetter coverLetter3 = createCoverLetterWithDeadline(userId, sameDeadline);
+
+        coverLetterJpaRepository.save(coverLetter1);
+        coverLetterJpaRepository.save(coverLetter2);
+        coverLetterJpaRepository.save(coverLetter3);
+        flushAndClear();
+
+        // when
+        List<LocalDate> result = coverLetterJpaRepository.findDeadlineByUserIdBetweenDeadline(
+                userId, startDate, endDate
+        );
+
+        // then
+        assertThat(result).hasSize(1)
+                .containsExactly(sameDeadline);
+    }
+
+    @Test
+    @DisplayName("날짜 범위로 마감일 조회 시 결과가 마감일 오름차순으로 정렬된다")
+    void findDeadlineByUserIdBetweenDeadline_OrderedByDeadlineAsc() {
+        // given
+        User user = saveUser("testUser1717", "테스터20");
+        String userId = user.getId();
+
+        LocalDate defaultDate = LocalDate.of(2026, 2, 5);
+        LocalDate startDate = defaultDate;
+        LocalDate endDate = defaultDate.plusDays(10);
+
+        // 역순으로 저장
+        LocalDate date1 = defaultDate.plusDays(1);
+        LocalDate date2 = defaultDate.plusDays(2);
+        LocalDate date3 = defaultDate.plusDays(3);
+        LocalDate date4 = defaultDate.plusDays(4);
+
+        CoverLetter coverLetter1 = createCoverLetterWithDeadline(userId, date1);
+        CoverLetter coverLetter2 = createCoverLetterWithDeadline(userId, date2);
+        CoverLetter coverLetter3 = createCoverLetterWithDeadline(userId, date3);
+        CoverLetter coverLetter4 = createCoverLetterWithDeadline(userId, date4);
+
+        coverLetterJpaRepository.save(coverLetter1);
+        coverLetterJpaRepository.save(coverLetter2);
+        coverLetterJpaRepository.save(coverLetter3);
+        coverLetterJpaRepository.save(coverLetter4);
+        flushAndClear();
+
+        // when
+        List<LocalDate> result = coverLetterJpaRepository.findDeadlineByUserIdBetweenDeadline(
+                userId, startDate, endDate
+        );
+
+        // then - 오름차순으로 정렬되어 반환
+        assertThat(result).hasSize(4)
+                .containsExactly(date1, date2, date3, date4);
+    }
+
+    @Test
+    @DisplayName("날짜 범위로 마감일 조회 시 다른 사용자의 자기소개서는 조회되지 않는다")
+    void findDeadlineByUserIdBetweenDeadline_FiltersByUserId() {
+        // given
+        User user1 = saveUser("testUser1818", "테스터21");
+        User user2 = saveUser("testUser1919", "테스터22");
+
+        LocalDate startDate = LocalDate.of(2024, 6, 1);
+        LocalDate endDate = LocalDate.of(2024, 6, 30);
+
+        LocalDate user1Date = LocalDate.of(2024, 6, 15);
+        LocalDate user2Date = LocalDate.of(2024, 6, 20);
+        CoverLetter user1CoverLetter = createCoverLetterWithDeadline(user1.getId(), user1Date);
+        CoverLetter user2CoverLetter = createCoverLetterWithDeadline(user2.getId(), user2Date);
+
+        coverLetterJpaRepository.save(user1CoverLetter);
+        coverLetterJpaRepository.save(user2CoverLetter);
+        flushAndClear();
+
+        // when
+        List<LocalDate> resultUser1 = coverLetterJpaRepository.findDeadlineByUserIdBetweenDeadline(
+                user1.getId(), startDate, endDate
+        );
+
+        // then
+        assertThat(resultUser1).hasSize(1)
+                .containsExactly(user1Date)
+                .doesNotContain(user2Date);
     }
 }

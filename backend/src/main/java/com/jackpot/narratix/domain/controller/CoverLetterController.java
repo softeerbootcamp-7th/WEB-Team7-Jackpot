@@ -88,4 +88,13 @@ public class CoverLetterController {
                 coverLetterService.getUpcomingCoverLetters(userId, date, maxDeadLineSize, maxCoverLetterSizePerDeadLine)
         );
     }
+
+    @GetMapping("/calendar")
+    public ResponseEntity<List<LocalDate>> findDeadlineByDateRange(
+            @UserId String userId,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate
+    ) {
+        return ResponseEntity.ok(coverLetterService.findDeadlineByDateRange(userId, startDate, endDate));
+    }
 }

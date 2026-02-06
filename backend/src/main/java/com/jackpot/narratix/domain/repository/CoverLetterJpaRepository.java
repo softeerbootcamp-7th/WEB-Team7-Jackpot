@@ -51,8 +51,8 @@ public interface CoverLetterJpaRepository extends JpaRepository<CoverLetter, Lon
      * DENSE_RANK() 줄: 전체 자소서의 deadline을 오름차순으로 정렬 (반환되는 마감일 개수를 maxDeadLineSize 이하로 제한하기 위함)
      * sub 쿼리: 특정 유저의 자소서 중, 지나지 않은 deadline을 갖는 자기소개서 데이터만 1차로 추린다.
      * 메인 쿼리:
-     * 1. 각 날짜별로 maxCoverLetterSizePerDeadLine만큼 남긴다.
-     * 2. deadline이 빠른 순서대로 최대 maxDeadLineSize만큼 남긴다
+     *      1. 각 날짜별로 maxCoverLetterSizePerDeadLine만큼 남긴다.
+     *      2. deadline이 빠른 순서대로 최대 maxDeadLineSize만큼 남긴다
      */
     @Query(value = """
                     SELECT * FROM (
@@ -74,4 +74,15 @@ public interface CoverLetterJpaRepository extends JpaRepository<CoverLetter, Lon
 
     @Query("SELECT c FROM CoverLetter c LEFT JOIN FETCH c.qnAs WHERE c.id = :id")
     Optional<CoverLetter> findByIdWithQnAs(@Param("id") Long coverLetterId);
+
+    @Query("SELECT DISTINCT c.deadline FROM CoverLetter c " +
+            "WHERE c.userId = :userId " +
+            "AND c.deadline >= :startDate " +
+            "AND c.deadline <= :endDate " +
+            "ORDER BY c.deadline ASC")
+    List<LocalDate> findDeadlineByUserIdBetweenDeadline(
+            @Param("userId") String userId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
 }

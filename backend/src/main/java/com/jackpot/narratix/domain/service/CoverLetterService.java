@@ -133,11 +133,29 @@ public class CoverLetterService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public List<Long> getQnAIdsByCoverLetterId(String userId, Long coverLetterId) {
         CoverLetter coverLetter = coverLetterRepository.findByIdWithQnAsOrElseThrow(coverLetterId);
 
         if (!coverLetter.isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
 
         return coverLetter.getQnAs().stream().map(QnA::getId).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<LocalDate> findDeadlineByDateRange(String userId, LocalDate startDate, LocalDate endDate) {
+        validateDateRangeExceeded(startDate, endDate);
+
+        return coverLetterRepository.findDeadlineByUserIdBetweenDeadline(userId, startDate, endDate);
+    }
+
+    private void validateDateRangeExceeded(LocalDate startDate, LocalDate endDate) {
+        if (endDate.isBefore(startDate)) {
+            throw new BaseException(GlobalErrorCode.INVALID_INPUT_VALUE);
+        }
+
+        if (startDate.plusMonths(1).isBefore(endDate)) {
+            throw new BaseException(CoverLetterErrorCode.DATE_RANGE_EXCEEDED);
+        }
     }
 }

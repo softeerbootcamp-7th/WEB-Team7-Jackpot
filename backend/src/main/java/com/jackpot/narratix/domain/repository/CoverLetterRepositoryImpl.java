@@ -100,6 +100,11 @@ public class CoverLetterRepositoryImpl implements CoverLetterRepository {
     }
 
     @Override
+    public List<LocalDate> findDeadlineByUserIdBetweenDeadline(String userId, LocalDate startDate, LocalDate endDate) {
+        return coverLetterJpaRepository.findDeadlineByUserIdBetweenDeadline(userId, startDate, endDate);
+    }
+
+    @Override
     public Map<LocalDate, List<CoverLetter>> findUpcomingCoverLettersGroupedByDeadline(
             String userId, LocalDate date, int maxDeadLineSize, int maxCoverLetterSizePerDeadLine
     ) {
