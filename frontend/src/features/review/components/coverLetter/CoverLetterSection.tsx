@@ -85,7 +85,7 @@ const CoverLetterSection = ({
   };
 
   return (
-    <div className='flex flex-1 flex-col gap-[20px] overflow-hidden border-r border-gray-100 px-[2rem] py-[0.875rem]'>
+    <div className='flex h-full flex-1 flex-col gap-[20px] overflow-hidden border-r border-gray-100 px-[2rem] py-[0.875rem]'>
       <CoverLetterChipList company={company} job={job} />
       <div className='flex min-h-0 flex-1 flex-col gap-[14px]'>
         <CoverLetterQuestion index={questionIndex} question={question} />

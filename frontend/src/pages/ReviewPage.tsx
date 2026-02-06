@@ -1,6 +1,7 @@
 import ReviewLayout from '@/features/review/components/ReviewLayout';
 import { reviewHeaderText } from '@/features/review/constants';
 import ContentHeader from '@/shared/components/ContentHeader';
+import PageGlobalHeader from '@/shared/components/PageGlobalHeader';
 
 const ReviewPage = () => {
   // TODO: 페이지 진입시, 접근 제어 API
@@ -12,10 +13,15 @@ const ReviewPage = () => {
   // 수정된 자기소개서 정보 받기
 
   return (
-    <div className='flex h-screen w-full flex-col overflow-hidden px-75 pb-30'>
-      <ContentHeader {...reviewHeaderText} />
-      <div className='flex min-h-0 w-full flex-1 flex-row overflow-hidden'>
-        <ReviewLayout />
+    <div className='flex h-screen w-full max-w-screen min-w-[1700px] flex-col overflow-hidden pb-30'>
+      <PageGlobalHeader />
+      <div className='flex flex-1 flex-col overflow-hidden px-75'>
+        <div className='mb-7.5 flex-none'>
+          <ContentHeader {...reviewHeaderText} />
+        </div>
+        <div className='flex w-full flex-1 overflow-hidden'>
+          <ReviewLayout />
+        </div>
       </div>
     </div>
   );

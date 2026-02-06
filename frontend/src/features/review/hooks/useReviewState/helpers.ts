@@ -105,40 +105,7 @@ export const mockFetchReviewsByQnaId = (qnaId: number) => {
 
   if (qnaId === 2) {
     return {
-      reviews: [
-        {
-          id: 7,
-          sender: { id: 'user-7', nickname: '활발한 토끼' },
-          originText: '혁신적인 기술력과 글로벌 영향력에 매료',
-          suggest: '혁신을 선도하는 기술력과 세계적 영향력에 깊은 감명',
-          comment: '좀 더 감정이 실린 표현으로 바꿔보세요.',
-          createdAt: '2025-01-25T10:20:00Z',
-        },
-        {
-          id: 8,
-          sender: { id: 'user-8', nickname: '성실한 개미' },
-          originText: '세계 최고 수준의 기술력과 글로벌 영향력',
-          suggest: '기술력과 글로벌 리더십',
-          comment: '수식어를 줄이면 좋을 것 같습니다.',
-          createdAt: '2025-01-25T10:25:00Z',
-        },
-        {
-          id: 9,
-          sender: { id: 'user-9', nickname: '조용한 고양이' },
-          originText: '사용자 경험을 중시하는',
-          suggest: 'UX를 최우선으로 고려하는',
-          comment: '업계 용어를 사용하면 전문성이 느껴집니다.',
-          createdAt: '2025-01-25T10:30:00Z',
-        },
-        {
-          id: 10,
-          sender: { id: 'user-10', nickname: '빠른 치타' },
-          originText: '저의 가치관과',
-          suggest: '제가 추구하는 가치와',
-          comment: '조금 더 자연스러운 표현으로 바꿔보세요.',
-          createdAt: '2025-01-25T10:35:00Z',
-        },
-      ],
+      reviews: [],
       hasNext: false,
     };
   }

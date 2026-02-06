@@ -22,29 +22,33 @@ const ReviewLayout = () => {
   if (!currentQna) return <div>로딩 중...</div>;
 
   return (
-    <div className='flex min-h-0 flex-1 flex-row'>
-      <CoverLetterSection
-        company={coverLetter.companyName}
-        job={coverLetter.jobPosition}
-        questionIndex={currentPageIndex + 1}
-        question={currentQna.question}
-        text={currentText}
-        reviews={currentReviews}
-        currentPage={currentPageIndex}
-        totalPages={pages.length}
-        editingReview={editingReview}
-        onAddReview={handleAddReview}
-        onUpdateReview={handleUpdateReview}
-        onCancelEdit={handleCancelEdit}
-        onPageChange={handlePageChange}
-      />
-      <ReviewListSection
-        reviews={currentReviews}
-        editingReview={editingReview}
-        onEditReview={handleEditReview}
-        onDeleteReview={handleDeleteReview}
-      />
-    </div>
+    <>
+      <main className='h-full'>
+        <CoverLetterSection
+          company={coverLetter.companyName}
+          job={coverLetter.jobPosition}
+          questionIndex={currentPageIndex + 1}
+          question={currentQna.question}
+          text={currentText}
+          reviews={currentReviews}
+          currentPage={currentPageIndex}
+          totalPages={pages.length}
+          editingReview={editingReview}
+          onAddReview={handleAddReview}
+          onUpdateReview={handleUpdateReview}
+          onCancelEdit={handleCancelEdit}
+          onPageChange={handlePageChange}
+        />
+      </main>
+      <aside className='h-full w-[426px] flex-none'>
+        <ReviewListSection
+          reviews={currentReviews}
+          editingReview={editingReview}
+          onEditReview={handleEditReview}
+          onDeleteReview={handleDeleteReview}
+        />
+      </aside>
+    </>
   );
 };
 

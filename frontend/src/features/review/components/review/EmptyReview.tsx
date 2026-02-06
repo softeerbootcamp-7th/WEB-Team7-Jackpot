@@ -1,6 +1,6 @@
 const EmptyReview = () => {
   return (
-    <div className='h-96 w-96'>
+    <div className='h-[396px] w-[400px]'>
       <svg
         width='400'
         height='396'
