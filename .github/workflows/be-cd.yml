@@ -78,7 +78,12 @@ jobs:
           host: ${{ secrets.SERVER_IP }}
           key: ${{ secrets.PEM_KEY }}
           script: |
+            #!/bin/bash
+            set -e
+            set -o pipefail
+            
             cd ~
             sudo chmod +x ./app/backend/script/*.sh
             ./app/backend/script/deploy.sh
+            
             sudo docker image prune -f
