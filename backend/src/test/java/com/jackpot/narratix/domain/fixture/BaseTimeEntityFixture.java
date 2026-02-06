@@ -11,4 +11,9 @@ public class BaseTimeEntityFixture {
         ReflectionTestUtils.setField(entity, "createdAt", now);
         ReflectionTestUtils.setField(entity, "modifiedAt", now);
     }
+
+    public static void setAuditFields(Object entity, LocalDateTime createdAt, LocalDateTime modifiedAt) {
+        ReflectionTestUtils.setField(entity, "createdAt", createdAt);
+        ReflectionTestUtils.setField(entity, "modifiedAt", modifiedAt);
+    }
 }

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -22,8 +23,6 @@ import java.util.Optional;
 import static com.jackpot.narratix.domain.fixture.BaseTimeEntityFixture.setAuditFields;
 import static com.jackpot.narratix.domain.fixture.CoverLetterFixture.*;
 import static org.assertj.core.api.Assertions.assertThat;
-
-import org.springframework.context.annotation.Import;
 
 @DataJpaTest
 @Import(CoverLetterRepositoryImpl.class)
@@ -616,16 +615,19 @@ class CoverLetterRepositoryTest {
     }
 
     @Test
-    @DisplayName("기업별 자소서 조회 (첫 페이지) - modifiedAt 내림차순으로 정렬되어야 한다")
+    @DisplayName("기업별 자소서 조회 (첫 스크롤)")
     void findFirstPageByCompany() {
         // given
         String userId = "user1";
         String companyName = "Samsung";
 
-        LocalDateTime oldDate = LocalDateTime.now().minusDays(3);
-        saveCoverLetterWithTime(userId, companyName, oldDate);
-        CoverLetter middle = saveCoverLetterWithTime(userId, companyName, LocalDateTime.now().minusDays(2));
-        CoverLetter latest = saveCoverLetterWithTime(userId, companyName, LocalDateTime.now().minusDays(1));
+        LocalDateTime t1 = LocalDateTime.of(2024, 6, 1, 10, 0);
+        LocalDateTime t2 = LocalDateTime.of(2024, 6, 1, 11, 0);
+        LocalDateTime t3 = LocalDateTime.of(2024, 6, 1, 12, 0);
+
+        CoverLetter old = saveCoverLetterWithAuditTime(userId, companyName, t1);
+        CoverLetter middle = saveCoverLetterWithAuditTime(userId, companyName, t2);
+        CoverLetter latest = saveCoverLetterWithAuditTime(userId, companyName, t3);
 
         flushAndClear();
 
@@ -638,38 +640,59 @@ class CoverLetterRepositoryTest {
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.hasNext()).isTrue();
 
+        // 최신순 정렬 검증 (latest -> middle)
         assertThat(result.getContent().get(0).getId()).isEqualTo(latest.getId());
         assertThat(result.getContent().get(1).getId()).isEqualTo(middle.getId());
     }
 
     @Test
-    @DisplayName("기업별 자소서 조회 (다음 페이지)")
+    @DisplayName("기업별 자소서 조회 (다음 스크롤)")
     void findNextPageByCompany() {
         // given
         String userId = "user1";
         String companyName = "Samsung";
 
-        CoverLetter old = saveCoverLetterWithTime(userId, companyName, LocalDateTime.now().minusDays(3));
-        CoverLetter middle = saveCoverLetterWithTime(userId, companyName, LocalDateTime.now().minusDays(2));
-        CoverLetter latest = saveCoverLetterWithTime(userId, companyName, LocalDateTime.now().minusDays(1));
+        LocalDateTime t1 = LocalDateTime.of(2024, 6, 1, 10, 0);
+        LocalDateTime t2 = LocalDateTime.of(2024, 6, 1, 11, 0);
+        LocalDateTime t3 = LocalDateTime.of(2024, 6, 1, 12, 0);
+
+        CoverLetter old = saveCoverLetterWithAuditTime(userId, companyName, t1);
+        CoverLetter middle = saveCoverLetterWithAuditTime(userId, companyName, t2);
+        CoverLetter latest = saveCoverLetterWithAuditTime(userId, companyName, t3);
 
         flushAndClear();
+
+        CoverLetter latestFromDb = coverLetterJpaRepository.findById(latest.getId()).orElseThrow();
 
         // when
         Slice<CoverLetter> result = coverLetterJpaRepository.findNextPageByCompany(
                 userId,
                 companyName,
-                LocalDateTime.from(latest.getModifiedAt()),
+                latestFromDb.getModifiedAt(), // 커서 값
                 PageRequest.of(0, 2)
         );
 
         // then
         assertThat(result.getContent()).hasSize(2);
+
+        // 순서 검증 (middle -> old)
         assertThat(result.getContent().get(0).getId()).isEqualTo(middle.getId());
         assertThat(result.getContent().get(1).getId()).isEqualTo(old.getId());
         assertThat(result.hasNext()).isFalse();
     }
 
+    private CoverLetter saveCoverLetterWithAuditTime(String userId, String companyName, LocalDateTime modifiedAt) {
+        CoverLetter coverLetter = new CoverLetterFixtureBuilder()
+                .userId(userId)
+                .companyName(companyName)
+                .build();
+
+        CoverLetter saved = coverLetterJpaRepository.save(coverLetter);
+
+        setAuditFields(saved, modifiedAt, modifiedAt);
+
+        return saved;
+    }
 
     private CoverLetter saveCoverLetterWithTime(String userId, String companyName, LocalDateTime modifiedAt) {
         CoverLetter coverLetter = new CoverLetterFixtureBuilder()

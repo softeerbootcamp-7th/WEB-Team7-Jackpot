@@ -1,7 +1,9 @@
 package com.jackpot.narratix.domain.service;
 
 import com.jackpot.narratix.domain.controller.response.CompanyLibraryResponse;
+import com.jackpot.narratix.domain.controller.response.QuestionLibraryResponse;
 import com.jackpot.narratix.domain.entity.CoverLetter;
+import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.enums.LibraryType;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
 import com.jackpot.narratix.domain.exception.LibraryErrorCode;
@@ -20,8 +22,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Service
@@ -50,50 +50,68 @@ public class LibraryService {
     }
 
     @Transactional(readOnly = true)
-    public CompanyLibraryResponse getCompanyLibraries(String userId, String companyName, int size, Optional<Long> lastCoverLetterId) {
+    public CompanyLibraryResponse getCompanyLibrary(String userId, String companyName, int size, Optional<Long> lastCoverLetterId) {
 
         Pageable pageable = PageRequest.ofSize(size);
 
-        Slice<CoverLetter> coverLetterSlice = getSliceByCursorId(
-                lastCoverLetterId,
-                coverLetterRepository::findByIdOrElseThrow,
-                lastCoverLetter -> coverLetterRepository.findByUserIdAndCompanyNameOrderByModifiedAtDesc(userId, companyName, lastCoverLetter.getModifiedAt(), pageable),
-                () -> coverLetterRepository.findByUserIdAndCompanyNameOrderByModifiedAtDesc(userId, companyName, pageable)
-
-        );
+        Slice<CoverLetter> coverLetterSlice = lastCoverLetterId
+                .map(id -> {
+                    CoverLetter lastCoverLetter = coverLetterRepository.findByIdOrElseThrow(id);
+                    return coverLetterRepository.findByUserIdAndCompanyNameOrderByModifiedAtDesc(
+                            userId, companyName, lastCoverLetter.getModifiedAt(), pageable
+                    );
+                })
+                .orElseGet(() ->
+                        coverLetterRepository.findByUserIdAndCompanyNameOrderByModifiedAtDesc(
+                                userId, companyName, pageable
+                        )
+                );
 
         List<CoverLetter> coverLetters = coverLetterSlice.getContent();
-
         if (coverLetters.isEmpty()) {
             return CompanyLibraryResponse.of(Collections.emptyList(), Collections.emptyMap(), false);
         }
 
-        Map<Long, Long> qnaCountMap = fetchQnaCountMap(coverLetters);
-        boolean hasNext = coverLetterSlice.hasNext();
+        Map<Long, Long> qnaCountMap = getQnaCountMap(coverLetters);
 
-        return CompanyLibraryResponse.of(coverLetters, qnaCountMap, hasNext);
+        return CompanyLibraryResponse.of(coverLetters, qnaCountMap, coverLetterSlice.hasNext());
     }
 
-    private <T> Slice<T> getSliceByCursorId(
-            Optional<Long> lastId,
-            Function<Long, T> findByIdOrElseThrow,
-            Function<T, Slice<T>> findNextSlice,
-            Supplier<Slice<T>> findFirstSlice
-    ) {
-        return lastId
-                .map(id -> {
-                    T lastEntity = findByIdOrElseThrow.apply(id);
-                    return findNextSlice.apply(lastEntity);
-                })
-                .orElseGet(findFirstSlice);
-    }
-
-    private Map<Long, Long> fetchQnaCountMap(List<CoverLetter> coverLetters) {
+    private Map<Long, Long> getQnaCountMap(List<CoverLetter> coverLetters) {
         List<Long> ids = coverLetters.stream().map(CoverLetter::getId).toList();
         return qnARepository.countByCoverLetterIdIn(ids).stream()
                 .collect(Collectors.toMap(
                         QnACountProjection::getCoverLetterId,
                         QnACountProjection::getCount
                 ));
+    }
+
+    @Transactional(readOnly = true)
+    public QuestionLibraryResponse getQuestionLibrary(String userId, QuestionCategoryType category, int size, Optional<Long> lastQuestionId) {
+
+        Pageable pageable = PageRequest.ofSize(size);
+
+        Slice<QnA> qnASlice = lastQuestionId
+                .map(id -> {
+                    QnA lastQnA = qnARepository.findByIdOrElseThrow(id);
+                    return qnARepository.findByUserIdAndQuestionCategoryTypeOrderByModifiedAtDesc(
+                            userId, category, lastQnA.getModifiedAt(), pageable
+                    );
+                })
+                .orElseGet(() ->
+                        qnARepository.findByUserIdAndQuestionCategoryTypeOrderByModifiedAtDesc(
+                                userId, category, pageable
+                        )
+                );
+
+        if (qnASlice.isEmpty()) {
+            return QuestionLibraryResponse.of(Collections.emptyList(), false);
+        }
+
+        List<QuestionLibraryResponse.QnAItem> items = qnASlice.getContent().stream()
+                .map(QuestionLibraryResponse.QnAItem::from)
+                .toList();
+
+        return QuestionLibraryResponse.of(items, qnASlice.hasNext());
     }
 }

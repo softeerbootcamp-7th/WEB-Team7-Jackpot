@@ -3,12 +3,13 @@ package com.jackpot.narratix.domain.controller;
 import com.jackpot.narratix.domain.controller.api.LibraryApi;
 import com.jackpot.narratix.domain.controller.response.CompanyLibraryResponse;
 import com.jackpot.narratix.domain.controller.response.LibraryListResponse;
+import com.jackpot.narratix.domain.controller.response.QuestionLibraryResponse;
 import com.jackpot.narratix.domain.entity.enums.LibraryType;
+import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
 import com.jackpot.narratix.domain.service.LibraryService;
 import com.jackpot.narratix.global.auth.UserId;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,10 +40,23 @@ public class LibraryController implements LibraryApi {
             @UserId String userId,
             @RequestParam @NotBlank String companyName,
             @RequestParam(defaultValue = "10") @Min(1) int size,
-            @RequestParam(required = false) @Positive Optional<Long> lastCoverLetterId
+            @RequestParam(required = false) Optional<Long> lastCoverLetterId
     ) {
         return ResponseEntity.ok(
-                libraryService.getCompanyLibraries(userId, companyName, size, lastCoverLetterId)
+                libraryService.getCompanyLibrary(userId, companyName, size, lastCoverLetterId)
+        );
+    }
+
+    @GetMapping("/question/all")
+    public ResponseEntity<QuestionLibraryResponse> getQuestionLibraries(
+            @UserId String userId,
+            @RequestParam @NotBlank String questionCategory,
+            @RequestParam(defaultValue = "10") @Min(1) int size,
+            @RequestParam(required = false) Optional<Long> lastQuestionId
+    ) {
+        QuestionCategoryType questionCategoryType = QuestionCategoryType.fromDescription(questionCategory);
+        return ResponseEntity.ok(
+                libraryService.getQuestionLibrary(userId, questionCategoryType, size, lastQuestionId)
         );
     }
 }
