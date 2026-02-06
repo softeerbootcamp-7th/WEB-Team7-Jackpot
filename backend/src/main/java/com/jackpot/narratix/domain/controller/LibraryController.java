@@ -1,5 +1,6 @@
 package com.jackpot.narratix.domain.controller;
 
+import com.jackpot.narratix.domain.controller.api.LibraryApi;
 import com.jackpot.narratix.domain.controller.response.CompanyLibraryResponse;
 import com.jackpot.narratix.domain.controller.response.LibraryListResponse;
 import com.jackpot.narratix.domain.entity.enums.LibraryType;
@@ -10,7 +11,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,11 +21,11 @@ import java.util.Optional;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/library")
-public class LibraryController {
+public class LibraryController implements LibraryApi {
 
     private final LibraryService libraryService;
 
-    @GetMapping("/all")
+    @Override
     public ResponseEntity<LibraryListResponse> getLibraryList(
             @UserId String userId,
             @RequestParam LibraryType libraryType
@@ -34,7 +34,7 @@ public class LibraryController {
         return ResponseEntity.ok(new LibraryListResponse(libraries));
     }
 
-    @GetMapping("/company/all")
+    @Override
     public ResponseEntity<CompanyLibraryResponse> getCompanyLibraries(
             @UserId String userId,
             @RequestParam @NotBlank String companyName,
