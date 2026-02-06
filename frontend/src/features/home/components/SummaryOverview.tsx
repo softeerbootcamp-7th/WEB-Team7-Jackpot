@@ -1,6 +1,6 @@
-import BooksIcon from '@/components/home/icons/BooksIcon';
-import ScrollIcon from '@/components/home/icons/ScrollIcon';
-import ThoughtIcon from '@/components/home/icons/ThoughtIcon';
+import BooksIcon from '@/features/home/components/icons/BooksIcon';
+import ScrollIcon from '@/features/home/components/icons/ScrollIcon';
+import ThoughtIcon from '@/features/home/components/icons/ThoughtIcon';
 
 interface SummaryType {
   coverLetterCnt: number;

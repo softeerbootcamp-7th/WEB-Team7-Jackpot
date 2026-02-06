@@ -5,10 +5,7 @@ const QnA = () => {
     <div className='inline-flex w-[874px] flex-col items-center justify-center gap-5 border-l border-gray-100 px-8'>
       <div className='flex w-[810px] flex-col items-start justify-start gap-2'>
         <div className='inline-flex items-start justify-end gap-1'>
-          <div
-            data-속성-1='comp chip'
-            className='flex items-center justify-center gap-1 rounded-xl bg-blue-50 px-3 py-1.5'
-          >
+          <div className='flex items-center justify-center gap-1 rounded-xl bg-blue-50 px-3 py-1.5'>
             <div className='justify-start text-xs leading-4 font-medium text-blue-600'>
               기업명
             </div>
