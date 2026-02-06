@@ -16,11 +16,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/scrap")
 public class ScrapController {
 
+    private final ScrapService scrapService;
+
     @PostMapping
     public ResponseEntity<CreateScrapResponse> createCoverLetter(
             @UserId String userId,
             @RequestBody @Valid Long questionId
     ) {
-        return ResponseEntity.ok(ScrapService.createScrap(userId, questionId));
+        return ResponseEntity.ok(scrapService.createScrap(userId, questionId));
     }
 }
