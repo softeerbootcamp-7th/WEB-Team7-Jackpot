@@ -43,7 +43,7 @@ public class QnARepositoryImpl implements QnARepository {
                                                                                QuestionCategoryType category,
                                                                                LocalDateTime localDateTime,
                                                                                Pageable pageable) {
-        return qnAJpaRepository.findByUserIdAndQuestionCategoryOrderByModifiedAtDesc(userId, category, localDateTime, pageable);
+        return qnAJpaRepository.findNextPageByQuestionCategory(userId, category, localDateTime, pageable);
     }
 
     @Override

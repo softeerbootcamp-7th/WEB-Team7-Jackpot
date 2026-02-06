@@ -27,7 +27,12 @@ public interface QnAJpaRepository extends JpaRepository<QnA, Long> {
             "GROUP BY qna.coverLetter.id")
     List<QnACountProjection> countByCoverLetterIdIn(@Param("coverLetterIds") List<Long> coverLetterIds);
 
-    Slice<QnA> findByUserIdAndQuestionCategoryOrderByModifiedAtDesc(
+    @Query("SELECT q FROM QnA q " +
+            "WHERE q.userId = :userId " +
+            "AND q.questionCategory = :category " +
+            "AND q.modifiedAt < :lastModifiedAt " +
+            "ORDER BY q.modifiedAt DESC")
+    Slice<QnA> findNextPageByQuestionCategory(
             @Param("userId") String userId,
             @Param("category") QuestionCategoryType category,
             @Param("lastModifiedAt") LocalDateTime lastModifiedAt,
