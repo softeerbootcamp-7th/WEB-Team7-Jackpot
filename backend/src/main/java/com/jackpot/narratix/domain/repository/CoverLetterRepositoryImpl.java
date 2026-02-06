@@ -94,6 +94,12 @@ public class CoverLetterRepositoryImpl implements CoverLetterRepository {
     }
 
     @Override
+    public CoverLetter findByIdWithQnAsOrElseThrow(Long coverLetterId) {
+        return coverLetterJpaRepository.findByIdWithQnAs(coverLetterId)
+                .orElseThrow(() -> new BaseException(CoverLetterErrorCode.COVER_LETTER_NOT_FOUND));
+    }
+
+    @Override
     public Map<LocalDate, List<CoverLetter>> findUpcomingCoverLettersGroupedByDeadline(
             String userId, LocalDate date, int maxDeadLineSize, int maxCoverLetterSizePerDeadLine
     ) {

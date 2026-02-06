@@ -8,6 +8,7 @@ import com.jackpot.narratix.domain.controller.response.CreateCoverLetterResponse
 import com.jackpot.narratix.domain.controller.response.TotalCoverLetterCountResponse;
 import com.jackpot.narratix.domain.controller.response.UpcomingCoverLetterResponse;
 import com.jackpot.narratix.domain.entity.CoverLetter;
+import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import com.jackpot.narratix.domain.exception.CoverLetterErrorCode;
 import com.jackpot.narratix.domain.repository.CoverLetterRepository;
@@ -130,5 +131,13 @@ public class CoverLetterService {
         return groupedCoverLetters.entrySet().stream()
                 .map(UpcomingCoverLetterResponse::of)
                 .toList();
+    }
+
+    public List<Long> getQnAIdsByCoverLetterId(String userId, Long coverLetterId) {
+        CoverLetter coverLetter = coverLetterRepository.findByIdWithQnAsOrElseThrow(coverLetterId);
+
+        if (!coverLetter.isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
+
+        return coverLetter.getQnAs().stream().map(QnA::getId).toList();
     }
 }
