@@ -150,6 +150,10 @@ public class CoverLetterService {
     }
 
     private void validateDateRangeExceeded(LocalDate startDate, LocalDate endDate) {
+        if (endDate.isBefore(startDate)) {
+            throw new BaseException(GlobalErrorCode.INVALID_INPUT_VALUE);
+        }
+
         if (startDate.plusMonths(1).isBefore(endDate)) {
             throw new BaseException(CoverLetterErrorCode.DATE_RANGE_EXCEEDED);
         }
