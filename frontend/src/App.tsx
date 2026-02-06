@@ -19,7 +19,7 @@ function App() {
         <Route path='/upload' element={<UploadPage />} />
         <Route path='/library' element={<LibraryPage />} />
         {/* <Route path='/library?id:' element={<LibraryPage />} /> */}
-        <Route path='/coverLetter' element={<CoverLetterPage />} />
+        <Route path='/cover-letter' element={<CoverLetterPage />} />
         {/* <Route path="/coverLetter/:id" element={<CoverLetterPage />}/> */}
         <Route path='/review/:id' element={<ReviewPage />} />
         {/* <Route path="/recruit" element={<RecruitPage />}/> */}
