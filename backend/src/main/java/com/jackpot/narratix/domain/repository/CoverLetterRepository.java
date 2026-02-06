@@ -41,5 +41,7 @@ public interface CoverLetterRepository {
 
     Slice<CoverLetter> findByUserIdAndCompanyNameOrderByModifiedAtDesc(String userId, String companyName, LocalDateTime localDate, Pageable pageable);
 
+    CoverLetter findByIdWithQnAsOrElseThrow(Long coverLetterId);
+
     List<LocalDate> findDeadlineByUserIdBetweenDeadline(String userId, LocalDate startDate, LocalDate endDate);
 }

@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 import java.util.List;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 public interface CoverLetterJpaRepository extends JpaRepository<CoverLetter, Long> {
 
@@ -56,12 +57,12 @@ public interface CoverLetterJpaRepository extends JpaRepository<CoverLetter, Lon
     @Query(value = """
                     SELECT * FROM (
                         SELECT c.*,
-                        ROW_NUMBER() OVER (PARTITION BY c.deadline ORDER BY c.modified_at DESC) as row_num, 
-                        DENSE_RANK() OVER (ORDER BY c.deadline ASC) as deadline_rank 
-                          FROM coverletter c 
+                        ROW_NUMBER() OVER (PARTITION BY c.deadline ORDER BY c.modified_at DESC) as row_num,
+                        DENSE_RANK() OVER (ORDER BY c.deadline ASC) as deadline_rank
+                          FROM coverletter c
                           WHERE c.user_id = :userId AND c.deadline >= :date
-                        ) sub 
-                        WHERE sub.row_num <= :maxCoverLetterSizePerDeadLine AND sub.deadline_rank <= :maxDeadLineSize 
+                        ) sub
+                        WHERE sub.row_num <= :maxCoverLetterSizePerDeadLine AND sub.deadline_rank <= :maxDeadLineSize
                         ORDER BY sub.deadline ASC, sub.modified_at DESC
             """, nativeQuery = true)
     List<CoverLetter> findUpcomingCoverLettersGroupedByDeadline(
@@ -70,6 +71,9 @@ public interface CoverLetterJpaRepository extends JpaRepository<CoverLetter, Lon
             @Param("maxDeadLineSize") int maxDeadLineSize,
             @Param("maxCoverLetterSizePerDeadLine") int maxCoverLetterSizePerDeadLine
     );
+
+    @Query("SELECT c FROM CoverLetter c LEFT JOIN FETCH c.qnAs WHERE c.id = :id")
+    Optional<CoverLetter> findByIdWithQnAs(@Param("id") Long coverLetterId);
 
     @Query("SELECT DISTINCT c.deadline FROM CoverLetter c " +
             "WHERE c.userId = :userId " +
