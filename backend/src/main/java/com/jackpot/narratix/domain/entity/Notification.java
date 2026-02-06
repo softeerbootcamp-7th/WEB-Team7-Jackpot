@@ -2,17 +2,18 @@ package com.jackpot.narratix.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.jackpot.narratix.domain.entity.enums.NotificationType;
+import com.jackpot.narratix.domain.entity.notification_meta.NotificationMeta;
+import com.jackpot.narratix.domain.entity.notification_meta.NotificationMetaConverter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
-
-import java.util.Map;
 
 @Entity
-@Table(name = "notification")
+@Table(
+        name = "notification",
+        indexes = @Index(name = "idx_user_id_created_at_desc", columnList = "user_id, created_at")
+)
 @Getter
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 public class Notification extends BaseTimeEntity {
@@ -42,7 +43,24 @@ public class Notification extends BaseTimeEntity {
     @Column(name = "is_read", nullable = false)
     private boolean isRead = false;
 
-    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "json", name = "meta", nullable = true)
-    private Map<String, Object> meta;
+    private String metaJson;
+
+    @Transient
+    private NotificationMeta meta;
+
+    @PostLoad
+    private void deserializeMeta() {
+        if (metaJson != null && !metaJson.isEmpty()) {
+            this.meta = NotificationMetaConverter.deserialize(metaJson, type);
+        }
+    }
+
+    @PrePersist
+    @PreUpdate
+    private void serializeMeta() {
+        if (meta != null) {
+            this.metaJson = NotificationMetaConverter.serialize(meta);
+        }
+    }
 }
