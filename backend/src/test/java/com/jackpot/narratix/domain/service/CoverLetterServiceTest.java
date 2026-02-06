@@ -674,4 +674,20 @@ class CoverLetterServiceTest {
         assertThat(result).isEmpty();
         verify(coverLetterRepository, times(1)).findUpcomingCoverLettersGroupedByDeadline(userId, queryDate, 3, 2);
     }
+
+    @Test
+    @DisplayName("날짜 범위로 마감일 조회 시 1개월 초과 시 예외 발생")
+    void findDeadlineByDateRange_ExceedsOneMonth_ThrowsException() {
+        // given
+        String userId = "testUser123";
+        LocalDate startDate = LocalDate.of(2024, 1, 1);
+        LocalDate endDate = LocalDate.of(2024, 2, 2);  // 1개월 + 1일
+
+        // when & then
+        assertThatThrownBy(() -> coverLetterService.findDeadlineByDateRange(userId, startDate, endDate))
+                .isInstanceOf(BaseException.class)
+                .hasFieldOrPropertyWithValue("errorCode", CoverLetterErrorCode.DATE_RANGE_EXCEEDED);
+
+        verify(coverLetterRepository, never()).findDeadlineByUserIdBetweenDeadline(any(), any(), any());
+    }
 }

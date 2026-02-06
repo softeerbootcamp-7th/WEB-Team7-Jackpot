@@ -54,12 +54,12 @@ public class QnA extends BaseTimeEntity {
         return qna;
     }
 
+    public boolean isOwner(String userId){
+        return Objects.equals(this.userId, userId);
+    }
+
     public void editAnswer(String answer) {
         this.answer = answer;
         updateModifiedAt(LocalDateTime.now());
-    }
-
-    public boolean isOwner(String userId) {
-        return Objects.equals(this.userId, userId);
     }
 }
