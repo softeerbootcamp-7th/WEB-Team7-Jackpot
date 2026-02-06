@@ -77,6 +77,7 @@ jobs:
           username: ubuntu
           host: ${{ secrets.SERVER_IP }}
           key: ${{ secrets.PEM_KEY }}
+          envs: DOCKER_IMAGE_NAME
           script: |
             #!/bin/bash
             set -e
@@ -84,6 +85,6 @@ jobs:
             
             cd ~
             sudo chmod +x ./app/backend/script/*.sh
-            ./app/backend/script/deploy.sh
             
-            sudo docker image prune -f
+            export DOCKER_IMAGE_NAME="${DOCKER_IMAGE_NAME}"
+            ./app/backend/script/deploy.sh
