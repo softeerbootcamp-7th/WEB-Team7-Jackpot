@@ -50,7 +50,7 @@ public class LibraryController {
     @GetMapping("/question/all")
     public ResponseEntity<QuestionLibraryResponse> getQuestionLibraries(
             @UserId String userId,
-            @RequestParam String questionCategory,
+            @RequestParam @NotBlank String questionCategory,
             @RequestParam(defaultValue = "10") @Min(1) int size,
             @RequestParam(required = false) Optional<Long> lastQuestionId
     ) {
