@@ -1,8 +1,12 @@
 interface CheckDuplicationButtonProps {
+  onClick: () => void;
   isActived: boolean;
 }
 
-const CheckDuplicationButton = ({ isActived }: CheckDuplicationButtonProps) => {
+const CheckDuplicationButton = ({
+  onClick,
+  isActived,
+}: CheckDuplicationButtonProps) => {
   const buttonActiveStyle: string = isActived
     ? 'bg-gray-900 text-white cursor-pointer'
     : 'bg-gray-100 text-gray-400';
@@ -11,7 +15,8 @@ const CheckDuplicationButton = ({ isActived }: CheckDuplicationButtonProps) => {
     <button
       type='button'
       disabled={!isActived}
-      className={`px-3 py-1.5 rounded-md text-sm font-bold transition-colors ${
+      onClick={onClick}
+      className={`rounded-md px-3 py-1.5 text-sm font-bold transition-colors ${
         buttonActiveStyle
       }`}
     >

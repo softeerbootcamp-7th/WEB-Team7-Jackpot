@@ -13,6 +13,8 @@ import {
   validatePassword,
 } from '@/utils/auth/validation';
 
+import { authClient } from '@/features/auth/api/auth';
+
 interface isActivedType {
   id: boolean;
   submit: boolean;
@@ -34,6 +36,28 @@ const SignUpForm = () => {
   });
 
   const [isPasswordMatched, setIsPasswordMatched] = useState<boolean>(false);
+  const [isIdDuplicationVerified, setIsIdDuplicationVerified] =
+    useState<boolean>(false);
+
+  const handleCheckDuplicateId = async () => {
+    if (!validateId(formData.userId)) return;
+
+    try {
+      await authClient.checkId({ userId: formData.userId });
+
+      setIsIdDuplicationVerified(true);
+      setStatusMsg((prev) => ({
+        ...prev,
+        userId: '사용 가능한 아이디입니다.',
+      }));
+    } catch {
+      setIsIdDuplicationVerified(false);
+      setStatusMsg((prev) => ({
+        ...prev,
+        userId: '이미 사용 중인 아이디입니다.',
+      }));
+    }
+  };
 
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
@@ -93,10 +117,10 @@ const SignUpForm = () => {
     }, 1000);
 
     return () => clearTimeout(debounceTimer);
-  }, [formData]);
+  }, [formData, isIdDuplicationVerified]);
 
   const isActived: isActivedType = {
-    id: validateId(formData.id),
+    id: validateId(formData.userId) && !isIdDuplicationVerified,
 
     submit:
       validateId(formData.userId) &&
@@ -122,13 +146,21 @@ const SignUpForm = () => {
               type={each.TYPE}
               placeholder={each.PLACEHOLDER}
               maxLength={each.MAX_LENGTH}
-              onChange={(e) => handleInputChange(e, each.ID)}
+              onChange={(e) => {
+                handleInputChange(e, each.ID);
+                if (each.ID === 'userId') {
+                  setIsIdDuplicationVerified(false);
+                }
+              }}
               value={formData[each.ID]}
               helpMessage={currentMsg}
               isSuccess={isPasswordMatchSuccess}
               rightElement={
-                  <CheckDuplicationButton isActived={isActived.id} />
                 each.ID === 'userId' && (
+                  <CheckDuplicationButton
+                    onClick={handleCheckDuplicateId}
+                    isActived={isActived.id}
+                  />
                 )
               }
             />
