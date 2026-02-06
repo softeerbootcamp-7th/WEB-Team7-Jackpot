@@ -20,16 +20,18 @@ const PageGlobalHeader = () => {
               const isActive = location.pathname.startsWith(item.path);
 
               return (
-                <li
-                  key={item.label}
-                  onClick={() => nav(item.path)}
-                  className={`cursor-pointer text-base ${
-                    isActive
-                      ? 'font-bold text-gray-950'
-                      : 'font-medium text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  {item.label}
+                <li key={item.label}>
+                  <button
+                    type='button'
+                    onClick={() => nav(item.path)}
+                    className={`cursor-pointer text-base ${
+                      isActive
+                        ? 'font-bold text-gray-950'
+                        : 'font-medium text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    {item.label}
+                  </button>
                 </li>
               );
             })}
