@@ -12,8 +12,9 @@ interface UpcomingScheduleProps {
 const UpcomingSchedule = ({ date, dDay, schedules }: UpcomingScheduleProps) => {
   const isUrgent = dDay <= 3;
 
+  // root 태그에 w-72
   return (
-    <div className='inline-flex h-52 w-72 flex-shrink-0 flex-col items-start justify-start gap-2.5 rounded-2xl p-4 outline outline-1 outline-offset-[-1px] outline-purple-100'>
+    <div className='inline-flex h-52 flex-1 flex-col items-start justify-start gap-2.5 rounded-2xl p-4 outline outline-1 outline-offset-[-1px] outline-purple-100'>
       <div className='inline-flex items-center justify-between self-stretch pl-1.5'>
         <div
           className={`text-title-m line-clamp-1 justify-start font-bold ${
