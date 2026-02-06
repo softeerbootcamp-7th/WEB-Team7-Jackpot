@@ -1,4 +1,3 @@
-
 import ScheduleOverview from '@/features/home/components/ScheduleOverview';
 import SummaryOverview from '@/features/home/components/SummaryOverview';
 import CoverLetterOverview from '@/shared/components/CoverLetterOverview';
