@@ -5,13 +5,13 @@ set -e
 # Configuration
 BLUE_PORT=8080
 GREEN_PORT=8081
-DOCKER_IMAGE="${DOCKER_IMAGE_URL:-}" # Docker Hub 이미지 이름
+DOCKER_IMAGE="${DOCKER_IMAGE_NAME:-}" # Docker Hub 이미지 이름
 BASE_CONTAINER_NAME="narratix-app"
 
 echo "Starting deployment..."
 
 if [ -z "${DOCKER_IMAGE}" ]; then
-    echo "ERROR: DOCKER_IMAGE_URL environment variable is not set."
+    echo "ERROR: DOCKER_IMAGE_NAME environment variable is not set."
     exit 1
 fi
 
@@ -71,9 +71,22 @@ while [ ${RETRY_COUNT} -lt ${MAX_RETRIES} ]; do
 done
 
 if [ "${HEALTH_SUCCESS}" != true ]; then
-    echo "ERROR: Health check failed"
+    echo "=========================================="
+    echo "❌ ERROR: Health check failed after ${MAX_RETRIES} attempts"
+    echo "=========================================="
+    echo ""
+    echo "📋 Container logs (last 100 lines):"
+    echo "------------------------------------------"
+    sudo docker logs --tail 100 "${TARGET_CONTAINER_NAME}" 2>&1
+    echo "------------------------------------------"
+    echo ""
+    echo "🧹 Cleaning up failed container..."
     sudo docker stop "${TARGET_CONTAINER_NAME}" || true
     sudo docker rm "${TARGET_CONTAINER_NAME}" || true
+    echo ""
+    echo "Cleaning up unused images..."
+    sudo docker image prune -f
+    echo "========== Deployment FAILED =========="
     exit 1
 fi
 
@@ -88,7 +101,7 @@ if sudo nginx -t; then
     sudo nginx -s reload
     echo "Nginx reloaded."
 else
-    echo "Nginx config test failed!"
+    echo "Nginx config test failed! Rolling back..."
     echo "set \$service_url http://127.0.0.1:${IDLE_PORT};" | sudo tee ${CONF_FILE}
     exit 1
 fi
