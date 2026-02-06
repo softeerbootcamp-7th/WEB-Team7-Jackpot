@@ -12,7 +12,7 @@ const HomePage = () => {
       <div className='flex-shrink-0'>
         <PageGlobalHeader />
       </div>
-      <div className='flex flex-1 flex-col gap-10 px-75 pb-4.5'>
+      <div className='flex flex-1 flex-col gap-10 px-[18.75rem] pb-4.5'>
         <img
           className='h-96 w-full rounded-2xl'
           src='/images/banner.png'

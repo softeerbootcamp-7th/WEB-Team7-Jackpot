@@ -12,9 +12,9 @@ const SearchInput = ({ onSearch, placeholder }: SearchBarProps) => {
   const { keyword, handleChange } = useSearch({ onSearch });
 
   return (
-    <form
+    <search
       role='search'
-      className='mb-6 inline-flex h-12 w-100 items-center justify-between rounded-lg bg-gray-50 px-5 py-3.5'
+      className='mb-6 inline-flex h-12 w-[25rem] items-center justify-between rounded-lg bg-gray-50 px-5 py-3.5'
     >
       <input
         aria-label='검색어 입력'
@@ -27,7 +27,7 @@ const SearchInput = ({ onSearch, placeholder }: SearchBarProps) => {
       <div className='flex h-6 w-6 items-center justify-center'>
         <SearchIcon />
       </div>
-    </form>
+    </search>
   );
 };
 

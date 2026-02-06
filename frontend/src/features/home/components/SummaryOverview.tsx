@@ -22,7 +22,7 @@ const SummaryOverview = () => {
           <ThoughtIcon />
         </div>
         <div className='inline-flex flex-col items-start justify-start'>
-          <div className='justify-start text-lg leading-7 font-medium text-gray-400'>
+          <div className='text-lg leading-7 font-medium text-gray-400'>
             졸린 경민님은 지금까지
           </div>
           <div className='justify-start text-xl leading-9 font-bold text-gray-950'>

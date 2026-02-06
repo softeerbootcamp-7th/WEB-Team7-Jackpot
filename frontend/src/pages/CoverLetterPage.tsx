@@ -1,8 +1,8 @@
 import { useState } from 'react';
 
-import Button from '@/features/coverLetter/components/Button';
 import CoverLetterWriteSidebar from '@/features/coverLetter/components/CoverLetterWriteSidebar';
 import NewCoverLetter from '@/features/coverLetter/components/newCoverLetter/NewCoverLetter';
+import NewCoverLetterButton from '@/features/coverLetter/components/newCoverLetterButton';
 import {
   coverLetterHeaderText,
   emptyCaseText,
@@ -36,7 +36,7 @@ const CoverLetterPage = () => {
                 onSearch={handleSearch}
                 placeholder='문항 유형을 입력해주세요'
               />
-              <Button handleClick={setIsLanding} />
+              <NewCoverLetterButton handleClick={setIsLanding} />
             </div>
           )}
         </>

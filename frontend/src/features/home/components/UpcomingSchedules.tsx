@@ -14,7 +14,9 @@ const UpcomingSchedules = () => {
             다가오는 일정
           </div>
         </div>
-        <RightArrow size='lg' />
+        <button type='button' aria-label='다가오는 일정 더보기'>
+          <RightArrow size='lg' aria-hidden='true' />
+        </button>
       </div>
       <div className='inline-flex w-full items-center justify-start gap-3 overflow-x-auto'>
         <UpcomingSchedule

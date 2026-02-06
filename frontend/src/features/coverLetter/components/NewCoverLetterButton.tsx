@@ -7,7 +7,7 @@ interface ButtonProps {
   handleClick: (isLanding: boolean) => void;
 }
 
-const Button = ({ handleClick }: ButtonProps) => {
+const NewCoverLetterButton = ({ handleClick }: ButtonProps) => {
   return (
     <button
       type='button'
@@ -26,4 +26,4 @@ const Button = ({ handleClick }: ButtonProps) => {
   );
 };
 
-export default Button;
+export default NewCoverLetterButton;

@@ -16,6 +16,10 @@ const InputField = ({ title, placeholder }: InputFieldType) => {
       </div>
       <div className='inline-flex h-12 items-center justify-start gap-2 self-stretch rounded-lg bg-gray-50 px-5 py-3.5'>
         <input
+          type='text'
+          aria-label={title}
+          required
+          aria-required='true'
           className='text-body-s line-clamp-1 flex-1 justify-start font-normal text-gray-400'
           placeholder={placeholder}
         />

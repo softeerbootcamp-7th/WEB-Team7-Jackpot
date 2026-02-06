@@ -55,6 +55,7 @@ const NewCoverLetter = () => {
 
                   <button
                     type='button'
+                    aria-label='채용 연도 선택'
                     className='flex cursor-pointer items-center justify-start gap-2.5'
                   >
                     <div className='relative h-6 w-6'>

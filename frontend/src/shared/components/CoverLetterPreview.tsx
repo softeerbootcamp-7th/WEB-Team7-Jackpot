@@ -9,7 +9,7 @@ const CoverLetterPreview = ({
 }: CoverLetterPreviewProps) => {
   return (
     <div
-      className={`${isCoverLetter && 'h-45'} flex flex-1 items-center justify-start gap-9 rounded-2xl py-6 pr-6 pl-9 outline outline-1 outline-offset-[-1px] outline-gray-100`}
+      className={`${isCoverLetter ? 'h-[11.25rem]' : ''} flex flex-1 items-center justify-start gap-9 rounded-2xl py-6 pr-6 pl-9 outline outline-1 outline-offset-[-1px] outline-gray-100`}
     >
       <img src={fileIcon} className='h-16 w-14' alt='' aria-hidden='true' />
       <div className='inline-flex flex-1 flex-col items-start justify-start gap-2'>

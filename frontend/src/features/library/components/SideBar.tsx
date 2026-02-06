@@ -2,10 +2,11 @@
 // 나중에 placeholder 문구 다시 확인
 // 나중에 로직 안 붙였습니다.
 
-import SearchInput from '../../../shared/components/SearchInput';
 import type { LibraryView } from '../types';
 import DocumentList from './DocumentList';
 import FolderList from './FolderList';
+
+import SearchInput from '@/shared/components/SearchInput';
 
 interface SideBarProps {
   currentTab: LibraryView;
@@ -32,7 +33,10 @@ const SideBar = ({
     <div className='flex h-full w-107 flex-col overflow-hidden pt-7.5 pr-5'>
       {currentTab === 'QUESTIONS' && (
         <div className='flex-none shrink-0'>
-          <SearchInput onSearch={handleSearch} placeholder='문항 유형을 입력해주세요' />
+          <SearchInput
+            onSearch={handleSearch}
+            placeholder='문항 유형을 입력해주세요'
+          />
         </div>
       )}
       {folderId === null ? (
