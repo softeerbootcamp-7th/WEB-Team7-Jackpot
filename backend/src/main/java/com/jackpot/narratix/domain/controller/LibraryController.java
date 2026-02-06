@@ -47,7 +47,7 @@ public class LibraryController implements LibraryApi {
         );
     }
 
-    @GetMapping("/question/all")
+    @Override
     public ResponseEntity<QuestionLibraryResponse> getQuestionLibraries(
             @UserId String userId,
             @RequestParam @NotBlank String questionCategory,

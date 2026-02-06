@@ -2,6 +2,7 @@ package com.jackpot.narratix.domain.controller.api;
 
 import com.jackpot.narratix.domain.controller.response.CompanyLibraryResponse;
 import com.jackpot.narratix.domain.controller.response.LibraryListResponse;
+import com.jackpot.narratix.domain.controller.response.QuestionLibraryResponse;
 import com.jackpot.narratix.domain.entity.enums.LibraryType;
 import com.jackpot.narratix.global.auth.UserId;
 import io.swagger.v3.oas.annotations.Operation;
@@ -59,5 +60,25 @@ public interface LibraryApi {
             @Parameter(description = "페이지 크기 (기본값: 10)") @RequestParam(defaultValue = "10") @Min(1) int size,
             @Parameter(description = "마지막 자기소개서 ID (다음 페이지 조회 시 사용)")
             @RequestParam(required = false) @Positive Optional<Long> lastCoverLetterId
+    );
+
+    @Operation(summary = "질문 카테고리별 질문 목록 조회", description = "특정 질문 카테고리의 질문 목록을 페이징하여 조회합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(schema = @Schema(implementation = QuestionLibraryResponse.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "401", description = "인증 실패")
+    })
+    @GetMapping("/question/all")
+    ResponseEntity<QuestionLibraryResponse> getQuestionLibraries(
+            @Parameter(hidden = true) @UserId String userId,
+            @Parameter(description = "질문 카테고리 (예: 지원동기, 협업경험, 가치관 등)", required = true, example = "지원동기")
+            @RequestParam @NotBlank String questionCategory,
+            @Parameter(description = "페이지 크기 (기본값: 10)") @RequestParam(defaultValue = "10") @Min(1) int size,
+            @Parameter(description = "마지막 질문 ID (다음 페이지 조회 시 사용)")
+            @RequestParam(required = false) Optional<Long> lastQuestionId
     );
 }
