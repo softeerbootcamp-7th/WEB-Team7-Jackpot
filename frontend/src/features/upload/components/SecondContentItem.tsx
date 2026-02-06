@@ -7,7 +7,7 @@ import RecruitPeriodSelectInput from '@/features/upload/components/RecruitPeriod
 import useCoverLetterState from '@/features/upload/hooks/useCoverLetterState';
 import { UploadPageIcons as I } from '@/features/upload/icons';
 import type {
-  CoverLetterListProps,
+  CoverLetterTabProps,
   DropdownStateType,
 } from '@/features/upload/types/upload';
 import { yearList } from '@/features/upload/utils/generateYearList';
@@ -24,7 +24,7 @@ const QUESTION_TYPE_LIST: string[] = [
   '성장과정 및 갈등 해결 경험',
 ];
 
-const SecondContentItem = ({ tabState, setTabState }: CoverLetterListProps) => {
+const SecondContentItem = ({ tabState, setTabState }: CoverLetterTabProps) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState<DropdownStateType>({
     companyNameDropdown: false,
     jobPositionDropdown: false,
