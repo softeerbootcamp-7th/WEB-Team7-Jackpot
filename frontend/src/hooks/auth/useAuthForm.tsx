@@ -7,25 +7,7 @@ const useAuthForm = <T extends AuthFormData>(initialState: T) => {
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>, key: AuthInputKey) => {
-      let value = e.target.value;
-
-      switch (key) {
-        case 'userId':
-          value = value.toLowerCase().replace(/[^a-z0-9]/g, '');
-          break;
-        case 'password':
-        case 'passwordConfirm':
-          value = value.replace(/\s/g, '');
-          break;
-        case 'nickname':
-          value = value.replace(
-            /[0-9!@#$%^&*()_+={}[\]:;"'<>,.?/\\|`~\s]/g,
-            '',
-          );
-          break;
-        default:
-          break;
-      }
+      const value = e.target.value;
 
       setFormData((prev) => ({ ...prev, [key]: value }));
     },
