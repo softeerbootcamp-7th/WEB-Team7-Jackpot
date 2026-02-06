@@ -2,7 +2,7 @@ package com.jackpot.narratix.domain.repository;
 
 import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
-import com.jackpot.narratix.domain.exception.QnAErrorcode;
+import com.jackpot.narratix.domain.exception.QnAErrorCode;
 import com.jackpot.narratix.domain.repository.dto.QnACountProjection;
 import com.jackpot.narratix.global.exception.BaseException;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +31,12 @@ public class QnARepositoryImpl implements QnARepository {
     }
 
     @Override
+    public QnA findByIdOrElseThrow(Long qnaId) {
+        return qnAJpaRepository.findById(qnaId)
+                .orElseThrow(() -> new BaseException(QnAErrorCode.QNA_NOT_FOUND));
+    }
+
+    @Override
     public List<QnACountProjection> countByCoverLetterIdIn(List<Long> coverLetterIds) {
         if (coverLetterIds == null || coverLetterIds.isEmpty()) {
             return List.of();
@@ -53,11 +59,6 @@ public class QnARepositoryImpl implements QnARepository {
         return qnAJpaRepository.findByUserIdAndQuestionCategoryOrderByModifiedAtDesc(userId, category, pageable);
     }
 
-    @Override
-    public QnA findByIdOrElseThrow(Long questionId) {
-        return qnAJpaRepository.findById(questionId)
-                .orElseThrow(() -> new BaseException(QnAErrorcode.QNA_NOT_FOUND));
-    }
 
 
 }

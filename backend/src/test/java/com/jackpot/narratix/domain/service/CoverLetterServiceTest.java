@@ -7,6 +7,7 @@ import com.jackpot.narratix.domain.controller.response.CoverLetterResponse;
 import com.jackpot.narratix.domain.controller.response.CoverLettersDateRangeResponse;
 import com.jackpot.narratix.domain.controller.response.CreateCoverLetterResponse;
 import com.jackpot.narratix.domain.controller.response.TotalCoverLetterCountResponse;
+import com.jackpot.narratix.domain.controller.response.UpcomingCoverLetterResponse;
 import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
@@ -30,7 +31,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -594,5 +597,97 @@ class CoverLetterServiceTest {
         );
         ReflectionTestUtils.setField(coverLetter, "id", id);
         return coverLetter;
+    }
+
+    @Test
+    @DisplayName("다가오는 자기소개서 조회 성공")
+    void getUpcomingCoverLetters_ThreeDeadlines_TwoEach() {
+        // given
+        String userId = "testUser123";
+        LocalDate queryDate = LocalDate.of(2024, 6, 1);
+
+        // deadline 1: 2024-06-15 (자기소개서 3개, modifiedAt이 다름)
+        LocalDate deadline1 = LocalDate.of(2026, 6, 15);
+        CoverLetter cl1 = createMockCoverLetter(1L, userId, "기업A", deadline1);
+        CoverLetter cl2 = createMockCoverLetter(2L, userId, "기업B", deadline1);
+
+        // deadline 2: 2024-06-20 (자기소개서 2개)
+        LocalDate deadline2 = LocalDate.of(2026, 6, 20);
+        CoverLetter cl4 = createMockCoverLetter(4L, userId, "기업D", deadline2);
+        CoverLetter cl5 = createMockCoverLetter(5L, userId, "기업E", deadline2);
+
+        // deadline 3: 2024-06-25 (자기소개서 1개)
+        LocalDate deadline3 = LocalDate.of(2026, 6, 25);
+        CoverLetter cl6 = createMockCoverLetter(6L, userId, "기업F", deadline3);
+
+
+        // Repository가 deadline별로 modifiedAt desc 정렬된 최대 2개씩, 최대 3개 deadline 반환
+        Map<LocalDate, List<CoverLetter>> linkedHashMap = new LinkedHashMap<>();
+        linkedHashMap.put(deadline1, List.of(cl2, cl1));
+        linkedHashMap.put(deadline2, List.of(cl5, cl4));
+        linkedHashMap.put(deadline3, List.of(cl6));
+
+        given(coverLetterRepository.findUpcomingCoverLettersGroupedByDeadline(userId, queryDate, 3, 2))
+                .willReturn(linkedHashMap);
+
+        // when
+        List<UpcomingCoverLetterResponse> result = coverLetterService.getUpcomingCoverLetters(
+                userId, queryDate, 3, 2
+        );
+
+        // then
+        assertThat(result).hasSize(3);
+
+        // 첫 번째 deadline (2024-06-15)
+        assertThat(result.get(0).deadline()).isEqualTo(deadline1);
+        assertThat(result.get(0).coverLetters()).hasSize(2);
+
+        // 가장 최근에 수정한 자기소개서부터 반환 (modified_at desc)
+        assertThat(result.get(0).coverLetters().get(0).coverLetterId()).isEqualTo(2L);
+        assertThat(result.get(0).coverLetters().get(1).coverLetterId()).isEqualTo(1L);
+
+        // 두 번째 deadline (2024-06-20)
+        assertThat(result.get(1).deadline()).isEqualTo(deadline2);
+        assertThat(result.get(1).coverLetters()).hasSize(2);
+
+        // 세 번째 deadline (2024-06-25)
+        assertThat(result.get(2).deadline()).isEqualTo(deadline3);
+        assertThat(result.get(2).coverLetters()).hasSize(1);
+
+        verify(coverLetterRepository, times(1)).findUpcomingCoverLettersGroupedByDeadline(userId, queryDate, 3, 2);
+    }
+
+    @Test
+    @DisplayName("다가오는 자기소개서 조회 - deadline이 없는 경우 빈 리스트 반환")
+    void getUpcomingCoverLetters_NoDeadlines_EmptyList() {
+        // given
+        String userId = "testUser123";
+        LocalDate queryDate = LocalDate.of(2024, 6, 1);
+
+        given(coverLetterRepository.findUpcomingCoverLettersGroupedByDeadline(userId, queryDate, 3, 2))
+                .willReturn(Map.of());
+
+        // when
+        var result = coverLetterService.getUpcomingCoverLetters(userId, queryDate, 3, 2);
+
+        // then
+        assertThat(result).isEmpty();
+        verify(coverLetterRepository, times(1)).findUpcomingCoverLettersGroupedByDeadline(userId, queryDate, 3, 2);
+    }
+
+    @Test
+    @DisplayName("날짜 범위로 마감일 조회 시 1개월 초과 시 예외 발생")
+    void findDeadlineByDateRange_ExceedsOneMonth_ThrowsException() {
+        // given
+        String userId = "testUser123";
+        LocalDate startDate = LocalDate.of(2024, 1, 1);
+        LocalDate endDate = LocalDate.of(2024, 2, 2);  // 1개월 + 1일
+
+        // when & then
+        assertThatThrownBy(() -> coverLetterService.findDeadlineByDateRange(userId, startDate, endDate))
+                .isInstanceOf(BaseException.class)
+                .hasFieldOrPropertyWithValue("errorCode", CoverLetterErrorCode.DATE_RANGE_EXCEEDED);
+
+        verify(coverLetterRepository, never()).findDeadlineByUserIdBetweenDeadline(any(), any(), any());
     }
 }
