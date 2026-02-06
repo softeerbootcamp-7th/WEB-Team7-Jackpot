@@ -1,4 +1,4 @@
-import { ChevronDownIcon } from './ChevronDown';
+
 import { ChevronLeftIcon } from './ChevronLeft';
 import { CompanyNameLibrary } from './CompanyNameLibrary';
 import { EditIcon } from './Edit';
@@ -8,10 +8,9 @@ import { LibraryFolder } from './LibraryFolder';
 import { QnALibrary } from './QnALibrary';
 import { QuestionIcon } from './Question';
 import { ScrapIcon } from './Scrap';
-import { SearchIcon } from './Search';
+import { SearchIcon } from '../../../shared/icons/Search';
 
 export const LibraryIcons = {
-  ChevronDownIcon,
   ChevronLeftIcon,
   CompanyNameLibrary,
   EditIcon,

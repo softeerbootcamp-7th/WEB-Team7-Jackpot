@@ -11,7 +11,7 @@ export const PlusIcon = (props: SVGProps<SVGSVGElement>) => {
       {...props}
     >
       <path
-        stroke='#fff'
+        stroke='currentColor'
         d='M12 4.8v14.4m7.2-7.2H4.8'
         strokeLinecap='round'
         strokeWidth='2'
