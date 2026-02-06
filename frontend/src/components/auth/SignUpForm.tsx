@@ -114,7 +114,7 @@ const SignUpForm = () => {
 
       setStatusMsg(newMsg);
       setIsPasswordMatched(isMatch);
-    }, 1000);
+    }, 300);
 
     return () => clearTimeout(debounceTimer);
   }, [formData, isIdDuplicationVerified]);
