@@ -6,7 +6,7 @@ const InputBar = ({ rightElement, className, ...props }: InputBarProps) => {
   return (
     <div className='relative w-full'>
       <input
-        className={`w-full rounded-lg bg-gray-50 px-5 py-[0.875rem] ${className}`}
+        className={`w-full rounded-lg bg-gray-50 px-5 py-[0.875rem] outline-none ${className}`}
         {...props}
       />
       {rightElement && (
