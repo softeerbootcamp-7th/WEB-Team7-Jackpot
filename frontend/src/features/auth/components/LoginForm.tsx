@@ -51,7 +51,7 @@ const LoginForm = () => {
               placeholder={each.PLACEHOLDER}
               maxLength={each.MAX_LENGTH}
               value={formData[each.ID]}
-              onChange={(e) => handleInputChange(e, each.ID)}
+              onChange={handleInputChange(each.ID)}
             />
           ))}
         </div>

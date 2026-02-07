@@ -182,8 +182,8 @@ const SignUpForm = () => {
               type={each.TYPE}
               placeholder={each.PLACEHOLDER}
               maxLength={each.MAX_LENGTH}
-              onChange={(e) => {
-                handleInputChange(e, each.ID);
+              onChange={() => {
+                handleInputChange(each.ID);
                 if (each.ID === 'userId') {
                   setIsIdDuplicationVerified(false);
                 }
