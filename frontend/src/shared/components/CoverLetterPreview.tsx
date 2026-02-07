@@ -27,7 +27,7 @@ const CoverLetterPreview = ({
           </div>
         </div>
         <div className='inline-flex items-start justify-end gap-1'>
-          <div className='line-clamp-1 justify-start self-stretch text-lg leading-7 font-bold text-gray-950'>
+          <div className='text-title-s line-clamp-1 justify-start self-stretch font-bold text-gray-950'>
             토스 - 프로덕트 디자이너
           </div>
         </div>

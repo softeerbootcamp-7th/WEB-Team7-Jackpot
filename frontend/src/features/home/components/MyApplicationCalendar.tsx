@@ -1,15 +1,16 @@
-import CalendarIcon from '@/features/home/components/icons/CalendarIcon';
-import RightArrow from '@/features/home/components/icons/RightArrow';
+import CalendarIcon from '../icons/CalendarIcon';
+
+import RightArrow from '@/shared/icons/RightArrow';
 
 const MyApplicationCalendar = () => {
   return (
     <div className='inline-flex w-96 flex-col items-start justify-start gap-6'>
       <div className='inline-flex items-center justify-between self-stretch'>
         <div className='flex items-center justify-start gap-2.5'>
-          <div className='relative h-7 w-7'>
+          <div className='h-7 w-7'>
             <CalendarIcon />
           </div>
-          <div className='justify-start text-xl leading-9 font-bold text-gray-950'>
+          <div className='text-title-l justify-start font-bold text-gray-950'>
             나의 지원 캘린더
           </div>
         </div>

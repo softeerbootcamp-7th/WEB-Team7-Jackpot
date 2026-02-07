@@ -18,8 +18,8 @@ const InputBarInSignUp = ({
   return (
     <div className='flex w-full flex-col gap-3'>
       <div className='flex gap-[0.125rem]'>
-        <div className='text-lg font-bold text-gray-950'>{label}</div>
-        <div className='text-red-600'>*</div>
+        <div className='text-title-s font-bold text-gray-950'>{label}</div>
+        <div className='text-title-s text-red-600'>*</div>
       </div>
 
       <InputBar
@@ -31,7 +31,7 @@ const InputBarInSignUp = ({
 
       {helpMessage && (
         <p
-          className={`mt-1 ps-1 text-xs ${
+          className={`text-body-s mt-1 px-1 ${
             isSuccess ? 'text-blue-500' : 'text-red-500'
           }`}
         >

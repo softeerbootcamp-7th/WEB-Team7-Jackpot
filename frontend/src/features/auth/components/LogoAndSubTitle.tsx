@@ -13,7 +13,7 @@ const LogoAndSubTitle = ({
     <div className='flex flex-col items-center gap-3'>
       <TitleLogoComponent width='259' height='51' />
       <div
-        className={`justify-start text-center ${subTitleColor} line-clamp-1 text-lg font-bold select-none`}
+        className={`justify-start text-center ${subTitleColor} text-title-s line-clamp-1 font-bold select-none`}
       >
         {subTitle}
       </div>

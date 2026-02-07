@@ -6,6 +6,7 @@ import CheckDuplicationButton from './CheckDuplicationButton';
 import InputBarInSignUp from './InputBarInSignUp';
 import SubmitButton from './SubmitButton';
 
+import { authClient } from '@/features/auth/api/auth';
 import { INPUT_BAR_IN_SIGNUP } from '@/features/auth/constants/constantsInSignUpPage';
 import useAuthForm from '@/features/auth/hooks/useAuthForm';
 import type { AuthFormData } from '@/features/auth/types/auth';
@@ -14,8 +15,6 @@ import {
   validateNickname,
   validatePassword,
 } from '@/shared/utils/validation';
-
-import { authClient } from '@/features/auth/api/auth';
 
 interface isActivedType {
   id: boolean;

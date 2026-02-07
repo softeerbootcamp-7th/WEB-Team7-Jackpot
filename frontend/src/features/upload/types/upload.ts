@@ -24,10 +24,7 @@ export interface StepInformationProps {
   loadingSubTitle?: string;
 }
 
-export interface RecruitSeasonType {
-  season: 'first' | 'second';
-  label: string;
-}
+
 
 export interface ContentItemType {
   companyName: string;

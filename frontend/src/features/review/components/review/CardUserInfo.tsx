@@ -12,11 +12,12 @@ const CardUserInfo = ({ name, dateTime }: CardUserInfoProps) => {
   return (
     <>
       <div className='relative h-12 w-12 overflow-hidden rounded-full bg-purple-100'>
+        {/* 바꾸기 */}
         <div className='absolute top-[12px] left-[17px] h-4 w-4 rounded-full bg-purple-300' />
         <div className='absolute top-[33px] left-[3px] h-11 w-11 rounded-full bg-purple-300' />
       </div>
       <div className='flex flex-1 flex-col items-start justify-center'>
-        <span className='line-clamp-1 text-base leading-6 font-bold text-gray-950'>
+        <span className='text-body-l line-clamp-1 font-bold text-gray-950'>
           {name}
         </span>
         <time

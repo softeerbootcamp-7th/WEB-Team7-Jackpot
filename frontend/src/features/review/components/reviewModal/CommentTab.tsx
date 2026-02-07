@@ -27,7 +27,7 @@ const CommentTab = ({
         />
         <div className='flex w-full items-center justify-end gap-0.5'>
           <span
-            className={`text-xs leading-5 ${
+            className={`text-caption-l ${
               comment.length > REVIEW_CONSTRAINTS.MAX_COMMENT_LENGTH
                 ? 'text-red-500'
                 : 'text-gray-400'
@@ -35,8 +35,8 @@ const CommentTab = ({
           >
             {comment.length}
           </span>
-          <span className='text-xs leading-5 text-gray-400'>/</span>
-          <span className='text-xs leading-5 text-gray-400'>
+          <span className='text-caption-l text-gray-400'>/</span>
+          <span className='text-caption-l text-gray-400'>
             {REVIEW_CONSTRAINTS.MAX_COMMENT_LENGTH}
           </span>
         </div>

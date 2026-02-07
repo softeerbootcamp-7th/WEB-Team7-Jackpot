@@ -1,13 +1,14 @@
-import AlarmIcon from '@/features/home/components/icons/AlarmClockIcon';
-import RightArrow from '@/features/home/components/icons/RightArrow';
+import AlarmIcon from '../icons/AlarmClockIcon';
+
 import UpcomingSchedule from '@/features/home/components/UpcomingSchedule';
+import RightArrow from '@/shared/icons/RightArrow';
 
 const UpcomingSchedules = () => {
   return (
     <div className='inline-flex w-full flex-1 flex-col items-start justify-start gap-6'>
       <div className='flex items-center justify-between'>
         <div className='flex items-center justify-start gap-2.5'>
-          <div className='relative h-7 w-7'>
+          <div className='h-7 w-7'>
             <AlarmIcon />
           </div>
           <div className='text-title-l justify-start font-bold text-gray-950'>
