@@ -1,14 +1,23 @@
+import { useNavigate } from 'react-router';
+
 import NavItem from '@/shared/components/NavItem';
 import { NAV_ITEMS } from '@/shared/constants/globalHeader';
 import { CommonIcon as I } from '@/shared/icons';
 
 const PageGlobalHeader = () => {
+  const navigate = useNavigate();
+
   return (
     <header className='mb-[1.875rem] flex h-[3.75rem] w-full items-center justify-between bg-white px-75'>
       <div className='flex items-center gap-20'>
         <div className='flex items-center text-2xl font-bold text-blue-300'>
-          {/* TODO: 로고 변환 */}
-          Narratix
+          <button
+            className='cursor-pointer'
+            type='button'
+            onClick={() => navigate('/home')}
+          >
+            <I.TitleLogo width='99' height='27' />
+          </button>
         </div>
 
         <div>
