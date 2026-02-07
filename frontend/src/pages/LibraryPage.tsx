@@ -57,7 +57,7 @@ const LibraryPage = () => {
           </div>
         </>
       }
-      sidebarSlot={hasData && <SideBar {...sideBarContent} />}
+      sidebarSlot={<SideBar {...sideBarContent} />}
     >
       <DataGuard
         data={hasData}
