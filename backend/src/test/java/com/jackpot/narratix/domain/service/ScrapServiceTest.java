@@ -2,6 +2,7 @@ package com.jackpot.narratix.domain.service;
 
 import com.jackpot.narratix.domain.controller.request.CreateScrapRequest;
 import com.jackpot.narratix.domain.controller.response.CreateScrapResponse;
+import com.jackpot.narratix.domain.controller.response.ScrapCountResponse;
 import com.jackpot.narratix.domain.entity.Scrap;
 import com.jackpot.narratix.domain.entity.ScrapId;
 import com.jackpot.narratix.domain.exception.ScrapErrorCode;
@@ -10,6 +11,7 @@ import com.jackpot.narratix.global.exception.BaseException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -35,24 +37,34 @@ class ScrapServiceTest {
         String userId = "user123";
         Long qnaId = 1L;
         CreateScrapRequest request = new CreateScrapRequest(qnaId);
-        ScrapId scrapId = new ScrapId(userId, qnaId);
 
-        // existsById가 false를 반환하도록 설정
-        when(scrapRepository.existsById(scrapId)).thenReturn(false);
-        // countByUserId가 1을 반환하도록 설정
+        ScrapId expectedScrapId = new ScrapId(userId, qnaId);
+
+        when(scrapRepository.existsById(expectedScrapId)).thenReturn(false);
         when(scrapRepository.countByUserId(userId)).thenReturn(1L);
 
         // when
         CreateScrapResponse response = scrapService.createScrap(userId, request);
 
-        // then
+        // then - response
         assertThat(response.qnaId()).isEqualTo(qnaId);
         assertThat(response.scrapCount()).isEqualTo(1L);
-        
+
+        verify(scrapRepository, times(1)).existsById(expectedScrapId);
+
+        ArgumentCaptor<Scrap> scrapCaptor = ArgumentCaptor.forClass(Scrap.class);
+        verify(scrapRepository, times(1)).save(scrapCaptor.capture());
+
+        Scrap savedScrap = scrapCaptor.getValue();
+        assertThat(savedScrap.getId()).isNotNull();
+        assertThat(savedScrap.getId().getUserId()).isEqualTo(userId);
+        assertThat(savedScrap.getId().getQnaId()).isEqualTo(qnaId);
 
         InOrder inOrder = inOrder(scrapRepository);
+        inOrder.verify(scrapRepository).existsById(expectedScrapId);
         inOrder.verify(scrapRepository).save(any(Scrap.class));
         inOrder.verify(scrapRepository).countByUserId(userId);
+
     }
 
     @Test
@@ -61,19 +73,39 @@ class ScrapServiceTest {
         // given
         String userId = "user123";
         Long qnaId = 1L;
-        ScrapId scrapId = new ScrapId(userId, qnaId);
         CreateScrapRequest request = new CreateScrapRequest(qnaId);
 
+        ScrapId expectedScrapId = new ScrapId(userId, qnaId);
 
-        when(scrapRepository.existsById(scrapId)).thenReturn(true);
+        when(scrapRepository.existsById(expectedScrapId)).thenReturn(true);
 
-        // when & then
-        BaseException exception = assertThrows(BaseException.class, () -> {
-            scrapService.createScrap(userId, request);
-        });
+        // when
+        BaseException exception = assertThrows(BaseException.class,
+                () -> scrapService.createScrap(userId, request));
 
+        // then
         assertThat(exception.getErrorCode()).isEqualTo(ScrapErrorCode.DUPLICATE_SCRAP);
 
+        verify(scrapRepository, times(1)).existsById(expectedScrapId);
         verify(scrapRepository, never()).save(any(Scrap.class));
+        verify(scrapRepository, never()).countByUserId(anyString());
     }
+
+
+    @Test
+    @DisplayName("스크랩 개수 확인 - 해당 유저의 스크랩 개수 반환")
+    void getScrapCount_ReturnCount() {
+        // given
+        String userId = "user123";
+        long expectedCount = 5L;
+        when(scrapRepository.countByUserId(userId)).thenReturn(expectedCount);
+
+        // when
+        ScrapCountResponse response = scrapService.getScrapCount(userId);
+
+        // then
+        assertThat(response.scrapCount()).isEqualTo(expectedCount);
+        verify(scrapRepository, times(1)).countByUserId(userId);
+    }
+
 }
