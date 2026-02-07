@@ -14,6 +14,7 @@ const useCoverLetterParams = () => {
   const handleTabChange = (tab: CoverLetterView) => {
     setCurrentTab(tab);
     setSelectedFolderId(null);
+    setSelectedDocumentId(null);
   };
 
   return {

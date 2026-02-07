@@ -1,5 +1,4 @@
-import CalendarIcon from '../icons/CalendarIcon';
-
+import CalendarIcon from '@/features/home/icons/CalendarIcon';
 import RightArrow from '@/shared/icons/RightArrow';
 
 const MyApplicationCalendar = () => {
@@ -14,7 +13,9 @@ const MyApplicationCalendar = () => {
             나의 지원 캘린더
           </div>
         </div>
-        <RightArrow size='lg' />
+        <button type='button' aria-label='지원 캘린더 더보기'>
+          <RightArrow size='lg' aria-hidden='true' />
+        </button>
       </div>
       <div className='flex flex-col items-start justify-start gap-1 self-stretch'>
         <div className='inline-flex items-center justify-between self-stretch'>
