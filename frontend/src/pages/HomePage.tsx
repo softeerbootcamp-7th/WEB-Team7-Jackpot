@@ -1,7 +1,6 @@
 import ScheduleOverview from '@/features/home/components/ScheduleOverview';
 import SummaryOverview from '@/features/home/components/SummaryOverview';
 import CoverLetterOverview from '@/shared/components/CoverLetterOverview';
-import PageGlobalHeader from '@/shared/components/PageGlobalHeader';
 import RightArrow from '@/shared/icons/RightArrow';
 
 const HomePage = () => {

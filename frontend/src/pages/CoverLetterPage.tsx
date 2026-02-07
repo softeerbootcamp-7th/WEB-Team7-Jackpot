@@ -1,6 +1,5 @@
 import CoverLetterWriteSidebar from '@/features/coverLetter/components/CoverLetterWriteSidebar';
 import NewCoverLetter from '@/features/coverLetter/components/newCoverLetter/NewCoverLetter';
-import NewCoverLetterButton from '@/features/coverLetter/components/newCoverLetterButton';
 import {
   coverLetterContent,
   coverLetterHeaderText,
