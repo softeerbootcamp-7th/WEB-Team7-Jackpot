@@ -1,6 +1,7 @@
-import AlarmIcon from '@/features/home/components/icons/AlarmClockIcon';
-import RightArrow from '@/features/home/components/icons/RightArrow';
 import UpcomingSchedule from '@/features/home/components/UpcomingSchedule';
+import AlarmIcon from '@/features/home/icons/AlarmClockIcon';
+import RightArrow from '@/shared/icons/RightArrow';
+
 
 const UpcomingSchedules = () => {
   return (
@@ -14,9 +15,11 @@ const UpcomingSchedules = () => {
             다가오는 일정
           </div>
         </div>
-        <RightArrow size='lg' />
+        <button type='button' aria-label='다가오는 일정 더보기'>
+          <RightArrow size='lg' aria-hidden='true' />
+        </button>
       </div>
-      <div className='w-full inline-flex justify-start items-center gap-3 overflow-x-auto'>
+      <div className='inline-flex w-full items-center justify-start gap-3 overflow-x-auto'>
         <UpcomingSchedule
           date='23일'
           dDay={3}

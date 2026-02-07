@@ -1,6 +1,5 @@
 import { UploadPageIcons as I } from '@/features/upload/icons';
 import type {
-  RecruitSeasonType,
   StepInformationProps,
   TabDataType,
   UploadTabDataType,
@@ -35,17 +34,6 @@ export const STEP_DATA: Record<string, StepInformationProps> = {
     loadingSubTitle: '총 3개의 문항이 라이브러리에 저장되었어요.',
   },
 };
-
-export const RECRUIT_SEASON_LIST: RecruitSeasonType[] = [
-  {
-    season: 'first',
-    label: '상반기',
-  },
-  {
-    season: 'second',
-    label: '하반기',
-  },
-];
 
 export const TAB_DATA: TabDataType[] = [
   { tabName: '자기소개서 01', tabNumber: 1 },

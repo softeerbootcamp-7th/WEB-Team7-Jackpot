@@ -3,7 +3,7 @@ import UpcomingSchedules from '@/features/home/components/UpcomingSchedules';
 
 const ScheduleOverview = () => {
   return (
-    <div className='w-[82.5rem] inline-flex justify-start items-center gap-16'>
+    <div className='inline-flex w-[82.5rem] items-center justify-start gap-16'>
       <MyApplicationCalendar />
       <UpcomingSchedules />
     </div>

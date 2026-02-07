@@ -3,7 +3,6 @@ import { useState } from 'react';
 import CoverLetterContentArea from '@/features/upload/components/CoverLetterContentArea';
 import CoverLetterList from '@/features/upload/components/CoverLetterList';
 import LabeledSelectInput from '@/features/upload/components/LabeledSelectInput';
-import RecruitPeriodSelectInput from '@/features/upload/components/RecruitPeriodSelectInput';
 import useCoverLetterState from '@/features/upload/hooks/useCoverLetterState';
 import { UploadPageIcons as I } from '@/features/upload/icons';
 import type {
@@ -11,6 +10,7 @@ import type {
   DropdownStateType,
 } from '@/features/upload/types/upload';
 import { yearList } from '@/features/upload/utils/generateYearList';
+import RecruitPeriodSelectInput from '@/shared/components/RecruitPeriodSelectInput';
 
 // [윤종근] - 추후에 지울 예정인 UI 테스트만을 위한 임시 데이터라서 constants에 옮기지 않았습니다.
 const COMPANY_NAME_LIST: string[] = ['현대자동차', '현대오토에버', '현대카드'];
@@ -39,7 +39,7 @@ const SecondContentItem = ({ tabState, setTabState }: CoverLetterTabProps) => {
       <CoverLetterList tabState={tabState} setTabState={setTabState} />
       <div className='flex gap-6'>
         <div className='flex-1'>
-          <div className='flex flex-col gap-5 '>
+          <div className='flex flex-col gap-5'>
             <LabeledSelectInput
               label='기업명'
               value={currentData.companyName}
@@ -56,8 +56,8 @@ const SecondContentItem = ({ tabState, setTabState }: CoverLetterTabProps) => {
               isOpen={isDropdownOpen.companyNameDropdown}
               dropdownDirection='bottom'
             />
-        
-             <LabeledSelectInput
+
+            <LabeledSelectInput
               label='직무명'
               value={currentData.jobPosition}
               constantData={JOB_POSITION_LIST}

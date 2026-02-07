@@ -46,13 +46,13 @@ const Pagination = ({
       </button>
 
       <div className='flex items-center gap-2.5'>
-        <div className='line-clamp-1 text-lg leading-7 font-bold text-purple-500'>
+        <div className='text-title-s line-clamp-1 font-bold text-purple-500'>
           {current + 1}
         </div>
-        <div className='line-clamp-1 text-lg leading-7 font-bold text-gray-400'>
+        <div className='text-title-s line-clamp-1 font-bold text-gray-400'>
           /
         </div>
-        <div className='line-clamp-1 text-lg leading-7 font-bold text-gray-400'>
+        <div className='text-title-s line-clamp-1 font-bold text-gray-400'>
           {total}
         </div>
       </div>

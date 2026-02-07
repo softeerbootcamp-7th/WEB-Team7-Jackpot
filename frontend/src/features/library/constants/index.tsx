@@ -1,8 +1,7 @@
-import { CompanyNameLibrary } from '../icons/CompanyNameLibrary';
-import { LibraryIcon } from '../icons/Library';
-import { QnALibrary } from '../icons/QnALibrary';
-import type { LibraryView } from '../types';
-
+import { CompanyNameLibrary } from '@/features/library/icons/CompanyNameLibrary';
+import { LibraryIcon } from '@/features/library/icons/Library';
+import { QnALibrary } from '@/features/library/icons/QnALibrary';
+import type { LibraryView } from '@/features/library/types';
 import type { TabContentType } from '@/shared/types/tab';
 
 export const libraryHeaderText = {

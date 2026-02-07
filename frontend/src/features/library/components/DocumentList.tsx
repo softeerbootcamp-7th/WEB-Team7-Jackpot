@@ -1,6 +1,6 @@
-import { ChevronLeftIcon } from '../icons/ChevronLeft';
-import { FolderIcon } from '../icons/Folder';
-import Document from './Document';
+import Document from '@/features/library/components/Document';
+import { ChevronLeftIcon } from '@/features/library/icons/ChevronLeft';
+import { FolderIcon } from '@/features/library/icons/Folder';
 
 type DocumentListProps = {
   className: string;

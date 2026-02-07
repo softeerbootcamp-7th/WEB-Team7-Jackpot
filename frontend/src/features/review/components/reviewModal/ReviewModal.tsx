@@ -66,7 +66,7 @@ const ReviewModal = ({
           type='button'
           onClick={handleSubmit}
           disabled={!isSubmitEnabled}
-          className={`rounded-xl px-4 py-2 text-base leading-6 font-bold ${
+          className={`text-body-l rounded-xl px-4 py-2 font-bold ${
             isSubmitEnabled
               ? 'bg-gray-950 text-white'
               : 'bg-gray-200 text-gray-400'

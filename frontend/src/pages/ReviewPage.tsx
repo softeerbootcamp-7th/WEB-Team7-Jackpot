@@ -1,7 +1,6 @@
 import ReviewLayout from '@/features/review/components/ReviewLayout';
 import { reviewHeaderText } from '@/features/review/constants';
 import ContentHeader from '@/shared/components/ContentHeader';
-import PageGlobalHeader from '@/shared/components/PageGlobalHeader';
 
 const ReviewPage = () => {
   // TODO: 페이지 진입시, 접근 제어 API
@@ -14,7 +13,6 @@ const ReviewPage = () => {
 
   return (
     <div className='flex h-screen w-full max-w-screen min-w-[1700px] flex-col overflow-hidden pb-30'>
-      <PageGlobalHeader />
       <div className='flex flex-1 flex-col overflow-hidden px-75'>
         <div className='mb-7.5 flex-none'>
           <ContentHeader {...reviewHeaderText} />

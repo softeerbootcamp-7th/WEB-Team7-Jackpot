@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import type { LibraryView } from '../types';
+import type { LibraryView } from '@/features/library/types';
 
 const useLibraryParams = () => {
   const [currentTab, setCurrentTab] = useState<LibraryView>('COMPANY');

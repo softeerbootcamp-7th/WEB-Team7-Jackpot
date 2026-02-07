@@ -4,8 +4,8 @@ import {
   MOCK_COVER_LETTERS,
   MOCK_LIBRARIES,
   MOCK_QUESTIONS,
-} from '../api/mockData';
-import type { CoverLetter, LibraryView, QuestionItem } from '../types';
+} from '@/features/library/api/mockData';
+import type { CoverLetter, LibraryView, QuestionItem } from '@/features/library/types';
 
 type Document = CoverLetter | QuestionItem;
 

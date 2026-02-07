@@ -20,7 +20,7 @@ const TabSelector = ({ tab, onTabChange }: TabSelectorProps) => {
       >
         <ReviewPageIcons.PaperChipIcon active={tab === 'revision'} />
         <span
-          className={`font-['Pretendard'] text-base leading-6 ${
+          className={`text-body-l ${
             tab === 'revision'
               ? 'font-bold text-gray-900'
               : 'font-normal text-gray-400'
@@ -40,7 +40,7 @@ const TabSelector = ({ tab, onTabChange }: TabSelectorProps) => {
       >
         <ReviewPageIcons.PenToolIcon active={tab === 'comment'} />
         <span
-          className={`font-['Pretendard'] text-base leading-6 ${
+          className={`text-body-l ${
             tab === 'comment'
               ? 'font-bold text-gray-900'
               : 'font-normal text-gray-400'

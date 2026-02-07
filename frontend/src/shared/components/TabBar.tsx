@@ -1,5 +1,5 @@
-import type { TabContentType } from '../types/tab';
-import TabItem from './TabItem';
+import TabItem from '@/shared/components/TabItem';
+import type { TabContentType } from '@/shared/types/tab';
 
 interface TabBarProps<T> {
   content: TabContentType<T>[];
@@ -13,7 +13,7 @@ function TabBar<T extends string>({
   handleTabChange,
 }: TabBarProps<T>) {
   return (
-    <nav className='flex items-center justify-start pt-7.5'>
+    <nav className='mb-7.5 flex items-center justify-start'>
       {content.map((tab) => (
         <div key={tab.name} className='flex items-center justify-start'>
           <TabItem

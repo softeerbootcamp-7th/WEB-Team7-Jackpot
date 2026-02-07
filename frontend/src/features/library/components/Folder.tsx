@@ -1,4 +1,4 @@
-import { LibraryFolder } from '../icons/LibraryFolder';
+import { LibraryFolder } from '@/features/library/icons/LibraryFolder';
 
 type FolderProps = {
   name: string;

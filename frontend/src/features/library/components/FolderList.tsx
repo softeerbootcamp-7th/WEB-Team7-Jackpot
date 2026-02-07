@@ -1,4 +1,4 @@
-import Folder from './Folder';
+import Folder from '@/features/library/components/Folder';
 
 interface FolderListProps {
   className: string;

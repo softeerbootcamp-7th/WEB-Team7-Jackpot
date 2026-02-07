@@ -1,5 +1,4 @@
-import QnA from './QnA';
-
+import QnA from '@/features/library/components/QnA';
 import { emptyCaseText } from '@/features/library/constants';
 import DataGuard from '@/shared/components/DataGuard';
 import EmptyCase from '@/shared/components/EmptyCase';

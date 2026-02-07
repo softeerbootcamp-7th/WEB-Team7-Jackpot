@@ -1,6 +1,6 @@
-import BooksIcon from '@/features/home/components/icons/BooksIcon';
-import ScrollIcon from '@/features/home/components/icons/ScrollIcon';
-import ThoughtIcon from '@/features/home/components/icons/ThoughtIcon';
+import BooksIcon from '@/features/home/icons/BooksIcon';
+import ScrollIcon from '@/features/home/icons/ScrollIcon';
+import ThoughtIcon from '@/features/home/icons/ThoughtIcon';
 
 interface SummaryType {
   coverLetterCnt: number;
@@ -21,8 +21,8 @@ const SummaryOverview = () => {
         <div className='w-10 h-10 relative'>
           <ThoughtIcon />
         </div>
-        <div className='inline-flex flex-col justify-start items-start'>
-          <div className='justify-start text-gray-400 text-lg font-medium  leading-7'>
+        <div className='inline-flex flex-col items-start justify-start'>
+          <div className='text-title-s font-medium text-gray-400'>
             졸린 경민님은 지금까지
           </div>
           <div className='justify-start text-gray-950 text-xl font-bold  leading-9'>
@@ -34,8 +34,8 @@ const SummaryOverview = () => {
         <div className='w-10 h-10 relative'>
           <BooksIcon />
         </div>
-        <div className='inline-flex flex-col justify-start items-start'>
-          <div className='justify-start text-gray-400 text-lg font-medium  leading-7'>
+        <div className='inline-flex flex-col items-start justify-start'>
+          <div className='text-title-s justify-start font-medium text-gray-400'>
             끝까지 작성을 마친 답변들은
           </div>
           <div className='justify-start text-gray-950 text-xl font-bold  leading-9'>
@@ -47,8 +47,8 @@ const SummaryOverview = () => {
         <div className='w-10 h-10 relative'>
           <ScrollIcon />
         </div>
-        <div className='inline-flex flex-col justify-start items-start'>
-          <div className='justify-start text-gray-400 text-lg font-medium  leading-7'>
+        <div className='inline-flex flex-col items-start justify-start'>
+          <div className='text-title-s justify-start font-medium text-gray-400'>
             이번 시즌에는
           </div>
           <div className='justify-start text-gray-950 text-xl font-bold  leading-9'>

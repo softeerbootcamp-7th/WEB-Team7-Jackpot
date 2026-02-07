@@ -1,5 +1,4 @@
 import DetailView from '@/features/library/components/DetailView';
-import LibraryLayout from '@/features/library/components/LibraryLayout';
 import ScrapNum from '@/features/library/components/ScrapNum';
 import SideBar from '@/features/library/components/SideBar';
 import {
@@ -13,15 +12,16 @@ import useScrapNum from '@/features/library/hooks/useScrapNum';
 import ContentHeader from '@/shared/components/ContentHeader';
 import DataGuard from '@/shared/components/DataGuard';
 import EmptyCase from '@/shared/components/EmptyCase';
+import SidebarLayout from '@/shared/components/SidebarLayout';
 import TabBar from '@/shared/components/TabBar';
 
 const LibraryPage = () => {
   const { state, actions } = useLibraryParams();
 
-  // addScrap, deleteScrap 기능 추후에 추가
+  // [박소민] TODO: addScrap, deleteScrap 기능 추후에 추가
   const { scrapNum } = useScrapNum();
 
-  // selectedDocument는 기업 라이브러리 자기소개서 API 명세를 BE와 확인한 후에 다시 수정
+  // [박소민] TODO: selectedDocument는 기업 라이브러리 자기소개서 API 명세를 BE와 확인한 후에 다시 수정
   const { folderList, selectedDocumentList } = useLibraryData({
     currentTab: state.currentTab,
     selectedFolderId: state.selectedFolderId,
@@ -47,7 +47,7 @@ const LibraryPage = () => {
   const hasData = folderList.length > 0;
 
   return (
-    <LibraryLayout
+    <SidebarLayout
       headerSlot={
         <>
           <ContentHeader {...libraryHeaderText} />
@@ -57,7 +57,7 @@ const LibraryPage = () => {
           </div>
         </>
       }
-      sidebarSlot={hasData && <SideBar {...sideBarContent} />}
+      sidebarSlot={<SideBar {...sideBarContent} />}
     >
       <DataGuard
         data={hasData}
@@ -65,7 +65,7 @@ const LibraryPage = () => {
       >
         <DetailView />
       </DataGuard>
-    </LibraryLayout>
+    </SidebarLayout>
   );
 };
 

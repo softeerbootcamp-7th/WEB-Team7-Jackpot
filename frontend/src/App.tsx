@@ -1,25 +1,34 @@
 import { BrowserRouter, Route, Routes } from 'react-router';
 
+import CoverLetterLandingPage from '@/pages/CoverLetterLandingPage';
+import CoverLetterPage from '@/pages/CoverLetterPage';
 import HomePage from '@/pages/HomePage';
 import LibraryPage from '@/pages/LibraryPage';
-import LoginPage from '@/pages/Login';
+import LoginPage from '@/pages/LoginPage';
 import ReviewPage from '@/pages/ReviewPage';
-import SignUpPage from '@/pages/SignUp';
-import UploadPage from '@/pages/Upload';
+import SignUpPage from '@/pages/SignUpPage';
+import UploadPage from '@/pages/UploadPage';
+
+import RootLayout from '@/shared/components/RootLayout';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* <Route path="/" element={<LandingPage />}/> */}
-        <Route path='/login' element={<LoginPage />} />
-        <Route path='/signup' element={<SignUpPage />} />
-        <Route path='/home' element={<HomePage />} />
-        <Route path="/upload" element={<UploadPage />}/>
-        <Route path='/library' element={<LibraryPage />} />
-        {/* <Route path="/coverLetter/:id" element={<CoverLetterPage />}/> */}
-        <Route path='/review/:id' element={<ReviewPage />} />
-        {/* <Route path="/recruit" element={<RecruitPage />}/> */}
+        <Route element={<RootLayout />}>
+          {/* <Route path="/" element={<LandingPage />}/> */}
+          <Route path='/login' element={<LoginPage />} />
+          <Route path='/signup' element={<SignUpPage />} />
+          <Route path='/home' element={<HomePage />} />
+          <Route path='/upload' element={<UploadPage />} />
+          <Route path='/cover-letter' element={<CoverLetterLandingPage />} />
+          <Route path='/cover-letter/new' element={<CoverLetterPage />} />
+          <Route path='/library' element={<LibraryPage />} />
+          {/* <Route path='/library?id:' element={<LibraryPage />} /> */}
+          <Route path='/coverLetter' element={<CoverLetterPage />} />
+          <Route path='/review/:id' element={<ReviewPage />} />
+          {/* <Route path="/recruit" element={<RecruitPage />}/> */}
+        </Route>
       </Routes>
     </BrowserRouter>
   );

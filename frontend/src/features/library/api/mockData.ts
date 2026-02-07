@@ -2,7 +2,7 @@ import type {
   CoverLetterListResponse,
   LibraryResponse,
   QuestionListResponse,
-} from '../types';
+} from '@/features/library/types';
 
 // 기업 혹은 문항 폴더 리스트
 export const MOCK_LIBRARIES: LibraryResponse = {

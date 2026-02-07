@@ -24,11 +24,9 @@ const CardContentSection = ({
         <div className='flex w-full flex-col gap-1'>
           <div className='flex items-center gap-1.5'>
             <ReviewPageIcons.PaperChipIcon />
-            <span className='text-base leading-6 font-bold text-gray-950'>
-              첨삭
-            </span>
+            <span className='text-body-l font-bold text-gray-950'>첨삭</span>
           </div>
-          <p className='pl-6 text-sm leading-5 font-normal text-gray-600'>
+          <p className='text-body-s pl-6 font-normal text-gray-600'>
             {review.revision}
           </p>
         </div>
@@ -38,11 +36,9 @@ const CardContentSection = ({
         <div className='flex w-full flex-col gap-1'>
           <div className='flex items-center gap-1.5'>
             <ReviewPageIcons.PenToolIcon />
-            <span className='text-base leading-6 font-bold text-gray-950'>
-              코멘트
-            </span>
+            <span className='text-body-l font-bold text-gray-950'>코멘트</span>
           </div>
-          <p className='pl-6 text-sm leading-5 font-normal text-gray-600'>
+          <p className='text-body-s pl-6 font-normal text-gray-600'>
             {review.comment}
           </p>
         </div>

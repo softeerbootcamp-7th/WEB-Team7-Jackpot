@@ -1,4 +1,4 @@
-import RightArrow from '@/features/home/components/icons/RightArrow';
+import RightArrow from '@/shared/icons/RightArrow';
 
 interface UpcomingScheduleProps {
   date: string;
@@ -12,6 +12,7 @@ interface UpcomingScheduleProps {
 const UpcomingSchedule = ({ date, dDay, schedules }: UpcomingScheduleProps) => {
   const isUrgent = dDay <= 3;
 
+  // root 태그에 w-72
   return (
     <div className='w-72 h-52 flex-shrink-0 p-4 rounded-2xl outline outline-1 outline-offset-[-1px] outline-purple-100 inline-flex flex-col justify-start items-start gap-2.5'>
       <div className='self-stretch pl-1.5 inline-flex justify-between items-center'>
@@ -23,12 +24,12 @@ const UpcomingSchedule = ({ date, dDay, schedules }: UpcomingScheduleProps) => {
           {date}
         </div>
         <div
-          className={`px-3 py-1.5 rounded-xl flex justify-center items-center gap-1 ${
+          className={`flex items-center justify-center gap-1 rounded-xl px-3 py-1.5 ${
             isUrgent ? 'bg-purple-50' : 'bg-gray-50'
           }`}
         >
           <div
-            className={`justify-start text-xs font-medium leading-4 ${
+            className={`justify-start text-xs leading-4 font-medium ${
               isUrgent ? 'text-purple-500' : 'text-gray-400'
             }`}
           >
@@ -36,14 +37,14 @@ const UpcomingSchedule = ({ date, dDay, schedules }: UpcomingScheduleProps) => {
           </div>
         </div>
       </div>
-      <div className='self-stretch px-1.5 flex flex-col justify-start items-start gap-2'>
+      <div className='flex flex-col items-start justify-start gap-2 self-stretch px-1.5'>
         {schedules.map((schedule, index) => (
           <div
             key={index}
-            className='self-stretch py-0.5 inline-flex justify-start items-center gap-3.5'
+            className='inline-flex items-center justify-start gap-3.5 self-stretch py-0.5'
           >
             <div
-              className={`w-2 h-14 rounded-[3px] ${
+              className={`h-14 w-2 rounded-[3px] ${
                 isUrgent ? 'bg-purple-100' : 'bg-gray-100'
               }`}
             />

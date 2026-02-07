@@ -2,15 +2,15 @@ import { UploadPageIcons as I } from '@/features/upload/icons';
 
 const AddFileItem = () => {
   return (
-    <button className='w-[25.5rem] h-[23.5rem] flex flex-col justify-center items-center rounded-lg bg-gray-50 gap-5 cursor-pointer'>
+    <button className='flex h-[23.5rem] w-[25.5rem] cursor-pointer flex-col items-center justify-center gap-5 rounded-lg bg-gray-50'>
       <I.AddFileIcon />
-      <div className='flex flex-col text-center text-gray-400 gap-2 select-none'>
-        <div className='font-bold text-2xl'>
+      <div className='flex flex-col gap-2 text-center text-gray-400 select-none'>
+        <div className='text-2xl font-bold'>
           이곳을 클릭하시거나,
           <br />
           영역 내로 파일을 드래그해주세요
         </div>
-        <div className='font-normal text-[0.9375rem]'>
+        <div className='text-[0.9375rem] font-normal'>
           pdf, docs 파일을 지원해요
         </div>
       </div>

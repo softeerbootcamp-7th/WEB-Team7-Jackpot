@@ -8,7 +8,7 @@ const ContentHeader = ({
   content: string;
 }) => {
   return (
-    <div className='inline-flex w-131.25 flex-col items-start justify-start gap-0.5 pt-7.5'>
+    <div className='inline-flex w-131.25 flex-col items-start justify-start gap-0.5 py-7.5'>
       <div className='flex flex-row gap-2.5'>
         <div className='h-9 w-9'>{icon}</div>
         <div className='gap-2.5'>
