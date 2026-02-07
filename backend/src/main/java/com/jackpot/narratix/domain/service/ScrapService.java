@@ -2,6 +2,7 @@ package com.jackpot.narratix.domain.service;
 
 import com.jackpot.narratix.domain.controller.request.CreateScrapRequest;
 import com.jackpot.narratix.domain.controller.response.CreateScrapResponse;
+import com.jackpot.narratix.domain.controller.response.ScrapCountResponse;
 import com.jackpot.narratix.domain.entity.Scrap;
 import com.jackpot.narratix.domain.entity.ScrapId;
 import com.jackpot.narratix.domain.exception.ScrapErrorCode;
@@ -32,5 +33,9 @@ public class ScrapService {
 
     private boolean isIdDuplicated(ScrapId scrapId) {
         return scrapRepository.existsById(scrapId);
+    }
+
+    public ScrapCountResponse getScrapCount(String userId) {
+        return new ScrapCountResponse(scrapRepository.countByUserId(userId));
     }
 }
