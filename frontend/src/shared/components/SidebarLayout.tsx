@@ -1,7 +1,4 @@
 import type { ReactNode } from 'react';
-
-import PageGlobalHeader from './PageGlobalHeader';
-
 interface SidebarLayoutProps {
   headerSlot: ReactNode;
   sidebarSlot: ReactNode;

@@ -1,15 +1,12 @@
 import { type SVGProps, useId } from 'react';
 
-// [박소민] TODO: SVG 공부
-
 export const WritingCoverLetterIcon = (props: SVGProps<SVGSVGElement>) => {
-  // 1. 고유 ID 생성 (특수문자 제거로 안전성 확보)
+  // 1. 고유 ID 생성
   const rawId = useId();
   const baseId = rawId.replace(/:/g, '');
 
   // 2. ID 변수화
-  // 원본의 id="a" -> gradAId
-  // 원본의 id="b" -> gradBId
+  const clipId = `${baseId}-clip`;
   const gradAId = `${baseId}-grad-a`;
   const gradBId = `${baseId}-grad-b`;
 
@@ -20,13 +17,13 @@ export const WritingCoverLetterIcon = (props: SVGProps<SVGSVGElement>) => {
       height='28'
       fill='none'
       viewBox='0 0 28 28'
-      {...props} // 3. 확장성: 외부에서 className이나 style을 주입받을 수 있게 합니다.
+      {...props}
     >
-      {/* 주의: 원본 코드에서 clipPath도 url(#a)를 보고 있고, 
-        첫 번째 path의 fill도 url(#a)를 보고 있습니다.
-        따라서 둘 다 gradAId를 참조하도록 설정했습니다.
+      {/* clipPath는 <defs> 내의 <clipPath> id를 참조해야 합니다.
+        따라서 clipPath={`url(#${clipId})`}로 설정했습니다.
       */}
-      <g clipPath={`url(#${gradAId})`}>
+      <g clipPath={`url(#${clipId})`}>
+        {/* 첫 번째 Gradient (gradAId) 적용 */}
         <path
           fill={`url(#${gradAId})`}
           d='M27.222 15.556c0 1.718-1.393 1.555-3.111 1.555H3.888c-1.718 0-3.11.163-3.11-1.555l1.555-9.334c.097-1.49 1.393-3.11 3.111-3.11h17.111c1.718 0 2.949 1.717 3.111 3.11z'
@@ -43,6 +40,8 @@ export const WritingCoverLetterIcon = (props: SVGProps<SVGSVGElement>) => {
           fill='#fff'
           d='M24.887 16.333c0 .86-.697 1.556-1.555 1.556H4.665a1.556 1.556 0 0 1-1.556-1.556v-6.222c0-.858.697-1.555 1.556-1.555h18.667c.858 0 1.555.697 1.555 1.555z'
         />
+        
+        {/* 두 번째 Gradient (gradBId) 적용 */}
         <path
           fill={`url(#${gradBId})`}
           d='M27.222 24.111a3.11 3.11 0 0 1-3.111 3.111H3.888a3.11 3.11 0 0 1-3.11-3.111v-8.556a3.11 3.11 0 0 1 3.11-3.11h20.223a3.11 3.11 0 0 1 3.11 3.11z'
@@ -63,20 +62,15 @@ export const WritingCoverLetterIcon = (props: SVGProps<SVGSVGElement>) => {
           fill='#fff'
           d='M17.888 16.334c.858 0 1.555.697 1.555 1.555v3.889c0 .859-.697 1.556-1.555 1.556H10.11a1.556 1.556 0 0 1-1.555-1.556v-3.889c0-.858.697-1.555 1.555-1.555zm-7 1.555a.777.777 0 0 0-.778.777V21c0 .43.349.778.778.778h6.222c.43 0 .777-.348.778-.777v-2.335a.777.777 0 0 0-.778-.777z'
         />
-        {/* 중간 path 생략 (단색 채우기는 ID가 필요 없으므로 그대로 둡니다) */}
-        <path fill='#DCDCDC' d='...' />
-        <path fill='#EFEFEF' d='...' />
-        <path fill='#fff' d='...' />
-
-        <path fill={`url(#${gradientBId})`} d='M27.222 24.111a3.11 3.11...' />
       </g>
 
-      {/* Definitions: 그래픽 리소스 정의 구간 */}
       <defs>
-        <clipPath id={clipPathId}>
+        {/* ClipPath 정의 */}
+        <clipPath id={clipId}>
           <rect width='28' height='28' fill='#fff' />
         </clipPath>
 
+        {/* Gradients 정의 */}
         <linearGradient
           id={gradAId}
           x1='14'
