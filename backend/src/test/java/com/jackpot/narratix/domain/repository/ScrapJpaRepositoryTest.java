@@ -33,6 +33,7 @@ class ScrapJpaRepositoryTest {
 
         // then
         assertThat(count).isEqualTo(3L);
+        assertThat(scrapJpaRepository.countByUserId(userId2)).isEqualTo(1L);
     }
 
     @Test

@@ -31,8 +31,6 @@ public class ScrapFixture {
         public Scrap build() {
             Scrap scrap = Scrap.of(userId, qnaId);
 
-            ReflectionTestUtils.setField(scrap, "id", scrap.getId());
-
             if (createdAt != null) {
                 ReflectionTestUtils.setField(scrap, "createdAt", createdAt);
                 ReflectionTestUtils.setField(scrap, "modifiedAt", createdAt);

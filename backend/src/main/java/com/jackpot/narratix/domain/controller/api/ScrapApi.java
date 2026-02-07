@@ -38,7 +38,8 @@ public interface ScrapApi {
     @Operation(summary = "스크랩 개수 조회", description = "사용자가 스크랩한 총 개수를 조회합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "조회 성공",
-                    content = @Content(schema = @Schema(implementation = ScrapCountResponse.class)))
+                    content = @Content(schema = @Schema(implementation = ScrapCountResponse.class))),
+            @ApiResponse(responseCode = "401", description = "인증 실패")
     })
     @GetMapping("/count")
     ResponseEntity<ScrapCountResponse> getScrapCount(

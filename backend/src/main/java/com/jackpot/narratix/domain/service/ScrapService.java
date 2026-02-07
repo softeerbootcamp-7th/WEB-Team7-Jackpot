@@ -35,6 +35,7 @@ public class ScrapService {
         return scrapRepository.existsById(scrapId);
     }
 
+    @Transactional(readOnly = true)
     public ScrapCountResponse getScrapCount(String userId) {
         return new ScrapCountResponse(scrapRepository.countByUserId(userId));
     }
