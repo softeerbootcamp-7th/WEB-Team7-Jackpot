@@ -15,7 +15,7 @@ const AuthLayout = ({
   subTitleColor = 'text-gray-950',
 }: AuthLayoutProps) => {
   return (
-    <div className='flex items-center gap-[8.75rem] px-[1.875rem] py-[1.875rem]'>
+    <div className='flex items-center gap-[8.75rem] px-[1.875rem] py-[1.875rem] select-none'>
       <img
         className='h-auto w-[65.5rem] rounded-[2.5rem]'
         src={loginBackground}
