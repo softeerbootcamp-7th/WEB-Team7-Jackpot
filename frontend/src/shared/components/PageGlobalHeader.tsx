@@ -16,8 +16,8 @@ const PageGlobalHeader = () => {
           <ul className='flex items-center gap-10 select-none'>
             {NAV_ITEMS.map((item) => {
               return (
-                <li key={item?.label}>
-                  <NavItem to={item?.path}>{item?.label}</NavItem>
+                <li key={item.label}>
+                  <NavItem to={item.path}>{item.label}</NavItem>
                 </li>
               );
             })}

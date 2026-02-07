@@ -31,7 +31,10 @@ const NewCoverLetter = () => {
           </div>
         </button>
       </div>
-      <form className='flex flex-col gap-10 self-stretch'>
+      <form
+        className='flex flex-col gap-10 self-stretch'
+        onSubmit={(e) => e.preventDefault()}
+      >
         <div className='flex items-center justify-start self-stretch'>
           <div className='flex flex-1 flex-col items-start justify-start gap-5'>
             <InputField title='기업명' placeholder='기업명을 입력해주세요' />

@@ -8,7 +8,7 @@ import RightArrow from '@/shared/icons/RightArrow';
 const HomePage = () => {
   return (
     <div className='flex min-h-screen w-full min-w-[1700px] flex-col overflow-x-hidden overflow-y-auto'>
-      <div className='flex flex-1 flex-col gap-10 px-[18.75rem] pb-4.5'>
+      <div className='flex flex-1 flex-col gap-10 px-[18.75rem] pb-[1.125rem]'>
         <img
           className='h-96 w-full rounded-2xl'
           src='/images/banner.png'

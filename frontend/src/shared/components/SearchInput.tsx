@@ -1,4 +1,4 @@
-import useSearch from '../../features/library/hooks/useSearch';
+import useSearch from '../hooks/useSearch';
 import { SearchIcon } from '../icons/Search';
 
 interface SearchBarProps {
@@ -12,10 +12,7 @@ const SearchInput = ({ onSearch, placeholder }: SearchBarProps) => {
   const { keyword, handleChange } = useSearch({ onSearch });
 
   return (
-    <search
-      role='search'
-      className='mb-6 inline-flex h-12 w-[25rem] items-center justify-between rounded-lg bg-gray-50 px-5 py-3.5'
-    >
+    <search className='mb-6 inline-flex h-12 w-[25rem] items-center justify-between rounded-lg bg-gray-50 px-5 py-3.5'>
       <input
         aria-label='검색어 입력'
         type='search'
