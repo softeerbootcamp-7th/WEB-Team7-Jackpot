@@ -1,12 +1,18 @@
 export interface InputBarProps extends React.InputHTMLAttributes<HTMLInputElement> {
   rightElement?: React.ReactNode;
+  isError?: boolean;
 }
 
-const InputBar = ({ rightElement, className, ...props }: InputBarProps) => {
+const InputBar = ({
+  rightElement,
+  className,
+  isError,
+  ...props
+}: InputBarProps) => {
   return (
     <div className='relative w-full'>
       <input
-        className={`w-full rounded-lg bg-gray-50 px-5 py-[0.875rem] outline-none ${className}`}
+        className={`w-full rounded-lg border bg-gray-50 px-5 py-[0.875rem] transition-colors duration-200 outline-none ${className} ${isError ? 'border-red-600' : 'border-transparent'}`}
         {...props}
       />
       {rightElement && (
