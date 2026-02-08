@@ -54,4 +54,14 @@ public interface NotificationApi {
             @Parameter(description = "읽음 처리할 알림 ID", required = true, example = "1")
             @PathVariable Long notificationId
     );
+
+    @Operation(summary = "모든 알림 읽음 처리", description = "사용자의 모든 알림을 읽음 상태로 변경합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "읽음 처리 성공"),
+            @ApiResponse(responseCode = "401", description = "인증 실패")
+    })
+    @PatchMapping("/all/read")
+    ResponseEntity<Void> markAllNotificationAsRead(
+            @Parameter(hidden = true) @UserId String userId
+    );
 }
