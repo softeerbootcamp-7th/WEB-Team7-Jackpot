@@ -164,6 +164,28 @@ body {
 
   /* Letter Spacing (이미지 -0.02em 반영) */
   --tracking-tight-custom: -0.02em;
+
+  /* Anmiation */
+  --animate-fade-in-out: fade-in-out 3s ease-in-out forwards;
+}
+
+@keyframes fade-in-out {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  90% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
 }
 
 /* 커스텀 유틸리티 클래스 추가 */

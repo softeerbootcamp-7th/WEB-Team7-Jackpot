@@ -17,7 +17,7 @@ const ToastMessage = ({ message, onClose, duration = 3000, status }: ToastProps)
   }, [onClose, duration]);
 
   return (
-    <div className='fixed right-0 bottom-0 left-0 z-50 flex justify-center pb-4'>
+    <div className='fixed top-0 right-0 left-0 z-50 flex justify-center pt-6'>
       <div className='animate-fade-in-out z-50 flex items-center gap-4 rounded-lg bg-black/60 px-6 py-3 text-sm font-semibold text-white shadow-lg backdrop-blur-md'>
         {status ? (
           <img src={doneIcon} alt='done' className='h-5 w-5' />
