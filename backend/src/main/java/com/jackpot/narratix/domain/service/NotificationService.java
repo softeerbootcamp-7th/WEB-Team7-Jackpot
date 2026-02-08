@@ -46,4 +46,9 @@ public class NotificationService {
 
         notification.read();
     }
+
+    @Transactional
+    public void markAllNotificationAsRead(String userId) {
+        notificationRepository.updateAllNotificationAsReadByUserId(userId);
+    }
 }
