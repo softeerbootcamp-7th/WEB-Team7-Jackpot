@@ -9,4 +9,6 @@ public interface ScrapRepository {
     Long countByUserId(String userId);
 
     boolean existsById(ScrapId scrapId);
+
+    void deleteById(ScrapId scrapId);
 }

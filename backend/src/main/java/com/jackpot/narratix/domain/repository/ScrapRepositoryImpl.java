@@ -25,5 +25,10 @@ public class ScrapRepositoryImpl implements ScrapRepository {
     public boolean existsById(ScrapId scrapId) {
         return scrapJpaRepository.existsById(scrapId);
     }
+
+    @Override
+    public void deleteById(ScrapId scrapId) {
+        scrapJpaRepository.deleteById(scrapId);
+    }
 }
 
