@@ -1,6 +1,7 @@
 import type { Review } from '@/features/review/types/review';
 import PaperChipIcon from '@/shared/icons/PaperChipIcon';
 import PenToolIcon from '@/shared/icons/PenToolIcon';
+import { getKoreanDate, getKoreanTime } from '@/shared/utils/dates';
 
 interface ReviewCardProps {
   review: Review;
@@ -17,22 +18,11 @@ const ReviewCard = ({
   const hasRevision = !!review.revision;
   const hasComment = !!review.comment;
 
-  // createdAt 파싱
   const formattedDate = review.createdAt
-    ? (() => {
-        const date = new Date(review.createdAt);
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = date.getHours();
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        const period = hours >= 12 ? '오후' : '오전';
-        const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
-
-        return {
-          date: `${month}월 ${day}일`,
-          time: `${period} ${displayHours}:${minutes}`,
-        };
-      })()
+    ? {
+        date: getKoreanDate(review.createdAt),
+        time: getKoreanTime(review.createdAt),
+      }
     : null;
 
   return (
@@ -55,7 +45,7 @@ const ReviewCard = ({
               <div className='absolute top-[12px] left-[17px] h-4 w-4 rounded-full bg-purple-300' />
             </div>
             <div className='inline-flex flex-1 flex-col items-start justify-center'>
-              <div className='line-clamp-1 justify-start self-stretch text-base leading-6 font-bold text-gray-900'>
+              <div className='line-clamp-1 flex justify-start self-stretch text-base leading-6 font-bold text-gray-900'>
                 {review.sender?.nickname}
               </div>
               {formattedDate && (
