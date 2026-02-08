@@ -47,7 +47,7 @@ const CoverLetterContent = ({
       const containerHeight = container.clientHeight;
       const computedStyle = window.getComputedStyle(container);
       const lineHeight = parseFloat(computedStyle.lineHeight) || 28;
-      setBottomPadding(containerHeight - lineHeight);
+      setBottomPadding(Math.max(0, containerHeight - lineHeight));
     };
 
     updatePadding();
