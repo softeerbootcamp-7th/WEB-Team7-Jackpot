@@ -118,7 +118,7 @@ class ScrapServiceTest {
 
     @Test
     @DisplayName("스크랩 삭제 - 성공")
-    void deleteScrap_Sucess() {
+    void deleteScrap_Success() {
         // given
         String userId = "user123";
         Long qnaId = 1L;
@@ -135,7 +135,7 @@ class ScrapServiceTest {
 
         // then
         assertThat(response.scrapCount()).isEqualTo(5L);
-        
+
         verify(scrapRepository).deleteById(scrapId);
         verify(scrapRepository).countByUserId(userId);
     }
