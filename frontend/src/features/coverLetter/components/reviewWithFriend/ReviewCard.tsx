@@ -14,7 +14,6 @@ const ReviewCard = ({
   onReviewClick,
 }: ReviewCardProps) => {
   const isSelected = selectedReviewId === review.id;
-  const isInvalid = review.isValid === false;
   const hasRevision = !!review.revision;
   const hasComment = !!review.comment;
 
@@ -38,7 +37,7 @@ const ReviewCard = ({
 
   return (
     <div
-      onClick={() => !isInvalid && onReviewClick(review.id)}
+      onClick={() => onReviewClick(review.id)}
       className={`inline-flex cursor-pointer flex-col items-start justify-start gap-3 self-stretch border-b border-gray-100 p-5 shadow-[0px_0px_30px_0px_rgba(41,41,41,0.02)] transition-all duration-200 ${selectedReviewId && !isSelected ? 'opacity-30' : 'opacity-100'}`}
     >
       <div className='flex w-full flex-col items-start justify-start gap-4'>

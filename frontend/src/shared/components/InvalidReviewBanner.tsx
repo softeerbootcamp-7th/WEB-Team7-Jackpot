@@ -8,7 +8,7 @@ const InvalidReviewBanner = ({
   isExpanded: boolean;
 }) => {
   return (
-    <div className='flex flex-col gap-0.5 rounded-lg bg-purple-50 px-5 py-4'>
+    <div className='flex w-full flex-col gap-0.5 rounded-lg bg-purple-50 px-5 py-4'>
       <div className='flex items-center gap-2'>
         <div className='relative h-6 w-6 overflow-hidden'>
           <TrashCanIcon />
