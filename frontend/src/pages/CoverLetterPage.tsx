@@ -1,3 +1,5 @@
+import { useCallback, useState } from 'react';
+
 import CoverLetter from '@/features/coverLetter/components/CoverLetter';
 import CoverLetterWriteSidebar from '@/features/coverLetter/components/CoverLetterWriteSidebar';
 import NewCoverLetter from '@/features/coverLetter/components/newCoverLetter/NewCoverLetter';
@@ -14,13 +16,15 @@ import DataGuard from '@/shared/components/DataGuard';
 import EmptyCase from '@/shared/components/EmptyCase';
 import SidebarLayout from '@/shared/components/SidebarLayout';
 import TabBar from '@/shared/components/TabBar';
+import useReviewState from '@/shared/hooks/useReviewState';
 
 const CoverLetterPage = () => {
-  // TODO: 전체 empty case 처리 필요
-  // 자기소개서 작성 엠티케이스
-  // QnA with a Friend 엠티케이스
-
   const { state, actions } = useCoverLetterParams();
+  const [selectedReviewId, setSelectedReviewId] = useState<string | null>(null);
+
+  const { currentReviews, currentPageIndex } = useReviewState(
+    state.selectedDocumentId ?? 1,
+  );
 
   const isWriteTab = state.currentTab === 'COVERLETTER_WRITE';
   const hasSelectedCoverLetter = state.selectedDocumentId !== null;
@@ -30,6 +34,13 @@ const CoverLetterPage = () => {
     handleTabChange: actions.handleTabChange,
     currentTab: state.currentTab,
   };
+
+  const handleReviewClick = useCallback((reviewId: string | null) => {
+    setSelectedReviewId(reviewId);
+  }, []);
+
+  // 페이지가 바뀌면 선택 초기화 - key를 사용하여 컴포넌트 리마운트
+  const pageKey = `${state.selectedDocumentId}-${currentPageIndex}`;
 
   return (
     <SidebarLayout
@@ -65,17 +76,27 @@ const CoverLetterPage = () => {
         {isWriteTab ? (
           <NewCoverLetter />
         ) : (
-          <div className='flex h-full w-full min-w-0 flex-row pb-39.5'>
+          <div
+            key={pageKey}
+            className='flex h-full w-full min-w-0 flex-row pb-39.5'
+          >
             <div className='h-full min-w-0 flex-1'>
               <CoverLetter
                 documentId={state.selectedDocumentId!}
                 openReview={actions.setIsReviewOpen}
                 isReviewOpen={state.isReviewOpen}
+                selectedReviewId={selectedReviewId}
+                onReviewClick={handleReviewClick}
               />
             </div>
+
             {state.isReviewOpen && (
               <aside className='w-[248px] border-l border-gray-100'>
-                <ReviewCardList />
+                <ReviewCardList
+                  reviews={currentReviews}
+                  selectedReviewId={selectedReviewId}
+                  onReviewClick={handleReviewClick}
+                />
               </aside>
             )}
           </div>

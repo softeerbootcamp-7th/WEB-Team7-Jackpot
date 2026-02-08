@@ -1,6 +1,6 @@
 import CoverLetterSection from '@/features/review/components/coverLetter/CoverLetterSection';
 import ReviewListSection from '@/features/review/components/review/ReviewListSection';
-import useReviewState from '@/features/review/hooks/useReviewState';
+import useReviewState from '@/shared/hooks/useReviewState';
 
 const ReviewLayout = () => {
   const {

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 
-import { useTextSelection } from '@/features/review/hooks/useTextSelection';
 import type { Review } from '@/features/review/types/review';
 import type { SelectionInfo } from '@/features/review/types/selectionInfo';
+import { useTextSelection } from '@/shared/hooks/useTextSelection';
+import type { TextChunk } from '@/shared/hooks/useTextSelection/helpers';
 
 interface CoverLetterContentProps {
   text: string;
@@ -60,7 +61,7 @@ const CoverLetterContent = ({
       }}
     >
       <div className='w-full py-[0.5rem] text-base leading-7 font-normal text-gray-800'>
-        {before.map((chunk, i) => (
+        {before.map((chunk: TextChunk, i: number) => (
           <span
             key={`before-${i}`}
             className={chunk.isHighlighted ? 'bg-red-100 font-bold' : ''}
@@ -73,7 +74,7 @@ const CoverLetterContent = ({
           <>
             <div className='h-2.5' />
             <span className='opacity-30'>
-              {after.map((chunk, i) => (
+              {after.map((chunk: TextChunk, i: number) => (
                 <span
                   key={`after-${i}`}
                   className={chunk.isHighlighted ? 'bg-red-100 font-bold' : ''}
