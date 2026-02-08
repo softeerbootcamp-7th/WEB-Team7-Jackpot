@@ -21,6 +21,7 @@ import useReviewState from '@/shared/hooks/useReviewState';
 const CoverLetterPage = () => {
   const { state, actions } = useCoverLetterParams();
   const [selectedReviewId, setSelectedReviewId] = useState<string | null>(null);
+  const reviewState = useReviewState(state.selectedDocumentId || 0);
 
   const { currentReviews, currentPageIndex } = useReviewState(
     state.selectedDocumentId ?? 1,
@@ -87,6 +88,7 @@ const CoverLetterPage = () => {
                 isReviewOpen={state.isReviewOpen}
                 selectedReviewId={selectedReviewId}
                 onReviewClick={handleReviewClick}
+                reviewState={reviewState}
               />
             </div>
 

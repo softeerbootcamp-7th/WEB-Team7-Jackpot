@@ -1,13 +1,14 @@
-// features/coverLetter/components/CoverLetter.tsx
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import CoverLetterContent from '@/features/coverLetter/components/CoverLetterContent';
 import CoverLetterMenu from '@/features/coverLetter/components/CoverLetterMenu';
 import ReviewModal from '@/features/coverLetter/components/reviewWithFriend/ReviewModal';
+import type { Review } from '@/features/review/types/review';
 import type { SelectionInfo } from '@/features/review/types/selectionInfo';
 import Pagination from '@/shared/components/Pagination';
-import useReviewState from '@/shared/hooks/useReviewState';
 import MoreVertIcon from '@/shared/icons/MoreVertIcon';
+import type { CoverLetter as CoverLetterType } from '@/shared/types/coverLetter';
+import type { QnA } from '@/shared/types/qna';
 
 const SPACER_HEIGHT = 10;
 
@@ -17,6 +18,15 @@ interface CoverLetterProps {
   isReviewOpen: boolean;
   selectedReviewId: string | null;
   onReviewClick: (reviewId: string | null) => void;
+  reviewState: {
+    coverLetter: CoverLetterType;
+    qnas: QnA[];
+    currentPageIndex: number;
+    currentQna: QnA | undefined;
+    currentText: string;
+    currentReviews: Review[];
+    handlePageChange: (index: number) => void;
+  };
 }
 
 const CoverLetter = ({
@@ -25,6 +35,7 @@ const CoverLetter = ({
   isReviewOpen,
   selectedReviewId,
   onReviewClick,
+  reviewState,
 }: CoverLetterProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selection, setSelection] = useState<SelectionInfo | null>(null);
@@ -40,7 +51,7 @@ const CoverLetter = ({
     currentText,
     currentReviews,
     handlePageChange,
-  } = useReviewState(documentId);
+  } = reviewState;
 
   const editingReview = selectedReviewId
     ? (currentReviews.find((r) => r.id === selectedReviewId) ?? null)
@@ -71,11 +82,12 @@ const CoverLetter = ({
   // 모달 외부 클릭 처리
   const handleDocumentMouseDown = useCallback(
     (e: MouseEvent) => {
+      if (!selection) return;
       if (modalRef.current?.contains(e.target as Node)) return;
       setSelection(null);
       onReviewClick(null);
     },
-    [onReviewClick],
+    [onReviewClick, selection],
   );
 
   useEffect(() => {
@@ -181,7 +193,8 @@ const CoverLetter = ({
         <div
           ref={modalRef}
           className='fixed z-[9999]'
-          role='presentation'
+          role='dialog'
+          aria-modal='true'
           style={{
             top: selection.modalTop + SPACER_HEIGHT,
             left: selection.modalLeft,
