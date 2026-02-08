@@ -68,7 +68,7 @@ const LoginForm = () => {
           {INPUT_BAR_IN_LOGIN.map((each) => (
             <React.Fragment key={each.ID}>
               <InputBar
-                isError={isLoginFailed}
+                isFail={isLoginFailed}
                 type={each.TYPE}
                 placeholder={each.PLACEHOLDER}
                 maxLength={each.MAX_LENGTH}
