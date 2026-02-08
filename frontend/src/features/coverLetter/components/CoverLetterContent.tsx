@@ -1,4 +1,3 @@
-// features/coverLetter/components/CoverLetterContent.tsx
 import { useEffect, useState } from 'react';
 
 import type { Review } from '@/features/review/types/review';
@@ -56,6 +55,15 @@ const CoverLetterContent = ({
     return () => resizeObserver.disconnect();
   }, [text, containerRef]);
 
+  const chunkPositions = before.reduce<number[]>(
+    (acc, _, i) => {
+      const prevEnd = acc[i - 1] ?? 0;
+      acc.push(prevEnd + (i > 0 ? before[i - 1].text.length : 0));
+      return acc;
+    },
+    [0],
+  );
+
   return (
     <div
       contentEditable={true}
@@ -78,9 +86,7 @@ const CoverLetterContent = ({
             return <span key={i}>{chunk.text}</span>;
           }
 
-          const chunkStart = before
-            .slice(0, i)
-            .reduce((sum: number, c: TextChunk) => sum + c.text.length, 0);
+          const chunkStart = chunkPositions[i];
           const chunkEnd = chunkStart + chunk.text.length;
 
           const matchingReview = reviews.find((review) => {
