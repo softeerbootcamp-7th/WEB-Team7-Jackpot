@@ -18,6 +18,8 @@ import java.util.List;
 
 import static com.jackpot.narratix.domain.fixture.BaseTimeEntityFixture.setAuditFields;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
 class NotificationJpaRepositoryTest {
@@ -86,6 +88,55 @@ class NotificationJpaRepositoryTest {
 
         // then
         assertThat(results).hasSize(5); // size만큼만 조회
+    }
+
+    @Test
+    @DisplayName("최근 알림 리스트 조회 시 size + 1개의 알림이 존재하면 hasNext true")
+    void findRecentByUserId_HasNextTrueWhenMoreNotificationsExist() {
+        // given
+        User user = saveUser("testUser456", "테스터2");
+        String userId = user.getId();
+        int size = 2;
+
+        LocalDateTime baseTime = LocalDateTime.now();
+
+        // size + 1개 알림 저장
+        createAndSaveNotification(userId, baseTime.minusDays(1), "알림1");
+        createAndSaveNotification(userId, baseTime.minusDays(2), "알림2");
+        createAndSaveNotification(userId, baseTime.minusDays(3), "알림3");
+
+        flushAndClear();
+
+        // when
+        Pageable pageable = PageRequest.ofSize(size);
+        Slice<Notification> slice = notificationJpaRepository.findRecentByUserId(userId, pageable);
+
+        // then
+        assertTrue(slice.hasNext());
+    }
+
+    @Test
+    @DisplayName("최근 알림 리스트 조회 시 size만큼의 알림이 존재하면 hasNext false")
+    void findRecentByUserId_HasNextFalseWhenExactSizeExists() {
+        // given
+        User user = saveUser("testUser456", "테스터2");
+        String userId = user.getId();
+        int size = 2;
+
+        LocalDateTime baseTime = LocalDateTime.now();
+
+        // size개 알림 저장
+        createAndSaveNotification(userId, baseTime.minusDays(1), "알림1");
+        createAndSaveNotification(userId, baseTime.minusDays(2), "알림2");
+
+        flushAndClear();
+
+        // when
+        Pageable pageable = PageRequest.ofSize(size);
+        Slice<Notification> slice = notificationJpaRepository.findRecentByUserId(userId, pageable);
+
+        // then
+        assertFalse(slice.hasNext());
     }
 
     @Test
@@ -234,6 +285,63 @@ class NotificationJpaRepositoryTest {
         // then
         assertThat(results).hasSize(2)
                 .allMatch(n -> n.getUserId().equals(user.getId()));
+    }
+
+    @Test
+    @DisplayName("커서 이후의 알림 리스트 조회 시 size + 1개 만큼의 알림이 존재하면 hasNext true")
+    void findAllByUserIdAfterCursor_HasNextTrueWhenMoreNotificationsExist() {
+        // given
+        User user = saveUser("testUser456", "테스터2");
+        String userId = user.getId();
+        int size = 2;
+
+        LocalDateTime baseTime = LocalDateTime.now();
+
+        // size개 알림 저장
+        createAndSaveNotification(userId, baseTime.minusDays(1), "알림1");
+        createAndSaveNotification(userId, baseTime.minusDays(2), "알림2");
+        createAndSaveNotification(userId, baseTime.minusDays(2), "알림3");
+
+        Notification cursor = createAndSaveNotification(userId, baseTime, "user1 커서 알림");
+
+        flushAndClear();
+
+        // when
+        Pageable pageable = PageRequest.ofSize(size);
+        Slice<Notification> slice = notificationJpaRepository.findAllByUserIdAfterCursor(
+                userId, cursor.getId(), pageable
+        );
+
+        // then
+        assertTrue(slice.hasNext());
+    }
+
+    @Test
+    @DisplayName("커서 이후의 알림 리스트 조회 시 size만큼의 알림이 존재하면 hasNext false")
+    void findAllByUserIdAfterCursor_HasNextFalseWhenExactSizeExists() {
+        // given
+        User user = saveUser("testUser456", "테스터2");
+        String userId = user.getId();
+        int size = 2;
+
+        LocalDateTime baseTime = LocalDateTime.now();
+
+        // size개 알림 저장
+        createAndSaveNotification(userId, baseTime.minusDays(1), "알림1");
+        createAndSaveNotification(userId, baseTime.minusDays(2), "알림2");
+
+        Notification cursor = createAndSaveNotification(userId, baseTime, "user1 커서 알림");
+
+        flushAndClear();
+
+        // when
+        Pageable pageable = PageRequest.ofSize(size);
+        Slice<Notification> slice = notificationJpaRepository.findAllByUserIdAfterCursor(
+                userId, cursor.getId(), pageable
+        );
+
+        // then
+        assertFalse(slice.hasNext());
     }
 
     private Notification createAndSaveNotification(String userId, LocalDateTime createdAt, String title) {
