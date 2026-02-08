@@ -45,6 +45,12 @@ public interface ScrapApi {
     );
 
     @Operation(summary = "스크랩 삭제", description = "문항 id로 스크랩을 삭제합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "조회 성공",
+                    content = @Content(schema = @Schema(implementation = ScrapCountResponse.class))),
+            @ApiResponse(responseCode = "401", description = "인증 실패"),
+            @ApiResponse(responseCode = "403", description = "삭제 권한이 없는 사용자")
+    })
     @DeleteMapping
     ResponseEntity<ScrapCountResponse> deleteScrapById(
             @Parameter(hidden = true) @UserId String userId,
