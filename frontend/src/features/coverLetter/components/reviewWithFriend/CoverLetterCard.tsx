@@ -1,15 +1,10 @@
+import type { CoverLetter } from '@/features/library/types';
+
 interface CoverLetterCardProps {
   isSelected?: boolean;
   isSelectStatus: boolean;
   onClick?: () => void;
-  coverLetter: {
-    id: number;
-    applySeason: string;
-    companyName: string;
-    jobPosition: string;
-    questionCount: number;
-    modifiedAt: string;
-  };
+  coverLetter: CoverLetter;
 }
 
 const CoverLetterCard = ({
