@@ -55,14 +55,14 @@ const CoverLetterContent = ({
     return () => resizeObserver.disconnect();
   }, [text, containerRef]);
 
-  const chunkPositions = before.reduce<number[]>(
-    (acc, _, i) => {
-      const prevEnd = acc[i - 1] ?? 0;
-      acc.push(prevEnd + (i > 0 ? before[i - 1].text.length : 0));
-      return acc;
-    },
-    [0],
-  );
+  const chunkPositions = before.reduce<number[]>((acc, _, i) => {
+    if (i === 0) {
+      acc.push(0);
+    } else {
+      acc.push(acc[i - 1] + before[i - 1].text.length);
+    }
+    return acc;
+  }, []);
 
   return (
     <div
