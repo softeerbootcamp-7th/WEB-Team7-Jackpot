@@ -3,6 +3,8 @@ package com.jackpot.narratix.domain.service;
 import com.jackpot.narratix.domain.controller.response.NotificationsPaginationResponse;
 import com.jackpot.narratix.domain.entity.Notification;
 import com.jackpot.narratix.domain.repository.NotificationRepository;
+import com.jackpot.narratix.global.exception.BaseException;
+import com.jackpot.narratix.global.exception.GlobalErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,7 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
 
+    @Transactional(readOnly = true)
     public NotificationsPaginationResponse getNotificationsByUserId(
             String userId, Optional<Long> lastNotificationId, Integer size
     ) {
@@ -33,5 +36,14 @@ public class NotificationService {
                 .toList();
 
         return new NotificationsPaginationResponse(notificationsResponses, notifications.hasNext());
+    }
+
+    @Transactional
+    public void markNotificationAsRead(String userId, Long notificationId) {
+        Notification notification = notificationRepository.findByIdOrElseThrow(notificationId);
+
+        if(!notification.isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
+
+        notification.read();
     }
 }
