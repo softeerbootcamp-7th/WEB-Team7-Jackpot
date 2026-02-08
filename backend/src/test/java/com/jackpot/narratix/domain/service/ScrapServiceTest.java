@@ -117,6 +117,23 @@ class ScrapServiceTest {
     }
 
     @Test
+    @DisplayName("스크랩 삭제 - 성공")
+    void deleteScrap_Sucess() {
+        // given
+        String userId = "user123";
+        Long qnaId = 1L;
+        QnA qna = QnAFixture.createQnA(null, userId, "question", MOTIVATION);
+        when(qnARepository.findByIdOrElseThrow(qnaId)).thenReturn(qna);
+        when(scrapRepository.countByUserId(userId)).thenReturn(0L);
+
+        //when
+        ScrapCountResponse response = scrapService.deleteScrapById(userId, qnaId);
+        assertThat(response.scrapCount()).isEqualTo(0L);
+        verify(scrapRepository).deleteById(any(ScrapId.class));
+        verify(scrapRepository).countByUserId(userId);
+    }
+
+    @Test
     @DisplayName("스크랩 삭제 - 본인 문항이 아닌 경우 스크랩 삭제 시도 시 예외 발생")
     void deleteScrap_Fail_Forbidden() {
         // given

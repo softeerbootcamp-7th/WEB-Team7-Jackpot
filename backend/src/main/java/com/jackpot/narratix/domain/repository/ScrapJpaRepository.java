@@ -11,5 +11,4 @@ public interface ScrapJpaRepository extends JpaRepository<Scrap, ScrapId> {
     Long countByUserId(String userId);
 
     boolean existsById(ScrapId scrapId);
-
 }
