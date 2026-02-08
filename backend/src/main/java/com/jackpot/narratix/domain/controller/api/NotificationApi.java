@@ -1,6 +1,6 @@
 package com.jackpot.narratix.domain.controller.api;
 
-import com.jackpot.narratix.domain.controller.UnreadNotificationCountResponse;
+import com.jackpot.narratix.domain.controller.response.UnreadNotificationCountResponse;
 import com.jackpot.narratix.domain.controller.response.NotificationsPaginationResponse;
 import com.jackpot.narratix.global.auth.UserId;
 import io.swagger.v3.oas.annotations.Operation;

@@ -2,6 +2,7 @@ package com.jackpot.narratix.domain.controller;
 
 import com.jackpot.narratix.domain.controller.api.NotificationApi;
 import com.jackpot.narratix.domain.controller.response.NotificationsPaginationResponse;
+import com.jackpot.narratix.domain.controller.response.UnreadNotificationCountResponse;
 import com.jackpot.narratix.domain.service.NotificationService;
 import com.jackpot.narratix.global.auth.UserId;
 import lombok.RequiredArgsConstructor;

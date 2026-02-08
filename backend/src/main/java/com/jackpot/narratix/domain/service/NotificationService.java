@@ -1,6 +1,6 @@
 package com.jackpot.narratix.domain.service;
 
-import com.jackpot.narratix.domain.controller.UnreadNotificationCountResponse;
+import com.jackpot.narratix.domain.controller.response.UnreadNotificationCountResponse;
 import com.jackpot.narratix.domain.controller.response.NotificationsPaginationResponse;
 import com.jackpot.narratix.domain.entity.Notification;
 import com.jackpot.narratix.domain.repository.NotificationRepository;
@@ -11,7 +11,6 @@ import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service

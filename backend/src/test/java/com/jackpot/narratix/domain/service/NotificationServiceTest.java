@@ -1,7 +1,6 @@
 package com.jackpot.narratix.domain.service;
 
-import com.jackpot.narratix.domain.controller.UnreadNotificationCountResponse;
-import com.jackpot.narratix.domain.controller.response.NotificationsPaginationResponse;
+import com.jackpot.narratix.domain.controller.response.UnreadNotificationCountResponse;
 import com.jackpot.narratix.domain.entity.Notification;
 import com.jackpot.narratix.domain.fixture.NotificationFixture;
 import com.jackpot.narratix.domain.repository.NotificationRepository;
