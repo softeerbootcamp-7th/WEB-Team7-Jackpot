@@ -41,6 +41,6 @@ public class ScrapController implements ScrapApi {
             @UserId String userId,
             @RequestParam Long qnaId
     ) {
-        return ResponseEntity.ok(scrapService.deleteById(userId, qnaId));
+        return ResponseEntity.ok(scrapService.deleteScrapById(userId, qnaId));
     }
 }
