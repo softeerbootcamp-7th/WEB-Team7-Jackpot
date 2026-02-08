@@ -61,7 +61,7 @@ const CoverLetterContent = ({
       contentEditable={true}
       ref={containerRef}
       onMouseUp={handleMouseUp}
-      className='relative ml-12 min-h-0 w-full flex-1 px-4'
+      className='relative ml-12 min-h-0 w-full flex-1 px-4 outline-none'
       style={{
         whiteSpace: 'pre-wrap',
         overflowY: selection ? 'hidden' : 'auto',
