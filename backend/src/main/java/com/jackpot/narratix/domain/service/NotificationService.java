@@ -1,5 +1,6 @@
 package com.jackpot.narratix.domain.service;
 
+import com.jackpot.narratix.domain.controller.UnreadNotificationCountResponse;
 import com.jackpot.narratix.domain.controller.response.NotificationsPaginationResponse;
 import com.jackpot.narratix.domain.entity.Notification;
 import com.jackpot.narratix.domain.repository.NotificationRepository;
@@ -50,5 +51,11 @@ public class NotificationService {
     @Transactional
     public void markAllNotificationAsRead(String userId) {
         notificationRepository.updateAllNotificationAsReadByUserId(userId);
+    }
+
+    @Transactional(readOnly = true)
+    public UnreadNotificationCountResponse countUnreadNotification(String userId) {
+        long unreadNotificationCount = notificationRepository.countByUserIdAndIsRead(userId, false);
+        return new UnreadNotificationCountResponse(unreadNotificationCount);
     }
 }
