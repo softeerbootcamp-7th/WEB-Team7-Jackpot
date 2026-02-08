@@ -1,4 +1,4 @@
-package com.jackpot.narratix.domain.controller.dto;
+package com.jackpot.narratix.domain.controller.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;

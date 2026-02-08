@@ -1,10 +1,10 @@
 package com.jackpot.narratix.domain.controller;
 
 import com.jackpot.narratix.domain.controller.api.UserAuthApi;
-import com.jackpot.narratix.domain.controller.dto.CheckIdRequest;
-import com.jackpot.narratix.domain.controller.dto.JoinRequest;
-import com.jackpot.narratix.domain.controller.dto.LoginRequest;
-import com.jackpot.narratix.domain.controller.dto.UserTokenResponse;
+import com.jackpot.narratix.domain.controller.request.CheckIdRequest;
+import com.jackpot.narratix.domain.controller.request.JoinRequest;
+import com.jackpot.narratix.domain.controller.request.LoginRequest;
+import com.jackpot.narratix.domain.controller.response.UserTokenResponse;
 import com.jackpot.narratix.domain.service.UserAuthService;
 import com.jackpot.narratix.global.auth.jwt.service.dto.TokenResponse;
 import jakarta.validation.Valid;

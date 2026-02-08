@@ -1,4 +1,4 @@
-package com.jackpot.narratix.domain.controller.dto;
+package com.jackpot.narratix.domain.controller.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
