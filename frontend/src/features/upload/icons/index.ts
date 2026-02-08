@@ -5,6 +5,7 @@ import DocumentBoxIcon from '@/features/upload/icons/DocumentBoxIcon';
 import DropdownArrow from '@/features/upload/icons/DropdownArrow';
 import FileUploadIcon from '@/features/upload/icons/FileUploadIcon';
 import FirstStepIcon from '@/features/upload/icons/FirstStepIcon';
+import FolderIconInButton from '@/features/upload/icons/FolderIconInButton';
 import LeftPaginationButtonIcon from '@/features/upload/icons/LeftPaginationButtonIcon';
 import RightPaginationButtonIcon from '@/features/upload/icons/RightPaginationButtonIcon';
 import SecondStepIcon from '@/features/upload/icons/SecondStepIcon';
@@ -26,4 +27,5 @@ export const UploadPageIcons = {
   LeftPaginationButtonIcon: LeftPaginationButtonIcon,
   RightPaginationButtonIcon: RightPaginationButtonIcon,
   DropdownArrow: DropdownArrow,
+  FolderIconInButton: FolderIconInButton,
 };
