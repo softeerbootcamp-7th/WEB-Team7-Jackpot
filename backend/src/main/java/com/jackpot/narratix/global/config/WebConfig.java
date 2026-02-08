@@ -26,7 +26,10 @@ public class WebConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOrigins("http://localhost:3000")
-                .allowedOriginPatterns("https://*.narratix.site")
+                .allowedOriginPatterns(
+                        "https://*.narratix.site",
+                        "https://narratix.site"
+                )
                 .allowedMethods(
                         HttpMethod.GET.name(),
                         HttpMethod.POST.name(),
