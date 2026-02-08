@@ -118,7 +118,7 @@ const CoverLetter = ({
             ref={buttonRef}
             type='button'
             onClick={() => setIsMenuOpen((prev) => !prev)}
-            className='rounded-lg p-1 hover:bg-gray-100'
+            className='cursor-pointer rounded-lg p-1'
             aria-label='더보기'
           >
             <MoreVertIcon />
