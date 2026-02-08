@@ -4,6 +4,7 @@ interface SidebarLayoutProps {
   headerSlot: ReactNode;
   sidebarSlot: ReactNode;
   children: ReactNode;
+  isReviewOpen?: boolean;
 }
 
 // [박소민] TODO: 지금 root 태그에 원래 overflow-hidden이 있었는데 삭제했습니다.
@@ -13,9 +14,12 @@ const SidebarLayout = ({
   headerSlot,
   sidebarSlot,
   children,
+  isReviewOpen,
 }: SidebarLayoutProps) => {
   return (
-    <div className='flex h-[calc(100vh-6.25rem)] w-full min-w-[1700px] flex-col px-75'>
+    <div
+      className={`flex h-[calc(100vh-6.25rem)] w-full min-w-[1700px] flex-col ${isReviewOpen ? 'pl-75' : 'px-75'}`}
+    >
       <div className='flex-none'>{headerSlot}</div>
 
       <div className='flex min-h-0 w-full flex-1'>

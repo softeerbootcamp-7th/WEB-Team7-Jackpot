@@ -49,6 +49,7 @@ const CoverLetterPage = () => {
           />
         )
       }
+      isReviewOpen={state.isReviewOpen}
     >
       <DataGuard
         data={hasSelectedCoverLetter}
@@ -59,21 +60,21 @@ const CoverLetterPage = () => {
               : emptyCaseText.qnAwithFriend)}
           />
         }
+        className='h-full'
       >
         {isWriteTab ? (
           <NewCoverLetter />
         ) : (
-          <div className='flex h-full w-full min-w-0'>
-            <div className='min-w-0 flex-1'>
+          <div className='flex h-full w-full min-w-0 flex-row pb-39.5'>
+            <div className='h-full min-w-0'>
               <CoverLetter
                 documentId={state.selectedDocumentId!}
                 openReview={actions.setIsReviewOpen}
                 isReviewOpen={state.isReviewOpen}
               />
             </div>
-
             {state.isReviewOpen && (
-              <aside className='w-[360px] flex-none border-l border-gray-100'>
+              <aside className='w-[248px] border-l border-gray-100'>
                 <ReviewCardList />
               </aside>
             )}
