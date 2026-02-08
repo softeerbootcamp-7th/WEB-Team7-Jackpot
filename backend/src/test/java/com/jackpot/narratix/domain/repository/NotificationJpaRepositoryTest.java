@@ -18,6 +18,8 @@ import java.util.List;
 
 import static com.jackpot.narratix.domain.fixture.BaseTimeEntityFixture.setAuditFields;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
 class NotificationJpaRepositoryTest {
@@ -86,6 +88,55 @@ class NotificationJpaRepositoryTest {
 
         // then
         assertThat(results).hasSize(5); // size만큼만 조회
+    }
+
+    @Test
+    @DisplayName("최근 알림 리스트 조회 시 size + 1개의 알림이 존재하면 hasNext true")
+    void findRecentByUserId_HasNextTrueWhenMoreNotificationsExist() {
+        // given
+        User user = saveUser("testUser456", "테스터2");
+        String userId = user.getId();
+        int size = 2;
+
+        LocalDateTime baseTime = LocalDateTime.now();
+
+        // size + 1개 알림 저장
+        createAndSaveNotification(userId, baseTime.minusDays(1), "알림1");
+        createAndSaveNotification(userId, baseTime.minusDays(2), "알림2");
+        createAndSaveNotification(userId, baseTime.minusDays(3), "알림3");
+
+        flushAndClear();
+
+        // when
+        Pageable pageable = PageRequest.ofSize(size);
+        Slice<Notification> slice = notificationJpaRepository.findRecentByUserId(userId, pageable);
+
+        // then
+        assertTrue(slice.hasNext());
+    }
+
+    @Test
+    @DisplayName("최근 알림 리스트 조회 시 size만큼의 알림이 존재하면 hasNext false")
+    void findRecentByUserId_HasNextFalseWhenExactSizeExists() {
+        // given
+        User user = saveUser("testUser456", "테스터2");
+        String userId = user.getId();
+        int size = 2;
+
+        LocalDateTime baseTime = LocalDateTime.now();
+
+        // size개 알림 저장
+        createAndSaveNotification(userId, baseTime.minusDays(1), "알림1");
+        createAndSaveNotification(userId, baseTime.minusDays(2), "알림2");
+
+        flushAndClear();
+
+        // when
+        Pageable pageable = PageRequest.ofSize(size);
+        Slice<Notification> slice = notificationJpaRepository.findRecentByUserId(userId, pageable);
+
+        // then
+        assertFalse(slice.hasNext());
     }
 
     @Test
@@ -236,6 +287,63 @@ class NotificationJpaRepositoryTest {
                 .allMatch(n -> n.getUserId().equals(user.getId()));
     }
 
+    @Test
+    @DisplayName("커서 이후의 알림 리스트 조회 시 size + 1개 만큼의 알림이 존재하면 hasNext true")
+    void findAllByUserIdAfterCursor_HasNextTrueWhenMoreNotificationsExist() {
+        // given
+        User user = saveUser("testUser456", "테스터2");
+        String userId = user.getId();
+        int size = 2;
+
+        LocalDateTime baseTime = LocalDateTime.now();
+
+        // size개 알림 저장
+        createAndSaveNotification(userId, baseTime.minusDays(1), "알림1");
+        createAndSaveNotification(userId, baseTime.minusDays(2), "알림2");
+        createAndSaveNotification(userId, baseTime.minusDays(2), "알림3");
+
+        Notification cursor = createAndSaveNotification(userId, baseTime, "user1 커서 알림");
+
+        flushAndClear();
+
+        // when
+        Pageable pageable = PageRequest.ofSize(size);
+        Slice<Notification> slice = notificationJpaRepository.findAllByUserIdAfterCursor(
+                userId, cursor.getId(), pageable
+        );
+
+        // then
+        assertTrue(slice.hasNext());
+    }
+
+    @Test
+    @DisplayName("커서 이후의 알림 리스트 조회 시 size만큼의 알림이 존재하면 hasNext false")
+    void findAllByUserIdAfterCursor_HasNextFalseWhenExactSizeExists() {
+        // given
+        User user = saveUser("testUser456", "테스터2");
+        String userId = user.getId();
+        int size = 2;
+
+        LocalDateTime baseTime = LocalDateTime.now();
+
+        // size개 알림 저장
+        createAndSaveNotification(userId, baseTime.minusDays(1), "알림1");
+        createAndSaveNotification(userId, baseTime.minusDays(2), "알림2");
+
+        Notification cursor = createAndSaveNotification(userId, baseTime, "user1 커서 알림");
+
+        flushAndClear();
+
+        // when
+        Pageable pageable = PageRequest.ofSize(size);
+        Slice<Notification> slice = notificationJpaRepository.findAllByUserIdAfterCursor(
+                userId, cursor.getId(), pageable
+        );
+
+        // then
+        assertFalse(slice.hasNext());
+    }
+
     private Notification createAndSaveNotification(String userId, LocalDateTime createdAt, String title) {
         Notification notification = NotificationFixture.builder()
                 .userId(userId)
@@ -260,5 +368,194 @@ class NotificationJpaRepositoryTest {
     private void flushAndClear() {
         entityManager.flush();
         entityManager.clear();
+    }
+
+    @Test
+    @DisplayName("전체 알림 읽음 처리 시 읽지 않은 알림들만 읽음 상태로 변경")
+    void updateAllAsReadByUserId_UpdatesOnlyUnreadNotifications() {
+        // given
+        User user = saveUser("testUser123", "테스터");
+        String userId = user.getId();
+
+        LocalDateTime now = LocalDateTime.now();
+
+        // 읽지 않은 알림 3개, 읽은 알림 2개 생성
+        Notification unread1 = NotificationFixture.builder()
+                .userId(userId)
+                .type(NotificationType.FEEDBACK)
+                .title("읽지 않은 알림1")
+                .content("내용1")
+                .isRead(false)
+                .createdAt(now)
+                .modifiedAt(now)
+                .build();
+        Notification unread2 = NotificationFixture.builder()
+                .userId(userId)
+                .type(NotificationType.FEEDBACK)
+                .title("읽지 않은 알림2")
+                .content("내용2")
+                .isRead(false)
+                .createdAt(now)
+                .modifiedAt(now)
+                .build();
+        Notification unread3 = NotificationFixture.builder()
+                .userId(userId)
+                .type(NotificationType.FEEDBACK)
+                .title("읽지 않은 알림3")
+                .content("내용3")
+                .isRead(false)
+                .createdAt(now)
+                .modifiedAt(now)
+                .build();
+        Notification read1 = NotificationFixture.builder()
+                .userId(userId)
+                .type(NotificationType.FEEDBACK)
+                .title("읽은 알림1")
+                .content("내용4")
+                .isRead(true)
+                .createdAt(now)
+                .modifiedAt(now)
+                .build();
+        Notification read2 = NotificationFixture.builder()
+                .userId(userId)
+                .type(NotificationType.FEEDBACK)
+                .title("읽은 알림2")
+                .content("내용5")
+                .isRead(true)
+                .createdAt(now)
+                .modifiedAt(now)
+                .build();
+
+        notificationJpaRepository.save(unread1);
+        notificationJpaRepository.save(unread2);
+        notificationJpaRepository.save(unread3);
+        notificationJpaRepository.save(read1);
+        notificationJpaRepository.save(read2);
+
+        flushAndClear();
+
+        // when
+        notificationJpaRepository.updateAllAsReadByUserId(userId);
+        flushAndClear();
+
+        // then
+        List<Notification> allNotifications = notificationJpaRepository.findAll();
+        assertThat(allNotifications).hasSize(5)
+                .allMatch(Notification::isRead); // 모든 알림이 읽음 상태여야 함
+    }
+
+    @Test
+    @DisplayName("전체 알림 읽음 처리 시 다른 사용자의 알림은 변경되지 않음")
+    void updateAllAsReadByUserId_DoesNotUpdateOtherUsersNotifications() {
+        // given
+        User user1 = saveUser("testUser123", "테스터1");
+        User user2 = saveUser("testUser456", "테스터2");
+
+        LocalDateTime now = LocalDateTime.now();
+
+        // user1의 읽지 않은 알림
+        Notification user1Notification = NotificationFixture.builder()
+                .userId(user1.getId())
+                .type(NotificationType.FEEDBACK)
+                .title("user1 알림")
+                .content("내용1")
+                .isRead(false)
+                .createdAt(now)
+                .modifiedAt(now)
+                .build();
+
+        // user2의 읽지 않은 알림
+        Notification user2Notification = NotificationFixture.builder()
+                .userId(user2.getId())
+                .type(NotificationType.FEEDBACK)
+                .title("user2 알림")
+                .content("내용2")
+                .isRead(false)
+                .createdAt(now)
+                .modifiedAt(now)
+                .build();
+
+        notificationJpaRepository.save(user1Notification);
+        notificationJpaRepository.save(user2Notification);
+
+        flushAndClear();
+
+        // when - user1의 알림만 읽음 처리
+        notificationJpaRepository.updateAllAsReadByUserId(user1.getId());
+        flushAndClear();
+
+        // then
+        Notification updatedUser1Notification = notificationJpaRepository.findById(user1Notification.getId()).orElseThrow();
+        Notification updatedUser2Notification = notificationJpaRepository.findById(user2Notification.getId()).orElseThrow();
+
+        assertThat(updatedUser1Notification.isRead()).isTrue(); // user1의 알림은 읽음
+        assertThat(updatedUser2Notification.isRead()).isFalse(); // user2의 알림은 읽지 않음 상태 유지
+    }
+
+    @Test
+    @DisplayName("읽지 않은 알림 개수 조회")
+    void countByUserIdAndIsRead_CountsUnreadNotifications() {
+        // given
+        User user = saveUser("testUser123", "테스터");
+        String userId = user.getId();
+
+        LocalDateTime now = LocalDateTime.now();
+
+        // 읽지 않은 알림 3개, 읽은 알림 2개 생성
+        for (int i = 0; i < 3; i++) {
+            createAndSaveNotification(userId, now.minusDays(i), "읽지 않은 알림" + i);
+        }
+        for (int i = 0; i < 2; i++) {
+            Notification read = NotificationFixture.builder()
+                    .userId(userId)
+                    .type(NotificationType.FEEDBACK)
+                    .title("읽은 알림" + i)
+                    .content("내용")
+                    .isRead(true)
+                    .createdAt(now)
+                    .modifiedAt(now)
+                    .build();
+            notificationJpaRepository.save(read);
+        }
+
+        flushAndClear();
+
+        // when
+        long unreadCount = notificationJpaRepository.countByUserIdAndIsRead(userId, false);
+        long readCount = notificationJpaRepository.countByUserIdAndIsRead(userId, true);
+
+        // then
+        assertThat(unreadCount).isEqualTo(3);
+        assertThat(readCount).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("읽지 않은 알림 개수 조회 시 해당 userId의 알림만 카운트")
+    void countByUserIdAndIsRead_CountsOnlySpecificUsersNotifications() {
+        // given
+        User user1 = saveUser("testUser123", "테스터1");
+        User user2 = saveUser("testUser456", "테스터2");
+
+        LocalDateTime now = LocalDateTime.now();
+
+        // user1의 읽지 않은 알림 3개
+        for (int i = 0; i < 3; i++) {
+            createAndSaveNotification(user1.getId(), now.minusDays(i), "user1 알림" + i);
+        }
+
+        // user2의 읽지 않은 알림 2개
+        for (int i = 0; i < 2; i++) {
+            createAndSaveNotification(user2.getId(), now.minusDays(i), "user2 알림" + i);
+        }
+
+        flushAndClear();
+
+        // when
+        long user1UnreadCount = notificationJpaRepository.countByUserIdAndIsRead(user1.getId(), false);
+        long user2UnreadCount = notificationJpaRepository.countByUserIdAndIsRead(user2.getId(), false);
+
+        // then
+        assertThat(user1UnreadCount).isEqualTo(3);
+        assertThat(user2UnreadCount).isEqualTo(2);
     }
 }

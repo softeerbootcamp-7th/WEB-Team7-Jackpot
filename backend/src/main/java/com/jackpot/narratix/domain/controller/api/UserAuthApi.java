@@ -1,9 +1,9 @@
 package com.jackpot.narratix.domain.controller.api;
 
-import com.jackpot.narratix.domain.controller.dto.CheckIdRequest;
-import com.jackpot.narratix.domain.controller.dto.JoinRequest;
-import com.jackpot.narratix.domain.controller.dto.LoginRequest;
-import com.jackpot.narratix.domain.controller.dto.UserTokenResponse;
+import com.jackpot.narratix.domain.controller.request.CheckIdRequest;
+import com.jackpot.narratix.domain.controller.request.JoinRequest;
+import com.jackpot.narratix.domain.controller.request.LoginRequest;
+import com.jackpot.narratix.domain.controller.response.UserTokenResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;

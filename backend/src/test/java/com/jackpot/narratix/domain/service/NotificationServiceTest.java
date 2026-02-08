@@ -1,8 +1,11 @@
 package com.jackpot.narratix.domain.service;
 
-import com.jackpot.narratix.domain.controller.response.NotificationsPaginationResponse;
+import com.jackpot.narratix.domain.controller.response.UnreadNotificationCountResponse;
 import com.jackpot.narratix.domain.entity.Notification;
+import com.jackpot.narratix.domain.fixture.NotificationFixture;
 import com.jackpot.narratix.domain.repository.NotificationRepository;
+import com.jackpot.narratix.global.exception.BaseException;
+import com.jackpot.narratix.global.exception.GlobalErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +21,7 @@ import java.util.Optional;
 
 import static com.jackpot.narratix.domain.fixture.NotificationFixture.createMockNotifications;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -36,18 +40,17 @@ class NotificationServiceTest {
         // given
         String userId = "testUser123";
         int size = 10;
-        int fetchLimit = size + 1;
         Optional<Long> lastNotificationId = Optional.empty();
 
         List<Notification> mockNotifications = createMockNotifications(5);
-        Slice<Notification> mockSlice = new SliceImpl<>(mockNotifications, PageRequest.ofSize(fetchLimit), false);
-        given(notificationRepository.findRecentByUserId(userId, fetchLimit)).willReturn(mockSlice);
+        Slice<Notification> mockSlice = new SliceImpl<>(mockNotifications, PageRequest.ofSize(size), false);
+        given(notificationRepository.findRecentByUserId(userId, size)).willReturn(mockSlice);
 
         // when
         notificationService.getNotificationsByUserId(userId, lastNotificationId, size);
 
         // then
-        verify(notificationRepository, times(1)).findRecentByUserId(userId, fetchLimit);
+        verify(notificationRepository, times(1)).findRecentByUserId(userId, size);
         verify(notificationRepository, never()).findAllByUserId(any(), any(), any());
     }
 
@@ -57,94 +60,94 @@ class NotificationServiceTest {
         // given
         String userId = "testUser123";
         int size = 10;
-        int fetchLimit = size + 1;
         Long lastNotificationId = 100L;
         Optional<Long> lastNotificationIdOptional = Optional.of(lastNotificationId);
 
         List<Notification> mockNotifications = createMockNotifications(5);
-        Slice<Notification> mockSlice = new SliceImpl<>(mockNotifications, PageRequest.ofSize(fetchLimit), false);
-        given(notificationRepository.findAllByUserId(userId, lastNotificationId, fetchLimit)).willReturn(mockSlice);
+        Slice<Notification> mockSlice = new SliceImpl<>(mockNotifications, PageRequest.ofSize(size), false);
+        given(notificationRepository.findAllByUserId(userId, lastNotificationId, size)).willReturn(mockSlice);
 
         // when
         notificationService.getNotificationsByUserId(userId, lastNotificationIdOptional, size);
 
         // then
-        verify(notificationRepository, times(1)).findAllByUserId(userId, lastNotificationId, fetchLimit);
+        verify(notificationRepository, times(1)).findAllByUserId(userId, lastNotificationId, size);
         verify(notificationRepository, never()).findRecentByUserId(any(), any());
     }
 
     @Test
-    @DisplayName("조회된 데이터 개수가 fetchLimit(size+1)와 같으면 hasNext는 true")
-    void getNotificationsByUserId_resultSizeEqualsFetchLimit_hasNextIsTrue() {
+    @DisplayName("알림 읽음 처리 성공")
+    void markNotificationAsRead_Success() {
         // given
         String userId = "testUser123";
-        int size = 10;
-        int fetchLimit = size + 1;
-        Optional<Long> lastNotificationId = Optional.empty();
+        Long notificationId = 1L;
+        Notification notification = NotificationFixture.builder()
+                .id(notificationId)
+                .userId(userId)
+                .isRead(false)
+                .build();
 
-        // fetchLimit(11)개 조회됨 - 다음 페이지가 있음을 의미
-        List<Notification> mockNotifications = createMockNotifications(fetchLimit);
-        Slice<Notification> mockSlice = new SliceImpl<>(mockNotifications, PageRequest.ofSize(fetchLimit), true);
-        given(notificationRepository.findRecentByUserId(userId, fetchLimit)).willReturn(mockSlice);
+        given(notificationRepository.findByIdOrElseThrow(notificationId)).willReturn(notification);
 
         // when
-        NotificationsPaginationResponse response = notificationService.getNotificationsByUserId(
-                userId, lastNotificationId, size
-        );
+        notificationService.markNotificationAsRead(userId, notificationId);
 
         // then
-        assertThat(response.hasNext()).isTrue();
-        assertThat(response.notifications()).hasSize(size); // 실제 반환은 size(10)개만
+        assertThat(notification.isRead()).isTrue();
+        verify(notificationRepository, times(1)).findByIdOrElseThrow(notificationId);
     }
 
     @Test
-    @DisplayName("조회된 데이터 개수가 fetchLimit(size+1)보다 작으면 hasNext는 false")
-    void getNotificationsByUserId_resultSizeLessThanFetchLimit_hasNextIsFalse() {
+    @DisplayName("알림 읽음 처리 시 다른 사용자의 알림은 에러를 발생시킨다.")
+    void markNotificationAsRead_ThrowsException_WhenNotOwner() {
         // given
         String userId = "testUser123";
-        int size = 10;
-        int fetchLimit = size + 1;
-        Optional<Long> lastNotificationId = Optional.empty();
+        String otherUserId = "otherUser456";
+        Long notificationId = 1L;
+        Notification notification = NotificationFixture.builder()
+                .id(notificationId)
+                .userId(otherUserId)
+                .isRead(false)
+                .build();
 
-        // fetchLimit(11)보다 작은 5개만 조회됨 - 마지막 페이지임을 의미
-        List<Notification> mockNotifications = createMockNotifications(5);
-        Slice<Notification> mockSlice = new SliceImpl<>(mockNotifications, PageRequest.ofSize(fetchLimit), false);
-        given(notificationRepository.findRecentByUserId(userId, fetchLimit)).willReturn(mockSlice);
+        given(notificationRepository.findByIdOrElseThrow(notificationId)).willReturn(notification);
 
-        // when
-        NotificationsPaginationResponse response = notificationService.getNotificationsByUserId(
-                userId, lastNotificationId, size
-        );
+        // when & then
+        assertThatThrownBy(() -> notificationService.markNotificationAsRead(userId, notificationId))
+                .isInstanceOf(BaseException.class)
+                .hasFieldOrPropertyWithValue("errorCode", GlobalErrorCode.FORBIDDEN);
 
-        // then
-        assertThat(response.hasNext()).isFalse();
-        assertThat(response.notifications()).hasSize(5); // 조회된 5개 모두 반환
+        assertThat(notification.isRead()).isFalse(); // 읽음 처리되지 않음
+        verify(notificationRepository, times(1)).findByIdOrElseThrow(notificationId);
     }
 
     @Test
-    @DisplayName("lastNotificationId가 있을 때도 size개만 반환")
-    void getNotificationsByUserId_withLastNotificationId_returnsSizeItems() {
+    @DisplayName("모든 알림 읽음 처리 성공")
+    void markAllNotificationAsRead_Success() {
         // given
         String userId = "testUser123";
-        int size = 5;
-        int fetchLimit = size + 1;
-        Long lastNotificationId = 100L;
-        Optional<Long> lastNotificationIdOptional = Optional.of(lastNotificationId);
-
-        // fetchLimit(6)개 조회됨
-        List<Notification> mockNotifications = createMockNotifications(fetchLimit);
-        Slice<Notification> mockSlice = new SliceImpl<>(mockNotifications, PageRequest.ofSize(fetchLimit), true);
-        given(notificationRepository.findAllByUserId(userId, lastNotificationId, fetchLimit))
-                .willReturn(mockSlice);
+        doNothing().when(notificationRepository).updateAllNotificationAsReadByUserId(userId);
 
         // when
-        NotificationsPaginationResponse response = notificationService.getNotificationsByUserId(
-                userId, lastNotificationIdOptional, size
-        );
+        notificationService.markAllNotificationAsRead(userId);
 
         // then
-        assertThat(response.notifications()).hasSize(size); // size(5)개만 반환
-        assertThat(response.hasNext()).isTrue();
-        verify(notificationRepository, times(1)).findAllByUserId(userId, lastNotificationId, fetchLimit);
+        verify(notificationRepository, times(1)).updateAllNotificationAsReadByUserId(userId);
+    }
+
+    @Test
+    @DisplayName("읽지 않은 알림 개수 조회 성공")
+    void countUnreadNotification_Success() {
+        // given
+        String userId = "testUser123";
+        long expectedCount = 5L;
+        given(notificationRepository.countByUserIdAndIsRead(userId, false)).willReturn(expectedCount);
+
+        // when
+        UnreadNotificationCountResponse response = notificationService.countUnreadNotification(userId);
+
+        // then
+        assertThat(response.unreadNotificationCount()).isEqualTo(expectedCount);
+        verify(notificationRepository, times(1)).countByUserIdAndIsRead(userId, false);
     }
 }

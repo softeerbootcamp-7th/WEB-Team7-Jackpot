@@ -1,6 +1,8 @@
 package com.jackpot.narratix.domain.repository;
 
 import com.jackpot.narratix.domain.entity.Notification;
+import com.jackpot.narratix.domain.exception.NotificationErrorCode;
+import com.jackpot.narratix.global.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,5 +25,21 @@ public class NotificationRepositoryImpl implements NotificationRepository {
     public Slice<Notification> findRecentByUserId(String userId, Integer limit) {
         Pageable pageable = PageRequest.ofSize(limit);
         return notificationJpaRepository.findRecentByUserId(userId, pageable);
+    }
+
+    @Override
+    public Notification findByIdOrElseThrow(Long notificationId) {
+        return notificationJpaRepository.findById(notificationId)
+                .orElseThrow(() -> new BaseException(NotificationErrorCode.NOTIFICATION_NOT_FOUND));
+    }
+
+    @Override
+    public void updateAllNotificationAsReadByUserId(String userId) {
+        notificationJpaRepository.updateAllAsReadByUserId(userId);
+    }
+
+    @Override
+    public long countByUserIdAndIsRead(String userId, boolean isRead) {
+        return notificationJpaRepository.countByUserIdAndIsRead(userId, isRead);
     }
 }

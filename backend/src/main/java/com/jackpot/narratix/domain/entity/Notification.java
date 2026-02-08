@@ -9,6 +9,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.Objects;
+
 @Entity
 @Table(
         name = "notification",
@@ -64,5 +66,13 @@ public class Notification extends BaseTimeEntity {
         }else {
             this.metaJson = null;
         }
+    }
+
+    public boolean isOwner(String userId) {
+        return Objects.equals(this.userId, userId);
+    }
+
+    public void read() {
+        this.isRead = true;
     }
 }

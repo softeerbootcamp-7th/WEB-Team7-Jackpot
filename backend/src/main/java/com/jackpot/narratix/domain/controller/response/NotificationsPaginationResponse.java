@@ -12,6 +12,15 @@ public record NotificationsPaginationResponse(
         Boolean hasNext
 ) {
 
+    public static NotificationsPaginationResponse of(List<Notification> notifications, Boolean hasNext) {
+        return new NotificationsPaginationResponse(
+                notifications.stream()
+                        .map(NotificationsResponse::of)
+                        .toList(),
+                hasNext
+        );
+    }
+
     public record NotificationsResponse(
             Long id,
             NotificationType type,
@@ -20,9 +29,9 @@ public record NotificationsPaginationResponse(
             boolean isRead,
             LocalDateTime createdAt,
             NotificationMeta meta
-    ){
+    ) {
 
-        public static NotificationsResponse of(Notification notification) {
+        private static NotificationsResponse of(Notification notification) {
             return new NotificationsResponse(
                     notification.getId(),
                     notification.getType(),

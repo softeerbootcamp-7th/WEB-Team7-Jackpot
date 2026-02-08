@@ -1,7 +1,7 @@
 package com.jackpot.narratix.domain.service;
 
-import com.jackpot.narratix.domain.controller.dto.JoinRequest;
-import com.jackpot.narratix.domain.controller.dto.LoginRequest;
+import com.jackpot.narratix.domain.controller.request.JoinRequest;
+import com.jackpot.narratix.domain.controller.request.LoginRequest;
 import com.jackpot.narratix.domain.entity.UserAuth;
 import com.jackpot.narratix.domain.exception.UserErrorCode;
 import com.jackpot.narratix.domain.repository.UserAuthRepository;
