@@ -81,14 +81,14 @@ const CoverLetter = ({
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
       if (
-        menuRef.current &&
-        !menuRef.current.contains(e.target as Node) &&
-        buttonRef.current &&
-        !buttonRef.current.contains(e.target as Node)
+        menuRef.current?.contains(target) ||
+        buttonRef.current?.contains(target)
       ) {
-        setIsMenuOpen(false);
+        return;
       }
+      setIsMenuOpen(false);
     };
 
     if (isMenuOpen) {
