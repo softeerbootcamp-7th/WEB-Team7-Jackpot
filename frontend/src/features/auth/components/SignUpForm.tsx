@@ -1,7 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { useNavigate } from 'react-router';
-
 import { authClient } from '@/features/auth/api/auth';
 import CheckDuplicationButton from '@/features/auth/components/CheckDuplicationButton';
 import InputBarInSignUp from '@/features/auth/components/InputBarInSignUp';
@@ -21,10 +19,13 @@ interface isActivedType {
   submit: boolean;
 }
 
-const SignUpForm = () => {
+interface SignUpFormProps {
+  handleSuccess: (state: boolean) => void;
+}
+
+const SignUpForm = ({ handleSuccess }: SignUpFormProps) => {
   const [isSignUpFailed, setIsSignUpFailed] = useState<boolean>(false);
   const { showToast } = useToastMessageContext();
-  const navigate = useNavigate();
   const { formData, handleInputChange: originalHandleInputChange } =
     useAuthForm({
       userId: '',
@@ -95,7 +96,7 @@ const SignUpForm = () => {
       });
 
       showToast('회원가입 및 로그인이 완료되었습니다.', true);
-      navigate('/home');
+      handleSuccess(true);
     } catch (error) {
       if (error instanceof Error) {
         setIsSignUpFailed(true);
