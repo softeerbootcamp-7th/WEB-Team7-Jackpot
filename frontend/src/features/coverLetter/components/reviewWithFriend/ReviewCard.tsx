@@ -36,7 +36,8 @@ const ReviewCard = ({
     : null;
 
   return (
-    <div
+    <button
+      type='button'
       onClick={() => onReviewClick(review.id)}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -44,8 +45,6 @@ const ReviewCard = ({
           onReviewClick(review.id);
         }
       }}
-      role='button'
-      tabIndex={0}
       className={`inline-flex cursor-pointer flex-col items-start justify-start gap-3 self-stretch border-b border-gray-100 p-5 shadow-[0px_0px_30px_0px_rgba(41,41,41,0.02)] transition-all duration-200 ${selectedReviewId && !isSelected ? 'opacity-30' : 'opacity-100'}`}
     >
       <div className='flex w-full flex-col items-start justify-start gap-4'>
@@ -94,7 +93,7 @@ const ReviewCard = ({
           )}
         </div>
       </div>
-    </div>
+    </button>
   );
 };
 
