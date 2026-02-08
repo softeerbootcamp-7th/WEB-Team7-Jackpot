@@ -14,10 +14,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "스크랩", description = "스크랩 기능 관련 API")
 @SecurityRequirement(name = "JWT")
@@ -48,7 +45,7 @@ public interface ScrapApi {
     );
 
     @Operation(summary = "스크랩 삭제", description = "문항 id로 스크랩을 삭제합니다.")
-    @GetMapping("/count")
+    @DeleteMapping
     ResponseEntity<ScrapCountResponse> deleteScrapById(
             @Parameter(hidden = true) @UserId String userId,
             @Parameter(description = "문항 ID", required = true) @RequestParam Long qnaId

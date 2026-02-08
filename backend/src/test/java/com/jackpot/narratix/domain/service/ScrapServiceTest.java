@@ -3,11 +3,15 @@ package com.jackpot.narratix.domain.service;
 import com.jackpot.narratix.domain.controller.request.CreateScrapRequest;
 import com.jackpot.narratix.domain.controller.response.CreateScrapResponse;
 import com.jackpot.narratix.domain.controller.response.ScrapCountResponse;
+import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.Scrap;
 import com.jackpot.narratix.domain.entity.ScrapId;
 import com.jackpot.narratix.domain.exception.ScrapErrorCode;
+import com.jackpot.narratix.domain.fixture.QnAFixture;
+import com.jackpot.narratix.domain.repository.QnARepository;
 import com.jackpot.narratix.domain.repository.ScrapRepository;
 import com.jackpot.narratix.global.exception.BaseException;
+import com.jackpot.narratix.global.exception.GlobalErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,6 +21,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static com.jackpot.narratix.domain.entity.enums.QuestionCategoryType.MOTIVATION;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
@@ -29,6 +34,9 @@ class ScrapServiceTest {
 
     @Mock
     private ScrapRepository scrapRepository;
+
+    @Mock
+    private QnARepository qnARepository;
 
     @Test
     @DisplayName("스크랩 성공")
@@ -108,4 +116,34 @@ class ScrapServiceTest {
         verify(scrapRepository, times(1)).countByUserId(userId);
     }
 
+    @Test
+    @DisplayName("스크랩 삭제 - 본인 문항이 아닌 경우 스크랩 삭제 시도 시 예외 발생")
+    void deleteScrap_Fail_Forbidden() {
+        // given
+        String userId = "user123";
+        Long qnaId = 1L;
+
+        String otherUserId = "otherUser";
+
+        QnA qna = QnAFixture.createQnA(
+                null,
+                otherUserId,
+                "question",
+                MOTIVATION
+        );
+
+        when(qnARepository.findByIdOrElseThrow(qnaId)).thenReturn(qna);
+
+        // when
+        BaseException exception = assertThrows(BaseException.class,
+                () -> scrapService.deleteScrapById(userId, qnaId));
+
+        // then
+        assertThat(exception.getErrorCode()).isEqualTo(GlobalErrorCode.FORBIDDEN);
+
+        verify(qnARepository, times(1)).findByIdOrElseThrow(qnaId);
+
+        verify(scrapRepository, never()).deleteById(any(ScrapId.class));
+        verify(scrapRepository, never()).countByUserId(anyString());
+    }
 }
