@@ -25,7 +25,7 @@ const CoverLetterMenu = ({
         <button
           type='button'
           onClick={() => {
-            const url = `${import.meta.env.VITE_SERVICE_BASE_URL}/review/${documentId}`;
+            const url = `${import.meta.env.VITE_SERVICE_BASE_URL || window.location.origin}/review/${documentId}`;
 
             navigator.clipboard
               .writeText(url)
