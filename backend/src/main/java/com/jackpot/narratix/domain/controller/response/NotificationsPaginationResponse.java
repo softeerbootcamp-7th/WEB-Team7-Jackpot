@@ -17,7 +17,7 @@ public record NotificationsPaginationResponse(
             NotificationType type,
             String title,
             String content,
-            Boolean isRead,
+            boolean isRead,
             LocalDateTime createdAt,
             NotificationMeta meta
     ){
