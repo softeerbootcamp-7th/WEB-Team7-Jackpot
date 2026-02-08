@@ -33,7 +33,7 @@ const ReviewModal = ({
             </div>
           </div>
         </div>
-        {isInvalid && (
+        {isInvalid && review && (
           <InvalidReviewBanner
             isExpanded={true}
             originText={review.selectedText}
