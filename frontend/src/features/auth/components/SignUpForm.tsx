@@ -9,6 +9,7 @@ import SubmitButton from '@/features/auth/components/SubmitButton';
 import { INPUT_BAR_IN_SIGNUP } from '@/features/auth/constants/constantsInSignUpPage';
 import useAuthForm from '@/features/auth/hooks/useAuthForm';
 import type { AuthFormData } from '@/features/auth/types/auth';
+import { useToastMessageContext } from '@/shared/context/ToastMessageContext';
 import {
   validateId,
   validateNickname,
@@ -21,6 +22,7 @@ interface isActivedType {
 }
 
 const SignUpForm = () => {
+  const { showToast } = useToastMessageContext();
   const navigate = useNavigate();
   const { formData, handleInputChange } = useAuthForm({
     userId: '',
@@ -82,11 +84,11 @@ const SignUpForm = () => {
       });
 
       // [윤종근] TODO: 추후 토스트 메시지로 변경 필요
-      alert('회원가입이 완료되었습니다.');
+      showToast('회원가입 및 로그인이 완료되었습니다.', true);
       navigate('/home');
     } catch (error) {
       console.error('SignUp or Auto-Login Error', error);
-      alert('회원가입 또는 로그인 중 오류가 발생했습니다.');
+      showToast('회원가입 또는 로그인 중 오류가 발생했습니다.', false);
     }
   };
 
