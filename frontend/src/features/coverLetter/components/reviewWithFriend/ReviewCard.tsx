@@ -3,7 +3,7 @@ import PenToolIcon from '@/shared/icons/PenToolIcon';
 
 const ReviewCard = () => {
   return (
-    <div className='inline-flex cursor-pointer flex-col items-start justify-start gap-3 self-stretch border-b border-gray-100 p-5 shadow-[0px_0px_30px_0px_rgba(41,41,41,0.02)]'>
+    <div className='inline-flex flex-col items-start justify-start gap-3 self-stretch border-b border-gray-100 p-5 shadow-[0px_0px_30px_0px_rgba(41,41,41,0.02)]'>
       <div className='flex flex-col items-start justify-start gap-4 self-stretch'>
         <div className='inline-flex w-52 items-center justify-start gap-3'>
           <div className='relative h-12 w-12 overflow-hidden rounded-[100px] bg-purple-100'>

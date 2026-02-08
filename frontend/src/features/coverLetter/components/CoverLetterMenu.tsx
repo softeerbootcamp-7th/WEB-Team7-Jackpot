@@ -1,5 +1,5 @@
 import LinkAngled from '@/features/coverLetter/icons/LinkAngled';
-import ToogleIcon from '@/features/coverLetter/icons/TootgleIcon';
+import ToggleIcon from '@/features/coverLetter/icons/ToggleIcon';
 import TrashIcon from '@/features/coverLetter/icons/TrashIcon';
 
 const CoverLetterMenu = ({
@@ -13,13 +13,17 @@ const CoverLetterMenu = ({
 }) => {
   return (
     <div className='w-48 rounded-md bg-white p-2 shadow-[0px_4px_20px_0px_rgba(41,41,41,0.12)]'>
-      <button className='flex h-11 w-full cursor-pointer items-center gap-2 rounded-xl px-3'>
+      <button
+        type='button'
+        className='flex h-11 w-full cursor-pointer items-center gap-2 rounded-xl px-3'
+      >
         <TrashIcon />
         <span className='text-base font-semibold text-red-600'>삭제하기</span>
       </button>
 
       {isReviewOpen && (
         <button
+          type='button'
           onClick={() => {
             const url = `https://www.narratix.site/review/${documentId}`;
 
@@ -38,10 +42,11 @@ const CoverLetterMenu = ({
       )}
 
       <button
+        type='button'
         onClick={() => openReview(!isReviewOpen)}
         className='flex h-11 w-full cursor-pointer items-center gap-2 rounded-xl px-3'
       >
-        <ToogleIcon />
+        <ToggleIcon />
         <span className='text-base font-semibold text-zinc-800'>
           첨삭 링크 {isReviewOpen ? '비활성화' : '활성화'}
         </span>

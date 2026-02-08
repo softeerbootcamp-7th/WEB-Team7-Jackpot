@@ -6,6 +6,8 @@ const MoreVertIcon = () => {
       viewBox='0 0 29 29'
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
+      aria-hidden='true'
+      focusable='false'
     >
       <g clipPath='url(#clip0_169_1260)'>
         <path

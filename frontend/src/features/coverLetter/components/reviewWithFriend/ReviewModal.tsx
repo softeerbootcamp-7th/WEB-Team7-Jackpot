@@ -59,18 +59,22 @@ const ReviewModal = () => {
           </div>
         </div>
         <div className='flex items-center justify-start gap-2'>
-          <div className='flex items-center justify-start gap-2'>
-            <div className='flex items-center justify-start gap-1 rounded-xl px-3 py-1.5'>
-              <div className='justify-start text-center text-sm leading-5 font-medium text-red-600'>
-                삭제하기
-              </div>
-            </div>
-            <div className='flex items-center justify-start gap-1 rounded-xl bg-gray-900 px-3 py-1.5'>
-              <div className='justify-start text-center text-sm leading-5 font-bold text-white'>
-                적용하기
-              </div>
-            </div>
-          </div>
+          <button
+            type='button'
+            className='flex cursor-pointer items-center justify-start gap-1 rounded-xl px-3 py-1.5'
+          >
+            <span className='text-center text-sm leading-5 font-medium text-red-600'>
+              삭제하기
+            </span>
+          </button>
+          <button
+            type='button'
+            className='flex cursor-pointer items-center justify-start gap-1 rounded-xl bg-gray-900 px-3 py-1.5'
+          >
+            <span className='text-center text-sm leading-5 font-bold text-white'>
+              적용하기
+            </span>
+          </button>
         </div>
       </div>
     </div>

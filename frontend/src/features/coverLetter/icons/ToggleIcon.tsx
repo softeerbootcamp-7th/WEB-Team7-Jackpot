@@ -1,4 +1,4 @@
-const ToogleIcon = () => {
+const ToggleIcon = () => {
   return (
     <svg
       width='16'
@@ -6,6 +6,7 @@ const ToogleIcon = () => {
       viewBox='0 0 16 16'
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
+      aria-hidden='true'
     >
       <path
         d='M10 10C11.1046 10 12 9.10457 12 8C12 6.89543 11.1046 6 10 6C8.89543 6 8 6.89543 8 8C8 9.10457 8.89543 10 10 10Z'
@@ -25,4 +26,4 @@ const ToogleIcon = () => {
   );
 };
 
-export default ToogleIcon;
+export default ToggleIcon;

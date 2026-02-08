@@ -20,10 +20,16 @@ const CoverLetterCard = ({
 }: CoverLetterCardProps) => {
   return (
     <div
-      data-마감일자='true'
-      data-속성-1='기본'
+      role='button'
+      tabIndex={0}
       className={`inline-flex w-96 cursor-pointer flex-col items-start justify-start gap-1 border-b border-gray-100 px-3 py-5 ${!isSelectStatus || isSelected ? '' : 'opacity-30'}`}
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick?.();
+        }
+      }}
     >
       <div className='inline-flex items-center justify-between self-stretch pr-1'>
         <div className='flex flex-1 items-center justify-start gap-1'>
