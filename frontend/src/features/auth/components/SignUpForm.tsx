@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import { useNavigate } from 'react-router';
 
@@ -8,7 +8,7 @@ import InputBarInSignUp from '@/features/auth/components/InputBarInSignUp';
 import SubmitButton from '@/features/auth/components/SubmitButton';
 import { INPUT_BAR_IN_SIGNUP } from '@/features/auth/constants/constantsInSignUpPage';
 import useAuthForm from '@/features/auth/hooks/useAuthForm';
-import type { AuthFormData } from '@/features/auth/types/auth';
+import type { AuthFormData, AuthInputKey } from '@/features/auth/types/auth';
 import { useToastMessageContext } from '@/shared/context/ToastMessageContext';
 import {
   validateId,
@@ -22,14 +22,16 @@ interface isActivedType {
 }
 
 const SignUpForm = () => {
+  const [isSignUpFailed, setIsSignUpFailed] = useState<boolean>(false);
   const { showToast } = useToastMessageContext();
   const navigate = useNavigate();
-  const { formData, handleInputChange } = useAuthForm({
-    userId: '',
-    password: '',
-    passwordConfirm: '',
-    nickname: '',
-  });
+  const { formData, handleInputChange: originalHandleInputChange } =
+    useAuthForm({
+      userId: '',
+      password: '',
+      passwordConfirm: '',
+      nickname: '',
+    });
 
   const [statusMsg, setStatusMsg] = useState<AuthFormData>({
     userId: '',
@@ -41,6 +43,15 @@ const SignUpForm = () => {
   const [isPasswordMatched, setIsPasswordMatched] = useState<boolean>(false);
   const [isIdDuplicationVerified, setIsIdDuplicationVerified] =
     useState<boolean>(false);
+
+  const handleInputChange = useCallback(
+    (key: AuthInputKey) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (isSignUpFailed) setIsSignUpFailed(false);
+      originalHandleInputChange(key)(e);
+      if (key === 'userId') setIsIdDuplicationVerified(false);
+    },
+    [isSignUpFailed, originalHandleInputChange],
+  );
 
   const handleCheckDuplicateId = async () => {
     if (!validateId(formData.userId)) return;
@@ -83,12 +94,15 @@ const SignUpForm = () => {
         password: formData.password,
       });
 
-      // [윤종근] TODO: 추후 토스트 메시지로 변경 필요
       showToast('회원가입 및 로그인이 완료되었습니다.', true);
       navigate('/home');
     } catch (error) {
-      console.error('SignUp or Auto-Login Error', error);
-      showToast('회원가입 또는 로그인 중 오류가 발생했습니다.', false);
+      if (error instanceof Error) {
+        setIsSignUpFailed(true);
+      } else {
+        console.error('SignUp or Auto-Login Error', error);
+        showToast('회원가입 또는 로그인 중 오류가 발생했습니다.', false);
+      }
     }
   };
 
@@ -176,34 +190,35 @@ const SignUpForm = () => {
         {INPUT_BAR_IN_SIGNUP.map((each) => {
           const currentMsg = statusMsg[each.ID];
 
+          const isIdDuplicationVerifiedSuccess =
+            each.ID === 'userId' && isIdDuplicationVerified;
           const isPasswordMatchSuccess =
             each.ID === 'passwordConfirm' && isPasswordMatched;
 
           return (
-            <InputBarInSignUp
-              key={each.ID}
-              label={each.LABEL}
-              type={each.TYPE}
-              placeholder={each.PLACEHOLDER}
-              maxLength={each.MAX_LENGTH}
-              onChange={() => {
-                handleInputChange(each.ID);
-                if (each.ID === 'userId') {
-                  setIsIdDuplicationVerified(false);
+            <React.Fragment key={each.ID}>
+              <InputBarInSignUp
+                label={each.LABEL}
+                isFail={isSignUpFailed}
+                type={each.TYPE}
+                placeholder={each.PLACEHOLDER}
+                maxLength={each.MAX_LENGTH}
+                onChange={handleInputChange(each.ID)}
+                value={formData[each.ID]}
+                helpMessage={currentMsg}
+                isSuccess={
+                  isIdDuplicationVerifiedSuccess || isPasswordMatchSuccess
                 }
-              }}
-              value={formData[each.ID]}
-              helpMessage={currentMsg}
-              isSuccess={isPasswordMatchSuccess}
-              rightElement={
-                each.ID === 'userId' && (
-                  <CheckDuplicationButton
-                    onClick={handleCheckDuplicateId}
-                    isActived={isActived.id}
-                  />
-                )
-              }
-            />
+                rightElement={
+                  each.ID === 'userId' && (
+                    <CheckDuplicationButton
+                      onClick={handleCheckDuplicateId}
+                      isActived={isActived.id}
+                    />
+                  )
+                }
+              />
+            </React.Fragment>
           );
         })}
       </div>
