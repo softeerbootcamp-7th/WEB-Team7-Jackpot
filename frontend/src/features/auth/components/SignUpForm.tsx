@@ -136,6 +136,8 @@ const SignUpForm = () => {
       if (name) {
         if (name.length < 2) {
           newMsg.nickname = '2자 이상 입력해주세요';
+        } else if (name.length > 15) {
+          newMsg.nickname = '15자 이하로 입력해주세요';
         } else if (!validateNickname(name)) {
           newMsg.nickname =
             '형식이 올바르지 않습니다 (자/모음, 숫자, 특수문자, 공백 입력 불가)';

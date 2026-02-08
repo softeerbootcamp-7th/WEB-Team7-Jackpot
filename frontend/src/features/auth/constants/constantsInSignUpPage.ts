@@ -25,7 +25,7 @@ export const INPUT_BAR_IN_SIGNUP = [
     LABEL: '사용자 이름',
     TYPE: 'text',
     PLACEHOLDER: '네러틱스에서 사용하고 싶은 이름을 설정해주세요',
-    MAX_LENGTH: 15,
+    MAX_LENGTH: 20,
   },
 ] as const;
 
