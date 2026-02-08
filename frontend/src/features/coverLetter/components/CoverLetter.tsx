@@ -171,6 +171,10 @@ const CoverLetter = ({
           selectedReviewId={selectedReviewId}
           onSelectionChange={setSelection}
           onReviewClick={onReviewClick}
+          onTextChange={(newText) => {
+            // TODO: 텍스트 변경 API 호출
+            console.log('Text changed:', newText);
+          }}
         />
       </div>
 

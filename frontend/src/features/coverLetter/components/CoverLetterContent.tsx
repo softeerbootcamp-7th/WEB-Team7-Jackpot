@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import type { Review } from '@/features/review/types/review';
 import type { SelectionInfo } from '@/features/review/types/selectionInfo';
@@ -14,6 +14,7 @@ interface CoverLetterContentProps {
   selectedReviewId: string | null;
   onSelectionChange: (selection: SelectionInfo | null) => void;
   onReviewClick: (reviewId: string) => void;
+  onTextChange?: (newText: string) => void;
 }
 
 const CoverLetterContent = ({
@@ -25,6 +26,7 @@ const CoverLetterContent = ({
   selectedReviewId,
   onSelectionChange,
   onReviewClick,
+  onTextChange,
 }: CoverLetterContentProps) => {
   const { containerRef, handleMouseUp, before, after } = useTextSelection({
     text,
@@ -34,6 +36,7 @@ const CoverLetterContent = ({
     onSelectionChange,
   });
   const [bottomPadding, setBottomPadding] = useState<number>(0);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -64,77 +67,88 @@ const CoverLetterContent = ({
     return acc;
   }, []);
 
+  // HTML 문자열 생성
+  const renderHTML = () => {
+    const beforeHTML = before
+      .map((chunk: TextChunk, i: number) => {
+        if (!chunk.isHighlighted) {
+          return chunk.text;
+        }
+
+        const chunkStart = chunkPositions[i];
+        const chunkEnd = chunkStart + chunk.text.length;
+
+        const matchingReview = reviews.find((review) => {
+          if (!review.isValid) return false;
+          return (
+            review.range.start <= chunkStart && review.range.end >= chunkEnd
+          );
+        });
+
+        if (!matchingReview) {
+          return chunk.text;
+        }
+
+        const isSelected = selectedReviewId === matchingReview.id;
+        const className = `${isReviewOpen ? 'cursor-pointer font-bold' : ''} ${
+          isSelected ? 'bg-red-100' : ''
+        }`;
+
+        return `<span class="${className}" data-review-id="${matchingReview.id}">${chunk.text}</span>`;
+      })
+      .join('');
+
+    let afterHTML = '';
+    if (selection && after.length > 0) {
+      const afterChunks = after
+        .map(
+          (chunk: TextChunk) =>
+            `<span class="${chunk.isHighlighted ? 'font-bold' : ''}">${chunk.text}</span>`,
+        )
+        .join('');
+      afterHTML = `<div class="h-2.5"></div><span class="opacity-30">${afterChunks}</span>`;
+    }
+
+    return beforeHTML + afterHTML;
+  };
+
+  // 편집 이벤트 처리
+  const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
+    const newText = e.currentTarget.textContent || '';
+    onTextChange?.(newText);
+  };
+
+  // 리뷰 클릭 이벤트 처리
+  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    const reviewId = target.getAttribute('data-review-id');
+    if (reviewId && isReviewOpen) {
+      onReviewClick(reviewId);
+    }
+  };
+
   return (
     <div
-      contentEditable={true}
       ref={containerRef}
       onMouseUp={handleMouseUp}
-      className='relative ml-12 min-h-0 w-full flex-1 px-4 outline-none'
+      className='relative ml-12 min-h-0 w-full flex-1 px-4'
       style={{
         whiteSpace: 'pre-wrap',
         overflowY: selection ? 'hidden' : 'auto',
       }}
     >
       <div
-        className='w-full py-2 text-base leading-7 font-normal text-gray-800'
+        ref={contentRef}
+        contentEditable={true}
+        suppressContentEditableWarning={true}
+        onInput={handleInput}
+        onClick={handleClick}
+        className='w-full py-2 text-base leading-7 font-normal text-gray-800 outline-none'
         style={{
           paddingBottom: bottomPadding,
         }}
-      >
-        {before.map((chunk: TextChunk, i: number) => {
-          if (!chunk.isHighlighted) {
-            return <span key={i}>{chunk.text}</span>;
-          }
-
-          const chunkStart = chunkPositions[i];
-          const chunkEnd = chunkStart + chunk.text.length;
-
-          const matchingReview = reviews.find((review) => {
-            if (!review.isValid) return false;
-            return (
-              review.range.start <= chunkStart && review.range.end >= chunkEnd
-            );
-          });
-
-          if (!matchingReview) {
-            return <span key={i}>{chunk.text}</span>;
-          }
-
-          const isSelected = selectedReviewId === matchingReview.id;
-
-          return (
-            <span
-              key={i}
-              onClick={
-                isReviewOpen
-                  ? () => onReviewClick(matchingReview.id)
-                  : undefined
-              }
-              className={`${isReviewOpen ? 'cursor-pointer font-bold' : ''} ${
-                isSelected ? 'bg-red-100' : ''
-              }`}
-            >
-              {chunk.text}
-            </span>
-          );
-        })}
-
-        {selection && after.length > 0 && (
-          <>
-            <div className='h-2.5' />
-            <span className='opacity-30'>
-              {after.map((chunk: TextChunk, i: number) => (
-                <span
-                  key={`after-${i}`}
-                  className={chunk.isHighlighted ? 'font-bold' : ''}
-                >
-                  {chunk.text}
-                </span>
-              ))}
-            </span>
-          </>
-        )}
-      </div>
+        dangerouslySetInnerHTML={{ __html: renderHTML() }}
+      />
     </div>
   );
 };
