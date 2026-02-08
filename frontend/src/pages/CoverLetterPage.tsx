@@ -66,7 +66,7 @@ const CoverLetterPage = () => {
           <NewCoverLetter />
         ) : (
           <div className='flex h-full w-full min-w-0 flex-row pb-39.5'>
-            <div className='h-full min-w-0'>
+            <div className='h-full min-w-0 flex-1'>
               <CoverLetter
                 documentId={state.selectedDocumentId!}
                 openReview={actions.setIsReviewOpen}

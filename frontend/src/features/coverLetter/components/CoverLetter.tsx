@@ -144,7 +144,14 @@ const CoverLetter = ({
           <span>총 {qnaList.length}문항</span>
           <span>·</span>
           <span>
-            {new Date(mockCoverLetter.modifiedAt).toLocaleDateString()}
+            <span>
+              {new Intl.DateTimeFormat('ko-KR', {
+                year: 'numeric',
+                month: 'numeric',
+                day: 'numeric',
+                timeZone: 'Asia/Seoul',
+              }).format(new Date(mockCoverLetter.modifiedAt))}
+            </span>
           </span>
         </div>
       </div>
