@@ -59,22 +59,11 @@ const CoverLetterCard = ({
           <div className='justify-start text-sm leading-5 font-normal text-gray-400'>
             ·
           </div>
-          <div className='flex items-center justify-start'>
-            <div className='justify-start text-xs leading-5 font-normal text-gray-400'>
-              {new Date(coverLetter.modifiedAt).getFullYear()}
-            </div>
-            <div className='justify-start text-xs leading-5 font-normal text-gray-400'>
-              .
-            </div>
-            <div className='justify-start text-xs leading-5 font-normal text-gray-400'>
-              {new Date(coverLetter.modifiedAt).getMonth()}
-            </div>
-            <div className='justify-start text-xs leading-5 font-normal text-gray-400'>
-              .
-            </div>
-            <div className='justify-start text-xs leading-5 font-normal text-gray-400'>
-              {new Date(coverLetter.modifiedAt).getDate()}
-            </div>
+          <div className='text-xs leading-5 font-normal text-gray-400'>
+            {(() => {
+              const date = new Date(coverLetter.modifiedAt);
+              return `${date.getFullYear()}.${date.getMonth() + 1}.${date.getDate()}`;
+            })()}
           </div>
         </div>
       </div>
