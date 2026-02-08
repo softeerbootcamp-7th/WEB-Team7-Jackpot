@@ -42,4 +42,11 @@ public class NotificationController implements NotificationApi {
         notificationService.markAllNotificationAsRead(userId);
         return ResponseEntity.noContent().build();
     }
+
+    @Override
+    public ResponseEntity<UnreadNotificationCountResponse> getUnreadNotificationCount(
+            @UserId String userId
+    ) {
+        return ResponseEntity.ok(notificationService.countUnreadNotification(userId));
+    }
 }

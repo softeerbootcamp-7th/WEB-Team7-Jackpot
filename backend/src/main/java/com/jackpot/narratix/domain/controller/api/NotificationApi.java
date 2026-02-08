@@ -1,5 +1,6 @@
 package com.jackpot.narratix.domain.controller.api;
 
+import com.jackpot.narratix.domain.controller.UnreadNotificationCountResponse;
 import com.jackpot.narratix.domain.controller.response.NotificationsPaginationResponse;
 import com.jackpot.narratix.global.auth.UserId;
 import io.swagger.v3.oas.annotations.Operation;
@@ -62,6 +63,20 @@ public interface NotificationApi {
     })
     @PatchMapping("/all/read")
     ResponseEntity<Void> markAllNotificationAsRead(
+            @Parameter(hidden = true) @UserId String userId
+    );
+
+    @Operation(summary = "읽지 않은 알림 개수 조회", description = "사용자의 읽지 않은 모든 알림의 개수를 조회합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(schema = @Schema(implementation = UnreadNotificationCountResponse.class))
+            ),
+            @ApiResponse(responseCode = "401", description = "인증 실패")
+    })
+    @GetMapping("/count")
+    ResponseEntity<UnreadNotificationCountResponse> getUnreadNotificationCount(
             @Parameter(hidden = true) @UserId String userId
     );
 }
