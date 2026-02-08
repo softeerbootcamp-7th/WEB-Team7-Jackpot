@@ -12,4 +12,6 @@ public interface NotificationRepository {
     Notification findByIdOrElseThrow(Long notificationId);
 
     void updateAllNotificationAsReadByUserId(String userId);
+
+    long countByUserIdAndIsRead(String userId, boolean b);
 }

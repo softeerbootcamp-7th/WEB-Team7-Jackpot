@@ -37,4 +37,9 @@ public class NotificationRepositoryImpl implements NotificationRepository {
     public void updateAllNotificationAsReadByUserId(String userId) {
         notificationJpaRepository.updateAllAsReadByUserId(userId);
     }
+
+    @Override
+    public long countByUserIdAndIsRead(String userId, boolean isRead) {
+        return notificationJpaRepository.countByUserIdAndIsRead(userId, isRead);
+    }
 }
