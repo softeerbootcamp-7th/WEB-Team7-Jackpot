@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 
-import type { Review } from '@/shared/types/review';
-import type { SelectionInfo } from '@/shared/types/selectionInfo';
 import {
   buildTextChunks,
   findLineEndIndex,
@@ -10,6 +8,8 @@ import {
   rangeToTextIndices,
   splitChunksAtIndex,
 } from '@/shared/hooks/useTextSelection/helpers';
+import type { Review } from '@/shared/types/review';
+import type { SelectionInfo } from '@/shared/types/selectionInfo';
 
 interface UseTextSelectionProps {
   text: string;
