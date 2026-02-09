@@ -331,4 +331,26 @@ body {
     line-height: var(--leading-caption-s);
     letter-spacing: var(--tracking-tight-custom);
   }
+
+  .fixed-scroll-bar {
+    padding-right: var(--spacing-2);
+
+    &::-webkit-scrollbar {
+      width: var(--spacing-2);
+    }
+
+    &::-webkit-scrollbar-track {
+      background-color: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: var(--color-gray-300);
+      border-radius: 9999px;
+      background-clip: padding-box;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background-color: var(--color-gray-400);
+    }
+  }
 }
