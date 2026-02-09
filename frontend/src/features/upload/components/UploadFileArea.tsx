@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 
 import type { UploadStatus } from '@/features/upload/components/AddFileItem';
 import AddFileItem from '@/features/upload/components/AddFileItem';
+import { MAX_BYTES } from '@/features/upload/constants/uploadPage';
 
 interface FileStateType {
   file: File | null;
@@ -25,7 +26,6 @@ const UploadFileLayout = ({ setIsContent }: UploadFileLayoutProps) => {
       'application/pdf',
       'application/msword',
     ];
-    const MAX_BYTES = 10 * 1024 * 1024;
 
     // 파일 크기 검사
     if (newFile && newFile.size > MAX_BYTES) {

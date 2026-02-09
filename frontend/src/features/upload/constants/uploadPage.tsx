@@ -53,3 +53,5 @@ export const UPLOAD_TAB_DATA: UploadTabDataType[] = [
     icon: <I.TextUploadIcon />,
   },
 ];
+
+export const MAX_BYTES = 10 * 1024 * 1024;
