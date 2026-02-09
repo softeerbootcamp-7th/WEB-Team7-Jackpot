@@ -58,6 +58,7 @@ public class SseEmitterService {
         } catch (IOException e) {
             log.warn("SSE send initial event failed: userId={}, emitterId={}, reason={}", userId, emitterId, e.getMessage());
             sseEmitterRepository.deleteByEmitterId(userId, emitterId);
+            sseEmitter.complete();
         }
     }
 }
