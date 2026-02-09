@@ -3,7 +3,6 @@ package com.jackpot.narratix.global.sse;
 import com.jackpot.narratix.global.auth.UserId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -23,10 +22,7 @@ public interface SseApi {
             @ApiResponse(
                     responseCode = "200",
                     description = "SSE 연결 성공",
-                    content = @Content(
-                            mediaType = "text/event-stream",
-                            schema = @Schema(implementation = SseEmitter.class)
-                    )
+                    content = @Content(mediaType = "text/event-stream")
             ),
             @ApiResponse(
                     responseCode = "401",
