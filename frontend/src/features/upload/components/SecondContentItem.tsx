@@ -3,6 +3,7 @@ import { useState } from 'react';
 import CoverLetterContentArea from '@/features/upload/components/CoverLetterContentArea';
 import CoverLetterList from '@/features/upload/components/CoverLetterList';
 import LabeledSelectInput from '@/features/upload/components/LabeledSelectInput';
+import { QUESTION_TYPE_LIST } from '@/features/upload/constants/uploadPage';
 import useCoverLetterState from '@/features/upload/hooks/useCoverLetterState';
 import { UploadPageIcons as I } from '@/features/upload/icons';
 import type {
@@ -17,12 +18,6 @@ const COMPANY_NAME_LIST: string[] = ['현대자동차', '현대오토에버', '�
 
 // [윤종근] - 추후에 지울 예정인 UI 테스트만을 위한 임시 데이터라서 constants에 옮기지 않았습니다.
 const JOB_POSITION_LIST: string[] = ['프론트엔드 개발', '프론트엔드', 'FE'];
-// [윤종근] - 추후에 지울 예정인 UI 테스트만을 위한 임시 데이터라서 constants에 옮기지 않았습니다.
-const QUESTION_TYPE_LIST: string[] = [
-  '성장과정',
-  '성장경험',
-  '성장과정 및 갈등 해결 경험',
-];
 
 const SecondContentItem = ({ tabState, setTabState }: CoverLetterTabProps) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState<DropdownStateType>({
