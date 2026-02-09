@@ -220,6 +220,21 @@ body {
   animation: pulse-spread 3s ease-in-out infinite;
 }
 
+@keyframes enter-smooth {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-enter {
+  animation: enter-smooth 0.5s ease-out forwards;
+}
+
 /* 커스텀 유틸리티 클래스 추가 */
 @layer utilities {
   .bg-gradient-a {
