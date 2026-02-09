@@ -33,7 +33,12 @@ public record SearchScrapResponse(
         }
     }
 
-    public static SearchScrapResponse of(List<QnAItem> scraps, boolean hasNext) {
-        return new SearchScrapResponse(scraps, hasNext);
+    public static SearchScrapResponse of(List<QnA> qnaItems, boolean hasNext) {
+        return new SearchScrapResponse(
+                qnaItems.stream()
+                        .map(QnAItem::from)
+                        .toList(),
+                hasNext
+        );
     }
 }

@@ -16,22 +16,86 @@ public interface ScrapJpaRepository extends JpaRepository<Scrap, ScrapId> {
 
     boolean existsById(ScrapId scrapId);
 
-    @Query("SELECT q " +
-            "FROM Scrap s, QnA q " +
-            "JOIN FETCH q.coverLetter " +
-            "WHERE s.id.userId = :userId " +
-            "AND s.id.qnaId = q.id " +
-            "AND (:lastQnaId IS NULL OR q.id < :lastQnaId) " +
-            "AND (" +
-            "   :searchWord Is NULL OR " +
-            "   q.question LIKE CONCAT('%', :searchWord, '%') OR " +
-            "   q.answer LIKE CONCAT('%', :searchWord, '%')" +
-            ") " +
-            "ORDER BY s.createdAt DESC")
-    Slice<QnA> searchScraps(
+    @Query("""
+            SELECT q
+            FROM Scrap s
+            JOIN QnA q ON s.id.qnaId = q.id
+            JOIN FETCH q.coverLetter
+            WHERE s.id.userId = :userId
+            AND (
+               q.question LIKE CONCAT('%', :searchWord, '%') OR
+               q.answer LIKE CONCAT('%', :searchWord, '%')
+            )
+            ORDER BY s.createdAt DESC, s.id.qnaId DESC
+            """)
+    Slice<QnA> searchQnAInScraps(
+            @Param("userId") String userId,
+            @Param("searchWord") String searchWord,
+            Pageable pageable
+    );
+
+    @Query("""
+            SELECT q
+            FROM Scrap s
+            JOIN QnA q ON s.id.qnaId = q.id
+            JOIN FETCH q.coverLetter
+            WHERE s.id.userId = :userId
+            AND (
+               q.question LIKE CONCAT('%', :searchWord, '%') OR
+               q.answer LIKE CONCAT('%', :searchWord, '%')
+            )
+            AND (
+                s.createdAt < (SELECT s2.createdAt FROM Scrap s2 WHERE s2.id.userId = :userId AND s2.id.qnaId = :lastQnaId)
+                OR
+                (
+                    s.createdAt = (SELECT s2.createdAt FROM Scrap s2 WHERE s2.id.userId = :userId AND s2.id.qnaId = :lastQnaId)
+                    AND s.id.qnaId < :lastQnaId
+                )
+            )
+            ORDER BY s.createdAt DESC, s.id.qnaId DESC
+            """)
+    Slice<QnA> searchQnAInScrapsNext(
             @Param("userId") String userId,
             @Param("searchWord") String searchWord,
             @Param("lastQnaId") Long lastQnaId,
             Pageable pageable
     );
+
+    @Query("""
+                SELECT q
+                FROM Scrap s
+                JOIN QnA q ON s.id.qnaId = q.id
+                JOIN FETCH q.coverLetter
+                WHERE s.id.userId = :userId
+                ORDER BY s.createdAt DESC, s.id.qnaId DESC
+            """)
+    Slice<QnA> findScraps(
+            @Param("userId") String userId,
+            Pageable pageable
+    );
+
+    @Query("""
+                SELECT q
+                FROM Scrap s
+                JOIN QnA q ON s.id.qnaId = q.id
+                JOIN FETCH q.coverLetter
+                WHERE s.id.userId = :userId
+                AND (
+                    s.createdAt < (SELECT s2.createdAt FROM Scrap s2
+                                   WHERE s2.id.userId = :userId AND s2.id.qnaId = :lastQnaId)
+                    OR
+                    (
+                        s.createdAt = (SELECT s2.createdAt FROM Scrap s2
+                                       WHERE s2.id.userId = :userId AND s2.id.qnaId = :lastQnaId)
+                        AND s.id.qnaId < :lastQnaId
+                    )
+                )
+                ORDER BY s.createdAt DESC, s.id.qnaId DESC
+            """)
+    Slice<QnA> findScrapsNext(
+            @Param("userId") String userId,
+            @Param("lastQnaId") Long lastQnaId,
+            Pageable pageable
+    );
+
 }
