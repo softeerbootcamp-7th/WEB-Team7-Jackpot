@@ -64,10 +64,8 @@ class SseEmitterServiceTest {
                 .save(eq(TEST_USER_ID), emitterIdCaptor.capture(), any(SseEmitter.class));
 
         var capturedEmitterIds = emitterIdCaptor.getAllValues();
-        assertThat(capturedEmitterIds).hasSize(3);
-        assertThat(capturedEmitterIds.get(0)).isNotEqualTo(capturedEmitterIds.get(1));
-        assertThat(capturedEmitterIds.get(1)).isNotEqualTo(capturedEmitterIds.get(2));
-        assertThat(capturedEmitterIds.get(0)).isNotEqualTo(capturedEmitterIds.get(2));
+        assertThat(capturedEmitterIds).hasSize(3)
+                        .doesNotHaveDuplicates();
     }
 
     @Test
