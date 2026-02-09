@@ -10,8 +10,6 @@ import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 public class SearchService {
@@ -33,17 +31,20 @@ public class SearchService {
         return SearchScrapResponse.of(qnas.getContent(), qnas.hasNext());
     }
 
-    private Slice<QnA> getSearchScraps(String userId, String word, Long lastId, Integer size) {
-        return Optional.ofNullable(lastId)
-                .map(id -> scrapRepository.searchQnAInScrapsNext(userId, word, id, size))
-                .orElseGet(() -> scrapRepository.searchQnAInScraps(userId, word, size));
+    private Slice<QnA> getAllScraps(String userId, Long lastQnaId, Integer size) {
+        if (lastQnaId == null) {
+            return scrapRepository.findScraps(userId, size);
+        }
+        return scrapRepository.findScrapsNext(userId, lastQnaId, size);
     }
 
-    private Slice<QnA> getAllScraps(String userId, Long lastId, Integer size) {
-        return Optional.ofNullable(lastId)
-                .map(id -> scrapRepository.findScrapsNext(userId, id, size))
-                .orElseGet(() -> scrapRepository.findScraps(userId, size));
+    private Slice<QnA> getSearchScraps(String userId, String keyword, Long lastQnaId, Integer size) {
+        if (lastQnaId == null) {
+            return scrapRepository.searchQnAInScraps(userId, keyword, size);
+        }
+        return scrapRepository.searchQnAInScrapsNext(userId, keyword, lastQnaId, size);
     }
+
 }
 
 
