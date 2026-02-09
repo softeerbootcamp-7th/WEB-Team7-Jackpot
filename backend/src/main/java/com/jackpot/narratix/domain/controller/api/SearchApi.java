@@ -42,7 +42,7 @@ public interface SearchApi {
             @ApiResponse(
                     responseCode = "200",
                     description = "성공",
-                    content = @Content(schema = @Schema(implementation = SearchScrapResponse.class))
+                    content = @Content(schema = @Schema(implementation = SearchCoverLetterResponse.class))
             ),
             @ApiResponse(responseCode = "400", description = "잘못된 요청"),
             @ApiResponse(responseCode = "401", description = "인증 실패"),
@@ -52,7 +52,7 @@ public interface SearchApi {
             @Parameter(hidden = true) @UserId String userId,
             @Parameter(description = "검색 키워드") @RequestParam(required = false) String searchWord,
             @Parameter(description = "페이지 사이즈") @RequestParam(required = false, defaultValue = "9") Integer size,
-            @Parameter(description = "페이지") @RequestParam(required = false) Integer page
+            @Parameter(description = "페이지") @RequestParam(required = false, defaultValue = "1") Integer page
     );
 
 
