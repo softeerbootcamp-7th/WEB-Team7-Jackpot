@@ -20,12 +20,11 @@ const CoverLetterReviewContent = ({
     setSelectedReviewId(reviewId);
   }, []);
 
-  const pageKey = `${selectedDocumentId}-${reviewState.currentPageIndex}`;
-
   return (
-    <div key={pageKey} className='flex h-full w-full min-w-0 flex-row pb-39.5'>
+    <div className='flex h-full w-full min-w-0 flex-row pb-39.5'>
       <div className='h-full min-w-0 flex-1'>
         <CoverLetter
+          key={reviewState.currentPageIndex}
           documentId={selectedDocumentId}
           openReview={setIsReviewOpen}
           isReviewOpen={isReviewOpen}
