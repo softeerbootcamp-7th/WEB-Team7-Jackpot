@@ -241,7 +241,7 @@ class CoverLetterControllerTest {
         mockMvc.perform(get("/api/v1/coverletter")
                         .header(AuthConstants.AUTHORIZATION, TEST_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isMethodNotAllowed());
     }
 
     @Test
@@ -252,10 +252,9 @@ class CoverLetterControllerTest {
                 .willReturn(null);
 
         // when & then
-        mockMvc.perform(get("/api/v1/coverletter")
+        mockMvc.perform(get("/api/v1/coverletter/1")
                         .header(AuthConstants.AUTHORIZATION, TEST_TOKEN)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .param("coverLetterId", "1"))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
 
@@ -266,9 +265,8 @@ class CoverLetterControllerTest {
         Long coverLetterId = 1L;
 
         // when & then
-        mockMvc.perform(delete("/api/v1/coverletter")
-                        .header(AuthConstants.AUTHORIZATION, TEST_TOKEN)
-                        .param("coverLetterId", String.valueOf(coverLetterId)))
+        mockMvc.perform(delete("/api/v1/coverletter/" + coverLetterId)
+                        .header(AuthConstants.AUTHORIZATION, TEST_TOKEN))
                 .andExpect(status().isNoContent());
     }
 
@@ -278,7 +276,7 @@ class CoverLetterControllerTest {
         // when & then
         mockMvc.perform(delete("/api/v1/coverletter")
                         .header(AuthConstants.AUTHORIZATION, TEST_TOKEN))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isMethodNotAllowed());
     }
 
     @Test
