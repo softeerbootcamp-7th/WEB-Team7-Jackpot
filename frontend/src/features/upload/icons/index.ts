@@ -3,6 +3,7 @@ import AILabelingIcon from '@/features/upload/icons/AILabelingIcon';
 import CompleteSavedIcon from '@/features/upload/icons/CompleteSavedIcon';
 import DocumentBoxIcon from '@/features/upload/icons/DocumentBoxIcon';
 import DropdownArrow from '@/features/upload/icons/DropdownArrow';
+import FileRemoveIcon from '@/features/upload/icons/FileRemoveIcon';
 import FileUploadIcon from '@/features/upload/icons/FileUploadIcon';
 import FirstStepIcon from '@/features/upload/icons/FirstStepIcon';
 import FolderIconInButton from '@/features/upload/icons/FolderIconInButton';
@@ -28,4 +29,5 @@ export const UploadPageIcons = {
   RightPaginationButtonIcon: RightPaginationButtonIcon,
   DropdownArrow: DropdownArrow,
   FolderIconInButton: FolderIconInButton,
+  FileRemoveIcon: FileRemoveIcon,
 };
