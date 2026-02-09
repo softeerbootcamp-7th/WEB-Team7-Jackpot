@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 
+import type { Review, ReviewBase } from '@/shared/types/review';
 import {
   buildReviewsFromApi,
   generateInternalReviewId,
@@ -7,8 +8,7 @@ import {
   mockFetchCoverLetterById,
   mockFetchReviewsByQnaId,
   parseTaggedText,
-} from '@/features/review/hooks/useReviewState/helpers';
-import type { Review, ReviewBase } from '@/features/review/types/review';
+} from '@/shared/hooks/useReviewState/helpers';
 import type { CoverLetter } from '@/shared/types/coverLetter';
 import type { QnA } from '@/shared/types/qna';
 

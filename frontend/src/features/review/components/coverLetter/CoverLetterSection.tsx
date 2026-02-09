@@ -5,8 +5,8 @@ import CoverLetterContent from '@/features/review/components/coverLetter/CoverLe
 import CoverLetterPagination from '@/features/review/components/coverLetter/CoverLetterPagination';
 import CoverLetterQuestion from '@/features/review/components/coverLetter/CoverLetterQuestion';
 import ReviewModal from '@/features/review/components/reviewModal/ReviewModal';
-import type { Review, ReviewBase } from '@/features/review/types/review';
-import type { SelectionInfo } from '@/features/review/types/selectionInfo';
+import type { Review, ReviewBase } from '@/shared//types/review';
+import type { SelectionInfo } from '@/shared/types/selectionInfo';
 
 const SPACER_HEIGHT = 10;
 

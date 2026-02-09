@@ -1,6 +1,6 @@
-import type { Review } from '@/features/review/types/review';
 import PaperChipIcon from '@/shared/icons/PaperChipIcon';
 import PenToolIcon from '@/shared/icons/PenToolIcon';
+import type { Review } from '@/shared/types/review';
 
 const CardContentSection = ({
   text,

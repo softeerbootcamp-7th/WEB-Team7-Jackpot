@@ -1,4 +1,4 @@
-import type { Review } from '@/features/review/types/review';
+import type { Review } from '@/shared/types/review';
 
 export interface TextChunk {
   text: string;

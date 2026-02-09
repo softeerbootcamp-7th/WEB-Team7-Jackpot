@@ -1,6 +1,6 @@
-import type { Review } from '@/features/review/types/review';
 import type { CoverLetter } from '@/shared/types/coverLetter';
 import type { QnA } from '@/shared/types/qna';
+import type { Review } from '@/shared/types/review';
 
 // Mock API
 export const mockCoverLetterApi: {

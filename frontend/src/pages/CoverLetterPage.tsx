@@ -1,7 +1,6 @@
-import CoverLetter from '@/features/coverLetter/components/CoverLetter';
+import CoverLetterReviewContent from '@/features/coverLetter/components/CoverLetterReviewContent';
 import CoverLetterWriteSidebar from '@/features/coverLetter/components/CoverLetterWriteSidebar';
 import NewCoverLetter from '@/features/coverLetter/components/newCoverLetter/NewCoverLetter';
-import ReviewCardList from '@/features/coverLetter/components/reviewWithFriend/ReviewCardList';
 import ReviewSidebar from '@/features/coverLetter/components/reviewWithFriend/ReviewSidebar';
 import {
   coverLetterContent,
@@ -16,10 +15,6 @@ import SidebarLayout from '@/shared/components/SidebarLayout';
 import TabBar from '@/shared/components/TabBar';
 
 const CoverLetterPage = () => {
-  // TODO: 전체 empty case 처리 필요
-  // 자기소개서 작성 엠티케이스
-  // QnA with a Friend 엠티케이스
-
   const { state, actions } = useCoverLetterParams();
 
   const isWriteTab = state.currentTab === 'COVERLETTER_WRITE';
@@ -65,20 +60,12 @@ const CoverLetterPage = () => {
         {isWriteTab ? (
           <NewCoverLetter />
         ) : (
-          <div className='flex h-full w-full min-w-0 flex-row pb-39.5'>
-            <div className='h-full min-w-0 flex-1'>
-              <CoverLetter
-                documentId={state.selectedDocumentId!}
-                openReview={actions.setIsReviewOpen}
-                isReviewOpen={state.isReviewOpen}
-              />
-            </div>
-            {state.isReviewOpen && (
-              <aside className='w-[248px] border-l border-gray-100'>
-                <ReviewCardList />
-              </aside>
-            )}
-          </div>
+          <CoverLetterReviewContent
+            key={state.selectedDocumentId}
+            selectedDocumentId={state.selectedDocumentId!}
+            isReviewOpen={state.isReviewOpen}
+            setIsReviewOpen={actions.setIsReviewOpen}
+          />
         )}
       </DataGuard>
     </SidebarLayout>

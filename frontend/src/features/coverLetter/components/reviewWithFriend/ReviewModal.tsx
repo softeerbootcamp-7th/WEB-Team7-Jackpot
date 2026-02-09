@@ -1,9 +1,24 @@
+import InvalidReviewBanner from '@/shared/components/InvalidReviewBanner';
 import PaperChipIcon from '@/shared/icons/PaperChipIcon';
 import PenToolIcon from '@/shared/icons/PenToolIcon';
+import type { Review } from '@/shared/types/review';
 
-const ReviewModal = () => {
+interface ReviewModalProps {
+  review: Review | null;
+  initialRevision?: string;
+  initialComment?: string;
+}
+
+// TODO: 적용하기, 삭제하기 기능 추가
+const ReviewModal = ({
+  review,
+  initialRevision,
+  initialComment,
+}: ReviewModalProps) => {
+  const isInvalid = review?.isValid === false;
+
   return (
-    <div className='inline-flex w-96 flex-col items-start justify-start gap-5 rounded-[32px] p-5 shadow-[0px_0px_30px_0px_rgba(41,41,41,0.08)]'>
+    <div className='flex w-96 flex-col items-end gap-4 rounded-[32px] bg-white p-5 shadow-[0px_0px_30px_0px_rgba(41,41,41,0.06)]'>
       <div className='flex flex-col items-start justify-start gap-4 self-stretch'>
         <div className='inline-flex items-center justify-start gap-3 self-stretch'>
           <div className='flex flex-1 items-center justify-start gap-2'>
@@ -18,6 +33,12 @@ const ReviewModal = () => {
             </div>
           </div>
         </div>
+        {isInvalid && review && (
+          <InvalidReviewBanner
+            isExpanded={true}
+            originText={review.selectedText}
+          />
+        )}
         <div className='flex flex-col items-start justify-start gap-4 self-stretch'>
           <div className='flex flex-col items-start justify-start gap-1 self-stretch'>
             <div className='inline-flex items-center justify-center gap-1.5'>
@@ -28,9 +49,7 @@ const ReviewModal = () => {
             </div>
             <div className='inline-flex items-center justify-center gap-2.5 self-stretch pl-6'>
               <div className='text-Primitive-Color-gray-gray-800 flex-1 justify-start text-sm leading-5 font-normal'>
-                &apos;분석을 통한 개선&apos;입니다. 학창 시절부터 주어진 과제를
-                수행하는 것에 그치지 않고, &quot;왜 이 방식이어야
-                하는가?&quot;라는 의문을 갖고 프로세스를 개선하는 데
+                {initialRevision}
               </div>
             </div>
           </div>
@@ -43,7 +62,7 @@ const ReviewModal = () => {
             </div>
             <div className='inline-flex items-center justify-center gap-2.5 self-stretch pl-6'>
               <div className='text-Semantic-text-label-600 flex-1 justify-start text-sm leading-5 font-normal'>
-                어휘가 적당하지 않고, 수식어가 많다는 느낌이 있어요!
+                {initialComment}
               </div>
             </div>
           </div>

@@ -10,3 +10,7 @@ export interface CoverLetter {
   applyHalf: ApplyHalf;
   deadline: ISODateString;
 }
+
+export interface RecentCoverLetter extends CoverLetter {
+  questionCount: number;
+}
