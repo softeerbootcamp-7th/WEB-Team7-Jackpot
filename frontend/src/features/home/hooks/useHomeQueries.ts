@@ -1,0 +1,62 @@
+import { useSuspenseQuery } from '@tanstack/react-query';
+
+import {
+  fetchCalendarDates,
+  fetchHomeCount,
+  fetchUpcomingDeadlines,
+} from '@/features/home/api/homeApi';
+import { searchCoverLetters } from '@/shared/api/coverLetterApi';
+import { getTodayISODate } from '@/shared/utils/dates';
+
+// 홈 화면 통계 데이터
+export const useHomeCount = (date?: string) => {
+  const targetDate = date || getTodayISODate();
+
+  return useSuspenseQuery({
+    queryKey: ['home', 'count', { date: targetDate }],
+    queryFn: () => fetchHomeCount(targetDate),
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
+// 캘린더 날짜 조회
+export const useCalendarDates = (startDate: string, endDate: string) => {
+  return useSuspenseQuery({
+    queryKey: ['home', 'calendar', { startDate, endDate }],
+    queryFn: () => fetchCalendarDates({ startDate, endDate }),
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
+// 다가오는 일정
+export const useUpcomingDeadlines = (
+  maxDeadLineSize = 3,
+  maxCoverLetterSizePerDeadLine = 2,
+  date?: string,
+) => {
+  const targetDate = date || getTodayISODate();
+
+  return useSuspenseQuery({
+    queryKey: [
+      'home',
+      'upcoming-deadlines',
+      { date: targetDate, maxDeadLineSize, maxCoverLetterSizePerDeadLine },
+    ],
+    queryFn: () =>
+      fetchUpcomingDeadlines({
+        date: targetDate,
+        maxDeadLineSize,
+        maxCoverLetterSizePerDeadLine,
+      }),
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
+// 작성중인 자기소개서
+export const useRecentCoverLetters = (size = 6) => {
+  return useSuspenseQuery({
+    queryKey: ['coverletter', 'recent', { size }],
+    queryFn: () => searchCoverLetters({ size, page: 1 }),
+    staleTime: 60 * 1000,
+  });
+};
