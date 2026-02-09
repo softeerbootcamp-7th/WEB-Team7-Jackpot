@@ -40,7 +40,7 @@ public interface QnAApi {
             @Valid @RequestBody QnAEditRequest request
     );
 
-    @Operation(summary = "질문/답변 조회", description = "ID로 질문 및 답변을 조회합니다.")
+    @Operation(summary = "QnA 단건 조회", description = "ID로 질문 및 답변을 조회합니다.")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -49,12 +49,12 @@ public interface QnAApi {
             ),
             @ApiResponse(responseCode = "401", description = "인증 실패"),
             @ApiResponse(responseCode = "403", description = "권한 없음"),
-            @ApiResponse(responseCode = "404", description = "질문/답변을 찾을 수 없음")
+            @ApiResponse(responseCode = "404", description = "QnA를 찾을 수 없음")
     })
-    @GetMapping
+    @GetMapping("/{qnaId}")
     ResponseEntity<QnAResponse> getQnAById(
             @Parameter(hidden = true) @UserId String userId,
-            @Parameter(description = "질문/답변 ID", required = true) @RequestParam Long qnaId
+            @Parameter(description = "질문/답변 ID", required = true, example = "1") @PathVariable Long qnaId
     );
 
     @Operation(summary = "자기소개서의 질문 ID 목록 조회", description = "특정 자기소개서에 속한 모든 질문의 ID 목록을 조회합니다.")

@@ -34,7 +34,7 @@ public class QnAController implements QnAApi {
     @Override
     public ResponseEntity<QnAResponse> getQnAById(
             @UserId String userId,
-            @RequestParam Long qnaId
+            @PathVariable Long qnaId
     ) {
         return ResponseEntity.ok(coverLetterService.getQnAById(userId, qnaId));
     }
