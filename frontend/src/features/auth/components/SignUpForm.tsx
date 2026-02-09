@@ -76,7 +76,7 @@ const SignUpForm = ({ handleSuccess }: SignUpFormProps) => {
     e.preventDefault();
 
     if (!isIdDuplicationVerified) {
-      alert('아이디 중복 확인을 해주세요.');
+      showToast('아이디 중복 확인을 해주세요.', false);
       return;
     }
 
