@@ -10,7 +10,7 @@ import type {
   CoverLetterTabProps,
   DropdownStateType,
 } from '@/features/upload/types/upload';
-import { yearList } from '@/features/upload/utils/generateYearList';
+import { yearList } from '@/features/upload/utils/generateAboutDate';
 import RecruitPeriodSelectInput from '@/shared/components/RecruitPeriodSelectInput';
 
 // [윤종근] - 추후에 지울 예정인 UI 테스트만을 위한 임시 데이터라서 constants에 옮기지 않았습니다.
