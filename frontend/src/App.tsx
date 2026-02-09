@@ -8,6 +8,7 @@ import ReviewPage from '@/pages/ReviewPage';
 import SignUpPage from '@/pages/SignUpPage';
 import UploadPage from '@/pages/UploadPage';
 
+import SignUpComplete from '@/features/auth/components/SignUpComplete';
 import DetailView from '@/features/library/components/DetailView';
 import LibraryLayout from '@/features/library/components/LibraryLayout';
 import LibrarySidebarLayout from '@/features/library/components/LibrarySidebarLayout';
@@ -27,8 +28,8 @@ function App() {
           <Route path='/cover-letter' element={<CoverLetterLandingPage />} />
           <Route path='/cover-letter/new' element={<CoverLetterPage />} />
           <Route path='/library' element={<LibraryLayout />}>
-          {/* [박소민] /library로 접속시 자동으로 /library/company로 이동 */}
-          {/* TODO: 렌더링을 최소화할 수 있는 방법이 없는지 확인 (라우팅 변경해도 됨) */}
+            {/* [박소민] /library로 접속시 자동으로 /library/company로 이동 */}
+            {/* TODO: 렌더링을 최소화할 수 있는 방법이 없는지 확인 (라우팅 변경해도 됨) */}
             <Route index element={<Navigate to='/library/company' replace />} />
             <Route element={<LibrarySidebarLayout />}>
               <Route path='company'>
@@ -65,6 +66,7 @@ function App() {
         {/* <Route path="/" element={<LandingPage />}/> */}
         <Route path='/login' element={<LoginPage />} />
         <Route path='/signup' element={<SignUpPage />} />
+        <Route path='/signup/complete' element={<SignUpComplete />} />
       </Routes>
     </BrowserRouter>
   );

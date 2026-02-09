@@ -1,22 +1,27 @@
-import { useState } from 'react';
+import { useNavigate } from 'react-router';
 
+import { useAuth } from '@/context/AuthContext';
 import AuthLayout from '@/features/auth/components/AuthLayout';
-import SignUpComplete from '@/features/auth/components/SignUpComplete';
 import SignUpForm from '@/features/auth/components/SignUpForm';
 import { SUB_TITLE } from '@/features/auth/constants/constantsInSignUpPage';
 
 const SignUpPage = () => {
-  const [isSuccess, setIsSuccess] = useState<boolean>(false);
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+
+  if (isAuthenticated) {
+    navigate('/home', { replace: true });
+    return null;
+  }
+
+  const handleSuccess = () => {
+    navigate('/signup/complete', { replace: true });
+  };
+
   return (
-    <>
-      {isSuccess ? (
-        <SignUpComplete />
-      ) : (
-        <AuthLayout subTitle={SUB_TITLE} subTitleColor='text-gray-950'>
-          <SignUpForm handleSuccess={setIsSuccess} />
-        </AuthLayout>
-      )}
-    </>
+    <AuthLayout subTitle={SUB_TITLE} subTitleColor='text-gray-950'>
+      <SignUpForm handleSuccess={handleSuccess} />
+    </AuthLayout>
   );
 };
 
