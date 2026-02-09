@@ -24,9 +24,7 @@ const HomePage = () => {
           <Suspense fallback={<SummaryOverviewSkeleton />}>
             <SummaryOverview />
           </Suspense>
-        </ErrorBoundary>
 
-        <ErrorBoundary fallback={<HomeSectionError />}>
           <Suspense
             fallback={
               <div className='inline-flex w-full items-center justify-start gap-16'>
@@ -37,9 +35,7 @@ const HomePage = () => {
           >
             <ScheduleOverview />
           </Suspense>
-        </ErrorBoundary>
 
-        <ErrorBoundary fallback={<HomeSectionError />}>
           <Suspense fallback={<CoverLetterOverviewSkeleton len={6} />}>
             <CoverLetterOverview
               button={<RightArrow />}
