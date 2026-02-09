@@ -51,7 +51,7 @@ public interface ScrapApi {
             @ApiResponse(responseCode = "401", description = "인증 실패"),
             @ApiResponse(responseCode = "403", description = "삭제 권한이 없는 사용자")
     })
-    @DeleteMapping
+    @DeleteMapping("/{qnaId}")
     ResponseEntity<ScrapCountResponse> deleteScrapById(
             @Parameter(hidden = true) @UserId String userId,
             @Parameter(description = "문항 ID", required = true, example = "1") @PathVariable Long qnaId
