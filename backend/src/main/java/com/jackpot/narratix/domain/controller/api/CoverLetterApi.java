@@ -58,7 +58,7 @@ public interface CoverLetterApi {
             @Valid @RequestBody EditCoverLetterRequest editCoverLetterRequest
     );
 
-    @Operation(summary = "자기소개서 조회", description = "ID로 자기소개서를 조회합니다.")
+    @Operation(summary = "자기소개서 단건 조회", description = "ID로 자기소개서를 조회합니다.")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -69,10 +69,11 @@ public interface CoverLetterApi {
             @ApiResponse(responseCode = "403", description = "권한 없음"),
             @ApiResponse(responseCode = "404", description = "자기소개서를 찾을 수 없음")
     })
-    @GetMapping
+    @GetMapping("/{coverLetterId}")
     ResponseEntity<CoverLetterResponse> findCoverLetterById(
             @Parameter(hidden = true) @UserId String userId,
-            @Parameter(description = "자기소개서 ID", required = true) @RequestParam Long coverLetterId
+            @Parameter(description = "자기소개서 ID", required = true, example = "1")
+            @PathVariable Long coverLetterId
     );
 
     @Operation(summary = "자기소개서 삭제", description = "ID로 자기소개서를 삭제합니다.")
@@ -82,10 +83,11 @@ public interface CoverLetterApi {
             @ApiResponse(responseCode = "403", description = "권한 없음"),
             @ApiResponse(responseCode = "404", description = "자기소개서를 찾을 수 없음")
     })
-    @DeleteMapping
+    @DeleteMapping("/{coverLetterId}")
     ResponseEntity<Void> deleteCoverLetterById(
             @Parameter(hidden = true) @UserId String userId,
-            @Parameter(description = "자기소개서 ID", required = true) @RequestParam Long coverLetterId
+            @Parameter(description = "자기소개서 ID", required = true, example = "1")
+            @PathVariable Long coverLetterId
     );
 
     @Operation(summary = "자기소개서 개수 조회", description = "특정 날짜 기준으로 자기소개서 개수를 조회합니다.")

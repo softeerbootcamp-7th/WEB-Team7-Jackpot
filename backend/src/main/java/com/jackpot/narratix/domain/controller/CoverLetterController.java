@@ -46,7 +46,7 @@ public class CoverLetterController implements CoverLetterApi {
     @Override
     public ResponseEntity<CoverLetterResponse> findCoverLetterById(
             @UserId String userId,
-            @RequestParam Long coverLetterId
+            @PathVariable Long coverLetterId
     ) {
         return ResponseEntity.ok(coverLetterService.findCoverLetterById(userId, coverLetterId));
     }
@@ -54,7 +54,7 @@ public class CoverLetterController implements CoverLetterApi {
     @Override
     public ResponseEntity<Void> deleteCoverLetterById(
             @UserId String userId,
-            @RequestParam Long coverLetterId
+            @PathVariable Long coverLetterId
     ) {
         coverLetterService.deleteCoverLetterById(userId, coverLetterId);
         return ResponseEntity.noContent().build();
