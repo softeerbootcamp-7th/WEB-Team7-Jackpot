@@ -29,6 +29,7 @@ const SecondContentItem = ({ tabState, setTabState }: CoverLetterTabProps) => {
   const { contents, updateContents } = useCoverLetterState();
   const currentData = contents[tabState];
 
+  // [윤종근] - 추후 리팩토링 예정
   return (
     <div className='flex flex-col gap-6'>
       <CoverLetterList tabState={tabState} setTabState={setTabState} />
