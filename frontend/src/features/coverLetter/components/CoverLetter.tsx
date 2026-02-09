@@ -138,8 +138,7 @@ const CoverLetter = ({
 
       <div className='flex flex-shrink-0 flex-col gap-0.5'>
         <div className='line-clamp-1 text-xl leading-9 font-bold'>
-          {coverLetter.applyYear}년{' '}
-          {coverLetter.applyHalf === 'FIRST_HALF' ? '상반기' : '하반기'}
+          {coverLetter.applyYear}년 {coverLetter.applyHalf}
         </div>
         <div className='flex gap-1 text-sm text-gray-400'>
           <span>총 {qnas.length}문항</span>
