@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -52,4 +53,16 @@ public interface UserAuthApi {
     })
     @PostMapping("/login")
     ResponseEntity<UserTokenResponse> login(@Valid @RequestBody LoginRequest request);
+
+    @Operation(summary = "액세스 토큰 재발급", description = "쿠키의 리프레시 토큰을 사용하여 새로운 액세스 토큰을 발급합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "토큰 재발급 성공",
+                    content = @Content(schema = @Schema(implementation = UserTokenResponse.class))
+            ),
+            @ApiResponse(responseCode = "401", description = "유효하지 않거나 만료된 토큰")
+    })
+    @PostMapping("/refresh")
+    ResponseEntity<UserTokenResponse> refresh(@CookieValue(value = "refreshToken", required = true) String refreshToken);
 }

@@ -6,6 +6,8 @@ import com.jackpot.narratix.domain.controller.request.JoinRequest;
 import com.jackpot.narratix.domain.controller.request.LoginRequest;
 import com.jackpot.narratix.domain.controller.response.UserTokenResponse;
 import com.jackpot.narratix.domain.service.UserAuthService;
+import com.jackpot.narratix.global.auth.jwt.domain.AccessToken;
+import com.jackpot.narratix.global.auth.jwt.service.TokenService;
 import com.jackpot.narratix.global.auth.jwt.service.dto.TokenResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserAuthController implements UserAuthApi {
 
     private final UserAuthService userAuthService;
+    private final TokenService tokenService;
 
     @Override
     public ResponseEntity<Void> checkId(@Valid @RequestBody CheckIdRequest request) {
@@ -37,6 +40,12 @@ public class UserAuthController implements UserAuthApi {
     public ResponseEntity<UserTokenResponse> login(@Valid @RequestBody LoginRequest request) {
         TokenResponse tokens = userAuthService.login(request);
         return createTokenResponse(tokens);
+    }
+
+    @Override
+    public ResponseEntity<UserTokenResponse> refresh(@CookieValue(value = "refreshToken", required = true) String refreshToken) {
+        AccessToken accessToken = tokenService.reissueToken(refreshToken);
+        return ResponseEntity.ok(new UserTokenResponse(accessToken.getToken()));
     }
 
     private ResponseEntity<UserTokenResponse> createTokenResponse(TokenResponse tokens) {
