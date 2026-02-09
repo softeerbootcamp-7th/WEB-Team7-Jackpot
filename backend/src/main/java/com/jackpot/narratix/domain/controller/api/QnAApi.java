@@ -71,6 +71,6 @@ public interface QnAApi {
     @GetMapping("/id/all")
     ResponseEntity<List<Long>> getQnAIdsByCoverLetterId(
             @Parameter(hidden = true) @UserId String userId,
-            @Parameter(description = "자기소개서 ID", required = true) @RequestParam Long coverLetterId
+            @Parameter(description = "자기소개서 ID") @RequestParam Long coverLetterId
     );
 }
