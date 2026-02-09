@@ -61,6 +61,7 @@ public interface UserAuthApi {
                     description = "토큰 재발급 성공",
                     content = @Content(schema = @Schema(implementation = UserTokenResponse.class))
             ),
+            @ApiResponse(responseCode = "400", description = "존재하지 않는 리프레시 토큰"),
             @ApiResponse(responseCode = "401", description = "유효하지 않거나 만료된 토큰")
     })
     @PostMapping("/refresh")
