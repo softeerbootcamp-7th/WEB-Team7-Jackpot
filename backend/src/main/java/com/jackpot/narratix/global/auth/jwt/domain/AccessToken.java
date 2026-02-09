@@ -6,7 +6,7 @@ import java.util.Date;
 
 public class AccessToken extends Token{
 
-    public AccessToken(String token, String subject, Date issuedAt, Date expiration) {
+    private AccessToken(String token, String subject, Date issuedAt, Date expiration) {
         super(token, subject, issuedAt, expiration);
     }
 

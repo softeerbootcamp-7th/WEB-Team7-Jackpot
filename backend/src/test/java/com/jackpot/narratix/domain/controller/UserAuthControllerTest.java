@@ -4,6 +4,7 @@ import com.jackpot.narratix.domain.controller.request.CheckIdRequest;
 import com.jackpot.narratix.domain.controller.request.JoinRequest;
 import com.jackpot.narratix.domain.controller.request.LoginRequest;
 import com.jackpot.narratix.domain.service.UserAuthService;
+import com.jackpot.narratix.global.auth.jwt.JwtConstants;
 import com.jackpot.narratix.global.auth.jwt.domain.AccessToken;
 import com.jackpot.narratix.global.auth.jwt.domain.RefreshToken;
 import com.jackpot.narratix.global.auth.jwt.service.TokenService;
@@ -52,7 +53,7 @@ class UserAuthControllerTest {
     private static final String TEST_PASSWORD = "testPassword123!";
     private static final String TEST_NICKNAME = "테스트닉네임";
     private static final String JWT_REFRESH_TOKEN = "refresh.token.here";
-    private static final String BEARER_ACCESS_TOKEN = "Bearer access.token.here";
+    private static final String ACCESS_TOKEN = "access.token.here";
 
     @BeforeEach
     void setUp() {
@@ -87,8 +88,8 @@ class UserAuthControllerTest {
         Date now = new Date();
         Date expiration = new Date(now.getTime() + 3600000);
         TokenResponse tokenResponse = TokenResponse.of(
-                new AccessToken(BEARER_ACCESS_TOKEN, TEST_USER_ID, now, expiration)
-                , new RefreshToken(JWT_REFRESH_TOKEN, TEST_USER_ID, now, expiration)
+                AccessToken.of(ACCESS_TOKEN, TEST_USER_ID, now, expiration)
+                , RefreshToken.of(JWT_REFRESH_TOKEN, TEST_USER_ID, now, expiration)
         );
 
         given(userAuthService.join(any(JoinRequest.class))).willReturn(tokenResponse);
@@ -98,7 +99,7 @@ class UserAuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessToken").value(BEARER_ACCESS_TOKEN))
+                .andExpect(jsonPath("$.accessToken").value(JwtConstants.BEARER + ACCESS_TOKEN))
                 .andExpect(header().exists("Set-Cookie"))
                 .andExpect(cookie().value("refreshToken", JWT_REFRESH_TOKEN))
                 .andExpect(cookie().httpOnly("refreshToken", true))
@@ -115,8 +116,8 @@ class UserAuthControllerTest {
 
         Date now = new Date();
         Date expiration = new Date(now.getTime() + 3600000);
-        AccessToken accessToken = new AccessToken(BEARER_ACCESS_TOKEN, TEST_USER_ID, now, expiration);
-        RefreshToken refreshToken = new RefreshToken(JWT_REFRESH_TOKEN, TEST_USER_ID, now, expiration);
+        AccessToken accessToken = AccessToken.of(ACCESS_TOKEN, TEST_USER_ID, now, expiration);
+        RefreshToken refreshToken = RefreshToken.of(JWT_REFRESH_TOKEN, TEST_USER_ID, now, expiration);
         TokenResponse tokenResponse = TokenResponse.of(accessToken, refreshToken);
 
         given(userAuthService.login(any(LoginRequest.class))).willReturn(tokenResponse);
@@ -126,7 +127,7 @@ class UserAuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessToken").value(BEARER_ACCESS_TOKEN))
+                .andExpect(jsonPath("$.accessToken").value(JwtConstants.BEARER + ACCESS_TOKEN))
                 .andExpect(header().exists("Set-Cookie"))
                 .andExpect(cookie().value("refreshToken", JWT_REFRESH_TOKEN))
                 .andExpect(cookie().httpOnly("refreshToken", true))
