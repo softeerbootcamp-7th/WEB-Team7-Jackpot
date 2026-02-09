@@ -1,4 +1,4 @@
-import PenIcon from '@/features/review/components/icons/PenIcon';
+import PenIcon from '@/features/review/icons/PenIcon';
 
 export const reviewHeaderText = {
   icon: <PenIcon />,

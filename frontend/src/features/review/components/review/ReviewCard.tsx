@@ -1,10 +1,10 @@
 import { useState } from 'react';
 
-import ChevronIcon from '@/features/review/components/icons/ChevronIcon';
 import ActionButtons from '@/features/review/components/review/ActionButtons';
 import CardContentSection from '@/features/review/components/review/CardContentSection';
 import CardUserInfo from '@/features/review/components/review/CardUserInfo';
 import ChipRow from '@/features/review/components/review/ChipRow';
+import ChevronIcon from '@/features/review/icons/ChevronIcon';
 import InvalidReviewBanner from '@/shared/components/InvalidReviewBanner';
 import type { Review } from '@/shared/types/review';
 
