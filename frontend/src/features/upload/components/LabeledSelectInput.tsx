@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 interface LabeledSelectInputProps {
   label: string;
@@ -20,12 +20,22 @@ const LabeledSelectInput = ({
   dropdownDirection = 'bottom',
 }: LabeledSelectInputProps) => {
   const hasDropdown = constantData.length > 0;
+  const [debounceValue, setDebounceValue] = useState<string | number>(value);
+
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      setDebounceValue(value);
+    }, 300);
+
+    return () => clearTimeout(debounceTimer);
+  }, [value]);
+
   // 데이터가 커졌을 때를 대비하여 useMemo 적용
   const searchData = useMemo(
-    () => constantData.filter((each) => each.includes(value.toString())),
-    [constantData, value],
+    () =>
+      constantData.filter((each) => each.includes(debounceValue.toString())),
+    [constantData, debounceValue],
   );
-
   return (
     <div className='flex flex-col gap-3'>
       <div className='text-lg font-bold'>
