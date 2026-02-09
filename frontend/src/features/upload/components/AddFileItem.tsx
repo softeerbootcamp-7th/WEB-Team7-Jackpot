@@ -1,6 +1,10 @@
 import { UploadPageIcons as I } from '@/features/upload/icons';
 
 const AddFileItem = () => {
+  const formatFileSize = (bytes: number) => {
+    const mb = bytes / (1024 * 1024);
+    return `${mb.toFixed(2)}MB`;
+  };
   return (
     <button className='flex h-[23.5rem] w-[25.5rem] cursor-pointer flex-col items-center justify-center gap-5 rounded-lg bg-gray-50'>
       <I.AddFileIcon />
