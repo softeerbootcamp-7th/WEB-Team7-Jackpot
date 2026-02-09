@@ -11,9 +11,13 @@ interface FileStateType {
 
 interface UploadFileLayoutProps {
   setIsContent: (state: boolean) => void;
+  setTotalSize: (state: number) => void;
 }
 
-const UploadFileLayout = ({ setIsContent }: UploadFileLayoutProps) => {
+const UploadFileLayout = ({
+  setIsContent,
+  setTotalSize,
+}: UploadFileLayoutProps) => {
   const [files, setFiles] = useState<FileStateType[]>([
     { file: null, status: 'idle' },
     { file: null, status: 'idle' },
@@ -57,9 +61,16 @@ const UploadFileLayout = ({ setIsContent }: UploadFileLayoutProps) => {
   };
 
   useEffect(() => {
-    const hasContent = files.some((file) => file.file !== null);
+    const currentTotalSize = files.reduce(
+      (acc, curr) => (acc += curr.file?.size ?? 0),
+      0,
+    );
+    setTotalSize(currentTotalSize);
+    const hasContent = files.some(
+      (file) => file.file !== null && file.status === 'success',
+    );
     setIsContent(hasContent);
-  }, [files, setIsContent]);
+  }, [files, setIsContent, setTotalSize]);
 
   return (
     <div className='flex justify-between gap-3'>
