@@ -33,13 +33,13 @@ export const STEP_DATA: Record<string, StepInformationProps> = {
     loadingTitle: '저장이 완료되었어요!',
     loadingSubTitle: '총 3개의 문항이 라이브러리에 저장되었어요.',
   },
-};
+} as const;
 
 export const TAB_DATA: TabDataType[] = [
   { tabName: '자기소개서 01', tabNumber: 1 },
   { tabName: '자기소개서 02', tabNumber: 2 },
   { tabName: '자기소개서 03', tabNumber: 3 },
-];
+] as const;
 
 export const UPLOAD_TAB_DATA: UploadTabDataType[] = [
   {
@@ -52,6 +52,21 @@ export const UPLOAD_TAB_DATA: UploadTabDataType[] = [
     targetTab: 'text',
     icon: <I.TextUploadIcon />,
   },
-];
+] as const;
 
 export const MAX_BYTES = 10 * 1024 * 1024;
+
+export const QUESTION_TYPE_LIST: string[] = [
+  '지원동기',
+  '협업경험',
+  '가치관',
+  '직무역량',
+  '성격의 장단점',
+  '입사 후 포부',
+  '문제해결',
+  '커리어 목표',
+  '실패경험',
+  '성장과정',
+  '사회이슈',
+  '기타',
+] as const;
