@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Size;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -31,7 +32,8 @@ public interface SearchApi {
     @GetMapping
     ResponseEntity<SearchScrapResponse> searchScrap(
             @Parameter(hidden = true) @UserId String userId,
-            @Parameter(description = "검색 키워드") @RequestParam(required = false) String searchWord,
+            @Parameter(description = "검색 키워드")
+            @Size(min = 2, message = "검색어는 2자 이상이어야 합니다.") @RequestParam(required = false) String searchWord,
             @Parameter(description = "페이지 크기") @RequestParam(required = false, defaultValue = "10") Integer size,
             @Parameter(description = "마지막 문항 아이디") @RequestParam(required = false) Long lastQnaId
     );
