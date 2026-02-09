@@ -36,6 +36,7 @@ const CoverLetterContent = ({
     onSelectionChange,
   });
   const [bottomPadding, setBottomPadding] = useState<number>(0);
+
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
