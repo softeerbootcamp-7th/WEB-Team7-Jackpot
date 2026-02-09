@@ -17,9 +17,9 @@ public class SseEmitterRepository {
     private final Map<String, Set<String>> userEmitterIds = new ConcurrentHashMap<>();
 
     public void save(String userId, String emitterId, SseEmitter emitter) {
-        emitters.put(emitterId, emitter);
         userEmitterIds.computeIfAbsent(userId, key -> ConcurrentHashMap.newKeySet())
                 .add(emitterId);
+        emitters.put(emitterId, emitter);
     }
 
     public void deleteByEmitterId(String userId, String emitterId) {
