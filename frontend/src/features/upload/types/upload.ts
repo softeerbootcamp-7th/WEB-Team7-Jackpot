@@ -1,6 +1,8 @@
 export interface FirstContentAreaHeaderProps {
   uploadTab: 'file' | 'text';
   setUploadTab: (newValue: 'file' | 'text') => void;
+  isContent?: boolean
+  setIsContent?: (state: boolean) => void;
   step?: string;
   nextStep?: (step: string) => void;
 }

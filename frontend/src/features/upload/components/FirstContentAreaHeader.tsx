@@ -5,6 +5,8 @@ import type { FirstContentAreaHeaderProps } from '@/features/upload/types/upload
 
 const FirstContentAreaHeader = ({
   uploadTab,
+  isContent,
+  setIsContent= () => {},
   setUploadTab,
   nextStep,
 }: FirstContentAreaHeaderProps) => {
@@ -15,7 +17,15 @@ const FirstContentAreaHeader = ({
           <TabButton
             key={data.targetTab}
             isActived={uploadTab === data.targetTab}
-            onClick={() => setUploadTab(data.targetTab)}
+            onClick={() => {
+              if (
+                !isContent ||
+                window.confirm('탭 전환을 하면 업로드한 내용이 사라집니다.')
+              ) {
+                setIsContent(false)
+                setUploadTab(data.targetTab);
+              }
+            }}
             icon={data.icon}
             label={data.label}
           />
