@@ -1,3 +1,4 @@
+import { QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 
 import CoverLetterLandingPage from '@/pages/CoverLetterLandingPage';
@@ -15,9 +16,11 @@ import LibrarySidebarLayout from '@/features/library/components/LibrarySidebarLa
 import { emptyCaseText } from '@/features/library/constants';
 import EmptyCase from '@/shared/components/EmptyCase';
 import RootLayout from '@/shared/components/RootLayout';
+import { queryClient } from '@/shared/queries/queryClient';
 
 function App() {
   return (
+    <QueryClientProvider client={queryClient}>
     <BrowserRouter>
       <Routes>
         <Route path='/login' element={<LoginPage />} />
@@ -69,6 +72,7 @@ function App() {
         <Route path='/signup/complete' element={<SignUpComplete />} />
       </Routes>
     </BrowserRouter>
+    </QueryClientProvider>
   );
 }
 
