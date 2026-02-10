@@ -3,6 +3,7 @@ import React from 'react';
 
 import { useNavigate } from 'react-router';
 
+import { useAuth } from '@/context/AuthContext';
 import { authClient } from '@/features/auth/api/auth';
 import InputBar from '@/features/auth/components/InputBar';
 import SubmitButton from '@/features/auth/components/SubmitButton';
@@ -14,6 +15,7 @@ import { validateId } from '@/shared/utils/validation';
 
 const LoginForm = () => {
   const { showToast } = useToastMessageContext();
+  const { login: setLoginState } = useAuth();
   const navigate = useNavigate();
   // 로그인 실패 시를 위한 상태
   const [isLoginFailed, setIsLoginFailed] = useState<boolean>(false);
@@ -45,6 +47,7 @@ const LoginForm = () => {
         password: formData.password,
       });
 
+      setLoginState();
       showToast('로그인 되었습니다.', true);
       navigate('/home');
     } catch (error) {
