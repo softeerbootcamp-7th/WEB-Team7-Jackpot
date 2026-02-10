@@ -4,6 +4,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 import CoverLetterLandingPage from '@/pages/CoverLetterLandingPage';
 import CoverLetterPage from '@/pages/CoverLetterPage';
 import HomePage from '@/pages/HomePage';
+import LandingPage from '@/pages/LandingPage';
 import LoginPage from '@/pages/LoginPage';
 import ReviewPage from '@/pages/ReviewPage';
 import SignUpCompletePage from '@/pages/SignUpCompletePage';
@@ -66,7 +67,7 @@ function App() {
             <Route path='/review/:coverLetterId' element={<ReviewPage />} />
           </Route>
 
-          {/* <Route path="/" element={<LandingPage />}/> */}
+          <Route path='/' element={<LandingPage />} />
           <Route path='/login' element={<LoginPage />} />
           <Route path='/signup' element={<SignUpPage />} />
           <Route path='/signup/complete' element={<SignUpCompletePage />} />
