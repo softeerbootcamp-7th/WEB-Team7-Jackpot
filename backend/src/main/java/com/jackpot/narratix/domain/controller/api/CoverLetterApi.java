@@ -1,5 +1,6 @@
 package com.jackpot.narratix.domain.controller.api;
 
+import com.jackpot.narratix.domain.controller.request.CoverLetterFilterRequest;
 import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
 import com.jackpot.narratix.domain.controller.request.EditCoverLetterRequest;
 import com.jackpot.narratix.domain.controller.response.CoverLetterResponse;
@@ -95,7 +96,7 @@ public interface CoverLetterApi {
             @Parameter(description = "기준 날짜 (yyyy-MM-dd)", required = true, example = "2024-01-01") LocalDate date
     );
 
-    @Operation(summary = "날짜 범위로 자기소개서 조회", description = "시작일과 종료일 사이의 자기소개서 목록을 조회합니다.")
+    @Operation(summary = "필터링된 자기소개서 조회", description = "필터링에 따라 자기소개서 목록을 조회합니다.")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -104,11 +105,10 @@ public interface CoverLetterApi {
             ),
             @ApiResponse(responseCode = "401", description = "인증 실패")
     })
-    ResponseEntity<CoverLettersDateRangeResponse> getAllCoverLetterByDate(
+    ResponseEntity<CoverLettersDateRangeResponse> getAllCoverLetterByFilter(
             @Parameter(hidden = true) @UserId String userId,
-            @Parameter(description = "시작 날짜 (yyyy-MM-dd)", required = true, example = "2024-01-01") LocalDate startDate,
-            @Parameter(description = "종료 날짜 (yyyy-MM-dd)", required = true, example = "2024-12-31") LocalDate endDate,
-            @Parameter(description = "페이지 크기", required = true) Integer size
+            @Parameter(description = "자기소개서 필터링 Request 정보", required = true)
+            CoverLetterFilterRequest request
     );
 
     @Operation(summary = "다가오는 마감일 자기소개서 조회", description = "마감일이 임박한 자기소개서 목록을 조회합니다.")
