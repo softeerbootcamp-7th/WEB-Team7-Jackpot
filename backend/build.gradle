@@ -28,9 +28,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     runtimeOnly 'com.mysql:mysql-connector-j'
 
-    // tsid-creator for TSID
+    // ulid-creator for ULID
     implementation group: 'com.github.f4b6a3', name: 'ulid-creator', version: '5.1.0'
 
     // JWT
