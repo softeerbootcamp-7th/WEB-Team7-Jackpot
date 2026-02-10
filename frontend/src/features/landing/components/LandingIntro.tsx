@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import LandingIntroBackground from '@/features/landing/components/LandingIntroBackground';
 import { LandingPageIcon as I } from '@/features/landing/icons';
 
 interface LandingIntroProps {
@@ -16,25 +17,18 @@ const LandingIntro = ({ onEnter }: LandingIntroProps) => {
 
   return (
     <div
-      className={`relative h-screen w-full overflow-hidden bg-white transition-opacity duration-1000 ${
+      className={`relative h-screen w-full overflow-hidden bg-white transition-opacity duration-300 ${
         isExiting ? 'opacity-0' : 'opacity-100'
       }`}
     >
-      <video
-        className='absolute inset-0 h-full w-full object-cover'
-        src='/videos/background-abstract.mp4'
-        autoPlay
-        loop
-        muted
-        playsInline
-      />
+      <LandingIntroBackground />
 
       <div className='absolute inset-0' />
 
-      <div className='absolute right-24 bottom-16 z-10'>
+      <div className='absolute right-24 bottom-16 z-50'>
         <button
           onClick={handleEnterClick}
-          className='group relative flex items-center gap-3 overflow-hidden rounded-full bg-white transition-transform'
+          className='group relative flex cursor-pointer items-center gap-3 overflow-hidden rounded-full bg-white transition-transform'
         >
           <span className='absolute top-0 right-0 h-full w-0 bg-gray-950 transition-all duration-500 ease-in-out group-hover:w-full' />
 
