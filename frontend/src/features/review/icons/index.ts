@@ -1,6 +1,6 @@
-import ChevronIcon from '@/features/review/components/icons/ChevronIcon';
-import PenIcon from '@/features/review/components/icons/PenIcon';
-import TrashCanIcon from '@/features/review/components/icons/TrashCanIcon';
+import ChevronIcon from '@/features/review/icons/ChevronIcon';
+import PenIcon from '@/features/review/icons/PenIcon';
+import TrashCanIcon from '@/features/review/icons/TrashCanIcon';
 
 export const ReviewPageIcons = {
   ChevronIcon,

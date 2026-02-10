@@ -12,7 +12,7 @@ export const mockCoverLetterApi: {
     companyName: '삼성전자',
     jobPosition: '비주얼 인터랙션 디자인',
     applyYear: 2026,
-    applyHalf: 'FIRST_HALF',
+    applyHalf: '상반기',
     deadline: '2025-01-25',
   },
   qnas: [

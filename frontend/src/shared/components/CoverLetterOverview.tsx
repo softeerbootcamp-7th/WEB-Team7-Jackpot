@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 
+import EmptyState from '@/features/home/components/EmptyState';
+import { useRecentCoverLetters } from '@/features/home/hooks/useHomeQueries';
 import CoverLetterPreview from '@/shared/components/CoverLetterPreview';
 import WritingCoverLetterIcon from '@/shared/icons/WritingCoverLetter';
 
@@ -7,15 +9,16 @@ interface CoverLetterOverviewProps {
   button?: ReactNode;
   len: number;
   isCoverLetter?: boolean;
+  showEmptyState?: boolean;
 }
 
-//  w-[82.5rem]
 const CoverLetterOverview = ({
   button,
   len,
   isCoverLetter = false,
+  showEmptyState = false,
 }: CoverLetterOverviewProps) => {
-  const previews = Array.from({ length: len });
+  const { data } = useRecentCoverLetters(len);
 
   return (
     <div className='inline-flex w-full flex-col items-start justify-start gap-6'>
@@ -30,11 +33,24 @@ const CoverLetterOverview = ({
         </div>
         {button}
       </div>
-      <div className='grid w-full grid-cols-3 gap-3'>
-        {previews.map((_, idx) => (
-          <CoverLetterPreview isCoverLetter={isCoverLetter} key={idx} />
-        ))}
-      </div>
+      {data.coverLetters.length > 0 ? (
+        <div className='grid w-full grid-cols-3 gap-3'>
+          {data.coverLetters.map((coverLetter) => (
+            <CoverLetterPreview
+              key={coverLetter.coverLetterId}
+              data={coverLetter}
+              isCoverLetter={isCoverLetter}
+            />
+          ))}
+        </div>
+      ) : showEmptyState ? (
+        <EmptyState
+          title='새로운 자기소개서 작성하기'
+          description='아직 작성된 자기소개서가 없어요.<br/>여기를 눌러 새로운 자기소개서를 작성해보세요!'
+          to='/cover-letter'
+          replace
+        />
+      ) : null}
     </div>
   );
 };
