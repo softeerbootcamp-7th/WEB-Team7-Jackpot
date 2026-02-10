@@ -35,7 +35,7 @@ export const fetchHomeCount = async (
 
 interface FetchUpcomingDeadlinesParams {
   date: string;
-  maxDeadLineSize: number;
+  maxDeadLineSize?: number;
   maxCoverLetterSizePerDeadLine?: number;
 }
 
