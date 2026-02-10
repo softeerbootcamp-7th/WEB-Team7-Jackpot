@@ -8,8 +8,6 @@ import com.jackpot.narratix.domain.entity.enums.LibraryType;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
 import com.jackpot.narratix.domain.service.LibraryService;
 import com.jackpot.narratix.global.auth.UserId;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,8 +36,8 @@ public class LibraryController implements LibraryApi {
     @Override
     public ResponseEntity<CompanyLibraryResponse> getCompanyLibraries(
             @UserId String userId,
-            @RequestParam @NotBlank String companyName,
-            @RequestParam(defaultValue = "10") @Min(1) int size,
+            @RequestParam String companyName,
+            @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) Optional<Long> lastCoverLetterId
     ) {
         return ResponseEntity.ok(
@@ -50,8 +48,8 @@ public class LibraryController implements LibraryApi {
     @Override
     public ResponseEntity<QuestionLibraryResponse> getQuestionLibraries(
             @UserId String userId,
-            @RequestParam @NotBlank String questionCategory,
-            @RequestParam(defaultValue = "10") @Min(1) int size,
+            @RequestParam String questionCategory,
+            @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) Optional<Long> lastQuestionId
     ) {
         QuestionCategoryType questionCategoryType = QuestionCategoryType.fromDescription(questionCategory);
