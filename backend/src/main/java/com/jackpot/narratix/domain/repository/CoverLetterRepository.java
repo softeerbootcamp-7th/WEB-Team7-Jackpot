@@ -47,4 +47,20 @@ public interface CoverLetterRepository {
     List<LocalDate> findDeadlineByUserIdBetweenDeadline(String userId, LocalDate startDate, LocalDate endDate);
 
     Page<CoverLetter> searchCoverLetters(String userId, String keyword, Pageable pageable);
+
+    Slice<CoverLetter> findByFilter(
+            String userId,
+            LocalDate startDate,
+            LocalDate endDate,
+            Boolean isShared,
+            Long lastCoverLetterId,
+            int size
+    );
+
+    Long countByFilter(
+            String userId,
+            LocalDate startDate,
+            LocalDate endDate,
+            Boolean isShared
+    );
 }
