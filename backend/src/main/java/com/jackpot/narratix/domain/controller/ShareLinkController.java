@@ -25,4 +25,13 @@ public class ShareLinkController implements ShareLinkApi {
     ) {
         return ResponseEntity.ok(shareLinkService.updateShareLinkStatus(userId, coverLetterId, request.active()));
     }
+
+    @Override
+    @PatchMapping("/coverletter/{coverLetterId}/share-link")
+    public ResponseEntity<ShareLinkActiveResponse> getShareLinkStatus(
+            @UserId String userId,
+            @PathVariable Long coverLetterId
+    ) {
+        return ResponseEntity.ok(shareLinkService.getShareLinkStatus(userId, coverLetterId));
+    }
 }

@@ -34,4 +34,21 @@ public interface ShareLinkApi {
             @PathVariable Long coverLetterId,
             @Valid @RequestBody ShareLinkActiveRequest request
     );
+
+    @Operation(summary = "첨삭 링크 조회", description = "자기소개서의 첨삭 링크 정보를 조회합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "첨삭 링크 조회 성공",
+                    content = @Content(schema = @Schema(implementation = ShareLinkActiveResponse.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "401", description = "인증 실패"),
+            @ApiResponse(responseCode = "403", description = "권한 없음 (본인의 자기소개서가 아님)"),
+            @ApiResponse(responseCode = "404", description = "자기소개서를 찾을 수 없음")
+    })
+    ResponseEntity<ShareLinkActiveResponse> getShareLinkStatus(
+            @UserId String userId,
+            @PathVariable Long coverLetterId
+    );
 }
