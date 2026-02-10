@@ -1,0 +1,73 @@
+import { authClient } from '@/features/auth/api/auth';
+
+// 환경 변수 속의 요청 주소 불러오기
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+// 인터셉터 패턴처럼 fetch Wrapper
+export const apiClient = {
+  get: async (endpoint: string, options: RequestInit = {}) => {
+    return request(endpoint, { ...options, method: 'GET' });
+  },
+  post: async (endpoint: string, body: unknown, options: RequestInit = {}) => {
+    return request(endpoint, {
+      ...options,
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  },
+  put: async (endpoint: string, body: unknown, options: RequestInit = {}) => {
+    return request(endpoint, {
+      ...options,
+      method: 'PUT',
+      body: JSON.stringify(body),
+    });
+  },
+  patch: async (endpoint: string, body: unknown, options: RequestInit = {}) => {
+    return request(endpoint, {
+      ...options,
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    });
+  },
+  delete: async (endpoint: string, options: RequestInit = {}) => {
+    return request(endpoint, {
+      ...options,
+      method: 'DELETE',
+    });
+  },
+};
+
+// fetch Wrapper 내부에서 사용하는 실제 요청 함수
+const request = async (endpoint: string, options: RequestInit) => {
+  const token = authClient.getToken();
+
+  // 헤더 설정
+  const headers = new Headers(options.headers || {});
+
+  // GET, DELETE에서는 Body가 없으므로 Content-Type이 필요가 없음
+  // Body가 있는 요청에서만 JSON 헤더 설정
+  if (options.body && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+
+  try {
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
+      ...options,
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status}`);
+    }
+
+    const text = await response.text();
+    return text ? JSON.parse(text) : null;
+  } catch (error) {
+    console.error('API Request Failed:', error);
+    throw error;
+  }
+};
