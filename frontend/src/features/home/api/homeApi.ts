@@ -20,7 +20,7 @@ export const fetchHomeCount = async (
     `${BASE_URL}/coverletter/count?${params.toString()}`,
     {
       headers: {
-        Authorization: `Bearer ${getToken()}`,
+        Authorization: `${getToken()}`,
       },
     },
   );
@@ -54,7 +54,7 @@ export const fetchUpcomingDeadlines = async ({
     `${BASE_URL}/coverletter/upcoming?${params.toString()}`,
     {
       headers: {
-        Authorization: `Bearer ${getToken()}`,
+        Authorization: `${getToken()}`,
       },
     },
   );
@@ -85,7 +85,7 @@ export const fetchCalendarDates = async ({
     `${BASE_URL}/coverletter/calendar?${params.toString()}`,
     {
       headers: {
-        Authorization: `Bearer ${getToken()}`,
+        Authorization: `${getToken()}`,
       },
     },
   );

@@ -40,7 +40,7 @@ export const searchCoverLetters = async ({
     `${BASE_URL}/search/coverletter?${params.toString()}`,
     {
       headers: {
-        Authorization: `Bearer ${getToken()}`, // TODO: 토큰 가져오는 함수 변경
+        Authorization: `${getToken()}`, // TODO: 토큰 가져오는 함수 변경
       },
     },
   );
