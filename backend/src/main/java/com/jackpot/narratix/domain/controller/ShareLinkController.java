@@ -27,7 +27,7 @@ public class ShareLinkController implements ShareLinkApi {
     }
 
     @Override
-    @PatchMapping("/coverletter/{coverLetterId}/share-link")
+    @GetMapping("/coverletter/{coverLetterId}/share-link")
     public ResponseEntity<ShareLinkActiveResponse> getShareLinkStatus(
             @UserId String userId,
             @PathVariable Long coverLetterId
