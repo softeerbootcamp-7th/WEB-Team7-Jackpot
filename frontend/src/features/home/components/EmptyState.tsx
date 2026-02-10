@@ -30,7 +30,7 @@ const EmptyState = ({ title, description, to, replace }: EmptyStateProps) => {
       <Link
         to={to}
         replace={replace}
-        className='flex h-full flex-col items-center justify-center gap-5 self-stretch rounded-2xl bg-stone-50/50'
+        className='flex h-full flex-col items-center justify-center gap-5 self-stretch rounded-2xl bg-gray-50/50'
       >
         {content}
       </Link>
