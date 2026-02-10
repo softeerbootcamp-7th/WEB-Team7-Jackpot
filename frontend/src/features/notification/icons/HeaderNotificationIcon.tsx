@@ -1,4 +1,4 @@
-const NotificationIcon = () => {
+const HeaderNotificationIcon = () => {
   return (
     <svg
       width='24'
@@ -26,4 +26,4 @@ const NotificationIcon = () => {
   );
 };
 
-export default NotificationIcon;
+export default HeaderNotificationIcon;
