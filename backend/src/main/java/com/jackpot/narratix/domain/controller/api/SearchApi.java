@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -69,8 +70,8 @@ public interface SearchApi {
     @GetMapping
     ResponseEntity<SearchLibraryAndQnAResponse> searchLibraryAndQnA(
             @Parameter(hidden = true) @UserId String userId,
-            @Parameter(description = "검색 키워드") @RequestParam String searchWord,
-            @Parameter(description = "마지막 문항 아이디") @RequestParam(required = false) Long lastQnaId,
+            @Parameter(description = "검색 키워드") @RequestParam @NotBlank String searchWord,
+            @Parameter(description = "마지막 문항 아이디") @RequestParam(required = false) Integer lastQnaId,
             @Parameter(description = "사이즈") @RequestParam(required = false, defaultValue = "10") Integer size
     );
 

@@ -2,11 +2,13 @@ package com.jackpot.narratix.domain.service;
 
 import com.jackpot.narratix.domain.controller.response.CompanyLibraryResponse;
 import com.jackpot.narratix.domain.controller.response.QuestionLibraryResponse;
+import com.jackpot.narratix.domain.controller.response.SearchLibraryAndQnAResponse;
 import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.enums.LibraryType;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
 import com.jackpot.narratix.domain.exception.LibraryErrorCode;
+import com.jackpot.narratix.domain.exception.SearchErrorCode;
 import com.jackpot.narratix.domain.repository.CoverLetterRepository;
 import com.jackpot.narratix.domain.repository.QnARepository;
 import com.jackpot.narratix.domain.repository.dto.QnACountProjection;
@@ -17,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -113,5 +116,15 @@ public class LibraryService {
                 .toList();
 
         return QuestionLibraryResponse.of(items, qnASlice.hasNext());
+    }
+
+    @Transactional(readOnly = true)
+    public SearchLibraryAndQnAResponse searchLibraryAndQnA(String userId, String searchWord, Integer size, Integer lastQnaId){
+        if (!StringUtils.hasText(searchWord)) { //공백이거나,null이면 오류 반환
+            throw new BaseException(SearchErrorCode.INVALID_SEARCH_KEYWORD);
+        }
+
+
+        return SearchLibraryAndQnAResponse.of()
     }
 }
