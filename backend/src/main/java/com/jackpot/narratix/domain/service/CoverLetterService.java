@@ -1,5 +1,6 @@
 package com.jackpot.narratix.domain.service;
 
+import com.jackpot.narratix.domain.controller.request.CoverLetterFilterRequest;
 import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
 import com.jackpot.narratix.domain.controller.request.EditCoverLetterRequest;
 import com.jackpot.narratix.domain.controller.request.QnAEditRequest;
@@ -14,7 +15,7 @@ import com.jackpot.narratix.domain.repository.dto.QnACountProjection;
 import com.jackpot.narratix.global.exception.BaseException;
 import com.jackpot.narratix.global.exception.GlobalErrorCode;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -78,25 +79,33 @@ public class CoverLetterService {
         coverLetter.edit(userId, editCoverLetterRequest);
     }
 
-    @Transactional(readOnly = true)
-    public CoverLettersDateRangeResponse getAllCoverLetterByDate(
-            String userId, LocalDate startDate, LocalDate endDate, Integer size
-    ) {
-        List<CoverLetter> coverLetters = coverLetterRepository.findInPeriod(
-                userId, startDate, endDate, Pageable.ofSize(size)
+    public FilteredCoverLettersResponse getAllCoverLetterByFilter(String userId, CoverLetterFilterRequest request) {
+        Slice<CoverLetter> slice = coverLetterRepository.findByFilter(
+                userId,
+                request.startDate(),
+                request.endDate(),
+                request.isShared(),
+                request.lastCoverLetterId(),
+                request.size()
         );
 
-        if (coverLetters.isEmpty()) {
-            return CoverLettersDateRangeResponse.of(0L, List.of());
+        if (slice.isEmpty()) {
+            return FilteredCoverLettersResponse.of(0L, List.of(), false);
         }
 
-        return CoverLettersDateRangeResponse.of(
-                coverLetterRepository.countByUserIdAndDeadlineBetween(userId, startDate, endDate),
-                buildCoverLetterResponsesWithQnaCount(coverLetters)
+        return FilteredCoverLettersResponse.of(
+                coverLetterRepository.countByFilter(
+                        userId,
+                        request.startDate(),
+                        request.endDate(),
+                        request.isShared()
+                ),
+                buildCoverLetterResponsesWithQnaCount(slice.getContent()),
+                slice.hasNext()
         );
     }
 
-    private List<CoverLettersDateRangeResponse.CoverLetterResponse> buildCoverLetterResponsesWithQnaCount(
+    private List<FilteredCoverLettersResponse.CoverLetterResponse> buildCoverLetterResponsesWithQnaCount(
             List<CoverLetter> coverLetters
     ) {
         List<Long> coverLetterIds = coverLetters.stream().map(CoverLetter::getId).toList();
@@ -109,9 +118,8 @@ public class CoverLetterService {
                 ));
 
         return coverLetters.stream()
-                .map(coverLetter -> CoverLettersDateRangeResponse.CoverLetterResponse.of(
-                        coverLetter,
-                        qnaCountMap.getOrDefault(coverLetter.getId(), 0L)
+                .map(coverLetter -> FilteredCoverLettersResponse.CoverLetterResponse.of(
+                        coverLetter, qnaCountMap.getOrDefault(coverLetter.getId(), 0L)
                 ))
                 .toList();
     }
