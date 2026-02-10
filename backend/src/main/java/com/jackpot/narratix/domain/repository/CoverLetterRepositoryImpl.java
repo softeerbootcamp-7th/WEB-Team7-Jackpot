@@ -5,15 +5,17 @@ import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import com.jackpot.narratix.domain.exception.CoverLetterErrorCode;
 import com.jackpot.narratix.global.exception.BaseException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.groupingBy;
@@ -115,5 +117,12 @@ public class CoverLetterRepositoryImpl implements CoverLetterRepository {
                 .collect(groupingBy(
                         CoverLetter::getDeadline, LinkedHashMap::new, Collectors.toList()
                 ));
+    }
+
+    @Override
+    public Page<CoverLetter> searchCoverLetters(
+            String userId, String keyword, Pageable pageable
+    ) {
+        return coverLetterJpaRepository.searchCoverLetters(userId, keyword, pageable);
     }
 }
