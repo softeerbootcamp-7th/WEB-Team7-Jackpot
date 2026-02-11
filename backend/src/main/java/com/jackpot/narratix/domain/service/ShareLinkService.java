@@ -59,6 +59,7 @@ public class ShareLinkService {
         return ShareLinkActiveResponse.deactivate();
     }
 
+    @Transactional(readOnly = true)
     public ShareLinkActiveResponse getShareLinkStatus(String userId, Long coverLetterId) {
         validateCoverLetterOwnership(userId, coverLetterId);
         Optional<ShareLink> shareLinkOptional = shareLinkRepository.findById(coverLetterId);
