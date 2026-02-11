@@ -6,6 +6,7 @@ import com.jackpot.narratix.domain.service.UserService;
 import com.jackpot.narratix.global.auth.UserId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,6 +18,7 @@ public class UserController implements UserApi {
     private final UserService userService;
 
     @Override
+    @GetMapping("/nickname")
     public ResponseEntity<UserNicknameResponse> getNickname(@UserId String userId) {
         return ResponseEntity.ok(userService.getNickname(userId));
     }
