@@ -4,7 +4,7 @@ import FolderIcon from '@/assets/icons/FolderIcon.png';
 import { SignUpPageIcons as SI } from '@/features/auth/icons';
 import { CommonIcon as CI } from '@/shared/icons';
 
-const SignUpComplete = () => {
+const SignUpCompletePage = () => {
   const navigate = useNavigate();
 
   return (
@@ -43,4 +43,4 @@ const SignUpComplete = () => {
   );
 };
 
-export default SignUpComplete;
+export default SignUpCompletePage;

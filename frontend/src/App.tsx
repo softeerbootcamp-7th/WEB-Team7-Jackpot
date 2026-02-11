@@ -7,10 +7,10 @@ import HomePage from '@/pages/HomePage';
 import LibraryPage from '@/pages/LibraryPage';
 import LoginPage from '@/pages/LoginPage';
 import ReviewPage from '@/pages/ReviewPage';
+import SignUpCompletePage from '@/pages/SignUpCompletePage';
 import SignUpPage from '@/pages/SignUpPage';
 import UploadPage from '@/pages/UploadPage';
 
-import SignUpComplete from '@/features/auth/components/SignUpComplete';
 import RootLayout from '@/shared/components/RootLayout';
 import { queryClient } from '@/shared/queries/queryClient';
 
@@ -33,7 +33,7 @@ function App() {
           {/* <Route path="/" element={<LandingPage />}/> */}
           <Route path='/login' element={<LoginPage />} />
           <Route path='/signup' element={<SignUpPage />} />
-          <Route path='/signup/complete' element={<SignUpComplete />} />
+          <Route path='/signup/complete' element={<SignUpCompletePage />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
