@@ -79,6 +79,7 @@ public class CoverLetterService {
         coverLetter.edit(userId, editCoverLetterRequest);
     }
 
+    @Transactional(readOnly = true)
     public FilteredCoverLettersResponse getAllCoverLetterByFilter(String userId, CoverLetterFilterRequest request) {
         Slice<CoverLetter> slice = coverLetterRepository.findByFilter(
                 userId,
