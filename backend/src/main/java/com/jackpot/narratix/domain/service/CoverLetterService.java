@@ -91,7 +91,16 @@ public class CoverLetterService {
         );
 
         if (slice.isEmpty()) {
-            return FilteredCoverLettersResponse.of(0L, List.of(), false);
+            return FilteredCoverLettersResponse.of(
+                    coverLetterRepository.countByFilter(
+                            userId,
+                            request.startDate(),
+                            request.endDate(),
+                            request.isShared()
+                    ),
+                    List.of(),
+                    false
+            );
         }
 
         return FilteredCoverLettersResponse.of(
@@ -169,7 +178,7 @@ public class CoverLetterService {
     public QnAResponse getQnAById(String userId, Long qnaId) {
         QnA qnA = qnARepository.findByIdOrElseThrow(qnaId);
 
-        if(!qnA.isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
+        if (!qnA.isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
 
         return QnAResponse.of(qnA);
     }
@@ -178,7 +187,7 @@ public class CoverLetterService {
     public QnAEditResponse editQnA(String userId, QnAEditRequest request) {
         QnA qnA = qnARepository.findByIdOrElseThrow(request.qnaId());
 
-        if(!qnA.isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
+        if (!qnA.isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
 
         qnA.editAnswer(request.answer());
 
