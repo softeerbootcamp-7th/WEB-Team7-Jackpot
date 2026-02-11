@@ -49,7 +49,7 @@ public interface QnAApi {
     })
     ResponseEntity<QnAResponse> getQnAById(
             @Parameter(hidden = true) String userId,
-            @Parameter(description = "질문/답변 ID", required = true, example = "1") Long qnaId
+            @Parameter(description = "질문/답변 ID", required = true, example = "1") Long qnAId
     );
 
     @Operation(summary = "자기소개서의 질문 ID 목록 조회", description = "특정 자기소개서에 속한 모든 질문의 ID 목록을 조회합니다.")

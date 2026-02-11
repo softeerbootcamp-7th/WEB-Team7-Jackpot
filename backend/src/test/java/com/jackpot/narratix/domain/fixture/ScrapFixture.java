@@ -15,7 +15,7 @@ public class ScrapFixture {
 
     public static class ScrapBuilder {
         private String userId = "testUser";
-        private Long qnaId = 1L;
+        private Long qnAId = 1L;
         private LocalDateTime createdAt;
 
         public ScrapBuilder userId(String userId) {
@@ -23,13 +23,13 @@ public class ScrapFixture {
             return this;
         }
 
-        public ScrapBuilder qnaId(Long qnaId) {
-            this.qnaId = qnaId;
+        public ScrapBuilder qnAId(Long qnAId) {
+            this.qnAId = qnAId;
             return this;
         }
 
         public Scrap build() {
-            Scrap scrap = Scrap.of(userId, qnaId);
+            Scrap scrap = Scrap.of(userId, qnAId);
 
             if (createdAt != null) {
                 ReflectionTestUtils.setField(scrap, "createdAt", createdAt);

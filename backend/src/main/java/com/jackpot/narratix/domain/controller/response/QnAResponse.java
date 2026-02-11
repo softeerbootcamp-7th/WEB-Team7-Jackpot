@@ -5,7 +5,7 @@ import com.jackpot.narratix.domain.entity.QnA;
 import java.time.LocalDateTime;
 
 public record QnAResponse(
-        Long qnaId,
+        Long qnAId,
         String question,
         String answer,
         Integer answerSize,

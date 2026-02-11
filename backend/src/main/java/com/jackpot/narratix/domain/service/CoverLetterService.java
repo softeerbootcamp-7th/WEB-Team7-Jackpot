@@ -157,8 +157,8 @@ public class CoverLetterService {
     }
 
     @Transactional(readOnly = true)
-    public QnAResponse getQnAById(String userId, Long qnaId) {
-        QnA qnA = qnARepository.findByIdOrElseThrow(qnaId);
+    public QnAResponse getQnAById(String userId, Long qnAId) {
+        QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
 
         if(!qnA.isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
 
@@ -167,7 +167,7 @@ public class CoverLetterService {
 
     @Transactional
     public QnAEditResponse editQnA(String userId, QnAEditRequest request) {
-        QnA qnA = qnARepository.findByIdOrElseThrow(request.qnaId());
+        QnA qnA = qnARepository.findByIdOrElseThrow(request.qnAId());
 
         if(!qnA.isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
 

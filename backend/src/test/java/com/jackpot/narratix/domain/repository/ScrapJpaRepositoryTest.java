@@ -22,11 +22,11 @@ class ScrapJpaRepositoryTest {
         String userId = "user123";
         String userId2 = "user456";
 
-        scrapJpaRepository.save(ScrapFixture.builder().userId(userId).qnaId(1L).build());
-        scrapJpaRepository.save(ScrapFixture.builder().userId(userId).qnaId(2L).build());
-        scrapJpaRepository.save(ScrapFixture.builder().userId(userId).qnaId(3L).build());
+        scrapJpaRepository.save(ScrapFixture.builder().userId(userId).qnAId(1L).build());
+        scrapJpaRepository.save(ScrapFixture.builder().userId(userId).qnAId(2L).build());
+        scrapJpaRepository.save(ScrapFixture.builder().userId(userId).qnAId(3L).build());
 
-        scrapJpaRepository.save(ScrapFixture.builder().userId(userId2).qnaId(4L).build());
+        scrapJpaRepository.save(ScrapFixture.builder().userId(userId2).qnAId(4L).build());
 
         // when
         Long count = scrapJpaRepository.countByUserId(userId);
@@ -37,14 +37,14 @@ class ScrapJpaRepositoryTest {
     }
 
     @Test
-    @DisplayName("existsById - 복합키(userId, qnaId) 기준으로 존재 여부를 반환")
+    @DisplayName("existsById - 복합키(userId, qnAId) 기준으로 존재 여부를 반환")
     void existsById_ReturnsTrueIfExists() {
         // given
         String userId = "user123";
-        Long qnaId = 10L;
+        Long qnAId = 10L;
 
-        scrapJpaRepository.save(ScrapFixture.builder().userId(userId).qnaId(qnaId).build());
-        ScrapId id = new ScrapId(userId, qnaId);
+        scrapJpaRepository.save(ScrapFixture.builder().userId(userId).qnAId(qnAId).build());
+        ScrapId id = new ScrapId(userId, qnAId);
 
         // when
         boolean exists = scrapJpaRepository.existsById(id);

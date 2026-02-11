@@ -48,7 +48,7 @@ public interface ScrapApi {
     })
     ResponseEntity<ScrapCountResponse> deleteScrapById(
             @Parameter(hidden = true) String userId,
-            @Parameter(description = "문항 ID", required = true, example = "1") Long qnaId
+            @Parameter(description = "문항 ID", required = true, example = "1") Long qnAId
     );
 
 }
