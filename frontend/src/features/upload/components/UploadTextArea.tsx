@@ -26,7 +26,7 @@ const UploadTextArea = ({ setIsContent }: UploadTextAreaProps) => {
     const contentList = Object.values(contents);
     const hasContent = contentList.some((content) => content !== '');
     setIsContent(hasContent);
-  });
+  }, [contents, setIsContent]);
 
   return (
     <div className='flex flex-col gap-6'>
