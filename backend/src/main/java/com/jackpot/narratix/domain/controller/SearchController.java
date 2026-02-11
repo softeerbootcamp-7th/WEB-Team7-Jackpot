@@ -4,7 +4,6 @@ import com.jackpot.narratix.domain.controller.api.SearchApi;
 import com.jackpot.narratix.domain.controller.response.SearchCoverLetterResponse;
 import com.jackpot.narratix.domain.controller.response.SearchLibraryAndQnAResponse;
 import com.jackpot.narratix.domain.controller.response.SearchScrapResponse;
-import com.jackpot.narratix.domain.service.LibraryService;
 import com.jackpot.narratix.domain.service.SearchService;
 import com.jackpot.narratix.global.auth.UserId;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +21,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class SearchController implements SearchApi {
 
     private final SearchService searchService;
-    private final LibraryService libraryService;
 
     @Override
     @GetMapping("/scrap")
