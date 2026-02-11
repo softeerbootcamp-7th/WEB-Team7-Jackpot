@@ -69,9 +69,22 @@ public class ShareLinkService {
                 .orElseGet(ShareLinkActiveResponse::deactivate);
     }
 
+    @Transactional(readOnly = true)
     public boolean validateShareLink(String shareId) {
         ShareLink shareLink = shareLinkRepository.findByShareId(shareId)
                 .orElseThrow(() -> new BaseException(ShareLinkErrorCode.SHARE_LINK_NOT_FOUND));
         return shareLink.isValid();
+    }
+
+    @Transactional(readOnly = true)
+    public boolean accessShareLink(String userId, String shareId) {
+        ShareLink shareLink = shareLinkRepository.findByShareId(shareId)
+                .orElseThrow(() -> new BaseException(ShareLinkErrorCode.SHARE_LINK_NOT_FOUND));
+
+        if (!shareLink.isValid()) return false;
+
+        // TODO: redis에서 링크 접속 유저 수 확인 및 락을 동시에 걸어야 한다.
+
+        return true; // TODO: 임시방편이니 절대절대 수정하기
     }
 }
