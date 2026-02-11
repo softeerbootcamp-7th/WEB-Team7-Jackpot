@@ -55,7 +55,7 @@ const request = async (endpoint: string, options: RequestInit) => {
   }
 
   if (token) {
-    headers.set('Authorization', `Bearer ${token}`);
+    headers.set('Authorization', token);
   }
 
   try {
