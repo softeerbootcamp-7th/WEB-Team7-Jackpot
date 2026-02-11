@@ -1,6 +1,10 @@
 import { UploadPageIcons as I } from '@/features/upload/icons';
 
-const SecondContentAreaHeader = () => {
+interface SecondContentAreaHeaderProps {
+    nextStep?: (step: string) => void;
+}
+
+const SecondContentAreaHeader = ({nextStep}: SecondContentAreaHeaderProps) => {
   return (
     <div>
       <div className='flex justify-between items-center select-none'>
@@ -12,7 +16,7 @@ const SecondContentAreaHeader = () => {
             분류되었어요!
           </div>
         </div>
-        <button className='px-5 py-3 rounded-lg bg-gray-900 text-white font-bold text-lg cursor-pointer'>
+        <button type='button' onClick={() => nextStep?.('3')} className='px-5 py-3 rounded-lg bg-gray-900 text-white font-bold text-lg cursor-pointer'>
           저장하기
         </button>
       </div>

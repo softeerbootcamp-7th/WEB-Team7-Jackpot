@@ -4,6 +4,7 @@ import type {
   ContentItemType,
   ContentStateType,
 } from '@/features/upload/types/upload';
+import { halfInfo } from '@/features/upload/utils/generateAboutDate';
 
 const useCoverLetterState = () => {
   const [contents, setContents] = useState<ContentStateType>(
@@ -15,7 +16,7 @@ const useCoverLetterState = () => {
           jobPosition: '',
           recruitPeriod: {
             year: 2026,
-            season: 'first',
+            season: halfInfo,
           },
           questionType: '',
         },

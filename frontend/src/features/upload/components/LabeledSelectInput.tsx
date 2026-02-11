@@ -1,3 +1,5 @@
+import { useEffect, useMemo, useState } from 'react';
+
 interface LabeledSelectInputProps {
   label: string;
   value: string | number;
@@ -18,10 +20,25 @@ const LabeledSelectInput = ({
   dropdownDirection = 'bottom',
 }: LabeledSelectInputProps) => {
   const hasDropdown = constantData.length > 0;
+  const [debounceValue, setDebounceValue] = useState<string | number>(value);
 
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      setDebounceValue(value);
+    }, 300);
+
+    return () => clearTimeout(debounceTimer);
+  }, [value]);
+
+  // 데이터가 커졌을 때를 대비하여 useMemo 적용
+  const searchData = useMemo(
+    () =>
+      constantData.filter((each) => each.includes(debounceValue.toString())),
+    [constantData, debounceValue],
+  );
   return (
     <div className='flex flex-col gap-3'>
-      <div className='font-bold text-lg'>
+      <div className='text-lg font-bold'>
         {label} <span className='text-red-600'>*</span>
       </div>
 
@@ -30,7 +47,7 @@ const LabeledSelectInput = ({
           type='text'
           value={value}
           onChange={(e) => handleChange(e.target.value)}
-          className={`w-full bg-gray-50 px-5 py-[0.875rem] rounded-lg focus:outline-none relative ${isOpen ? 'z-20' : 'z-0'}`}
+          className={`relative w-full rounded-lg bg-gray-50 px-5 py-[0.875rem] focus:outline-none ${isOpen ? 'z-20' : 'z-0'}`}
           onClick={() => handleDropdown?.(!isOpen)}
         />
         {hasDropdown && isOpen && (
@@ -40,11 +57,11 @@ const LabeledSelectInput = ({
               onClick={() => handleDropdown(false)}
             />
             <div
-              className={`absolute z-20 w-full max-h-48 rounded-lg bg-white shadow-lg overflow-y-scroll select-none ${dropdownDirection === 'top' ? 'bottom-full mb-2' : 'mt-2'}`}
+              className={`absolute z-20 max-h-48 w-full overflow-y-scroll rounded-lg bg-white shadow-lg select-none ${dropdownDirection === 'top' ? 'bottom-full mb-2' : 'mt-2'}`}
             >
-              <div className='flex flex-col p-1 gap-1'>
-                {constantData &&
-                  constantData.map((name, index) => (
+              <div className='flex flex-col gap-1 p-1'>
+                {searchData &&
+                  searchData.map((name, index) => (
                     <button
                       type='button'
                       onClick={() => {
@@ -52,7 +69,7 @@ const LabeledSelectInput = ({
                         handleDropdown(false);
                       }}
                       key={index}
-                      className='w-full text-left px-4 py-[0.875rem] text-[0.813rem] rounded-md text-gray-700 cursor-pointer font-medium hover:bg-gray-50 hover:text-gray-950 hover:font-bold focus:bg-gray-100 focus:text-gray-900 focus:outline-hidden'
+                      className='w-full cursor-pointer rounded-md px-4 py-[0.875rem] text-left text-[0.813rem] font-medium text-gray-700 hover:bg-gray-50 hover:font-bold hover:text-gray-950 focus:bg-gray-100 focus:text-gray-900 focus:outline-hidden'
                     >
                       {name}
                     </button>

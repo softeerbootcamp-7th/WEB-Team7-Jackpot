@@ -1,36 +1,41 @@
-import { UploadPageIcons as I } from '@/features/upload/icons';
+// 페이지네이션 경로 추후에 shared로 변경 필요
+import CoverLetterPagination from '@/features/review/components/coverLetter/CoverLetterPagination';
+import { MOCK_COVER_LETTER } from '@/features/upload/constants/uploadPage';
+import useReviewState from '@/shared/hooks/useReviewState';
 
 const CoverLetterContentArea = () => {
+  const { currentPageIndex, handlePageChange } = useReviewState();
+  const currentContent = MOCK_COVER_LETTER[currentPageIndex].content;
+
   return (
-    <div className='flex-2'>
+    <div className='flex flex-2 flex-col gap-6'>
       <div>
-        <div className='flex gap-3 items-center'>
-          <div className='px-4 py-2 bg-gray-50 rounded-md text-gray-600 font-bold text-[0.938rem] select-none'>
-            1
+        <div className='flex items-center gap-3'>
+          <div className='text-body-m flex h-9 w-9 items-center justify-center rounded-md bg-gray-50 font-bold text-gray-600 select-none'>
+            {currentPageIndex + 1}
           </div>
-          <div className='font-bold text-lg text-gray-950'>
-            인생에서 가장 누워서 자고 싶었던 경험은 무엇이고 어떻게
-            극복하셨나요?
+          <div className='text-lg font-bold text-gray-950'>
+            {MOCK_COVER_LETTER[currentPageIndex].title}
           </div>
         </div>
         <div className='flex flex-col gap-3 pl-13'>
-          <div className='text-sm text-gray-400'>총 1,038자</div>
-          <div className='text-sm text-gray-600'>대학 시절 ...</div>
+          <div className='text-sm text-gray-400'>
+            {`총 ${MOCK_COVER_LETTER[currentPageIndex].content.length.toLocaleString('ko-KR')}자`}
+          </div>
+          <div className='text-body-s fixed-scroll-bar h-96 overflow-y-auto whitespace-pre-wrap text-gray-600'>
+            {currentContent.split('\n').map((paragraph, index) => (
+              <p key={index} className='mb-2 min-h-[1rem] leading-relaxed'>
+                {paragraph}
+              </p>
+            ))}
+          </div>
         </div>
       </div>
-      <div className='flex gap-5 justify-self-center'>
-        <button className='rounded-[0.438rem] bg-gray-50 p-2 cursor-pointer'>
-          <I.LeftPaginationButtonIcon color='#D9D9D9' />
-        </button>
-        <div className='flex gap-[0.625rem] font-bold text-lg select-none'>
-          <div className='text-purple-500'>1</div>
-          <div className='text-gray-400'>/</div>
-          <div className='text-gray-400'>3</div>
-        </div>
-        <button className='rounded-[0.438rem] bg-purple-50 p-2 cursor-pointer'>
-          <I.RightPaginationButtonIcon color='var(--color-purple-200)' />
-        </button>
-      </div>
+      <CoverLetterPagination
+        current={currentPageIndex}
+        total={MOCK_COVER_LETTER.length}
+        onChange={handlePageChange}
+      />
     </div>
   );
 };

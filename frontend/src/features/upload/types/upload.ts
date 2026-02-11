@@ -1,6 +1,9 @@
 export interface FirstContentAreaHeaderProps {
   uploadTab: 'file' | 'text';
   setUploadTab: (newValue: 'file' | 'text') => void;
+  totalSize?: number;
+  isContent?: boolean;
+  setIsContent?: (state: boolean) => void;
   step?: string;
   nextStep?: (step: string) => void;
 }
@@ -24,14 +27,12 @@ export interface StepInformationProps {
   loadingSubTitle?: string;
 }
 
-
-
 export interface ContentItemType {
   companyName: string;
   jobPosition: string;
   recruitPeriod: {
     year: number;
-    season: 'first' | 'second';
+    season: 'FIRST_HALF' | 'SECOND_HALF';
   };
   questionType: string;
 }
@@ -57,3 +58,5 @@ export interface UploadTabDataType {
   targetTab: 'file' | 'text';
   icon: React.ReactNode;
 }
+
+export type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
