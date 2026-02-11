@@ -1,3 +1,5 @@
+import { useId } from 'react';
+
 import documentIcon from '@/assets/icons/documentIcon.svg';
 import { UploadPageIcons as I } from '@/features/upload/icons';
 import type { UploadStatus } from '@/features/upload/types/upload';
@@ -14,6 +16,7 @@ const AddFileItem = ({
   uploadStatus = 'idle',
   onFileChange,
 }: AddFileItemProps) => {
+  const inputId = useId();
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
@@ -22,12 +25,9 @@ const AddFileItem = ({
     e.target.value = '';
   };
 
-  const handleRemove = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleRemove = () => {
     onFileChange(null);
   };
-
   const getStatusUI = () => {
     switch (uploadStatus) {
       case 'uploading':
@@ -43,73 +43,71 @@ const AddFileItem = ({
   };
 
   const statusUI = getStatusUI();
+  const containerStyle = `relative flex h-[23.5rem] w-full flex-col items-center justify-center gap-5 overflow-hidden rounded-lg transition-all duration-500 ease-in-out ${file ? '' : 'cursor-pointer bg-gray-50'}`;
 
   return (
     <>
-      <label
-        className={`relative flex h-[23.5rem] w-full flex-col items-center justify-center gap-5 overflow-hidden rounded-lg transition-all duration-500 ease-in-out ${file ? '' : 'cursor-pointer bg-gray-50'}`}
-      >
-        <input
-          type='file'
-          className='hidden'
-          onChange={handleInputChange}
-          accept='.pdf,.doc,.docx'
-          disabled={!!file}
-        />
-        {file ? (
-          <div
-            key='file-content'
-            className='animate-enter flex h-full w-full flex-col items-center justify-center'
+      <input
+        id={inputId}
+        type='file'
+        className='hidden'
+        onChange={handleInputChange}
+        accept='.pdf,.doc,.docx'
+        disabled={!!file}
+      />
+      {file ? (
+        <div className={`animate-enter ${containerStyle}`}>
+          <button
+            type='button'
+            onClick={handleRemove}
+            className='absolute top-5 right-5 z-10 cursor-pointer p-2'
           >
-            <button
-              type='button'
-              onClick={handleRemove}
-              className='absolute top-5 right-5 z-10 cursor-pointer p-2'
-            >
-              <I.FileRemoveIcon />
-            </button>
+            <I.FileRemoveIcon />
+          </button>
 
-            <div className='flex w-full flex-col items-center justify-center gap-5 select-none'>
-              <div className='relative flex h-[120px] w-24 items-center justify-center'>
-                <img
-                  src={documentIcon}
-                  className={`h-full w-full object-contain transition-opacity duration-300 ${uploadStatus === 'error' ? 'opacity-50' : 'opacity-100'}`}
-                />
-              </div>
-              <div className='flex w-full flex-col gap-1 text-center'>
+          <div className='flex w-full flex-col items-center justify-center gap-5 select-none'>
+            <div className='relative flex h-[120px] w-24 items-center justify-center'>
+              <img
+                src={documentIcon}
+                className={`h-full w-full object-contain transition-opacity duration-300 ${uploadStatus === 'error' ? 'opacity-50' : 'opacity-100'}`}
+              />
+            </div>
+            <div className='flex w-full flex-col gap-1 text-center'>
+              <span
+                className={`text-title-l w-full truncate px-4 font-bold ${
+                  uploadStatus === 'error' ? 'text-gray-300' : 'text-gray-950'
+                }`}
+                title={file.name}
+              >
+                {file.name}
+              </span>
+              <div className='text-body-l flex h-12 flex-col gap-1'>
                 <span
-                  className={`text-title-l w-full truncate px-4 font-bold ${
-                    uploadStatus === 'error' ? 'text-gray-300' : 'text-gray-950'
-                  }`}
-                  title={file.name}
+                  className={
+                    uploadStatus === 'error' ? 'text-gray-300' : 'text-gray-400'
+                  }
                 >
-                  {file.name}
+                  {formatFileSize(file.size)}
                 </span>
-                <div className='text-body-l flex h-12 flex-col gap-1'>
-                  <span
-                    className={
-                      uploadStatus === 'error'
-                        ? 'text-gray-300'
-                        : 'text-gray-400'
-                    }
-                  >
-                    {formatFileSize(file.size)}
+                {uploadStatus === 'uploading' ? (
+                  <div className='delay-show flex items-center gap-2 text-gray-400'>
+                    <I.LoadingSpinnerIcon />
+                    <span>업로드 중...</span>
+                  </div>
+                ) : (
+                  <span className={`font-medium ${statusUI.color}`}>
+                    {statusUI.text}
                   </span>
-                  {uploadStatus === 'uploading' ? (
-                    <div className='delay-show flex items-center gap-2 text-gray-400'>
-                      <I.LoadingSpinnerIcon />
-                      <span>업로드 중...</span>
-                    </div>
-                  ) : (
-                    <span className={`font-medium ${statusUI.color}`}>
-                      {statusUI.text}
-                    </span>
-                  )}
-                </div>
+                )}
               </div>
             </div>
           </div>
-        ) : (
+        </div>
+      ) : (
+        <label
+          className={`relative flex h-[23.5rem] w-full flex-col items-center justify-center gap-5 overflow-hidden rounded-lg transition-all duration-500 ease-in-out ${file ? '' : 'cursor-pointer bg-gray-50'}`}
+          htmlFor={inputId}
+        >
           <div
             key='empty-content'
             className='animate-enter flex flex-col items-center gap-5'
@@ -126,8 +124,8 @@ const AddFileItem = ({
               </div>
             </div>
           </div>
-        )}
-      </label>
+        </label>
+      )}
     </>
   );
 };
