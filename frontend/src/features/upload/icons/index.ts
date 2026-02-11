@@ -8,6 +8,7 @@ import FileUploadIcon from '@/features/upload/icons/FileUploadIcon';
 import FirstStepIcon from '@/features/upload/icons/FirstStepIcon';
 import FolderIconInButton from '@/features/upload/icons/FolderIconInButton';
 import LeftPaginationButtonIcon from '@/features/upload/icons/LeftPaginationButtonIcon';
+import LoadingSpinnerIcon from '@/features/upload/icons/LoadingSpinnerIcon';
 import RightPaginationButtonIcon from '@/features/upload/icons/RightPaginationButtonIcon';
 import SecondStepIcon from '@/features/upload/icons/SecondStepIcon';
 import TextDocumentIcon from '@/features/upload/icons/TextDocumentIcon';
@@ -30,4 +31,5 @@ export const UploadPageIcons = {
   DropdownArrow: DropdownArrow,
   FolderIconInButton: FolderIconInButton,
   FileRemoveIcon: FileRemoveIcon,
+  LoadingSpinnerIcon: LoadingSpinnerIcon,
 };
