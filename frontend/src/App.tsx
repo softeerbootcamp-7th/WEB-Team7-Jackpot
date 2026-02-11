@@ -74,6 +74,10 @@ function App() {
           
             <Route path='/cover-letter' element={<CoverLetterLayout />}>
               <Route
+                index
+                element={<Navigate to='/cover-letter/list' replace />}
+              />
+              <Route
                 path='/cover-letter/list'
                 element={<CoverLetterLandingPage />}
               />
