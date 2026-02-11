@@ -58,3 +58,5 @@ export interface UploadTabDataType {
   targetTab: 'file' | 'text';
   icon: React.ReactNode;
 }
+
+export type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';

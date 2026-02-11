@@ -1,8 +1,7 @@
 import documentIcon from '@/assets/icons/documentIcon.svg';
 import { UploadPageIcons as I } from '@/features/upload/icons';
+import type { UploadStatus } from '@/features/upload/types/upload';
 import { formatFileSize } from '@/features/upload/utils/formatFileSize';
-
-export type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
 
 interface AddFileItemProps {
   file: File | null;
