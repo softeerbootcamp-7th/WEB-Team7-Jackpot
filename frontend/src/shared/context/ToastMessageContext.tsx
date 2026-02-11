@@ -7,6 +7,7 @@ import {
 } from 'react';
 
 import ToastMessage from '@/shared/components/ToastMessage';
+import { useToastMessage } from '@/shared/hooks/toastMessage/useToastMessage';
 
 interface ToastMessageContextType {
   showToast: (message: string, status?: boolean) => void;
@@ -56,23 +57,8 @@ export const ToastMessageProvider = ({
     }
   }, [toastState.isVisible, closeToast]);
 
-  // 페이지 진입 후 토스트 메시지가 있는지 확인
-  // SPA에서 useNavigate를 통한 이동이 아닌 소셜 로그인, 결제창, 강제 새로고침의 경우
-  // showToast 없이 세션 스토리지에 넣기만 해도 자동으로 호출되는 형태
-  useEffect(() => {
-    const toastMessage = sessionStorage.getItem('TOAST_MESSAGE');
+  useToastMessage({ showToast: showToast });
 
-    if (toastMessage) {
-      try {
-        const { message, status } = JSON.parse(toastMessage);
-        showToast(message, status);
-      } catch (e) {
-        console.error('토스트 메시지 파싱 에러', e);
-      } finally {
-        sessionStorage.removeItem('TOAST_MESSAGE');
-      }
-    }
-  }, [showToast]);
 
   return (
     <ToastMessageContext.Provider
