@@ -1,12 +1,19 @@
 import NewCoverLetterButton from '@/features/coverLetter/components/NewCoverLetterButton';
+import { emptyCaseText } from '@/features/coverLetter/constants';
 import CoverLetterOverview from '@/shared/components/CoverLetterOverview';
+import DataGuard from '@/shared/components/DataGuard';
+import EmptyCase from '@/shared/components/EmptyCase';
 import SearchInput from '@/shared/components/SearchInput';
 
+// [박소민] TODO: ContentHeader CoverLetterPage.tsx과 겹치는 문제 리렌더링 최소화할 방법 찾기
 const CoverLetterLandingPage = () => {
+  const hasData = false;
   const handleSearch = () => {};
 
+  const coverLetterEmptyCaseText = emptyCaseText['overview'];
+
   return (
-    <div className='flex h-screen w-full max-w-screen min-w-[1700px] flex-col overflow-hidden px-75 pb-30'>
+    <>
       <div className='flex flex-row items-center justify-between'>
         <SearchInput
           onSearch={handleSearch}
@@ -15,8 +22,15 @@ const CoverLetterLandingPage = () => {
         {/* [박소민] TODO: Link로 변환 */}
         <NewCoverLetterButton />
       </div>
-      <CoverLetterOverview isCoverLetter={true} len={9} />
-    </div>
+      <div className='flex flex-1 items-center'>
+        <DataGuard
+          data={hasData}
+          fallback={<EmptyCase {...coverLetterEmptyCaseText} />}
+        >
+          <CoverLetterOverview isCoverLetter={true} len={9} />
+        </DataGuard>
+      </div>
+    </>
   );
 };
 

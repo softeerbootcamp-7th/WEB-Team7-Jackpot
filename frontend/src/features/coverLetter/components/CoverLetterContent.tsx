@@ -28,36 +28,24 @@ const CoverLetterContent = ({
   onReviewClick,
   onTextChange,
 }: CoverLetterContentProps) => {
-  const { containerRef, handleMouseUp, before, after } = useTextSelection({
+  const [spacerHeight, setSpacerHeight] = useState(0);
+
+  const { containerRef, before, after } = useTextSelection({
     text,
     reviews,
     editingReview,
     selection,
     onSelectionChange,
   });
-  const [bottomPadding, setBottomPadding] = useState<number>(0);
 
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
-
-    const container = containerRef.current;
-
-    const updatePadding = () => {
-      const containerHeight = container.clientHeight;
-      const computedStyle = window.getComputedStyle(container);
-      const lineHeight = parseFloat(computedStyle.lineHeight) || 28;
-      setBottomPadding(Math.max(0, containerHeight - lineHeight));
-    };
-
-    updatePadding();
-
-    const resizeObserver = new ResizeObserver(updatePadding);
-    resizeObserver.observe(container);
-
-    return () => resizeObserver.disconnect();
-  }, [text, containerRef]);
+    const containerHeight = containerRef.current.clientHeight;
+    const lineHeight = 28;
+    setSpacerHeight(Math.max(0, containerHeight - lineHeight));
+  }, [containerRef]);
 
   const chunkPositions = before.reduce<number[]>((acc, _, i) => {
     if (i === 0) {
@@ -131,8 +119,7 @@ const CoverLetterContent = ({
   return (
     <div
       ref={containerRef}
-      onMouseUp={handleMouseUp}
-      className='relative ml-12 min-h-0 w-full flex-1 px-4'
+      className='relative ml-12 min-h-0 flex-1 overflow-y-auto px-4'
       style={{
         whiteSpace: 'pre-wrap',
         overflowY: selection ? 'hidden' : 'auto',
@@ -146,7 +133,7 @@ const CoverLetterContent = ({
         onClick={handleClick}
         className='w-full py-2 text-base leading-7 font-normal text-gray-800 outline-none'
         style={{
-          paddingBottom: bottomPadding,
+          paddingBottom: spacerHeight,
         }}
         dangerouslySetInnerHTML={{ __html: renderHTML() }}
       />

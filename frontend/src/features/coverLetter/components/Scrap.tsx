@@ -2,18 +2,14 @@ import { DeleteIcon } from '@/features/coverLetter/icons/Delete';
 
 interface ScrapProps {
   deleteScrap: (id: number) => void;
+  coverLetterId: number;
 }
 
-const Scrap = ({ deleteScrap }: ScrapProps) => {
-  const id = 1;
-
+const Scrap = ({ deleteScrap, coverLetterId }: ScrapProps) => {
   return (
-    <div className='flex flex-col items-start justify-start gap-3 self-stretch'>
+    <div className='flex cursor-pointer flex-col items-start justify-start gap-3 self-stretch'>
       <div className='flex flex-col items-start justify-start self-stretch px-3'>
-        <div
-          data-name={id}
-          className='flex w-96 flex-col items-start justify-start gap-3 border-b border-gray-100 px-3 py-5'
-        >
+        <div className='flex w-96 flex-col items-start justify-start gap-3 border-b border-gray-100 px-3 py-5'>
           <div className='inline-flex items-center justify-between self-stretch pr-1'>
             <div className='flex flex-1 items-center justify-start gap-1'>
               <div className='flex items-center justify-center gap-1 rounded-md bg-blue-50 px-3 py-1.5'>
@@ -35,7 +31,7 @@ const Scrap = ({ deleteScrap }: ScrapProps) => {
             <button
               type='button'
               className='inline-flex h-6 w-6 items-center justify-center overflow-hidden'
-              onClick={() => deleteScrap?.(id)}
+              onClick={() => deleteScrap?.(coverLetterId)}
             >
               <DeleteIcon />
             </button>

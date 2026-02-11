@@ -22,12 +22,12 @@ const useSearch = ({ onSearch }: UseSearchProps) => {
       setDebounceKeyword(keyword);
     }, 300);
 
-    return clearTimeout(timer);
+    return () => clearTimeout(timer);
   }, [keyword]);
 
   useEffect(() => {
-    onSearch(keyword);
-  }, [debounceKeyword, onSearch, keyword]);
+    onSearch(debounceKeyword);
+  }, [debounceKeyword, onSearch]);
 
   return {
     keyword,

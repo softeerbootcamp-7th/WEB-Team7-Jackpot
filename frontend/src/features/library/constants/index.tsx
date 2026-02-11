@@ -29,10 +29,12 @@ export const libraryContent: TabContentType<LibraryView>[] = [
     name: 'COMPANY',
     label: '기업 라이브러리',
     icon: <CompanyNameLibrary />,
+    path: '/library/company',
   },
   {
     name: 'QUESTIONS',
     label: '문항 라이브러리',
     icon: <QnALibrary />,
+    path: '/library/qnA',
   },
 ];

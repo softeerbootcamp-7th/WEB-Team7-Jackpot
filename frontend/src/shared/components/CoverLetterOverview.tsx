@@ -47,7 +47,7 @@ const CoverLetterOverview = ({
         <EmptyState
           title='새로운 자기소개서 작성하기'
           description='아직 작성된 자기소개서가 없어요.<br/>여기를 눌러 새로운 자기소개서를 작성해보세요!'
-          to='/cover-letter'
+          to='/cover-letter/list'
           replace
         />
       ) : null}

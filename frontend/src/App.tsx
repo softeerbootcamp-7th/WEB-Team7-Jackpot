@@ -1,8 +1,8 @@
 import { QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter, Route, Routes } from 'react-router';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 
+import CoverLetterQnAFriendsPage from '@/pages//CoverLetterQnAFriendsPage';
 import CoverLetterLandingPage from '@/pages/CoverLetterLandingPage';
-import CoverLetterPage from '@/pages/CoverLetterPage';
 import HomePage from '@/pages/HomePage';
 import LandingPage from '@/pages/LandingPage';
 import LibraryPage from '@/pages/LibraryPage';
@@ -12,6 +12,10 @@ import SignUpPage from '@/pages/SignUpPage';
 import UploadPage from '@/pages/UploadPage';
 
 import SignUpComplete from '@/features/auth/components/SignUpComplete';
+import CoverLetterEditContent from '@/features/coverLetter/components/CoverLetterEditContent';
+import NewCoverLetterContent from '@/features/coverLetter/components/NewCoverLetterContent';
+import CoverLetterLayout from '@/features/coverLetter/layouts/CoverLetterLayout';
+import WriteSidebarLayout from '@/features/coverLetter/layouts/WriteSidebarLayout';
 import RootLayout from '@/shared/components/RootLayout';
 import { queryClient } from '@/shared/queries/queryClient';
 
@@ -23,15 +27,36 @@ function App() {
           <Route element={<RootLayout />}>
             <Route path='/home' element={<HomePage />} />
             <Route path='/upload' element={<UploadPage />} />
-            <Route path='/cover-letter' element={<CoverLetterLandingPage />} />
-            <Route path='/cover-letter/new' element={<CoverLetterPage />} />
             <Route path='/library' element={<LibraryPage />} />
-            {/* <Route path='/library?id:' element={<LibraryPage />} /> */}
-            <Route path='/coverLetter' element={<CoverLetterPage />} />
-            <Route path='/review/:id' element={<ReviewPage />} />
-            {/* <Route path="/recruit" element={<RecruitPage />}/> */}
+            <Route path='/cover-letter' element={<CoverLetterLayout />}>
+              <Route
+                index
+                element={<Navigate to='/cover-letter/list' replace />}
+              />
+              <Route
+                path='/cover-letter/list'
+                element={<CoverLetterLandingPage />}
+              />
+              <Route element={<WriteSidebarLayout />}>
+                <Route
+                  path='/cover-letter/new'
+                  element={<NewCoverLetterContent />}
+                />
+                <Route
+                  path='/cover-letter/edit/:coverLetterId?'
+                  element={<CoverLetterEditContent />}
+                />
+              </Route>
+              <Route
+                path='/cover-letter/qna-friends/:coverLetterId?'
+                element={<CoverLetterQnAFriendsPage />}
+              />
+            </Route>
           </Route>
           <Route path='/' element={<LandingPage />} />
+          <Route path='/review/:id' element={<ReviewPage />} />
+          {/* <Route path='/library?id:' element={<LibraryPage />} /> */}
+          {/* <Route path="/recruit" element={<RecruitPage />}/> */}
           <Route path='/login' element={<LoginPage />} />
           <Route path='/signup' element={<SignUpPage />} />
           <Route path='/signup/complete' element={<SignUpComplete />} />

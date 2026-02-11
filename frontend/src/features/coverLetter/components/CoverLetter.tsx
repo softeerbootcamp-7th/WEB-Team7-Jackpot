@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { useSearchParams } from 'react-router';
+
 import CoverLetterContent from '@/features/coverLetter/components/CoverLetterContent';
 import CoverLetterMenu from '@/features/coverLetter/components/CoverLetterMenu';
 import ReviewModal from '@/features/coverLetter/components/reviewWithFriend/ReviewModal';
@@ -37,6 +39,8 @@ const CoverLetter = ({
   onReviewClick,
   reviewState,
 }: CoverLetterProps) => {
+  const [, setSearchParams] = useSearchParams();
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selection, setSelection] = useState<SelectionInfo | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -96,10 +100,23 @@ const CoverLetter = ({
       document.removeEventListener('mousedown', handleDocumentMouseDown);
   }, [handleDocumentMouseDown]);
 
+  useEffect(() => {
+    const qnAId = qnas[currentPageIndex]?.qnaId;
+    if (!qnAId) return;
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set('qnAId', String(qnAId));
+        return next;
+      },
+      { replace: true },
+    );
+  }, [currentPageIndex, qnas, setSearchParams]);
+
   if (!currentQna) return null;
 
   return (
-    <div className='flex h-full w-[874px] flex-col gap-5 border-l border-gray-100 px-8 py-7'>
+    <div className='flex h-full w-full flex-col gap-5 border-l border-gray-100 px-8 py-7'>
       <div className='flex flex-shrink-0 justify-between'>
         <div className='flex gap-1'>
           <div className='flex items-center justify-center gap-1 rounded-xl bg-blue-50 px-3 py-1.5'>

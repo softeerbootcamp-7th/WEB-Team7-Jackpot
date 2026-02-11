@@ -32,10 +32,21 @@ interface ReviewSidebarProps {
   onSelectDocument: (id: number) => void;
 }
 
+import { useLocation, useNavigate } from 'react-router';
+
 const ReviewSidebar = ({
   selectedDocumentId,
   onSelectDocument,
 }: ReviewSidebarProps) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleSelect = (id: number) => {
+    const base = location.pathname.replace(/\/\d+$/, '');
+    navigate(`${base}/${id}`);
+    onSelectDocument(id);
+  };
+
   return (
     <div className='flex h-full w-full flex-col gap-2 overflow-y-auto'>
       {mock.map((item, idx) => (
@@ -43,7 +54,7 @@ const ReviewSidebar = ({
           key={idx}
           isSelectStatus={selectedDocumentId !== null}
           isSelected={item.id === selectedDocumentId}
-          onClick={() => onSelectDocument(item.id)}
+          onClick={() => handleSelect(item.id)}
           coverLetter={item}
         />
       ))}
