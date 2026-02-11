@@ -1,4 +1,4 @@
-import { authClient } from '@/features/auth/api/auth';
+import { getAccessToken } from '@/shared/utils/getAccessToken';
 
 // 환경 변수 속의 요청 주소 불러오기
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -45,7 +45,7 @@ export const apiClient = {
 
 // fetch Wrapper 내부에서 사용하는 실제 요청 함수
 const request = async (endpoint: string, options: RequestInit) => {
-  const token = authClient.getToken();
+  const token = getAccessToken();
 
   // 헤더 설정
   const headers = new Headers(options.headers || {});
