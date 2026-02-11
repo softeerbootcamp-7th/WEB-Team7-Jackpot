@@ -6,6 +6,7 @@ import com.jackpot.narratix.domain.exception.CoverLetterErrorCode;
 import com.jackpot.narratix.global.exception.BaseException;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -145,10 +146,13 @@ public class CoverLetterRepositoryImpl implements CoverLetterRepository {
     ) {
         long fetchSize = size + 1L;
 
-        List<CoverLetter> results = queryFactory
-                .selectFrom(coverLetter)
-                .leftJoin(shareLink).on(coverLetter.id.eq(shareLink.coverLetterId))
-                .where(createFilterConditions(userId, startDate, endDate, isShared, lastCoverLetterId))
+        JPAQuery<CoverLetter> jpaQuery = queryFactory.selectFrom(coverLetter);
+
+        if (isShared != null) {
+            jpaQuery.leftJoin(shareLink).on(coverLetter.id.eq(shareLink.coverLetterId));
+        }
+
+        List<CoverLetter> results = jpaQuery.where(createFilterConditions(userId, startDate, endDate, isShared, lastCoverLetterId))
                 .orderBy(coverLetter.deadline.desc(), coverLetter.modifiedAt.desc())
                 .limit(fetchSize)
                 .fetch();
@@ -166,12 +170,16 @@ public class CoverLetterRepositoryImpl implements CoverLetterRepository {
             LocalDate endDate,
             Boolean isShared
     ) {
-        return queryFactory
-                .select(coverLetter.count())
-                .from(coverLetter)
-                .leftJoin(shareLink).on(coverLetter.id.eq(shareLink.coverLetterId))
-                .where(createFilterConditions(userId, startDate, endDate, isShared, null))
+        JPAQuery<Long> jpaQuery = queryFactory.select(coverLetter.count()).from(coverLetter);
+
+        if (isShared != null) {
+            jpaQuery.leftJoin(shareLink).on(coverLetter.id.eq(shareLink.coverLetterId));
+        }
+
+        Long count = jpaQuery.where(createFilterConditions(userId, startDate, endDate, isShared, null))
                 .fetchOne();
+
+        return count != null ? count : 0L;
     }
 
     private BooleanBuilder createFilterConditions(
