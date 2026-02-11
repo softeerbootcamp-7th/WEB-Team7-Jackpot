@@ -15,6 +15,7 @@ const PageGlobalHeader = () => {
             className='cursor-pointer'
             type='button'
             onClick={() => navigate('/home')}
+            aria-label='홈으로 이동'
           >
             <I.TitleLogo width='99' height='27' />
           </button>
