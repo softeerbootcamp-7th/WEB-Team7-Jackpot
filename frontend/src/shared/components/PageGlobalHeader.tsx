@@ -1,11 +1,13 @@
 import { useNavigate } from 'react-router';
 
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import NavItem from '@/shared/components/NavItem';
 import { NAV_ITEMS } from '@/shared/constants/globalHeader';
 import { CommonIcon as I } from '@/shared/icons';
 
 const PageGlobalHeader = () => {
   const navigate = useNavigate();
+  const { userInfo } = useAuth();
 
   return (
     <header className='mb-[1.875rem] flex h-[3.75rem] w-full items-center justify-between bg-white px-75'>
@@ -40,7 +42,9 @@ const PageGlobalHeader = () => {
         </button>
         <div className='flex cursor-pointer items-center gap-2'>
           <I.UserAvatarIcon />
-          <span className='text-base font-medium text-gray-600'>졸린 경민</span>
+          <span className='text-base font-medium text-gray-600'>
+            {userInfo.nickname}
+          </span>
         </div>
       </div>
     </header>

@@ -1,3 +1,4 @@
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useHomeCount } from '@/features/home/hooks/useHomeQueries';
 import BooksIcon from '@/features/home/icons/BooksIcon';
 import ScrollIcon from '@/features/home/icons/ScrollIcon';
@@ -5,6 +6,7 @@ import ThoughtIcon from '@/features/home/icons/ThoughtIcon';
 
 const SummaryOverview = () => {
   const { data } = useHomeCount();
+  const { userInfo } = useAuth();
 
   if (
     data.coverLetterCount === 0 &&
@@ -23,7 +25,7 @@ const SummaryOverview = () => {
         </div>
         <div className='inline-flex flex-col items-start justify-start'>
           <div className='text-title-s font-medium text-gray-400'>
-            졸린 경민님은 지금까지
+            {userInfo.nickname}님은 지금까지
           </div>
           <div className='justify-start text-xl leading-9 font-bold text-gray-950'>
             {data.coverLetterCount}장의 자기소개서를 완성했어요
