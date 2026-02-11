@@ -6,12 +6,12 @@ import useReviewState from '@/shared/hooks/useReviewState';
 
 const CoverLetterReviewContent = ({
   selectedDocumentId,
-  isReviewOpen,
-  setIsReviewOpen,
+  isReviewActive,
+  setIsReviewActive,
 }: {
   selectedDocumentId: number;
-  isReviewOpen: boolean;
-  setIsReviewOpen: (value: boolean) => void;
+  isReviewActive: boolean;
+  setIsReviewActive: (v: boolean) => void;
 }) => {
   const [selectedReviewId, setSelectedReviewId] = useState<string | null>(null);
   const reviewState = useReviewState(selectedDocumentId);
@@ -21,21 +21,21 @@ const CoverLetterReviewContent = ({
   }, []);
 
   return (
-    <div className='flex h-full w-full min-w-0 flex-row pb-39.5'>
-      <div className='h-full min-w-0 flex-1'>
+    <div className='flex h-full min-h-0 w-full min-w-0 flex-row pb-39.5'>
+      <div className='h-full min-h-0 min-w-0 flex-1 overflow-hidden'>
         <CoverLetter
           key={reviewState.currentPageIndex}
           documentId={selectedDocumentId}
-          openReview={setIsReviewOpen}
-          isReviewOpen={isReviewOpen}
+          openReview={setIsReviewActive}
+          isReviewOpen={isReviewActive}
           selectedReviewId={selectedReviewId}
           onReviewClick={handleReviewClick}
           reviewState={reviewState}
         />
       </div>
 
-      {isReviewOpen && (
-        <aside className='w-[248px] border-l border-gray-100'>
+      {isReviewActive && (
+        <aside className='h-full min-h-0 w-[248px] overflow-y-auto border-l border-gray-100'>
           <ReviewCardList
             reviews={reviewState.currentReviews}
             selectedReviewId={selectedReviewId}
