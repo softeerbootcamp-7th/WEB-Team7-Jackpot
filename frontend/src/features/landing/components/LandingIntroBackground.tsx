@@ -12,6 +12,7 @@ const LandingIntroBackground = () => {
         loop
         muted
         playsInline
+        preload='auto'
       />
 
       <div
@@ -30,7 +31,6 @@ const LandingIntroBackground = () => {
         }}
       />
 
-      {/* Layer 4: radial gradient - 더 파란 색으로 변경 */}
       <div
         className='absolute inset-0 z-10'
         style={{
@@ -40,7 +40,6 @@ const LandingIntroBackground = () => {
         }}
       />
 
-      {/* Layer 5: radial gradient purple - 투명도 낮춰서 보라색 줄임 */}
       <div
         className='absolute inset-0 z-10'
         style={{
