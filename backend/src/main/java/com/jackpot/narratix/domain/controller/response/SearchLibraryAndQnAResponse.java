@@ -2,6 +2,7 @@ package com.jackpot.narratix.domain.controller.response;
 
 import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.QnA;
+import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
 
 import java.util.List;
 
@@ -9,8 +10,8 @@ public record SearchLibraryAndQnAResponse(
         Integer libraryCount,
         List<String> libraries,
 
-        Integer totalQnACount,
-        List<QnAItem> qnas,
+        Long totalQnACount,
+        List<QnAItem> qnAs,
 
         Boolean hasNext
 ) {
@@ -22,27 +23,29 @@ public record SearchLibraryAndQnAResponse(
             String question,
             String answer
     ) {
-        public static QnAItem from(QnA qna) {
-            CoverLetter coverLetter = qna.getCoverLetter();
+        public static QnAItem from(QnA qnA) {
+            CoverLetter coverLetter = qnA.getCoverLetter();
 
             return new QnAItem(
-                    qna.getId(),
+                    qnA.getId(),
                     coverLetter.getCompanyName(),
                     coverLetter.getJobPosition(),
                     String.format("%d년 %s",
                             coverLetter.getApplyYear(),
                             coverLetter.getApplyHalf().getDescription()),
-                    qna.getQuestion(),
-                    qna.getAnswer()
+                    qnA.getQuestion(),
+                    qnA.getAnswer()
             );
         }
     }
 
-    public static SearchLibraryAndQnAResponse of(Integer libraryCount, List<String> libraries, Integer totalQnACount, List<QnA> qnaItems, boolean hasNext) {
+    public static SearchLibraryAndQnAResponse of(List<QuestionCategoryType> libraries, Long qnACount, List<QnA> qnaItems, boolean hasNext) {
         return new SearchLibraryAndQnAResponse(
-                libraryCount,
-                libraries,
-                totalQnACount,
+                libraries.size(),
+                libraries.stream()
+                        .map(QuestionCategoryType::getDescription)
+                        .toList(),
+                qnACount,
                 qnaItems.stream()
                         .map(QnAItem::from)
                         .toList(),
