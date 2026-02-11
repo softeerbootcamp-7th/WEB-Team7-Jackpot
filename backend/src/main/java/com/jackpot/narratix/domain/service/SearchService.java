@@ -33,7 +33,7 @@ public class SearchService {
     public SearchScrapResponse searchScrap(
             String userId, String searchWord, Integer size, Long lastQnaId
     ) {
-        String keyword = processSearchWord(searchWord, false);
+        String keyword = processSearchWord(searchWord);
 
         Slice<QnA> qnas = (keyword != null)
                 ? getSearchScraps(userId, keyword, lastQnaId, size)
@@ -60,7 +60,7 @@ public class SearchService {
     public SearchCoverLetterResponse searchCoverLetter(
             String userId, String searchWord, Integer size, Integer page
     ) {
-        String keyword = processSearchWord(searchWord, false);
+        String keyword = processSearchWord(searchWord);
 
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), size);
 
@@ -72,7 +72,11 @@ public class SearchService {
     @Transactional(readOnly = true)
     public SearchLibraryAndQnAResponse searchLibraryAndQnA(String userId, String searchWord, Integer size, Long lastQnAId) {
 
-        String keyword = processSearchWord(searchWord, true);
+        if (!StringUtils.hasText(searchWord)) {
+            throw new BaseException(SearchErrorCode.INVALID_SEARCH_KEYWORD);
+        }
+
+        String keyword = processSearchWord(searchWord);
 
         List<QuestionCategoryType> questionLibraries = qnARepository.searchQuestionCategory(userId, keyword);
 
@@ -82,11 +86,8 @@ public class SearchService {
         return SearchLibraryAndQnAResponse.of(questionLibraries, qnACount, qnAs.getContent(), qnAs.hasNext());
     }
 
-    private String processSearchWord(String searchWord, boolean isRequired) {
+    private String processSearchWord(String searchWord) {
         if (!StringUtils.hasText(searchWord)) {
-            if (isRequired) {
-                throw new BaseException(SearchErrorCode.INVALID_SEARCH_KEYWORD);
-            }
             return null;
         }
         String keyword = searchWord.trim();
@@ -95,7 +96,7 @@ public class SearchService {
         }
         return keyword;
     }
-
 }
+
 
 

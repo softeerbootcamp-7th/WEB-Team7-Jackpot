@@ -10,7 +10,7 @@ public record SearchLibraryAndQnAResponse(
         Integer libraryCount,
         List<String> libraries,
 
-        Long totalQnACount,
+        Long qnACount,
         List<QnAItem> qnAs,
 
         Boolean hasNext
