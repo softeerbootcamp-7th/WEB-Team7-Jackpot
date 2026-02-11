@@ -27,12 +27,14 @@ const CoverLetterLandingPage = () => {
         {/* [박소민] TODO: Link로 변환 */}
         <NewCoverLetterButton />
       </div>
-      <DataGuard
-        data={hasData}
-        fallback={<EmptyCase {...coverLetterEmptyCaseText} />}
-      >
-        <CoverLetterOverview isCoverLetter={true} len={9} />
-      </DataGuard>
+      <div className='flex flex-1 items-center'>
+        <DataGuard
+          data={hasData}
+          fallback={<EmptyCase {...coverLetterEmptyCaseText} />}
+        >
+          <CoverLetterOverview isCoverLetter={true} len={9} />
+        </DataGuard>
+      </div>
     </div>
   );
 };
