@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { authClient } from '@/features/auth/api/auth';
 import { userInformation } from '@/shared/api/user';
@@ -7,21 +7,7 @@ interface UserInfoType {
   nickname: string;
 }
 
-interface AuthContextType {
-  isAuthenticated: boolean;
-  // 회원 정보를 가져올 때까지 기다리기 위해 비동기로 변경
-  login: () => Promise<void>;
-  userInfo: UserInfoType;
-  // [윤종근] - TODO: 로그아웃 메서드 구현 필요
-}
-
-interface AuthProviderProps {
-  children: React.ReactNode;
-}
-
-const AuthContext = createContext<AuthContextType | null>(null);
-
-export const AuthProvider = ({ children }: AuthProviderProps) => {
+export const useInitAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   // 토큰을 확인하는 중인지 체크하는 상태 값
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
@@ -62,19 +48,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     await fetchUserInfo();
   };
 
-  if (!isInitialized) {
-    return null;
-  }
-
-  return (
-    <AuthContext.Provider value={{ isAuthenticated, login, userInfo }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error('로그인 전역 상태 문제 발생');
-  return context;
+  return {
+    isInitialized: isInitialized,
+    isAuthenticated: isAuthenticated,
+    login: login,
+    userInfo: userInfo,
+  };
 };
