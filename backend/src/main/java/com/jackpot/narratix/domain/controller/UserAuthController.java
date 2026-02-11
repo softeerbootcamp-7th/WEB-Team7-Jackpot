@@ -53,11 +53,11 @@ public class UserAuthController implements UserAuthApi {
         String refreshTokenValue = tokens.getRefreshToken();
 
         // TODO: 배포 시 리프레시 토큰 쿠키 보안 속성 추가 필요
-        //  - secure(true): HTTPS 환경에서만 전송
-        //  - sameSite("Lax" 또는 "Strict"): CSRF 공격 방지
         //  - maxAge(refreshTokenTTL): 토큰 만료 시간과 동기화
         ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshTokenValue)
                 .httpOnly(true)
+                .secure(true)
+                .sameSite("None") //  - sameSite("Lax" 또는 "Strict"): CSRF 공격 방지
                 .path("/")
                 .build();
 
