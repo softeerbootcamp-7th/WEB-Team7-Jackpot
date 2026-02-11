@@ -4,7 +4,7 @@ import { authClient } from '@/features/auth/api/auth';
 import useAuthForm from '@/features/auth/hooks/useAuthForm';
 import type { AuthFormData, AuthInputKey } from '@/features/auth/types/auth';
 import { validateFormData } from '@/features/auth/utils/validateFormData';
-import { useToastMessageContext } from '@/shared/context/ToastMessageContext';
+import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
 import {
   validateId,
   validateNickname,

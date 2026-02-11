@@ -10,7 +10,7 @@ import SubmitButton from '@/features/auth/components/SubmitButton';
 import { INPUT_BAR_IN_LOGIN } from '@/features/auth/constants/constantsInLoginPage';
 import useAuthForm from '@/features/auth/hooks/useAuthForm';
 import type { AuthInputKey } from '@/features/auth/types/auth';
-import { useToastMessageContext } from '@/shared/context/ToastMessageContext';
+import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
 import { validateId } from '@/shared/utils/validation';
 
 const LoginForm = () => {
