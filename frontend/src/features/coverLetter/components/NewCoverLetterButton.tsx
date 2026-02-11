@@ -1,6 +1,3 @@
-// 나중에 이름 변경 라우팅 할 예정
-// 자기소개서 등록하기 버튼입니다
-
 import { Link } from 'react-router';
 
 import { PlusIcon } from '@/features/coverLetter/icons/Plus';
@@ -8,7 +5,7 @@ import { PlusIcon } from '@/features/coverLetter/icons/Plus';
 const NewCoverLetterButton = () => {
   return (
     <Link
-      to='./new'
+      to='/cover-letter/new'
       className='inline-flex cursor-pointer items-center justify-start gap-6'
     >
       <div className='flex items-center justify-center gap-1.5 rounded-lg bg-gray-900 py-3 pr-5 pl-4'>
