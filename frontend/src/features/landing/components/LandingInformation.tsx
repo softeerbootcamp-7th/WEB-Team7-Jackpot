@@ -3,11 +3,11 @@ import { useNavigate } from 'react-router';
 import { LANDING_CARD_DATA } from '@/features/landing/constants/landing';
 import { LandingPageIcon as I } from '@/features/landing/icons';
 
-interface LandingInfofmationProps {
+interface LandingInformationProps {
   isAnimating: boolean;
 }
-const LandingInformation = ({ isAnimating }: LandingInfofmationProps) => {
-  const navigate = useNavigate(); 
+const LandingInformation = ({ isAnimating }: LandingInformationProps) => {
+  const navigate = useNavigate();
   const animationClass = isAnimating ? 'animate-slide-in-right' : '';
 
   return (
