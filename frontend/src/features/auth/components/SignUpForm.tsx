@@ -1,185 +1,27 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
-import { authClient } from '@/features/auth/api/auth';
 import CheckDuplicationButton from '@/features/auth/components/CheckDuplicationButton';
 import InputBarInSignUp from '@/features/auth/components/InputBarInSignUp';
 import SubmitButton from '@/features/auth/components/SubmitButton';
 import { INPUT_BAR_IN_SIGNUP } from '@/features/auth/constants/constantsInSignUpPage';
-import useAuthForm from '@/features/auth/hooks/useAuthForm';
-import type { AuthFormData, AuthInputKey } from '@/features/auth/types/auth';
-import { useToastMessageContext } from '@/shared/context/ToastMessageContext';
-import {
-  validateId,
-  validateNickname,
-  validatePassword,
-} from '@/shared/utils/validation';
-
-interface isActivedType {
-  id: boolean;
-  submit: boolean;
-}
+import { useSignUp } from '@/features/auth/hooks/useSignUp';
 
 interface SignUpFormProps {
   handleSuccess: (state: boolean) => void;
 }
 
 const SignUpForm = ({ handleSuccess }: SignUpFormProps) => {
-  const [isSignUpFailed, setIsSignUpFailed] = useState<boolean>(false);
-  const { showToast } = useToastMessageContext();
-  const { formData, handleInputChange: originalHandleInputChange } =
-    useAuthForm({
-      userId: '',
-      password: '',
-      passwordConfirm: '',
-      nickname: '',
-    });
-
-  const [statusMsg, setStatusMsg] = useState<AuthFormData>({
-    userId: '',
-    password: '',
-    passwordConfirm: '',
-    nickname: '',
-  });
-
-  const [isPasswordMatched, setIsPasswordMatched] = useState<boolean>(false);
-  const [isIdDuplicationVerified, setIsIdDuplicationVerified] =
-    useState<boolean>(false);
-
-  const handleInputChange =
-    (key: AuthInputKey) => (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (isSignUpFailed) setIsSignUpFailed(false);
-      originalHandleInputChange(key)(e);
-      if (key === 'userId') setIsIdDuplicationVerified(false);
-    };
-
-  const handleCheckDuplicateId = async () => {
-    if (!validateId(formData.userId)) return;
-
-    try {
-      await authClient.checkId({ userId: formData.userId });
-
-      setIsIdDuplicationVerified(true);
-      setStatusMsg((prev) => ({
-        ...prev,
-        userId: '사용 가능한 아이디입니다.',
-      }));
-    } catch {
-      setIsIdDuplicationVerified(false);
-      setStatusMsg((prev) => ({
-        ...prev,
-        userId: '이미 사용 중인 아이디입니다.',
-      }));
-    }
-  };
-
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!isIdDuplicationVerified) {
-      showToast('아이디 중복 확인을 해주세요.', false);
-      return;
-    }
-
-    try {
-      await authClient.signUp({
-        userId: formData.userId,
-        password: formData.password,
-        passwordConfirm: formData.passwordConfirm,
-        nickname: formData.nickname,
-      });
-
-      await authClient.login({
-        userId: formData.userId,
-        password: formData.password,
-      });
-
-      showToast('회원가입 및 로그인이 완료되었습니다.', true);
-      handleSuccess(true);
-    } catch (error) {
-      if (error instanceof Error) {
-        setIsSignUpFailed(true);
-      } else {
-        console.error('SignUp or Auto-Login Error', error);
-        showToast('회원가입 또는 로그인 중 오류가 발생했습니다.', false);
-      }
-    }
-  };
-
-  useEffect(() => {
-    const debounceTimer = setTimeout(() => {
-      const newMsg: AuthFormData = {
-        userId: '',
-        password: '',
-        passwordConfirm: '',
-        nickname: '',
-      };
-      let isMatch = false;
-
-      if (formData.userId) {
-        if (!validateId(formData.userId)) {
-          newMsg.userId = '6~12자의 영문 소문자, 숫자만 사용 가능합니다.';
-        } else {
-          if (isIdDuplicationVerified) {
-            newMsg.userId = '사용 가능한 아이디입니다.';
-          } else {
-            newMsg.userId = '중복 확인이 필요합니다.';
-          }
-        }
-      }
-
-      if (formData.password) {
-        newMsg.password = validatePassword(formData.password)
-          ? ''
-          : '비밀번호 형식이 올바르지 않습니다. (영문, 숫자 조합 8자 이상)';
-      } else {
-        newMsg.password = '';
-      }
-
-      if (formData.passwordConfirm) {
-        isMatch = formData.password === formData.passwordConfirm;
-        newMsg.passwordConfirm = isMatch
-          ? '비밀번호가 일치합니다.'
-          : '비밀번호가 일치하지 않습니다.';
-      } else {
-        newMsg.passwordConfirm = '';
-        isMatch = false;
-      }
-
-      const name = formData.nickname;
-      if (name) {
-        if (name.length < 2) {
-          newMsg.nickname = '2자 이상 입력해주세요';
-        } else if (name.length > 15) {
-          newMsg.nickname = '15자 이하로 입력해주세요';
-        } else if (!validateNickname(name)) {
-          newMsg.nickname =
-            '형식이 올바르지 않습니다 (자/모음, 숫자, 특수문자, 공백 입력 불가)';
-        } else {
-          newMsg.nickname = '';
-        }
-      } else {
-        newMsg.nickname = '';
-      }
-
-      setStatusMsg(newMsg);
-      setIsPasswordMatched(isMatch);
-    }, 300);
-
-    return () => clearTimeout(debounceTimer);
-  }, [formData, isIdDuplicationVerified]);
-
-  const isActived: isActivedType = {
-    id: validateId(formData.userId) && !isIdDuplicationVerified,
-
-    submit:
-      isIdDuplicationVerified &&
-      validateId(formData.userId) &&
-      validatePassword(formData.password) &&
-      formData.password === formData.passwordConfirm &&
-      (formData.nickname || '').length >= 2 &&
-      validateNickname(formData.nickname || ''),
-  };
-
+  const {
+    statusMsg,
+    handleSignUp,
+    isIdDuplicationVerified,
+    isPasswordMatched,
+    isSignUpFailed,
+    handleInputChange,
+    formData,
+    handleCheckDuplicateId,
+    isActived,
+  } = useSignUp({ handleSuccess: handleSuccess });
   return (
     <form
       className='flex flex-col items-center justify-center gap-[3.75rem]'
