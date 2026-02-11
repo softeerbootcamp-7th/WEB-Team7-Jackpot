@@ -25,14 +25,14 @@ public class ScrapService {
 
     @Transactional
     public CreateScrapResponse createScrap(String userId, CreateScrapRequest request) {
-        ScrapId scrapId = new ScrapId(userId, request.qnaId());
+        ScrapId scrapId = new ScrapId(userId, request.qnAId());
         if (isIdDuplicated(scrapId)) {
             throw new BaseException(ScrapErrorCode.DUPLICATE_SCRAP);
         }
-        Scrap scrap = Scrap.of(userId, request.qnaId());
+        Scrap scrap = Scrap.of(userId, request.qnAId());
         scrapRepository.save(scrap);
 
-        return new CreateScrapResponse(scrap.getId().getQnaId(), scrapRepository.countByUserId(userId));
+        return new CreateScrapResponse(scrap.getId().getQnAId(), scrapRepository.countByUserId(userId));
     }
 
     private boolean isIdDuplicated(ScrapId scrapId) {
@@ -45,11 +45,11 @@ public class ScrapService {
     }
 
     @Transactional
-    public ScrapCountResponse deleteScrapById(String userId, Long qnaId) {
-        QnA qnA = qnARepository.findByIdOrElseThrow(qnaId);
+    public ScrapCountResponse deleteScrapById(String userId, Long qnAId) {
+        QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
         if (!qnA.isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
 
-        ScrapId scrapId = new ScrapId(userId, qnaId);
+        ScrapId scrapId = new ScrapId(userId, qnAId);
         scrapRepository.deleteById(scrapId);
 
         return new ScrapCountResponse(scrapRepository.countByUserId(userId));

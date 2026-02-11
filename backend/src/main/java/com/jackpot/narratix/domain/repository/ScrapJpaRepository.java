@@ -19,14 +19,14 @@ public interface ScrapJpaRepository extends JpaRepository<Scrap, ScrapId> {
     @Query("""
             SELECT q
             FROM Scrap s
-            JOIN QnA q ON s.id.qnaId = q.id
+            JOIN QnA q ON s.id.qnAId = q.id
             JOIN FETCH q.coverLetter
             WHERE s.id.userId = :userId
             AND (
                q.question LIKE CONCAT('%', :searchWord, '%') OR
                q.answer LIKE CONCAT('%', :searchWord, '%')
             )
-            ORDER BY s.createdAt DESC, s.id.qnaId DESC
+            ORDER BY s.createdAt DESC, s.id.qnAId DESC
             """)
     Slice<QnA> searchQnAInScraps(
             @Param("userId") String userId,
@@ -37,7 +37,7 @@ public interface ScrapJpaRepository extends JpaRepository<Scrap, ScrapId> {
     @Query("""
             SELECT q
             FROM Scrap s
-            JOIN QnA q ON s.id.qnaId = q.id
+            JOIN QnA q ON s.id.qnAId = q.id
             JOIN FETCH q.coverLetter
             WHERE s.id.userId = :userId
             AND (
@@ -45,14 +45,14 @@ public interface ScrapJpaRepository extends JpaRepository<Scrap, ScrapId> {
                q.answer LIKE CONCAT('%', :searchWord, '%')
             )
             AND (
-                s.createdAt < (SELECT s2.createdAt FROM Scrap s2 WHERE s2.id.userId = :userId AND s2.id.qnaId = :lastQnaId)
+                s.createdAt < (SELECT s2.createdAt FROM Scrap s2 WHERE s2.id.userId = :userId AND s2.id.qnAId = :lastQnaId)
                 OR
                 (
-                    s.createdAt = (SELECT s2.createdAt FROM Scrap s2 WHERE s2.id.userId = :userId AND s2.id.qnaId = :lastQnaId)
-                    AND s.id.qnaId < :lastQnaId
+                    s.createdAt = (SELECT s2.createdAt FROM Scrap s2 WHERE s2.id.userId = :userId AND s2.id.qnAId = :lastQnaId)
+                    AND s.id.qnAId < :lastQnaId
                 )
             )
-            ORDER BY s.createdAt DESC, s.id.qnaId DESC
+            ORDER BY s.createdAt DESC, s.id.qnAId DESC
             """)
     Slice<QnA> searchQnAInScrapsNext(
             @Param("userId") String userId,
@@ -64,10 +64,10 @@ public interface ScrapJpaRepository extends JpaRepository<Scrap, ScrapId> {
     @Query("""
                 SELECT q
                 FROM Scrap s
-                JOIN QnA q ON s.id.qnaId = q.id
+                JOIN QnA q ON s.id.qnAId = q.id
                 JOIN FETCH q.coverLetter
                 WHERE s.id.userId = :userId
-                ORDER BY s.createdAt DESC, s.id.qnaId DESC
+                ORDER BY s.createdAt DESC, s.id.qnAId DESC
             """)
     Slice<QnA> findScraps(
             @Param("userId") String userId,
@@ -77,20 +77,20 @@ public interface ScrapJpaRepository extends JpaRepository<Scrap, ScrapId> {
     @Query("""
                 SELECT q
                 FROM Scrap s
-                JOIN QnA q ON s.id.qnaId = q.id
+                JOIN QnA q ON s.id.qnAId = q.id
                 JOIN FETCH q.coverLetter
                 WHERE s.id.userId = :userId
                 AND (
                     s.createdAt < (SELECT s2.createdAt FROM Scrap s2
-                                   WHERE s2.id.userId = :userId AND s2.id.qnaId = :lastQnaId)
+                                   WHERE s2.id.userId = :userId AND s2.id.qnAId = :lastQnaId)
                     OR
                     (
                         s.createdAt = (SELECT s2.createdAt FROM Scrap s2
-                                       WHERE s2.id.userId = :userId AND s2.id.qnaId = :lastQnaId)
-                        AND s.id.qnaId < :lastQnaId
+                                       WHERE s2.id.userId = :userId AND s2.id.qnAId = :lastQnaId)
+                        AND s.id.qnAId < :lastQnaId
                     )
                 )
-                ORDER BY s.createdAt DESC, s.id.qnaId DESC
+                ORDER BY s.createdAt DESC, s.id.qnAId DESC
             """)
     Slice<QnA> findScrapsNext(
             @Param("userId") String userId,

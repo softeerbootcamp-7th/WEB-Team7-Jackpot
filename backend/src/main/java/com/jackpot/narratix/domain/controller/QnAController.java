@@ -24,6 +24,7 @@ public class QnAController implements QnAApi {
     private final CoverLetterService coverLetterService;
 
     @Override
+    @PutMapping
     public ResponseEntity<QnAEditResponse> editQnA(
             @UserId String userId,
             @RequestBody @Valid QnAEditRequest request
@@ -32,14 +33,16 @@ public class QnAController implements QnAApi {
     }
 
     @Override
+    @GetMapping("/{qnAId}")
     public ResponseEntity<QnAResponse> getQnAById(
             @UserId String userId,
-            @PathVariable Long qnaId
+            @PathVariable Long qnAId
     ) {
-        return ResponseEntity.ok(coverLetterService.getQnAById(userId, qnaId));
+        return ResponseEntity.ok(coverLetterService.getQnAById(userId, qnAId));
     }
 
     @Override
+    @GetMapping("/id/all")
     public ResponseEntity<List<Long>> getQnAIdsByCoverLetterId(
             @UserId String userId,
             @RequestParam Long coverLetterId

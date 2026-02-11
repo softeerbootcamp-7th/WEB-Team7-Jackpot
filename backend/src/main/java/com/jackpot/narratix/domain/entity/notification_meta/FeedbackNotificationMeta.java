@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 public class FeedbackNotificationMeta implements NotificationMeta {
 
     private Sender sender;
+    private Long qnAId;
 
     @Getter
     @NoArgsConstructor

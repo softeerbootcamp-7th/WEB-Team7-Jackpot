@@ -16,9 +16,9 @@ public class Scrap extends BaseTimeEntity {
     @EmbeddedId
     private ScrapId id;
 
-    public static Scrap of(String userId, Long qnaId) {
+    public static Scrap of(String userId, Long qnAId) {
         Scrap scrap = new Scrap();
-        scrap.id = new ScrapId(userId, qnaId);
+        scrap.id = new ScrapId(userId, qnAId);
         return scrap;
     }
 }

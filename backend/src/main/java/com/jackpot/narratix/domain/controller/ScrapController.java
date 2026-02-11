@@ -19,6 +19,7 @@ public class ScrapController implements ScrapApi {
     private final ScrapService scrapService;
 
     @Override
+    @PostMapping
     public ResponseEntity<CreateScrapResponse> createScrap(
             @UserId String userId,
             @RequestBody @Valid CreateScrapRequest request
@@ -27,6 +28,7 @@ public class ScrapController implements ScrapApi {
     }
 
     @Override
+    @GetMapping("/count")
     public ResponseEntity<ScrapCountResponse> getScrapCount(
             @UserId String userId
     ) {
@@ -34,10 +36,11 @@ public class ScrapController implements ScrapApi {
     }
 
     @Override
+    @DeleteMapping("/{qnAId}")
     public ResponseEntity<ScrapCountResponse> deleteScrapById(
             @UserId String userId,
-            @PathVariable Long qnaId
+            @PathVariable Long qnAId
     ) {
-        return ResponseEntity.ok(scrapService.deleteScrapById(userId, qnaId));
+        return ResponseEntity.ok(scrapService.deleteScrapById(userId, qnAId));
     }
 }

@@ -43,10 +43,10 @@ class ScrapServiceTest {
     void createScrap_Success() {
         // given
         String userId = "user123";
-        Long qnaId = 1L;
-        CreateScrapRequest request = new CreateScrapRequest(qnaId);
+        Long qnAId = 1L;
+        CreateScrapRequest request = new CreateScrapRequest(qnAId);
 
-        ScrapId expectedScrapId = new ScrapId(userId, qnaId);
+        ScrapId expectedScrapId = new ScrapId(userId, qnAId);
 
         when(scrapRepository.existsById(expectedScrapId)).thenReturn(false);
         when(scrapRepository.countByUserId(userId)).thenReturn(1L);
@@ -55,7 +55,7 @@ class ScrapServiceTest {
         CreateScrapResponse response = scrapService.createScrap(userId, request);
 
         // then - response
-        assertThat(response.qnaId()).isEqualTo(qnaId);
+        assertThat(response.qnAId()).isEqualTo(qnAId);
         assertThat(response.scrapCount()).isEqualTo(1L);
 
         verify(scrapRepository, times(1)).existsById(expectedScrapId);
@@ -66,7 +66,7 @@ class ScrapServiceTest {
         Scrap savedScrap = scrapCaptor.getValue();
         assertThat(savedScrap.getId()).isNotNull();
         assertThat(savedScrap.getId().getUserId()).isEqualTo(userId);
-        assertThat(savedScrap.getId().getQnaId()).isEqualTo(qnaId);
+        assertThat(savedScrap.getId().getQnAId()).isEqualTo(qnAId);
 
         InOrder inOrder = inOrder(scrapRepository);
         inOrder.verify(scrapRepository).existsById(expectedScrapId);
@@ -80,10 +80,10 @@ class ScrapServiceTest {
     void createScrap_Fail_Duplicate() {
         // given
         String userId = "user123";
-        Long qnaId = 1L;
-        CreateScrapRequest request = new CreateScrapRequest(qnaId);
+        Long qnAId = 1L;
+        CreateScrapRequest request = new CreateScrapRequest(qnAId);
 
-        ScrapId expectedScrapId = new ScrapId(userId, qnaId);
+        ScrapId expectedScrapId = new ScrapId(userId, qnAId);
 
         when(scrapRepository.existsById(expectedScrapId)).thenReturn(true);
 
@@ -121,16 +121,16 @@ class ScrapServiceTest {
     void deleteScrap_Success() {
         // given
         String userId = "user123";
-        Long qnaId = 1L;
+        Long qnAId = 1L;
         QnA qna = QnAFixture.createQnA(null, userId, "question", MOTIVATION);
 
-        ScrapId scrapId = new ScrapId(userId, qnaId);
+        ScrapId scrapId = new ScrapId(userId, qnAId);
 
-        when(qnARepository.findByIdOrElseThrow(qnaId)).thenReturn(qna);
+        when(qnARepository.findByIdOrElseThrow(qnAId)).thenReturn(qna);
         when(scrapRepository.countByUserId(userId)).thenReturn(5L);
 
         // when
-        ScrapCountResponse response = scrapService.deleteScrapById(userId, qnaId);
+        ScrapCountResponse response = scrapService.deleteScrapById(userId, qnAId);
 
         // then
         assertThat(response.scrapCount()).isEqualTo(5L);
@@ -144,7 +144,7 @@ class ScrapServiceTest {
     void deleteScrap_Fail_Forbidden() {
         // given
         String userId = "user123";
-        Long qnaId = 1L;
+        Long qnAId = 1L;
 
         String otherUserId = "otherUser";
 
@@ -155,16 +155,16 @@ class ScrapServiceTest {
                 MOTIVATION
         );
 
-        when(qnARepository.findByIdOrElseThrow(qnaId)).thenReturn(qna);
+        when(qnARepository.findByIdOrElseThrow(qnAId)).thenReturn(qna);
 
         // when
         BaseException exception = assertThrows(BaseException.class,
-                () -> scrapService.deleteScrapById(userId, qnaId));
+                () -> scrapService.deleteScrapById(userId, qnAId));
 
         // then
         assertThat(exception.getErrorCode()).isEqualTo(GlobalErrorCode.FORBIDDEN);
 
-        verify(qnARepository, times(1)).findByIdOrElseThrow(qnaId);
+        verify(qnARepository, times(1)).findByIdOrElseThrow(qnAId);
 
         verify(scrapRepository, never()).deleteById(any(ScrapId.class));
         verify(scrapRepository, never()).countByUserId(anyString());
