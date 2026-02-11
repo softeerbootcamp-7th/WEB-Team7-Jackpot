@@ -36,7 +36,7 @@ public class SearchService {
         String keyword = processSearchWord(searchWord, false);
 
         Slice<QnA> qnas = (keyword != null)
-                ? getSearchScraps(userId, searchWord.trim(), lastQnaId, size)
+                ? getSearchScraps(userId, keyword, lastQnaId, size)
                 : getAllScraps(userId, lastQnaId, size);
 
         return SearchScrapResponse.of(qnas.getContent(), qnas.hasNext());
