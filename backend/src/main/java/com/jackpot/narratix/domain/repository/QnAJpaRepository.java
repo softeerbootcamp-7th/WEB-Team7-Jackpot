@@ -54,7 +54,7 @@ public interface QnAJpaRepository extends JpaRepository<QnA, Long> {
                         OR q.answer LIKE CONCAT('%', :keyword, '%')
                   )
                   AND (:lastQnaId IS NULL OR q.id < :lastQnaId)
-                ORDER BY q.id DESC
+                ORDER BY q.modifiedAt DESC
             """)
     Slice<QnA> searchQnA(@Param("userId") String userId,
                          @Param("keyword") String keyword,
