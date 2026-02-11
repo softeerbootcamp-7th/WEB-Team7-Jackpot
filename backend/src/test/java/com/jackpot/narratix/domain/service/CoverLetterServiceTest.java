@@ -518,6 +518,9 @@ class CoverLetterServiceTest {
                 userId, startDate, endDate, null, null, size
         )).willReturn(emptySlice);
 
+        given(coverLetterRepository.countByFilter(userId, startDate, endDate, null))
+                .willReturn(0L);
+
         // when
         FilteredCoverLettersResponse response = coverLetterService.getAllCoverLetterByFilter(
                 userId, request
@@ -532,7 +535,7 @@ class CoverLetterServiceTest {
         verify(coverLetterRepository, times(1))
                 .findByFilter(userId, startDate, endDate, null, null, size);
         verify(qnARepository, never()).countByCoverLetterIdIn(any());
-        verify(coverLetterRepository, never()).countByFilter(any(), any(), any(), any());
+        verify(coverLetterRepository, times(1)).countByFilter(userId, startDate, endDate, null);
     }
 
     @Test
