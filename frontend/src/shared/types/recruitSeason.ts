@@ -1,4 +1,4 @@
 export interface RecruitSeasonType {
-  season: 'first' | 'second';
+  season: 'FIRST_HALF' | 'SECOND_HALF';
   label: string;
 }

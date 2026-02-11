@@ -32,7 +32,7 @@ export interface ContentItemType {
   jobPosition: string;
   recruitPeriod: {
     year: number;
-    season: 'first' | 'second';
+    season: 'FIRST_HALF' | 'SECOND_HALF';
   };
   questionType: string;
 }

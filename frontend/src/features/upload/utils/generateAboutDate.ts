@@ -11,7 +11,7 @@ const today = new Date();
 
 export const yearList = generateYearList(today.getFullYear());
 
-const generateHalfInfo = (month: number): 'first' | 'second' =>
-  month <= 6 ? 'first' : 'second';
+const generateHalfInfo = (month: number): 'FIRST_HALF' | 'SECOND_HALF' =>
+  month <= 6 ? 'FIRST_HALF' : 'SECOND_HALF';
 
 export const halfInfo = generateHalfInfo(today.getMonth() + 1);
