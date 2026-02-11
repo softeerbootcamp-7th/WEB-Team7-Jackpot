@@ -1,7 +1,6 @@
 package com.jackpot.narratix.global.config;
 
 import com.jackpot.narratix.global.interceptor.StompChannelInterceptor;
-import com.jackpot.narratix.global.interceptor.StompHandshakeInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -16,7 +15,6 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    private final StompHandshakeInterceptor stompHandshakeInterceptor;
     private final StompChannelInterceptor stompChannelInterceptor;
 
     @Value("${cors.allowed-origins}")
@@ -34,7 +32,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws/connect")
 //                .setAllowedOrigins(allowedOrigins)
                 .setAllowedOriginPatterns("*") // TODO: 배포 전 테스트를 위해 모든 Origin 허용
-                .addInterceptors(stompHandshakeInterceptor) // 링크 유효성 검사
                 .withSockJS();  // SockJS fallback 옵션 활성화 (웹소켓을 지원하지 않는 브라우저에 대한 대체 솔루션 제공)
     }
 
