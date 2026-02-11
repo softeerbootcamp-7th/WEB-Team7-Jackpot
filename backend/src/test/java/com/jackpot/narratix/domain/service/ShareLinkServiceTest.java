@@ -3,6 +3,7 @@ package com.jackpot.narratix.domain.service;
 import com.jackpot.narratix.domain.controller.response.ShareLinkActiveResponse;
 import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.ShareLink;
+import com.jackpot.narratix.domain.exception.CoverLetterErrorCode;
 import com.jackpot.narratix.domain.repository.CoverLetterRepository;
 import com.jackpot.narratix.domain.repository.ShareLinkRepository;
 import com.jackpot.narratix.global.exception.BaseException;
@@ -154,7 +155,7 @@ class ShareLinkServiceTest {
         boolean active = true;
 
         given(coverLetterRepository.findByIdOrElseThrow(coverLetterId))
-                .willThrow(new BaseException(GlobalErrorCode.FORBIDDEN));
+                .willThrow(new BaseException(CoverLetterErrorCode.COVER_LETTER_NOT_FOUND));
 
         // when & then
         assertThatThrownBy(() -> shareLinkService.updateShareLinkStatus(userId, coverLetterId, active))
