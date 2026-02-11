@@ -6,6 +6,7 @@ import com.jackpot.narratix.domain.exception.QnAErrorCode;
 import com.jackpot.narratix.domain.repository.dto.QnACountProjection;
 import com.jackpot.narratix.global.exception.BaseException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Repository;
@@ -59,6 +60,22 @@ public class QnARepositoryImpl implements QnARepository {
         return qnAJpaRepository.findByUserIdAndQuestionCategoryOrderByModifiedAtDesc(userId, category, pageable);
     }
 
+    @Override
+    public List<QuestionCategoryType> searchQuestionCategory(String userId, String searchWord) {
+        return qnAJpaRepository.findDistinctByQuestionCategory(userId).stream()
+                .filter(category -> category.getDescription().contains(searchWord))
+                .toList();
+    }
 
+    @Override
+    public Slice<QnA> searchQnA(String userId, String keyword, Integer size, Long lastQnAId) {
+        Pageable pageable = PageRequest.ofSize(size);
+        return qnAJpaRepository.searchQnA(userId, keyword, lastQnAId, pageable);
+    }
+
+    @Override
+    public Long countSearchQnA(String userId, String keyword) {
+        return qnAJpaRepository.countSearchQnA(userId, keyword);
+    }
 
 }

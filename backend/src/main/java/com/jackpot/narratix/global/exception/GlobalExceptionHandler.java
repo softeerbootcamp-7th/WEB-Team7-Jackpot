@@ -1,5 +1,6 @@
 package com.jackpot.narratix.global.exception;
 
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConversionException;
@@ -27,6 +28,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
     protected ResponseEntity<ErrorResponse> handleMissingParameterException(MissingServletRequestParameterException e) {
+        ErrorResponse response = ErrorResponse.of(GlobalErrorCode.INVALID_INPUT_VALUE);
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    protected ResponseEntity<ErrorResponse> handleConstraintViolationException(ConstraintViolationException e) {
         ErrorResponse response = ErrorResponse.of(GlobalErrorCode.INVALID_INPUT_VALUE);
         return ResponseEntity.badRequest().body(response);
     }

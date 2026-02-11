@@ -1,6 +1,7 @@
 package com.jackpot.narratix.domain.controller.api;
 
 import com.jackpot.narratix.domain.controller.response.SearchCoverLetterResponse;
+import com.jackpot.narratix.domain.controller.response.SearchLibraryAndQnAResponse;
 import com.jackpot.narratix.domain.controller.response.SearchScrapResponse;
 import com.jackpot.narratix.global.auth.UserId;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -53,6 +55,24 @@ public interface SearchApi {
             @Parameter(description = "검색 키워드") @RequestParam(required = false) String searchWord,
             @Parameter(description = "페이지 사이즈") @RequestParam(required = false, defaultValue = "9") Integer size,
             @Parameter(description = "페이지") @RequestParam(required = false, defaultValue = "1") Integer page
+    );
+
+    @Operation(summary = "라이브러리 내 검색", description = "라이브러리에서 문항라이브러리, 문항을 대상으로 검색 결과를 조회합니다")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "성공",
+                    content = @Content(schema = @Schema(implementation = SearchLibraryAndQnAResponse.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "401", description = "인증 실패"),
+    })
+    @GetMapping
+    ResponseEntity<SearchLibraryAndQnAResponse> searchLibraryAndQnA(
+            @Parameter(hidden = true) @UserId String userId,
+            @Parameter(description = "검색 키워드") @RequestParam @NotBlank String searchWord,
+            @Parameter(description = "마지막 문항 아이디") @RequestParam(required = false) Long lastQnAId,
+            @Parameter(description = "사이즈") @RequestParam(required = false, defaultValue = "10") Integer size
     );
 
 

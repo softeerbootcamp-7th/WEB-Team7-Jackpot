@@ -2,8 +2,16 @@ package com.jackpot.narratix.domain.service;
 
 
 import com.jackpot.narratix.domain.controller.response.SearchCoverLetterResponse;
+import com.jackpot.narratix.domain.controller.response.SearchLibraryAndQnAResponse;
+import com.jackpot.narratix.domain.entity.CoverLetter;
+import com.jackpot.narratix.domain.entity.QnA;
+import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
+import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
 import com.jackpot.narratix.domain.exception.SearchErrorCode;
+import com.jackpot.narratix.domain.fixture.CoverLetterFixture;
+import com.jackpot.narratix.domain.fixture.QnAFixture;
 import com.jackpot.narratix.domain.repository.CoverLetterRepository;
+import com.jackpot.narratix.domain.repository.QnARepository;
 import com.jackpot.narratix.domain.repository.ScrapRepository;
 import com.jackpot.narratix.global.exception.BaseException;
 import org.junit.jupiter.api.DisplayName;
@@ -14,9 +22,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -31,6 +43,9 @@ class SearchServiceTest {
 
     @Mock
     private CoverLetterRepository coverLetterRepository;
+
+    @Mock
+    private QnARepository qnARepository;
 
     @InjectMocks
     private SearchService searchService;
@@ -162,5 +177,97 @@ class SearchServiceTest {
         // then
         verify(coverLetterRepository).searchCoverLetters(eq(userId), eq(null), any(Pageable.class));
     }
+
+    @Test
+    @DisplayName("라이브러리 내 검색: 검색어가 공백 / null 이면 예외가 발생한다")
+    void searchLibraryAndQnA_invalidKeyword_throwsException() {
+        // given
+        String userId = "user-1";
+        Integer size = 10;
+        Long lastQnAId = null;
+
+        // 1. 공백 문자열 케이스 ("   ")
+        String emptyWord = "   ";
+
+        // when & then
+        assertThatThrownBy(() ->
+                searchService.searchLibraryAndQnA(userId, emptyWord, size, lastQnAId)
+        )
+                .isInstanceOf(BaseException.class)
+                .satisfies(ex -> {
+                    BaseException baseException = (BaseException) ex;
+                    assertThat(baseException.getErrorCode())
+                            .isEqualTo(SearchErrorCode.INVALID_SEARCH_KEYWORD);
+                });
+
+        // 2. Null 케이스
+        assertThatThrownBy(() ->
+                searchService.searchLibraryAndQnA(userId, null, size, lastQnAId)
+        )
+                .isInstanceOf(BaseException.class)
+                .satisfies(ex -> {
+                    BaseException baseException = (BaseException) ex;
+                    assertThat(baseException.getErrorCode())
+                            .isEqualTo(SearchErrorCode.INVALID_SEARCH_KEYWORD);
+                });
+
+        verifyNoInteractions(qnARepository);
+    }
+
+    @Test
+    @DisplayName("문항 검색: 유효한 검색어로 정상 조회된다 (검색어 trim 적용 확인)")
+    void searchLibraryAndQnA_validKeyword_returnsResponse() {
+        String userId = "user-1";
+        String searchWord = "  도전  ";
+        String trimmedKeyword = "도전";
+        Integer size = 10;
+        Long lastQnAId = null;
+
+        CoverLetter coverLetter = CoverLetterFixture.builder()
+                .userId(userId)
+                .companyName("테스트 기업")
+                .applyHalf(ApplyHalfType.FIRST_HALF)
+                .build();
+
+        QnA qna1 = QnAFixture.createQnA(coverLetter, userId, "도전적인 경험 질문", QuestionCategoryType.MOTIVATION);
+        QnA qna2 = QnAFixture.createQnA(coverLetter, userId, "실패 극복 질문", QuestionCategoryType.FAILURE_EXPERIENCE);
+
+        List<QnA> qnaList = List.of(qna1, qna2);
+        Slice<QnA> qnaSlice = new SliceImpl<>(qnaList);
+
+        List<QuestionCategoryType> mockCategories = List.of(QuestionCategoryType.MOTIVATION, QuestionCategoryType.FAILURE_EXPERIENCE);
+        Long mockCount = 5L;
+
+        given(qnARepository.searchQuestionCategory(userId, trimmedKeyword))
+                .willReturn(mockCategories);
+
+        given(qnARepository.searchQnA(eq(userId), eq(trimmedKeyword), eq(size), eq(lastQnAId)))
+                .willReturn(qnaSlice);
+
+        given(qnARepository.countSearchQnA(eq(userId), eq(trimmedKeyword)))
+                .willReturn(mockCount);
+
+        // when
+        SearchLibraryAndQnAResponse response = searchService.searchLibraryAndQnA(userId, searchWord, size, lastQnAId);
+
+        // then
+        assertThat(response).isNotNull();
+        List<String> expectedDescriptions = mockCategories.stream()
+                .map(QuestionCategoryType::getDescription)
+                .toList();
+        assertThat(response.libraries()).isEqualTo(expectedDescriptions);
+        assertThat(response.qnACount()).isEqualTo(mockCount);
+
+        assertThat(response.qnAs()).hasSize(2);
+
+        assertThat(response.qnAs().get(0).companyName()).isEqualTo("테스트 기업");
+        assertThat(response.qnAs().get(0).question()).isEqualTo("도전적인 경험 질문");
+
+        // verify
+        verify(qnARepository).searchQuestionCategory(userId, trimmedKeyword);
+        verify(qnARepository).searchQnA(userId, trimmedKeyword, size, lastQnAId);
+        verify(qnARepository).countSearchQnA(userId, trimmedKeyword);
+    }
 }
+
 

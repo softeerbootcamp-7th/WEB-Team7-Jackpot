@@ -44,4 +44,37 @@ public interface QnAJpaRepository extends JpaRepository<QnA, Long> {
             @Param("category") QuestionCategoryType category,
             Pageable pageable
     );
+
+    @Query("""
+                SELECT q
+                FROM QnA q
+                WHERE q.userId = :userId
+                  AND (
+                        q.question LIKE CONCAT('%', :keyword, '%')
+                        OR q.answer LIKE CONCAT('%', :keyword, '%')
+                  )
+                  AND (
+                        :lastQnaId IS NULL
+                        OR q.modifiedAt < (SELECT sub.modifiedAt FROM QnA sub WHERE sub.id = :lastQnaId)
+                  )
+                ORDER BY q.modifiedAt DESC
+            """)
+    Slice<QnA> searchQnA(@Param("userId") String userId,
+                         @Param("keyword") String keyword,
+                         @Param("lastQnaId") Long lastQnAId,
+                         Pageable pageable
+    );
+
+    @Query("""
+                SELECT COUNT(q)
+                FROM QnA q
+                WHERE q.userId = :userId
+                  AND (
+                        q.question LIKE CONCAT('%', :keyword, '%')
+                        OR q.answer LIKE CONCAT('%', :keyword, '%')
+                  )
+            """)
+    Long countSearchQnA(
+            @Param("userId") String userId,
+            @Param("keyword") String keyword);
 }

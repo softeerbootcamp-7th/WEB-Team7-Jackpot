@@ -2,6 +2,7 @@ package com.jackpot.narratix.domain.controller;
 
 import com.jackpot.narratix.domain.controller.api.SearchApi;
 import com.jackpot.narratix.domain.controller.response.SearchCoverLetterResponse;
+import com.jackpot.narratix.domain.controller.response.SearchLibraryAndQnAResponse;
 import com.jackpot.narratix.domain.controller.response.SearchScrapResponse;
 import com.jackpot.narratix.domain.service.SearchService;
 import com.jackpot.narratix.global.auth.UserId;
@@ -43,5 +44,15 @@ public class SearchController implements SearchApi {
         return ResponseEntity.ok(searchService.searchCoverLetter(userId, searchWord, size, page));
     }
 
+    @Override
+    @GetMapping("/library")
+    public ResponseEntity<SearchLibraryAndQnAResponse> searchLibraryAndQnA(
+            @UserId String userId,
+            @RequestParam String searchWord,
+            @RequestParam(required = false) Long lastQnAId,
+            @RequestParam(required = false, defaultValue = "10") Integer size
+    ) {
+        return ResponseEntity.ok(searchService.searchLibraryAndQnA(userId, searchWord, size, lastQnAId));
+    }
 
 }
