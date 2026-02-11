@@ -3,37 +3,39 @@ import { authClient } from '@/features/auth/api/auth';
 // 환경 변수 속의 요청 주소 불러오기
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+interface methodProps {
+  endpoint: string;
+  body?: unknown;
+  options?: RequestInit;
+}
+
 // 인터셉터 패턴처럼 fetch Wrapper
 export const apiClient = {
-  get: async (endpoint: string, options: RequestInit = {}) => {
+  get: async ({ endpoint, options }: methodProps) => {
     return request(endpoint, { ...options, method: 'GET' });
   },
-  post: async (endpoint: string, body?: unknown, options: RequestInit = {}) => {
+  post: async ({ endpoint, body, options }: methodProps) => {
     return request(endpoint, {
       ...options,
       method: 'POST',
       body: body ? JSON.stringify(body) : undefined,
     });
   },
-  put: async (endpoint: string, body?: unknown, options: RequestInit = {}) => {
+  put: async ({ endpoint, body, options }: methodProps) => {
     return request(endpoint, {
       ...options,
       method: 'PUT',
       body: body ? JSON.stringify(body) : undefined,
     });
   },
-  patch: async (
-    endpoint: string,
-    body?: unknown,
-    options: RequestInit = {},
-  ) => {
+  patch: async ({ endpoint, body, options }: methodProps) => {
     return request(endpoint, {
       ...options,
       method: 'PATCH',
       body: body ? JSON.stringify(body) : undefined,
     });
   },
-  delete: async (endpoint: string, options: RequestInit = {}) => {
+  delete: async ({ endpoint, options }: methodProps) => {
     return request(endpoint, {
       ...options,
       method: 'DELETE',
