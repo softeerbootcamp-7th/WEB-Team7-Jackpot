@@ -35,9 +35,7 @@ const NotificationDropdown = ({
             onClick={() => handleDropdown(false)}
           />
           {/* [윤종근] - 추후 PR 이후 커스텀 스크롤 (스크롤 영역 고정) 클래스 추가 필요 */}
-          <div
-            className={`absolute right-0 z-20 mt-2 flex max-h-100 w-90 flex-col gap-2 overflow-y-scroll rounded-lg bg-white py-6 shadow-[0_0_20px_rgba(0,0,0,0.1)] select-none`}
-          >
+          <div className='absolute right-0 z-20 mt-2 flex max-h-100 w-90 flex-col gap-2 overflow-y-scroll rounded-lg bg-white py-6 shadow-[0_0_20px_rgba(0,0,0,0.1)] select-none'>
             <div className='flex items-center justify-between px-4'>
               <div className='flex items-center gap-2'>
                 <I.NotificationIcon />
