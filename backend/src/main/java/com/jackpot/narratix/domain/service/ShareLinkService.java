@@ -3,6 +3,7 @@ package com.jackpot.narratix.domain.service;
 import com.jackpot.narratix.domain.controller.response.ShareLinkActiveResponse;
 import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.ShareLink;
+import com.jackpot.narratix.domain.exception.ShareLinkErrorCode;
 import com.jackpot.narratix.domain.repository.CoverLetterRepository;
 import com.jackpot.narratix.domain.repository.ShareLinkRepository;
 import com.jackpot.narratix.global.exception.BaseException;
@@ -66,5 +67,11 @@ public class ShareLinkService {
 
         return shareLinkOptional.map(ShareLinkActiveResponse::of)
                 .orElseGet(ShareLinkActiveResponse::deactivate);
+    }
+
+    public boolean validateShareLink(String shareId) {
+        ShareLink shareLink = shareLinkRepository.findByShareId(shareId)
+                .orElseThrow(() -> new BaseException(ShareLinkErrorCode.SHARE_LINK_NOT_FOUND));
+        return shareLink.isValid();
     }
 }

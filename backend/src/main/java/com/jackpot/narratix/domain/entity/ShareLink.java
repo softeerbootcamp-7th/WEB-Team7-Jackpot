@@ -56,4 +56,9 @@ public class ShareLink {
     public boolean isActive() {
         return this.isShared && this.expiresAt.isAfter(LocalDateTime.now());
     }
+
+    public boolean isValid() {
+        if (!this.isShared) return false;
+        return this.expiresAt.isAfter(LocalDateTime.now());
+    }
 }
