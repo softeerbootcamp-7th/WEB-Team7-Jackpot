@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 
-import type { UploadStatus } from '@/features/upload/components/AddFileItem';
 import AddFileItem from '@/features/upload/components/AddFileItem';
 import { MAX_BYTES } from '@/features/upload/constants/uploadPage';
+import type { UploadStatus } from '@/features/upload/types/upload';
 
 interface FileStateType {
   file: File | null;
