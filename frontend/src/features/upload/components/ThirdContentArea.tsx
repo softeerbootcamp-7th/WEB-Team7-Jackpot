@@ -1,9 +1,6 @@
 import { UploadPageIcons as I } from '@/features/upload/icons';
 
-interface ThirdContentAreaProps {
-  isSuccess: boolean;
-}
-const ThirdContentArea = ({ isSuccess }: ThirdContentAreaProps) => {
+const ThirdContentArea = () => {
   return (
     <div>
       <div className='flex flex-col gap-1'>
