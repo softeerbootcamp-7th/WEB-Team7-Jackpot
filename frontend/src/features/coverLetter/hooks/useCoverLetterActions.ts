@@ -4,7 +4,7 @@ import {
   useSharedLink,
   useSharedLinkToggle,
 } from '@/features/coverLetter/hooks/useCoverLetterQueries';
-import { useToastMessageContext } from '@/shared/context/ToastMessageContext';
+import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
 import { useUpdateQnA } from '@/shared/hooks/useQnAQueries';
 import { reconstructTaggedText } from '@/shared/hooks/useReviewState/helpers';
 import type { QnA } from '@/shared/types/qna';

@@ -20,7 +20,8 @@ interface ToastStateType {
 }
 
 // 빈 전역 상태 정의
-export const ToastMessageContext = createContext<ToastMessageContextType | null>(null);
+export const ToastMessageContext =
+  createContext<ToastMessageContextType | null>(null);
 
 // Provider 정의
 export const ToastMessageProvider = ({

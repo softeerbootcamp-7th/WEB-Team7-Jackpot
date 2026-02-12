@@ -9,7 +9,7 @@ import useLibraryData from '@/features/library/hooks/useLibraryData';
 import ErrorBoundary from '@/shared/components/ErrorBoundary';
 import SearchInput from '@/shared/components/SearchInput';
 import SectionError from '@/shared/components/SectionError';
-import { useToastMessageContext } from '@/shared/context/ToastMessageContext';
+import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
 
 const CoverLetterWriteSidebar = ({
   currentSidebarTab,
