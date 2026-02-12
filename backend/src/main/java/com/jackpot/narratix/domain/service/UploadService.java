@@ -31,6 +31,7 @@ public class UploadService {
     private static final Duration PRESIGNED_URL_EXPIRE = Duration.ofMinutes(10);   // 10분
     private static final long MAX_FILE_SIZE = 10L * 1024 * 1024;                    // 10MB
     private static final int MAX_FILE_COUNT = 3;
+    private static final String FOLDER_NAME = "coverletter";
 
     public PresignedUrlResponse createAllPresignedUrl(String userId, PresignedUrlRequest request) {
         validateFileCount(request.files());
@@ -94,6 +95,6 @@ public class UploadService {
 
     private String generateS3Key(String userId) {
         String uuid = UUID.randomUUID().toString();
-        return "users/%s/%s.pdf".formatted(userId, uuid);
+        return "%s/%s/%s.pdf".formatted(FOLDER_NAME, userId, uuid);
     }
 }
