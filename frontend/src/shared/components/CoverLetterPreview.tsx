@@ -1,7 +1,7 @@
 import fileIcon from '/images/file.svg';
 import { Link } from 'react-router';
 
-import type { RecentCoverLetter } from '@/shared/types/coverLetter';
+import type { ApplyHalf, RecentCoverLetter } from '@/shared/types/coverLetter';
 import { getDate } from '@/shared/utils/dates';
 
 interface CoverLetterPreviewProps {
@@ -13,13 +13,13 @@ const CoverLetterPreview = ({
   data,
   isCoverLetter = false,
 }: CoverLetterPreviewProps) => {
-  const getApplyHalfText = (applyHalf: string) => {
+  const getApplyHalfText = (applyHalf: ApplyHalf) => {
     return `${data.applyYear}년 ${applyHalf}`;
   };
 
   return (
     <Link
-      to={`/coverLetter/edit/${data.coverLetterId}`}
+      to={`/cover-letter/edit/${data.coverLetterId}`}
       className={`${isCoverLetter ? 'h-[11.25rem]' : ''} flex flex-1 cursor-pointer items-center justify-start gap-9 rounded-2xl py-6 pr-6 pl-9 outline outline-1 outline-offset-[-1px] outline-gray-100`}
     >
       <img src={fileIcon} className='h-16 w-14' alt='' aria-hidden='true' />
