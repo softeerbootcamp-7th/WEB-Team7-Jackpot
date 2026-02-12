@@ -1,25 +1,29 @@
 import type { ReactNode } from 'react';
 
-import EmptyState from '@/features/home/components/EmptyState';
-import { useRecentCoverLetters } from '@/features/home/hooks/useHomeQueries';
 import CoverLetterPreview from '@/shared/components/CoverLetterPreview';
+import Pagination from '@/shared/components/Pagination';
 import WritingCoverLetterIcon from '@/shared/icons/WritingCoverLetter';
+import type { RecentCoverLetter } from '@/shared/types/coverLetter';
 
 interface CoverLetterOverviewProps {
   button?: ReactNode;
-  len: number;
+  coverLetters: RecentCoverLetter[];
   isCoverLetter?: boolean;
-  showEmptyState?: boolean;
+  isHome?: boolean;
+  currentPage?: number;
+  totalPages?: number;
+  onPageChange?: (page: number) => void;
 }
 
 const CoverLetterOverview = ({
   button,
-  len,
+  coverLetters,
   isCoverLetter = false,
-  showEmptyState = false,
+  isHome = false,
+  currentPage = 0,
+  totalPages,
+  onPageChange,
 }: CoverLetterOverviewProps) => {
-  const { data } = useRecentCoverLetters(len);
-
   return (
     <div className='inline-flex w-full flex-col items-start justify-start gap-6'>
       <div className='inline-flex items-center justify-between self-stretch'>
@@ -33,24 +37,24 @@ const CoverLetterOverview = ({
         </div>
         {button}
       </div>
-      {data.coverLetters.length > 0 ? (
-        <div className='grid w-full grid-cols-3 gap-3'>
-          {data.coverLetters.map((coverLetter) => (
-            <CoverLetterPreview
-              key={coverLetter.coverLetterId}
-              data={coverLetter}
-              isCoverLetter={isCoverLetter}
-            />
-          ))}
+      <div className='grid w-full grid-cols-3 gap-3'>
+        {coverLetters.map((coverLetter) => (
+          <CoverLetterPreview
+            key={coverLetter.coverLetterId}
+            data={coverLetter}
+            isCoverLetter={isCoverLetter}
+          />
+        ))}
+      </div>
+      {!isHome && totalPages !== undefined && onPageChange && (
+        <div className='flex w-full justify-center'>
+          <Pagination
+            current={currentPage}
+            total={totalPages}
+            onChange={onPageChange}
+          />
         </div>
-      ) : showEmptyState ? (
-        <EmptyState
-          title='새로운 자기소개서 작성하기'
-          description='아직 작성된 자기소개서가 없어요.<br/>여기를 눌러 새로운 자기소개서를 작성해보세요!'
-          to='/cover-letter/list'
-          replace
-        />
-      ) : null}
+      )}
     </div>
   );
 };
