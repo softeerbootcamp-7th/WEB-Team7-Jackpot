@@ -3,6 +3,7 @@ interface PaginationProps {
   total: number;
   onChange: (index: number) => void;
   ariaLabel?: string;
+  align?: string;
 }
 
 const Pagination = ({
@@ -10,12 +11,13 @@ const Pagination = ({
   total,
   onChange,
   ariaLabel = '페이지',
+  align = 'center',
 }: PaginationProps) => {
   const isFirst = current === 0;
   const isLast = current === total - 1;
 
   return (
-    <div className='flex w-full shrink-0 items-center justify-center gap-[1.25rem]'>
+    <div className={`flex w-full items-center justify-${align} gap-[1.25rem]`}>
       <button
         type='button'
         onClick={() => onChange(current - 1)}
