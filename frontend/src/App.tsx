@@ -4,7 +4,6 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 import CoverLetterQnAFriendsPage from '@/pages//CoverLetterQnAFriendsPage';
 import CoverLetterLandingPage from '@/pages/CoverLetterLandingPage';
 import HomePage from '@/pages/HomePage';
-import LandingPage from '@/pages/LandingPage';
 import LoginPage from '@/pages/LoginPage';
 import ReviewPage from '@/pages/ReviewPage';
 import SignUpCompletePage from '@/pages/SignUpCompletePage';
@@ -28,7 +27,10 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
+          <Route path='/login' element={<LoginPage />} />
+          <Route path='/signup' element={<SignUpPage />} />
           <Route element={<RootLayout />}>
+            {/* <Route path="/" element={<LandingPage />}/> */}
             <Route path='/home' element={<HomePage />} />
             <Route path='/upload' element={<UploadPage />} />
             <Route path='/library' element={<LibraryLayout />}>
