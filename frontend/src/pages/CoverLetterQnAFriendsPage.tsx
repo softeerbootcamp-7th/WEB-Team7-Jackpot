@@ -48,7 +48,6 @@ const CoverLetterQnAFriendsPage = () => {
           ) : (
             <CoverLetterReviewContent
               key={coverLetterIdNumber}
-              selectedDocumentId={coverLetterIdNumber!}
               isReviewActive={isReviewActive}
               setIsReviewActive={setIsReviewActive}
             />
