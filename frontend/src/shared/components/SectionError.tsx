@@ -1,16 +1,15 @@
-interface HomeSectionErrorProps {
+interface SectionErrorProps {
   onRetry?: () => void;
+  text: string;
 }
 
-const HomeSectionError = ({ onRetry }: HomeSectionErrorProps) => {
+const SectionError = ({ onRetry, text }: SectionErrorProps) => {
   return (
-    <div className='flex flex-col items-center justify-center gap-2 py-12 text-center'>
+    <div className='flex h-full w-full flex-col items-center justify-center gap-2 py-12 text-center'>
       <p className='text-sm font-semibold text-gray-700'>
         데이터를 불러오지 못했어요
       </p>
-      <p className='text-xs text-gray-400'>
-        통계, 일정, 자기소개서 정보를 표시할 수 없습니다
-      </p>
+      <p className='text-xs text-gray-400'>{text}</p>
 
       {onRetry && (
         <button
@@ -24,4 +23,4 @@ const HomeSectionError = ({ onRetry }: HomeSectionErrorProps) => {
   );
 };
 
-export default HomeSectionError;
+export default SectionError;
