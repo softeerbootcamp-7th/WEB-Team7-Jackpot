@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(
         name = "share_link",
-        indexes = @Index(name = "unique_idx_share_link", columnList = "share_link", unique = true)
+        indexes = @Index(name = "unique_idx_share_id", columnList = "share_id", unique = true)
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
