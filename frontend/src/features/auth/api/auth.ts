@@ -29,6 +29,7 @@ export const authClient = {
       options: {
         credentials: 'include',
       },
+      skipAuth: true,
     });
     if (data.accessToken) {
       setAccessToken(data.accessToken);
@@ -47,6 +48,7 @@ export const authClient = {
       options: {
         credentials: 'include',
       },
+      skipAuth: true,
     });
     if (data.accessToken) {
       setAccessToken(data.accessToken);
