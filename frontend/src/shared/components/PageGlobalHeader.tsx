@@ -43,7 +43,7 @@ const PageGlobalHeader = () => {
         <div className='flex cursor-pointer items-center gap-2'>
           <I.UserAvatarIcon />
           <span className='text-base font-medium text-gray-600'>
-            {userInfo.nickname}
+            {userInfo.nickname || '사용자'}
           </span>
         </div>
       </div>

@@ -25,7 +25,7 @@ const SummaryOverview = () => {
         </div>
         <div className='inline-flex flex-col items-start justify-start'>
           <div className='text-title-s font-medium text-gray-400'>
-            {userInfo.nickname}님은 지금까지
+            {userInfo.nickname || '사용자'}님은 지금까지
           </div>
           <div className='justify-start text-xl leading-9 font-bold text-gray-950'>
             {data.coverLetterCount}장의 자기소개서를 완성했어요
