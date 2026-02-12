@@ -1,4 +1,7 @@
-import { getAccessToken } from '@/features/auth/libs/tokenStore';
+import {
+  getAccessToken,
+  setAccessToken,
+} from '@/features/auth/libs/tokenStore';
 
 // 환경 변수 속의 요청 주소 불러오기
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -7,46 +10,65 @@ interface methodProps {
   endpoint: string;
   body?: unknown;
   options?: RequestInit;
+  skipAuth?: boolean;
 }
 
 // 인터셉터 패턴처럼 fetch Wrapper
 export const apiClient = {
-  get: async ({ endpoint, options }: methodProps) => {
-    return request(endpoint, { ...options, method: 'GET' });
+  get: async ({ endpoint, options, skipAuth }: methodProps) => {
+    return request(endpoint, { ...options, method: 'GET' }, skipAuth);
   },
-  post: async ({ endpoint, body, options }: methodProps) => {
-    return request(endpoint, {
-      ...options,
-      method: 'POST',
-      body: body ? JSON.stringify(body) : undefined,
-    });
+  post: async ({ endpoint, body, options, skipAuth }: methodProps) => {
+    return request(
+      endpoint,
+      {
+        ...options,
+        method: 'POST',
+        body: body ? JSON.stringify(body) : undefined,
+      },
+      skipAuth,
+    );
   },
-  put: async ({ endpoint, body, options }: methodProps) => {
-    return request(endpoint, {
-      ...options,
-      method: 'PUT',
-      body: body ? JSON.stringify(body) : undefined,
-    });
+  put: async ({ endpoint, body, options, skipAuth }: methodProps) => {
+    return request(
+      endpoint,
+      {
+        ...options,
+        method: 'PUT',
+        body: body ? JSON.stringify(body) : undefined,
+      },
+      skipAuth,
+    );
   },
-  patch: async ({ endpoint, body, options }: methodProps) => {
-    return request(endpoint, {
-      ...options,
-      method: 'PATCH',
-      body: body ? JSON.stringify(body) : undefined,
-    });
+  patch: async ({ endpoint, body, options, skipAuth }: methodProps) => {
+    return request(
+      endpoint,
+      {
+        ...options,
+        method: 'PATCH',
+        body: body ? JSON.stringify(body) : undefined,
+      },
+      skipAuth,
+    );
   },
-  delete: async ({ endpoint, options }: methodProps) => {
-    return request(endpoint, {
-      ...options,
-      method: 'DELETE',
-    });
+  delete: async ({ endpoint, options, skipAuth }: methodProps) => {
+    return request(
+      endpoint,
+      {
+        ...options,
+        method: 'DELETE',
+      },
+      skipAuth,
+    );
   },
 };
 
 // fetch Wrapper 내부에서 사용하는 실제 요청 함수
-const request = async (endpoint: string, options: RequestInit) => {
-  const token = getAccessToken();
-
+const request = async (
+  endpoint: string,
+  options: RequestInit,
+  skipAuth: boolean = false,
+) => {
   // 헤더 설정
   const headers = new Headers(options.headers || {});
 
@@ -56,15 +78,47 @@ const request = async (endpoint: string, options: RequestInit) => {
     headers.set('Content-Type', 'application/json');
   }
 
-  if (token) {
-    headers.set('Authorization', token);
+  if (!skipAuth) {
+    const token = getAccessToken();
+    if (token) {
+      headers.set('Authorization', token);
+    }
   }
 
   try {
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
+    let response = await fetch(`${BASE_URL}${endpoint}`, {
       ...options,
       headers,
     });
+
+    // 액세스 토큰이 만료되었다면 리프레시 후 재요청하는 로직
+    if (response.status === 401 && !skipAuth) {
+      try {
+        const refreshResponse = await fetch(`${BASE_URL}/auth/refresh`, {
+          method: 'POST',
+          credentials: 'include',
+        });
+
+        // 리프레시 토큰마저 만료된 경우
+        if (!refreshResponse.ok) {
+          throw new Error('리프레시 토큰 만료');
+        }
+
+        const refreshData = await refreshResponse.json();
+
+        setAccessToken(refreshData.accessToken);
+
+        headers.set('Authorization', getAccessToken());
+
+        response = await fetch(`${BASE_URL}${endpoint}`, {
+          ...options,
+          headers,
+        });
+      } catch (error) {
+        console.error('리프레시 에러', error);
+        throw error;
+      }
+    }
 
     if (!response.ok) {
       throw new Error(`Error: ${response.status}`);
