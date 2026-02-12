@@ -23,7 +23,9 @@ const QnADetailView = () => {
   const mockQuestions = getMockQuestionsByQnAName(qnAName ?? null);
 
   const currentDocument =
-    qnaQuery.data?.questions.find((doc) => doc.id === Number(qnAId)) ||
+    qnaQuery.data?.pages
+      .flatMap((page) => page.questions)
+      .find((doc) => doc.id === Number(qnAId)) ||
     mockQuestions.find((doc) => doc.id === Number(qnAId));
 
   if (!currentDocument) {

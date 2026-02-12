@@ -5,8 +5,7 @@ export async function httpClient<T>(
   config?: RequestInit,
 ): Promise<T> {
   // const token = localStorage.getItem('accessToken');
-  const token =
-    'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJxd2VycXdlcjEiLCJpYXQiOjE3NzA4NTkyMzYsImV4cCI6MTc3MDg1OTgzNn0.NYXUlJVbS_3b1oyVICZeAL0M6F1t5nlSv1pZYc40eCo';
+  const token = 'Bearer ' + localStorage.getItem('accessToken');
 
   if (!token) {
     throw new Error('Access Denied');
