@@ -9,8 +9,8 @@ export interface FirstContentAreaHeaderProps {
 }
 
 export interface CoverLetterTabProps {
-  tabState: 1 | 2 | 3;
-  setTabState: (newValue: 1 | 2 | 3) => void;
+  tabState: number;
+  setTabState: (newValue: number) => void;
 }
 
 export interface PaginationButtonIconProps {
@@ -50,7 +50,7 @@ export interface DropdownStateType {
 
 export interface TabDataType {
   tabName: string;
-  tabNumber: 1 | 2 | 3;
+  tabNumber: number;
 }
 
 export interface UploadTabDataType {

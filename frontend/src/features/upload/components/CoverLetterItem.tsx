@@ -1,7 +1,7 @@
 interface CoverLetterItemProps {
-  targetTab: 1 | 2 | 3;
+  targetTab: number;
   tabName: string;
-  tabNumber: 1 | 2 | 3;
+  tabNumber: number;
   onClick: () => void;
 }
 
