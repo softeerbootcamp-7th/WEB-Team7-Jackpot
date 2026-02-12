@@ -8,7 +8,7 @@ const StepInformation = ({
 }: StepInformationProps) => {
   return (
     <div
-      className={`absolute flex flex-col items-center top-1/2 ${className} -translate-x-1/2 -translate-y-1/2`}
+      className={`absolute flex flex-col items-center top-1/2 ${className ?? ''} -translate-x-1/2 -translate-y-1/2`}
     >
       {icon}
       <div className='font-bold text-xs mt-1'>{step}</div>

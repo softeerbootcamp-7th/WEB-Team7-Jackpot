@@ -11,7 +11,7 @@ const RightArrow = ({ size = 'lg', className = '' }: RightArrowProps) => {
 
   return (
     <svg
-      className={`${sizeClass} ${colorClass} ${className}`}
+      className={`${sizeClass} ${colorClass} ${className ?? ''}`}
       viewBox={isLarge ? '0 0 32 32' : '0 0 24 24'}
       fill='none'
       aria-hidden='true'
