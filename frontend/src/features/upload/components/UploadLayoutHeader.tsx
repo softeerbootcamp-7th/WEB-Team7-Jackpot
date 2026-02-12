@@ -1,6 +1,6 @@
 import { UploadPageIcons as I } from '@/features/upload/icons';
 
-const UploadPageHeader = () => {
+const UploadLayoutHeader = () => {
   return (
     <div className='mb-12 select-none'>
       <div className='flex w-full items-center gap-[0.625rem]'>
@@ -16,4 +16,4 @@ const UploadPageHeader = () => {
   );
 };
 
-export default UploadPageHeader;
+export default UploadLayoutHeader;

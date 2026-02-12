@@ -1,7 +1,7 @@
 import { Outlet, useLocation } from 'react-router';
 
 import StepItem from '@/features/upload/components/StepItem';
-import UploadPageHeader from '@/features/upload/components/UploadPageHeader';
+import UploadLayoutHeader from '@/features/upload/components/UploadLayoutHeader';
 
 const UploadPage = () => {
   const location = useLocation();
@@ -17,7 +17,7 @@ const UploadPage = () => {
     <div>
       <div className='mb-12 px-75'>
         <div className='mb-12'>
-          <UploadPageHeader />
+          <UploadLayoutHeader />
           <StepItem step={currentStep.toString()} />
         </div>
         <Outlet />
