@@ -14,6 +14,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequ
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -29,8 +30,27 @@ public class UploadService {
 
     private static final Duration PRESIGNED_URL_EXPIRE = Duration.ofMinutes(10);   // 10분
     private static final long MAX_FILE_SIZE = 10L * 1024 * 1024;                    // 10MB
+    private static final int MAX_FILE_COUNT = 3;
 
-    public PresignedUrlResponse createPresignedUrl(String userId, PresignedUrlRequest request) {
+    public PresignedUrlResponse createAllPresignedUrl(String userId, PresignedUrlRequest request) {
+        validateFileCount(request.files());
+        List<PresignedUrlResponse.PresignedUrlInfo> responses = request.files().stream()
+                .map(fileRequest -> createSinglePresignedUrl(userId, fileRequest))
+                .toList();
+
+        return new PresignedUrlResponse(responses);
+    }
+
+    private void validateFileCount(List<PresignedUrlRequest.FileRequest> files) {
+        if (files == null || files.isEmpty()) {
+            throw new BaseException(UploadErrorCode.EMPTY_FILE_LIST);
+        }
+        if (files.size() > MAX_FILE_COUNT) {
+            throw new BaseException(UploadErrorCode.TOO_MANY_FILES);
+        }
+    }
+
+    private PresignedUrlResponse.PresignedUrlInfo createSinglePresignedUrl(String userId, PresignedUrlRequest.FileRequest request) {
         validateFile(request);
 
         String s3Key = generateS3Key(userId);
@@ -46,7 +66,8 @@ public class UploadService {
 
             PresignedPutObjectRequest presigned = s3Presigner.presignPutObject(presignRequest);
 
-            return new PresignedUrlResponse(
+            return new PresignedUrlResponse.PresignedUrlInfo(
+                    request.fileName(),
                     presigned.url().toString(),
                     s3Key,
                     Map.of("Content-Type", request.contentType())
@@ -57,7 +78,7 @@ public class UploadService {
         }
     }
 
-    private void validateFile(PresignedUrlRequest request) {
+    private void validateFile(PresignedUrlRequest.FileRequest request) {
         if (!"application/pdf".equalsIgnoreCase(request.contentType())) {
             throw new BaseException(UploadErrorCode.INVALID_CONTENT_TYPE_FOR_PDF);
         }

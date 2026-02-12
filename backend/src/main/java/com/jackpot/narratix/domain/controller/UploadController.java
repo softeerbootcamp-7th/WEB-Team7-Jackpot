@@ -27,7 +27,7 @@ public class UploadController implements UploadApi {
             @RequestBody @Valid PresignedUrlRequest request
 
     ) {
-        return ResponseEntity.ok(uploadService.createPresignedUrl(userId, request));
+        return ResponseEntity.ok(uploadService.createAllPresignedUrl(userId, request));
     }
 
 }
