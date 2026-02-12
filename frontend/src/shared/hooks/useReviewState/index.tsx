@@ -19,7 +19,7 @@ export const useReviewState = (coverLetter: CoverLetter, qnas: QnA[]) => {
   const safePageIndex =
     qnas.length > 0 ? Math.min(currentPageIndex, qnas.length - 1) : 0;
 
-  const currentQna = qnas.length > 0 ? qnas[safePageIndex] : null;
+  const currentQna = qnas.length > 0 ? qnas[safePageIndex] : undefined;
   const currentQnaId = currentQna?.qnAId;
 
   // 데이터 페칭
@@ -171,6 +171,9 @@ export const useReviewState = (coverLetter: CoverLetter, qnas: QnA[]) => {
     handleDeleteReview,
     handleEditReview: useCallback((id: string) => setEditingId(id), []),
     handleCancelEdit: useCallback(() => setEditingId(null), []),
+    coverLetter,
+    qnas,
+    editedAnswers,
   };
 };
 
