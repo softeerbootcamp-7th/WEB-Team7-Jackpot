@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 interface UseToastTimerProps {
   isVisible: boolean;
   closeToast: () => void;
-  duration: number;
+  duration?: number;
 }
 export const useToastTimer = ({
   isVisible,
