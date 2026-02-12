@@ -6,6 +6,7 @@ import SearchInput from '@/shared/components/SearchInput';
 
 // [박소민] TODO: ContentHeader CoverLetterPage.tsx과 겹치는 문제 리렌더링 최소화할 방법 찾기
 const CoverLetterLandingPage = () => {
+  // const hasData = false;
   const handleSearch = () => {};
 
   return (
