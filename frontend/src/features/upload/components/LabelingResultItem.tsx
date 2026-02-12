@@ -6,10 +6,7 @@ import LabeledSelectInput from '@/features/upload/components/LabeledSelectInput'
 import { QUESTION_TYPE_LIST } from '@/features/upload/constants/uploadPage';
 import useCoverLetterState from '@/features/upload/hooks/useCoverLetterState';
 import { UploadPageIcons as I } from '@/features/upload/icons';
-import type {
-  CoverLetterTabProps,
-  DropdownStateType,
-} from '@/features/upload/types/upload';
+import type { DropdownStateType } from '@/features/upload/types/upload';
 import { yearList } from '@/features/upload/utils/generateAboutDate';
 import RecruitPeriodSelectInput from '@/shared/components/RecruitPeriodSelectInput';
 
@@ -18,6 +15,11 @@ const COMPANY_NAME_LIST: string[] = ['현대자동차', '현대오토에버', '�
 
 // [윤종근] - 추후에 지울 예정인 UI 테스트만을 위한 임시 데이터라서 constants에 옮기지 않았습니다.
 const JOB_POSITION_LIST: string[] = ['프론트엔드 개발', '프론트엔드', 'FE'];
+
+interface CoverLetterTabProps {
+  tabState: number;
+  setTabState: (newValue: number) => void;
+}
 
 const LabelingResultItem = ({ tabState, setTabState }: CoverLetterTabProps) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState<DropdownStateType>({

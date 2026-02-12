@@ -1,8 +1,12 @@
 import CoverLetterItem from '@/features/upload/components/CoverLetterItem';
 import { TAB_DATA } from '@/features/upload/constants/uploadPage';
-import type { CoverLetterTabProps } from '@/features/upload/types/upload';
 
-const CoverLetterList = ({ tabState, setTabState }: CoverLetterTabProps) => {
+interface CoverLetterListProps {
+  tabState: number;
+  setTabState: (newValue: number) => void;
+}
+
+const CoverLetterList = ({ tabState, setTabState }: CoverLetterListProps) => {
   return (
     <div className='text-[1.125rem]'>
       {TAB_DATA.map((data) => (
