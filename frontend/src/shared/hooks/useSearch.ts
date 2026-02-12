@@ -9,12 +9,7 @@ const useSearch = ({ onSearch }: UseSearchProps) => {
   const [debounceKeyword, setDebounceKeyword] = useState('');
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const newKeyword = e.target.value;
-    setKeyword(newKeyword);
-
-    if (keyword.trim().length >= 2) {
-      onSearch(keyword);
-    }
+    setKeyword(e.target.value);
   };
 
   useEffect(() => {
@@ -29,10 +24,7 @@ const useSearch = ({ onSearch }: UseSearchProps) => {
     onSearch(debounceKeyword);
   }, [debounceKeyword, onSearch]);
 
-  return {
-    keyword,
-    handleChange,
-  };
+  return { keyword, handleChange };
 };
 
 export default useSearch;
