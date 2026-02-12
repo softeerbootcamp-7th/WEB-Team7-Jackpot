@@ -1,13 +1,15 @@
-import { useCallback, useState } from 'react';
+import { Suspense, useCallback, useState } from 'react';
 
-import { useLocation, useNavigate } from 'react-router';
+import { useLocation, useNavigate, useSearchParams } from 'react-router';
 
-import Scrap from '@/features/coverLetter/components/Scrap';
+import ScrapSection from '@/features/coverLetter/components/ScrapSection';
+import { ScrapListSkeleton } from '@/features/coverLetter/components/ScrapSkeleton';
 import SideBar from '@/features/library/components/SideBar';
 import useLibraryData from '@/features/library/hooks/useLibraryData';
+import ErrorBoundary from '@/shared/components/ErrorBoundary';
 import SearchInput from '@/shared/components/SearchInput';
-
-const scrabList = Array.from({ length: 3 });
+import SectionError from '@/shared/components/SectionError';
+import { useToastMessageContext } from '@/shared/context/ToastMessageContext';
 
 const CoverLetterWriteSidebar = ({
   currentSidebarTab,
@@ -18,8 +20,11 @@ const CoverLetterWriteSidebar = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const { showToast } = useToastMessageContext();
 
   const isScrap = currentSidebarTab === 'scrap';
+  const searchWord = searchParams.get('search') ?? '';
 
   const handleTabChange = (tab: 'scrap' | 'library') => {
     onTabChange(tab);
@@ -30,15 +35,18 @@ const CoverLetterWriteSidebar = ({
 
   const handleSearch = useCallback(
     (keyword: string) => {
+      if (keyword.length === 1) {
+        showToast('검색어는 2자 이상이어야 합니다.');
+        return;
+      }
       const params = new URLSearchParams(location.search);
       params.set('tab', currentSidebarTab);
       params.set('search', keyword);
       navigate({ search: params.toString() }, { replace: true });
     },
-    [currentSidebarTab, navigate, location.search],
+    [currentSidebarTab, navigate, location.search, showToast],
   );
 
-  // 라이브러리 탭용 상태
   const [selectedFolderId, setSelectedFolderId] = useState<number | null>(null);
   const [selectedDocumentId, setSelectedDocumentId] = useState<number | null>(
     null,
@@ -52,7 +60,6 @@ const CoverLetterWriteSidebar = ({
 
   const deleteScrap = () => {};
 
-  // TODO: 라이브러리 검색쪽 추후 공통 컴포넌트로 이동
   return (
     <div className='inline-flex w-[26.75rem] flex-col items-start justify-start gap-3 self-stretch pb-4'>
       <div className='flex flex-col items-center justify-start gap-3 self-stretch'>
@@ -97,9 +104,18 @@ const CoverLetterWriteSidebar = ({
       </div>
 
       {isScrap ? (
-        scrabList.map((_, idx) => (
-          <Scrap key={idx} coverLetterId={idx + 1} deleteScrap={deleteScrap} />
-        ))
+        <ErrorBoundary
+          fallback={(reset) => (
+            <SectionError
+              onRetry={reset}
+              text='스크랩 목록을 표시할 수 없습니다'
+            />
+          )}
+        >
+          <Suspense fallback={<ScrapListSkeleton />}>
+            <ScrapSection searchWord={searchWord} deleteScrap={deleteScrap} />
+          </Suspense>
+        </ErrorBoundary>
       ) : (
         <SideBar
           currentTab='QUESTIONS'
