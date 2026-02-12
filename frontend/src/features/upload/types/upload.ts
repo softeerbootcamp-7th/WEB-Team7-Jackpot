@@ -1,12 +1,4 @@
-export interface UploadInputHeaderProps {
-  uploadTab: 'file' | 'text';
-  setUploadTab: (newValue: 'file' | 'text') => void;
-  totalSize?: number;
-  isContent?: boolean;
-  setIsContent?: (state: boolean) => void;
-  step?: string;
-  nextStep?: (step: string) => void;
-}
+
 
 export interface CoverLetterTabProps {
   tabState: number;
