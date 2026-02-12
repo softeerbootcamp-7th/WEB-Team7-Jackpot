@@ -11,7 +11,10 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "share_link")
+@Table(
+        name = "share_link",
+        indexes = @Index(name = "unique_idx_share_id", columnList = "share_id", unique = true)
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -53,7 +56,7 @@ public class ShareLink {
         this.isShared = false;
     }
 
-    public boolean isActive() {
+    public boolean isValid() {
         return this.isShared && this.expiresAt.isAfter(LocalDateTime.now());
     }
 }

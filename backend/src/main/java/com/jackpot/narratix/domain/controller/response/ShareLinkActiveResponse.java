@@ -16,7 +16,7 @@ public record ShareLinkActiveResponse(
     }
 
     public static ShareLinkActiveResponse of(ShareLink shareLink) {
-        if(shareLink.isActive()){
+        if(shareLink.isValid()){
             return ShareLinkActiveResponse.activate(shareLink.getShareId());
         }
         return ShareLinkActiveResponse.deactivate();

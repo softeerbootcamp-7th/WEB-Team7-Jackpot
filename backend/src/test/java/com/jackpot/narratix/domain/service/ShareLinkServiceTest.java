@@ -179,7 +179,7 @@ class ShareLinkServiceTest {
         given(coverLetterRepository.findByIdOrElseThrow(coverLetterId)).willReturn(mockCoverLetter);
         given(mockCoverLetter.isOwner(userId)).willReturn(true);
         given(shareLinkRepository.findById(coverLetterId)).willReturn(Optional.of(mockShareLink));
-        given(mockShareLink.isActive()).willReturn(true);
+        given(mockShareLink.isValid()).willReturn(true);
         given(mockShareLink.getShareId()).willReturn(expectedShareId);
 
         // when
@@ -190,7 +190,7 @@ class ShareLinkServiceTest {
         assertThat(response.active()).isTrue();
         assertThat(response.shareLinkId()).isEqualTo(expectedShareId);
 
-        verify(mockShareLink, times(1)).isActive();
+        verify(mockShareLink, times(1)).isValid();
     }
 
     @Test
@@ -206,7 +206,7 @@ class ShareLinkServiceTest {
         given(coverLetterRepository.findByIdOrElseThrow(coverLetterId)).willReturn(mockCoverLetter);
         given(mockCoverLetter.isOwner(userId)).willReturn(true);
         given(shareLinkRepository.findById(coverLetterId)).willReturn(Optional.of(mockShareLink));
-        given(mockShareLink.isActive()).willReturn(false); // 만료됨
+        given(mockShareLink.isValid()).willReturn(false); // 만료됨
 
         // when
         ShareLinkActiveResponse response = shareLinkService.getShareLinkStatus(userId, coverLetterId);
@@ -216,7 +216,7 @@ class ShareLinkServiceTest {
         assertThat(response.active()).isFalse();
         assertThat(response.shareLinkId()).isNull();
 
-        verify(mockShareLink, times(1)).isActive();
+        verify(mockShareLink, times(1)).isValid();
     }
 
     @Test

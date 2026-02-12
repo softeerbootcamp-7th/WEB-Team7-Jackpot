@@ -11,8 +11,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ShareLinkTest {
 
     @Test
-    @DisplayName("공유 활성화 상태이고 만료일이 미래인 경우 isActive는 true를 반환한다")
-    void isActive_WhenSharedAndNotExpired_ReturnsTrue() {
+    @DisplayName("공유 활성화 상태이고 만료일이 미래인 경우 isValid는 true를 반환한다")
+    void isValid_WhenSharedAndNotExpired_ReturnsTrue() {
         // given
         ShareLink shareLink = ShareLink.newActivatedShareLink(1L);
 
@@ -22,15 +22,15 @@ class ShareLinkTest {
         ReflectionTestUtils.setField(shareLink, "isShared", true);
 
         // when
-        boolean result = shareLink.isActive();
+        boolean result = shareLink.isValid();
 
         // then
         assertThat(result).isTrue();
     }
 
     @Test
-    @DisplayName("공유 활성화 상태이지만 만료일이 과거인 경우 isActive는 false를 반환한다")
-    void isActive_WhenSharedButExpired_ReturnsFalse() {
+    @DisplayName("공유 활성화 상태이지만 만료일이 과거인 경우 isValid는 false를 반환한다")
+    void isValid_WhenSharedButExpired_ReturnsFalse() {
         // given
         ShareLink shareLink = ShareLink.newActivatedShareLink(1L);
 
@@ -40,15 +40,15 @@ class ShareLinkTest {
         ReflectionTestUtils.setField(shareLink, "isShared", true);
 
         // when
-        boolean result = shareLink.isActive();
+        boolean result = shareLink.isValid();
 
         // then
         assertThat(result).isFalse();
     }
 
     @Test
-    @DisplayName("공유 비활성화 상태이고 만료일이 미래인 경우 isActive는 false를 반환한다")
-    void isActive_WhenNotSharedAndNotExpired_ReturnsFalse() {
+    @DisplayName("공유 비활성화 상태이고 만료일이 미래인 경우 isValid는 false를 반환한다")
+    void isValid_WhenNotSharedAndNotExpired_ReturnsFalse() {
         // given
         ShareLink shareLink = ShareLink.newActivatedShareLink(1L);
 
@@ -58,15 +58,15 @@ class ShareLinkTest {
         ReflectionTestUtils.setField(shareLink, "isShared", false);
 
         // when
-        boolean result = shareLink.isActive();
+        boolean result = shareLink.isValid();
 
         // then
         assertThat(result).isFalse();
     }
 
     @Test
-    @DisplayName("공유 비활성화 상태이고 만료일도 과거인 경우 isActive는 false를 반환한다")
-    void isActive_WhenNotSharedAndExpired_ReturnsFalse() {
+    @DisplayName("공유 비활성화 상태이고 만료일도 과거인 경우 isValid는 false를 반환한다")
+    void isValid_WhenNotSharedAndExpired_ReturnsFalse() {
         // given
         ShareLink shareLink = ShareLink.newActivatedShareLink(1L);
 
@@ -76,7 +76,7 @@ class ShareLinkTest {
         ReflectionTestUtils.setField(shareLink, "isShared", false);
 
         // when
-        boolean result = shareLink.isActive();
+        boolean result = shareLink.isValid();
 
         // then
         assertThat(result).isFalse();
@@ -99,24 +99,24 @@ class ShareLinkTest {
         LocalDateTime afterActivate = LocalDateTime.now().plusDays(14);
 
         // then
-        assertThat(shareLink.isActive()).isTrue();
+        assertThat(shareLink.isValid()).isTrue();
         assertThat(shareLink.getExpiresAt()).isAfter(beforeActivate);
         assertThat(shareLink.getExpiresAt()).isBeforeOrEqualTo(afterActivate);
     }
 
     @Test
-    @DisplayName("deactivate 호출 시 isShared가 false로 설정되어 isActive는 false를 반환한다")
+    @DisplayName("deactivate 호출 시 isShared가 false로 설정되어 isValid는 false를 반환한다")
     void deactivate_SetsIsSharedFalse() {
         // given
         ShareLink shareLink = ShareLink.newActivatedShareLink(1L);
 
         // 초기 상태 확인 (활성화 상태)
-        assertThat(shareLink.isActive()).isTrue();
+        assertThat(shareLink.isValid()).isTrue();
 
         // when
         shareLink.deactivate();
 
         // then
-        assertThat(shareLink.isActive()).isFalse();
+        assertThat(shareLink.isValid()).isFalse();
     }
 }

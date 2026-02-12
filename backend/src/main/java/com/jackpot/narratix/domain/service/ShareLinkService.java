@@ -3,6 +3,8 @@ package com.jackpot.narratix.domain.service;
 import com.jackpot.narratix.domain.controller.response.ShareLinkActiveResponse;
 import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.ShareLink;
+import com.jackpot.narratix.domain.entity.enums.ReviewRoleType;
+import com.jackpot.narratix.domain.exception.ShareLinkErrorCode;
 import com.jackpot.narratix.domain.repository.CoverLetterRepository;
 import com.jackpot.narratix.domain.repository.ShareLinkRepository;
 import com.jackpot.narratix.global.exception.BaseException;
@@ -19,6 +21,7 @@ public class ShareLinkService {
 
     private final CoverLetterRepository coverLetterRepository;
     private final ShareLinkRepository shareLinkRepository;
+    private final ShareLinkLockManager shareLinkLockManager;
 
     @Transactional
     public ShareLinkActiveResponse updateShareLinkStatus(String userId, Long coverLetterId, boolean active) {
@@ -66,5 +69,22 @@ public class ShareLinkService {
 
         return shareLinkOptional.map(ShareLinkActiveResponse::of)
                 .orElseGet(ShareLinkActiveResponse::deactivate);
+    }
+
+    public boolean accessShareLink(String userId, ReviewRoleType role, String shareId) {
+        return shareLinkLockManager.tryLock(shareId, role, userId);
+    }
+
+    @Transactional(readOnly = true)
+    public ReviewRoleType validateShareLinkAndGetRole(String userId, String shareId) {
+        ShareLink shareLink = shareLinkRepository.findByShareId(shareId)
+                .orElseThrow(() -> new BaseException(ShareLinkErrorCode.SHARE_LINK_NOT_FOUND));
+
+        if (!shareLink.isValid()) {
+            throw new BaseException(ShareLinkErrorCode.SHARE_LINK_EXPIRED);
+        }
+
+        CoverLetter coverLetter = coverLetterRepository.findByIdOrElseThrow(shareLink.getCoverLetterId());
+        return coverLetter.isOwner(userId) ? ReviewRoleType.WRITER : ReviewRoleType.REVIEWER;
     }
 }
