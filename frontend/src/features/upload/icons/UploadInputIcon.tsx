@@ -1,4 +1,4 @@
-const FirstStepIcon = () => {
+const UploadInputIcon = () => {
   return (
     <svg
       xmlns='http://www.w3.org/2000/svg'
@@ -85,4 +85,4 @@ const FirstStepIcon = () => {
   );
 };
 
-export default FirstStepIcon;
+export default UploadInputIcon;

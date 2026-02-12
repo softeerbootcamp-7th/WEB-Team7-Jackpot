@@ -5,15 +5,16 @@ import DocumentBoxIcon from '@/features/upload/icons/DocumentBoxIcon';
 import DropdownArrow from '@/features/upload/icons/DropdownArrow';
 import FileRemoveIcon from '@/features/upload/icons/FileRemoveIcon';
 import FileUploadIcon from '@/features/upload/icons/FileUploadIcon';
-import FirstStepIcon from '@/features/upload/icons/FirstStepIcon';
 import FolderIconInButton from '@/features/upload/icons/FolderIconInButton';
+import LabelingResultIcon from '@/features/upload/icons/LabelingResultIcon';
 import LeftPaginationButtonIcon from '@/features/upload/icons/LeftPaginationButtonIcon';
 import LoadingSpinnerIcon from '@/features/upload/icons/LoadingSpinnerIcon';
 import RightPaginationButtonIcon from '@/features/upload/icons/RightPaginationButtonIcon';
-import SecondStepIcon from '@/features/upload/icons/SecondStepIcon';
 import TextDocumentIcon from '@/features/upload/icons/TextDocumentIcon';
 import TextUploadIcon from '@/features/upload/icons/TextUploadIcon';
+import UploadCompleteIcon from '@/features/upload/icons/UploadCompleteIcon';
 import UploadIcon from '@/features/upload/icons/UploadIcon';
+import UploadInputIcon from '@/features/upload/icons/UploadInputIcon';
 
 export const UploadPageIcons = {
   AddFileIcon: AddFileIcon,
@@ -21,8 +22,8 @@ export const UploadPageIcons = {
   CompleteSavedIcon: CompleteSavedIcon,
   DocumentBoxIcon: DocumentBoxIcon,
   FileUploadIcon: FileUploadIcon,
-  FirstStepIcon: FirstStepIcon,
-  SecondStepIcon: SecondStepIcon,
+  UploadInputIcon: UploadInputIcon,
+  LabelingResultIcon: LabelingResultIcon,
   TextDocumentIcon: TextDocumentIcon,
   TextUploadIcon: TextUploadIcon,
   UploadIcon: UploadIcon,
@@ -32,4 +33,5 @@ export const UploadPageIcons = {
   FolderIconInButton: FolderIconInButton,
   FileRemoveIcon: FileRemoveIcon,
   LoadingSpinnerIcon: LoadingSpinnerIcon,
+  UploadCompleteIcon: UploadCompleteIcon,
 };

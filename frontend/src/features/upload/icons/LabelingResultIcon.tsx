@@ -1,4 +1,4 @@
-const SecondStepIcon = () => {
+const LabelingResultIcon = () => {
   return (
     <svg
       xmlns='http://www.w3.org/2000/svg'
@@ -85,4 +85,4 @@ const SecondStepIcon = () => {
   );
 };
 
-export default SecondStepIcon;
+export default LabelingResultIcon;

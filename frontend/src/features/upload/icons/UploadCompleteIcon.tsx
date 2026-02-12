@@ -1,4 +1,4 @@
-const ThirdStepIcon = () => {
+const UploadCompleteIcon = () => {
   return (
     <svg
       xmlns='http://www.w3.org/2000/svg'
@@ -85,4 +85,4 @@ const ThirdStepIcon = () => {
   );
 };
 
-export default ThirdStepIcon;
+export default UploadCompleteIcon;
