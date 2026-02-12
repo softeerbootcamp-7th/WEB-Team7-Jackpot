@@ -9,15 +9,15 @@ interface FileStateType {
   status: UploadStatus;
 }
 
-interface UploadFileLayoutProps {
+interface UploadFileAreaProps {
   setIsContent: (state: boolean) => void;
   setTotalSize: (state: number) => void;
 }
 
-const UploadFileLayout = ({
+const UploadFileArea = ({
   setIsContent,
   setTotalSize,
-}: UploadFileLayoutProps) => {
+}: UploadFileAreaProps) => {
   const [files, setFiles] = useState<FileStateType[]>([
     { file: null, status: 'idle' },
     { file: null, status: 'idle' },
@@ -86,4 +86,4 @@ const UploadFileLayout = ({
   );
 };
 
-export default UploadFileLayout;
+export default UploadFileArea;
