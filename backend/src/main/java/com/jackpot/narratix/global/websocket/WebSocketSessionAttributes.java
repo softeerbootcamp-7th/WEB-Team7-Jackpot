@@ -3,10 +3,11 @@ package com.jackpot.narratix.global.websocket;
 import com.jackpot.narratix.domain.entity.enums.ReviewRoleType;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 
-
+@Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class WebSocketSessionAttributes {
 
@@ -52,8 +53,24 @@ public class WebSocketSessionAttributes {
     }
 
     public static boolean isValid(Map<String, Object> attributes) {
-        return getUserId(attributes) != null
-                && getShareId(attributes) != null
-                && getRole(attributes) != null;
+        if (attributes == null) {
+            log.warn("WebSocket session attributes is null");
+            return false;
+        }
+
+        String userId = getUserId(attributes);
+        String shareId = getShareId(attributes);
+        ReviewRoleType role = getRole(attributes);
+
+        boolean isValid = userId != null && shareId != null && role != null;
+
+        if (!isValid) {
+            log.warn("WebSocket session validation failed: userId={}, shareId={}, role={}",
+                     userId != null ? "present" : "null",
+                     shareId != null ? "present" : "null",
+                     role != null ? role : "null");
+        }
+
+        return isValid;
     }
 }
