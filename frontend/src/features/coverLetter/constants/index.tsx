@@ -16,11 +16,6 @@ export const emptyCaseText = {
     content:
       '상단의 ‘자기소개서 추가하기’ 버튼을 눌러\n새로운 자기소개서를 작성할 수 있어요.',
   },
-  edit: {
-    title: '라이브러리 내에서\n조회할 항목을 선택해주세요',
-    content:
-      '좌측 패널의 자기소개서 목록에서\n조회하고 싶은 자기소개서를 선택해주세요.',
-  },
 };
 
 export const coverLetterContent: TabContentType<CoverLetterView>[] = [

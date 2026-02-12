@@ -23,10 +23,21 @@ export const useQnAList = (qnaIds: number[]) => {
       queryFn: () => getQnA(qnaId),
       staleTime: 5 * 60 * 1000,
     })),
-    combine: (results) => ({
-      data: results.map((r) => r.data) as QnA[],
-      isError: results.some((r) => r.isError),
-    }),
+    combine: (results) => {
+      if (results.length === 0) {
+        return {
+          data: [] as QnA[],
+          isError: false,
+          isLoading: false,
+        };
+      }
+
+      return {
+        data: results.map((r) => r.data) as QnA[],
+        isError: results.some((r) => r.isError),
+        isLoading: results.some((r) => r.isLoading),
+      };
+    },
   });
 };
 

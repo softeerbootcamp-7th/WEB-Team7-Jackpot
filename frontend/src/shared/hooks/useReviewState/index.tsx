@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useReviewsByQnaId } from '@/shared/hooks/useReviewQueries';
 import {
@@ -13,7 +13,6 @@ import type { QnA } from '@/shared/types/qna';
 import type { Review, ReviewBase } from '@/shared/types/review';
 
 export const useReviewState = (coverLetter: CoverLetter, qnas: QnA[]) => {
-  // 페이지 인덱스 상태
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
 
   const safePageIndex =
@@ -22,10 +21,8 @@ export const useReviewState = (coverLetter: CoverLetter, qnas: QnA[]) => {
   const currentQna = qnas.length > 0 ? qnas[safePageIndex] : undefined;
   const currentQnaId = currentQna?.qnAId;
 
-  // 데이터 페칭
   const { data: reviewData } = useReviewsByQnaId(currentQnaId);
 
-  // 로컬 편집 상태 (Map 구조)
   const [reviewsByQnaId, setReviewsByQnaId] = useState<
     Record<number, Review[]>
   >({});
@@ -33,7 +30,6 @@ export const useReviewState = (coverLetter: CoverLetter, qnas: QnA[]) => {
     {},
   );
 
-  // 텍스트 데이터 파생
   const answer = currentQna?.answer ?? '';
   const parsed = useMemo(
     () =>
@@ -47,21 +43,30 @@ export const useReviewState = (coverLetter: CoverLetter, qnas: QnA[]) => {
       ? editedAnswers[currentQnaId]
       : originalText;
 
-  // 리뷰 데이터 통합 (파생된 상태)
   const currentReviews = useMemo(() => {
     if (currentQnaId === undefined) return [];
     if (reviewsByQnaId[currentQnaId]) return reviewsByQnaId[currentQnaId];
     if (!reviewData) return [];
 
-    const serverParsed = parseTaggedText(currentQna?.answer ?? '');
     return buildReviewsFromApi(
-      serverParsed.cleaned,
-      serverParsed.taggedRanges,
+      parsed.cleaned,
+      parsed.taggedRanges,
       reviewData.reviews,
     );
-  }, [currentQnaId, reviewData, currentQna?.answer, reviewsByQnaId]);
+  }, [currentQnaId, reviewData, parsed, reviewsByQnaId]);
 
-  // 편집 중인 리뷰 상태
+  const currentReviewsRef = useRef(currentReviews);
+
+  useEffect(() => {
+    currentReviewsRef.current = currentReviews;
+  }, [currentReviews]);
+
+  const getLatestReviews = useCallback(
+    (prev: Record<number, Review[]>, qnaId: number) =>
+      prev[qnaId] ?? currentReviewsRef.current,
+    [],
+  );
+
   const [editingId, setEditingId] = useState<string | null>(null);
   const editingReview = useMemo(
     () =>
@@ -82,7 +87,7 @@ export const useReviewState = (coverLetter: CoverLetter, qnas: QnA[]) => {
       setReviewsByQnaId((prev) => ({
         ...prev,
         [currentQnaId]: [
-          ...(prev[currentQnaId] ?? currentReviews),
+          ...getLatestReviews(prev, currentQnaId),
           {
             ...review,
             id: generateInternalReviewId(),
@@ -93,7 +98,7 @@ export const useReviewState = (coverLetter: CoverLetter, qnas: QnA[]) => {
         ],
       }));
     },
-    [currentQnaId, currentReviews],
+    [currentQnaId, getLatestReviews],
   );
 
   const handleTextChange = useCallback(
@@ -104,17 +109,20 @@ export const useReviewState = (coverLetter: CoverLetter, qnas: QnA[]) => {
       const change = calculateTextChange(oldText, newText);
 
       setEditedAnswers((prev) => ({ ...prev, [currentQnaId]: newText }));
-      setReviewsByQnaId((prevReviews) => ({
-        ...prevReviews,
-        [currentQnaId]: updateReviewRanges(
-          prevReviews[currentQnaId] ?? currentReviews,
-          change.changeStart,
-          change.oldLength,
-          change.newLength,
-        ),
-      }));
+      setReviewsByQnaId((prevReviews) => {
+        const baseReviews = getLatestReviews(prevReviews, currentQnaId);
+        return {
+          ...prevReviews,
+          [currentQnaId]: updateReviewRanges(
+            baseReviews,
+            change.changeStart,
+            change.oldLength,
+            change.newLength,
+          ),
+        };
+      });
     },
-    [currentQnaId, originalText, editedAnswers, currentReviews],
+    [currentQnaId, originalText, editedAnswers, getLatestReviews],
   );
 
   const handleUpdateReview = useCallback(
@@ -122,13 +130,13 @@ export const useReviewState = (coverLetter: CoverLetter, qnas: QnA[]) => {
       if (currentQnaId === undefined) return;
       setReviewsByQnaId((prev) => ({
         ...prev,
-        [currentQnaId]: (prev[currentQnaId] ?? currentReviews).map((r) =>
+        [currentQnaId]: getLatestReviews(prev, currentQnaId).map((r) =>
           r.id === id ? { ...r, revision, comment } : r,
         ),
       }));
       setEditingId(null);
     },
-    [currentQnaId, currentReviews],
+    [currentQnaId, getLatestReviews],
   );
 
   const handleDeleteReview = useCallback(
@@ -136,12 +144,12 @@ export const useReviewState = (coverLetter: CoverLetter, qnas: QnA[]) => {
       if (currentQnaId === undefined) return;
       setReviewsByQnaId((prev) => ({
         ...prev,
-        [currentQnaId]: (prev[currentQnaId] ?? currentReviews).filter(
+        [currentQnaId]: getLatestReviews(prev, currentQnaId).filter(
           (r) => r.id !== id,
         ),
       }));
     },
-    [currentQnaId, currentReviews],
+    [currentQnaId, getLatestReviews],
   );
 
   const pages = useMemo(
@@ -153,8 +161,11 @@ export const useReviewState = (coverLetter: CoverLetter, qnas: QnA[]) => {
         },
         question: qna?.question ?? '질문이 없습니다.',
       })),
-    [qnas, coverLetter],
+    [qnas, coverLetter?.companyName, coverLetter?.jobPosition],
   );
+
+  const handleEditReview = useCallback((id: string) => setEditingId(id), []);
+  const handleCancelEdit = useCallback(() => setEditingId(null), []);
 
   return {
     currentPageIndex: safePageIndex,
@@ -169,8 +180,8 @@ export const useReviewState = (coverLetter: CoverLetter, qnas: QnA[]) => {
     handleTextChange,
     handleUpdateReview,
     handleDeleteReview,
-    handleEditReview: useCallback((id: string) => setEditingId(id), []),
-    handleCancelEdit: useCallback(() => setEditingId(null), []),
+    handleEditReview,
+    handleCancelEdit,
     coverLetter,
     qnas,
     editedAnswers,

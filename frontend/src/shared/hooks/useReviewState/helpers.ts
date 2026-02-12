@@ -179,14 +179,10 @@ export const updateReviewRanges = <T extends Review>(
   const lengthDiff = newLength - oldLength;
   const changeEnd = changeStart + oldLength;
 
-  // [Step 1] 위치 이동 및 기본 보정
   const shiftedReviews = reviews.map((review): T => {
     const { start, end } = review.range;
 
-    // 1-1. 변경 범위 이전: 변화 없음
     if (end <= changeStart) return review;
-
-    // 1-2. 변경 범위 이후: 전체 이동
     if (start >= changeEnd) {
       return {
         ...review,
@@ -194,9 +190,15 @@ export const updateReviewRanges = <T extends Review>(
       };
     }
 
-    // 1-3. 변경 범위에 포함되어 완전히 삭제된 경우
-    if (start >= changeStart && end <= changeEnd && newLength === 0) {
-      return { ...review, range: { start: -1, end: -1 }, isValid: false };
+    // 1-3. 변경 범위에 리뷰가 완전히 포함되는 경우
+    // 순수 삭제(newLength === 0)뿐만 아니라 텍스트가 대체되는 경우에도
+    // 기존 리뷰의 원본 텍스트(originText)가 유실되었으므로 무효화합니다.
+    if (start >= changeStart && end <= changeEnd) {
+      return {
+        ...review,
+        range: { start: -1, end: -1 },
+        isValid: false,
+      };
     }
 
     // 1-4. 변경 범위와 부분적으로 겹치는 경우 (경계 보정)
@@ -204,11 +206,14 @@ export const updateReviewRanges = <T extends Review>(
     let newEnd = end;
 
     if (start >= changeStart && start < changeEnd) {
-      newStart = changeStart;
+      // 리뷰의 시작점이 변경 영역 내부인 경우
+      newStart = changeStart + newLength; // 변경된 텍스트 이후로 밀어냄
       newEnd = end + lengthDiff;
     } else if (end > changeStart && end <= changeEnd) {
-      newEnd = changeStart + newLength;
+      // 리뷰의 끝점이 변경 영역 내부인 경우
+      newEnd = changeStart;
     } else if (start < changeStart && end > changeEnd) {
+      // 리뷰가 변경 영역을 통째로 포함하는 경우
       newEnd = end + lengthDiff;
     }
 

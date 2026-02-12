@@ -43,7 +43,7 @@ export const useSharedLink = (
   enabled: boolean = true,
 ) => {
   return useQuery({
-    queryKey: ['sharedLink', coverLetterId],
+    queryKey: ['coverletter', 'sharedLink', { coverLetterId }],
     queryFn: () => fetchSharedLink({ coverLetterId }),
     enabled,
   });
@@ -62,7 +62,7 @@ export const useSharedLinkToggle = () => {
     }) => toggleSharedLinkStatus({ coverLetterId, active }),
     onSuccess: (_, { coverLetterId }) => {
       queryClient.invalidateQueries({
-        queryKey: ['sharedLink', coverLetterId],
+        queryKey: ['coverletter', 'sharedLink', { coverLetterId }],
       });
     },
   });

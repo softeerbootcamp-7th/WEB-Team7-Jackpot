@@ -22,7 +22,7 @@ export const getReviewsByQnaId = async (
 ): Promise<GetReviewsResponse> => {
   const response = await fetch(`${BASE_URL}/qna/${qnaId}/reviews/all`, {
     headers: {
-      Authorization: `${getAccessToken()}`,
+      Authorization: getAccessToken(),
     },
   });
 

@@ -3,14 +3,12 @@ import { useLocation } from 'react-router';
 
 import CoverLetterReviewContent from '@/features/coverLetter/components/CoverLetterReviewContent';
 import ReviewSidebar from '@/features/coverLetter/components/reviewWithFriend/ReviewSidebar';
-import {
-  coverLetterContent,
-  emptyCaseText,
-} from '@/features/coverLetter/constants';
+import { coverLetterContent } from '@/features/coverLetter/constants';
 import useCoverLetterParams from '@/features/coverLetter/hooks/useCoverLetterParams';
 import type { CoverLetterView } from '@/features/coverLetter/types';
 import EmptyCase from '@/shared/components/EmptyCase';
 import TabBar from '@/shared/components/TabBar';
+import { coverLetterEmptyCaseText } from '@/shared/constants/coverLetterEmptyCaseText';
 
 const CoverLetterQnAFriendsPage = () => {
   const { coverLetterId } = useParams();
@@ -41,7 +39,7 @@ const CoverLetterQnAFriendsPage = () => {
 
         <main className='h-full min-h-0 min-w-0 flex-1 overflow-hidden'>
           {!coverLetterIdNumber ? (
-            <EmptyCase {...emptyCaseText.edit} />
+            <EmptyCase {...coverLetterEmptyCaseText} />
           ) : (
             <CoverLetterReviewContent
               key={coverLetterIdNumber}

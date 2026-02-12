@@ -8,9 +8,10 @@ export const ReviewMessageIcon = (props: SVGProps<SVGSVGElement>) => {
       height='20'
       fill='none'
       viewBox='0 0 20 20'
-      {...props}
       aria-hidden='true'
+      {...props}
     >
+      <title>리뷰 메시지 아이콘</title>
       <path
         stroke='currentColor'
         strokeLinecap='round'

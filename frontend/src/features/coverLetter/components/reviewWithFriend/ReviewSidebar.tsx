@@ -1,3 +1,5 @@
+import { useLocation, useNavigate } from 'react-router';
+
 import CoverLetterCard from '@/features/coverLetter/components/reviewWithFriend/CoverLetterCard';
 
 const mock = [
@@ -30,8 +32,6 @@ const mock = [
 interface ReviewSidebarProps {
   selectedDocumentId: number | null;
 }
-
-import { useLocation, useNavigate } from 'react-router';
 
 const ReviewSidebar = ({ selectedDocumentId }: ReviewSidebarProps) => {
   const navigate = useNavigate();

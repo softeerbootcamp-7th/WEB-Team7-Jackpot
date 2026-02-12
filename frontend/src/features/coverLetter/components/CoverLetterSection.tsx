@@ -19,8 +19,22 @@ const CoverLetterSection = ({
 }) => {
   const { data: coverLetter } = useCoverLetter(id);
   const { data: qnaIds } = useQnAIdList(id);
-  const { data: qnas } = useQnAList(qnaIds);
-  const reviewState = useReviewState(coverLetter, qnas);
+  const { data: qnas } = useQnAList(qnaIds ?? []);
+
+  const reviewState = useReviewState(
+    coverLetter ?? { companyName: '', jobPosition: '' },
+    qnas ?? [],
+  );
+
+  const hasQnas = qnas && qnas.length > 0;
+
+  if (!hasQnas || !coverLetter) {
+    return (
+      <div className='flex h-full items-center justify-center text-gray-400'>
+        문항이 없습니다.
+      </div>
+    );
+  }
 
   return (
     <div className='flex h-full min-h-0 w-full min-w-0 flex-row pb-39.5'>

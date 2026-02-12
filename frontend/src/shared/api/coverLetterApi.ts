@@ -40,7 +40,7 @@ export const searchCoverLetters = async ({
     `${BASE_URL}/search/coverletter?${params.toString()}`,
     {
       headers: {
-        Authorization: `${getAccessToken()}`,
+        Authorization: getAccessToken(),
       },
     },
   );
@@ -57,7 +57,7 @@ export const getCoverLetter = async (
 ): Promise<CoverLetter> => {
   const response = await fetch(`${BASE_URL}/coverletter/${coverLetterId}`, {
     headers: {
-      Authorization: `${getAccessToken()}`,
+      Authorization: getAccessToken(),
     },
   });
 

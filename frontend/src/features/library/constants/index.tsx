@@ -16,11 +16,6 @@ export const emptyCaseText = {
     content:
       '자료 업로드 탭에서 자기소개서를 업로드하시면\n나의 다양한 경험들을 기업/문항별로 관리할 수 있어요.',
   },
-  folder: {
-    title: '라이브러리 내에서\n조회할 항목을 선택해주세요',
-    content:
-      '좌측 패널의 자기소개서 목록에서\n조회하고 싶은 자기소개서를 선택해주세요.',
-  },
 };
 
 export const libraryContent: TabContentType<LibraryView>[] = [

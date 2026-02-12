@@ -25,7 +25,7 @@ export const fetchScraps = async ({
     `${BASE_URL}/search/scrap?${params.toString()}`,
     {
       headers: {
-        Authorization: `${getAccessToken()}`,
+        Authorization: getAccessToken(),
       },
     },
   );
@@ -37,7 +37,7 @@ export const fetchScraps = async ({
   return response.json();
 };
 
-interface GetSharedLinkResponse {
+interface SharedLinkResponse {
   active: boolean;
   shareLinkId: string;
 }
@@ -46,12 +46,12 @@ export const fetchSharedLink = async ({
   coverLetterId,
 }: {
   coverLetterId: number;
-}): Promise<GetSharedLinkResponse> => {
+}): Promise<SharedLinkResponse> => {
   const response = await fetch(
     `${BASE_URL}/coverletter/${coverLetterId}/share-link`,
     {
       headers: {
-        Authorization: `${getAccessToken()}`,
+        Authorization: getAccessToken(),
       },
     },
   );
@@ -63,24 +63,19 @@ export const fetchSharedLink = async ({
   return response.json();
 };
 
-interface ToggleSharedLinkStatusResponse {
-  active: boolean;
-  shareLinkId: string;
-}
-
 export const toggleSharedLinkStatus = async ({
   coverLetterId,
   active,
 }: {
   coverLetterId: number;
   active: boolean;
-}): Promise<ToggleSharedLinkStatusResponse> => {
+}): Promise<SharedLinkResponse> => {
   const response = await fetch(
     `${BASE_URL}/coverletter/${coverLetterId}/share-link`,
     {
       method: 'PATCH',
       headers: {
-        Authorization: `${getAccessToken()}`,
+        Authorization: getAccessToken(),
         'Content-Type': 'application/json;charset=UTF-8',
       },
       body: JSON.stringify({ active }),

@@ -15,7 +15,7 @@ export const getQnAIdList = async ({
 
   const response = await fetch(`${BASE_URL}/qna/id/all?${params.toString()}`, {
     headers: {
-      Authorization: `${getAccessToken()}`,
+      Authorization: getAccessToken(),
     },
   });
 
@@ -30,7 +30,7 @@ export const getQnAIdList = async ({
 export const getQnA = async (qnaId: number): Promise<QnA> => {
   const response = await fetch(`${BASE_URL}/qna/${qnaId}`, {
     headers: {
-      Authorization: `${getAccessToken()}`,
+      Authorization: getAccessToken(),
     },
   });
 
@@ -57,10 +57,10 @@ export const updateQnA = async ({
   const response = await fetch(`${BASE_URL}/qna`, {
     method: 'PUT',
     headers: {
-      Authorization: `${getAccessToken()}`,
+      Authorization: getAccessToken(),
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ qnAId: qnAId, answer }),
+    body: JSON.stringify({ qnAId, answer }),
   });
 
   if (!response.ok) {

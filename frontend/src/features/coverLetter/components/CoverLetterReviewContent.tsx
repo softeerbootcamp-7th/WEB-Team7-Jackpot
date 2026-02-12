@@ -22,10 +22,10 @@ const CoverLetterReviewContent = ({
   const { data: sharedLink } = useSharedLink(id, isValidId);
 
   useEffect(() => {
-    if (sharedLink) {
+    if (sharedLink?.active !== undefined) {
       setIsReviewActive(sharedLink.active);
     }
-  }, [sharedLink, setIsReviewActive]);
+  }, [sharedLink?.active, setIsReviewActive]);
 
   const handleToggleReview = useCallback(
     (value: boolean) => {

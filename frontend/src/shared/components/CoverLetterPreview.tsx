@@ -1,10 +1,7 @@
 import fileIcon from '/images/file.svg';
 import { Link } from 'react-router';
 
-import type {
-  ApiApplyHalf,
-  RecentCoverLetter,
-} from '@/shared/types/coverLetter';
+import type { RecentCoverLetter } from '@/shared/types/coverLetter';
 import { getDate } from '@/shared/utils/dates';
 import { mapApplyHalf } from '@/shared/utils/recruitSeason';
 
@@ -17,10 +14,6 @@ const CoverLetterPreview = ({
   data,
   isCoverLetter = false,
 }: CoverLetterPreviewProps) => {
-  const getApplyHalfText = (applyHalf: ApiApplyHalf) => {
-    return `${data.applyYear}년 ${mapApplyHalf(applyHalf)}`;
-  };
-
   return (
     <Link
       to={`/cover-letter/edit/${data.coverLetterId}`}
@@ -36,7 +29,7 @@ const CoverLetterPreview = ({
           </div>
           <div className='flex items-center justify-center rounded-xl bg-gray-50 px-3 py-1.5'>
             <div className='text-xs leading-4 font-medium text-gray-600'>
-              {getApplyHalfText(data.applyHalf)}
+              {`${data.applyYear}년 ${mapApplyHalf(data.applyHalf)}`}
             </div>
           </div>
         </div>

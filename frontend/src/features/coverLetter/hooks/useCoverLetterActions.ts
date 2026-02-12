@@ -33,9 +33,9 @@ const useCoverLetterActions = ({
 
   const handleSave = () => {
     const qnAId = currentQna?.qnAId;
-    const editedText = qnAId ? editedAnswers[qnAId] : null;
+    const editedText = qnAId !== undefined ? editedAnswers[qnAId] : null;
 
-    if (!qnAId) return showToast('저장할 문항이 없습니다.');
+    if (qnAId === undefined) return showToast('저장할 문항이 없습니다.');
 
     if (editedText === null || editedText === undefined) {
       return showToast('변경된 내용이 없습니다.');
@@ -86,7 +86,15 @@ const useCoverLetterActions = ({
   const handleToggleReview = () => {
     const next = !isReviewOpen;
     setIsReviewOpen(next);
-    toggleLink({ coverLetterId: documentId, active: next });
+    toggleLink(
+      { coverLetterId: documentId, active: next },
+      {
+        onError: () => {
+          setIsReviewOpen(!next);
+          showToast('공유 설정 변경에 실패했습니다.');
+        },
+      },
+    );
   };
 
   return {
