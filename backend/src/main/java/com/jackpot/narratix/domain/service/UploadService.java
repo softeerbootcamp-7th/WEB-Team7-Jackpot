@@ -5,8 +5,10 @@ import com.jackpot.narratix.domain.controller.response.PresignedUrlResponse;
 import com.jackpot.narratix.domain.exception.UploadErrorCode;
 import com.jackpot.narratix.global.exception.BaseException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
@@ -15,6 +17,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UploadService {
@@ -32,21 +35,26 @@ public class UploadService {
 
         String s3Key = generateS3Key(userId);
 
-        PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
-                .signatureDuration(PRESIGNED_URL_EXPIRE)
-                .putObjectRequest(p -> p
-                        .bucket(bucket)
-                        .key(s3Key)
-                        .contentType(request.contentType()))
-                .build();
+        try {
+            PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
+                    .signatureDuration(PRESIGNED_URL_EXPIRE)
+                    .putObjectRequest(p -> p
+                            .bucket(bucket)
+                            .key(s3Key)
+                            .contentType(request.contentType()))
+                    .build();
 
-        PresignedPutObjectRequest presigned = s3Presigner.presignPutObject(presignRequest);
+            PresignedPutObjectRequest presigned = s3Presigner.presignPutObject(presignRequest);
 
-        return new PresignedUrlResponse(
-                presigned.url().toString(),
-                s3Key,
-                Map.of("Content-Type", request.contentType())
-        );
+            return new PresignedUrlResponse(
+                    presigned.url().toString(),
+                    s3Key,
+                    Map.of("Content-Type", request.contentType())
+            );
+        } catch (SdkException e) {
+            log.error("AWS S3 Error occurred while generating URL. User: {}, Error: {}", userId, e.getMessage());
+            throw new BaseException(UploadErrorCode.PRESIGNED_URL_GENERATION_FAILED);
+        }
     }
 
     private void validateFile(PresignedUrlRequest request) {

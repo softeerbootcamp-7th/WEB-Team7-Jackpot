@@ -13,7 +13,6 @@ public class S3Config {
     public S3Presigner s3Presigner() {
         return S3Presigner.builder()
                 .region(Region.AP_NORTHEAST_2)
-
                 .credentialsProvider(DefaultCredentialsProvider.create())
                 .build();
     }
