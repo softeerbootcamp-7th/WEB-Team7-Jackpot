@@ -1,6 +1,7 @@
 import { QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 
+import CoverLetterQnAFriendsPage from '@/pages//CoverLetterQnAFriendsPage';
 import CoverLetterLandingPage from '@/pages/CoverLetterLandingPage';
 import HomePage from '@/pages/HomePage';
 import LoginPage from '@/pages/LoginPage';
