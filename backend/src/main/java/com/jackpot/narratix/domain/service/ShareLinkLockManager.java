@@ -25,6 +25,11 @@ public class ShareLinkLockManager {
                 return 0
             end
             """;
+    private static final DefaultRedisScript<Long> UNLOCK_REDIS_SCRIPT;
+
+    static {
+        UNLOCK_REDIS_SCRIPT = new DefaultRedisScript<>(UNLOCK_SCRIPT, Long.class);
+    }
 
 
     public boolean tryLock(String shareId, ReviewRoleType role, String userId) {
@@ -40,7 +45,7 @@ public class ShareLinkLockManager {
         String lockKey = getLockKey(shareId, role);
 
         redisTemplate.execute(
-                new DefaultRedisScript<>(UNLOCK_SCRIPT, Long.class),
+                UNLOCK_REDIS_SCRIPT,
                 List.of(lockKey),
                 userId
         );
