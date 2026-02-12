@@ -16,7 +16,9 @@ const StepItem = ({ step }: StepItemProps) => {
   return (
     <div className='flex flex-col items-center justify-center gap-7 select-none'>
       <div className='relative h-[9.375rem] w-[30.25rem]'>
-        <div className='absolute inset-0 z-0'>{generateStepIcon()}</div>
+        <div key={step} className='animate-soft-pop absolute inset-0 z-0'>
+          {generateStepIcon()}
+        </div>
         <div className='absolute inset-0 z-10 flex select-none'>
           {['1', '2', '3'].map((each) => {
             const currentStepData = STEP_DATA[each];
@@ -24,7 +26,7 @@ const StepItem = ({ step }: StepItemProps) => {
             return (
               <StepInformation
                 key={each}
-                className={`${currentStepData.className} ${each === step ? 'text-white' : 'text-gray-300'}`}
+                className={`${currentStepData.className} transition-colors duration-300 ${each === step ? 'text-white' : 'text-gray-300'}`}
                 icon={
                   CurrentIconComponent && (
                     <CurrentIconComponent
@@ -39,7 +41,10 @@ const StepItem = ({ step }: StepItemProps) => {
           })}
         </div>
       </div>
-      <div className='flex flex-col gap-1 text-center'>
+      <div
+        key={step + '-text'}
+        className='animate-soft-pop flex flex-col gap-1 text-center'
+      >
         <div className='text-xl font-bold text-gray-600'>
           {STEP_DATA[step].loadingTitle}
         </div>
