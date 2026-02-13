@@ -34,10 +34,10 @@ const LabelingResultItem = ({ tabState, setTabState }: CoverLetterTabProps) => {
   // [윤종근] - 추후 리팩토링 예정
   return (
     <div className='flex flex-col gap-6'>
-      <CoverLetterList tabState={tabState} setTabState={setTabState} />
       <div className='flex gap-6'>
-        <div className='flex-1'>
+        <div className='flex-3'>
           <div className='flex flex-col gap-5'>
+            <CoverLetterList tabState={tabState} setTabState={setTabState} />
             <LabeledSelectInput
               label='기업명'
               value={currentData.companyName}
