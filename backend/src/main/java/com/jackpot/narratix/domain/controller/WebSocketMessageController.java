@@ -1,5 +1,6 @@
 package com.jackpot.narratix.domain.controller;
 
+import com.jackpot.narratix.domain.controller.dto.WebSocketSessionInfo;
 import com.jackpot.narratix.domain.controller.request.TextUpdateRequest;
 import com.jackpot.narratix.domain.entity.enums.ReviewRoleType;
 import com.jackpot.narratix.domain.exception.WebSocketErrorCode;
@@ -30,19 +31,12 @@ public class WebSocketMessageController {
             @DestinationVariable String shareId,
             SimpMessageHeaderAccessor headerAccessor
     ) {
-        Map<String, Object> sessionAttributes = headerAccessor.getSessionAttributes();
-        if (sessionAttributes == null) {
-            log.warn("Session attributes is null during subscription");
-        }
+        WebSocketSessionInfo sessionInfo = extractSessionInfo(headerAccessor);
 
-        String sessionShareId = WebSocketSessionAttributes.getShareId(sessionAttributes);
-        String userId = WebSocketSessionAttributes.getUserId(sessionAttributes);
-        ReviewRoleType role = WebSocketSessionAttributes.getRole(sessionAttributes);
+        webSocketMessageService.validateShareId(shareId, sessionInfo.shareId());
+        webSocketMessageService.validateRole(sessionInfo.role(), ReviewRoleType.WRITER, shareId, sessionInfo.shareId());
 
-        webSocketMessageService.validateShareId(shareId, sessionShareId);
-        webSocketMessageService.validateRole(role, ReviewRoleType.WRITER, shareId, sessionShareId);
-
-        log.info("User subscribed to share: shareId={}, userId={}", shareId, userId);
+        log.info("User subscribed to share: shareId={}, userId={}", shareId, sessionInfo.userId());
     }
 
     @SubscribeMapping("/share/{shareId}/review/reviewer")
@@ -50,19 +44,12 @@ public class WebSocketMessageController {
             @DestinationVariable String shareId,
             SimpMessageHeaderAccessor headerAccessor
     ) {
-        Map<String, Object> sessionAttributes = headerAccessor.getSessionAttributes();
-        if (sessionAttributes == null) {
-            log.warn("Session attributes is null during subscription");
-        }
+        WebSocketSessionInfo sessionInfo = extractSessionInfo(headerAccessor);
 
-        String sessionShareId = WebSocketSessionAttributes.getShareId(sessionAttributes);
-        String userId = WebSocketSessionAttributes.getUserId(sessionAttributes);
-        ReviewRoleType role = WebSocketSessionAttributes.getRole(sessionAttributes);
+        webSocketMessageService.validateShareId(shareId, sessionInfo.shareId());
+        webSocketMessageService.validateRole(sessionInfo.role(), ReviewRoleType.REVIEWER, shareId, sessionInfo.shareId());
 
-        webSocketMessageService.validateShareId(shareId, sessionShareId);
-        webSocketMessageService.validateRole(role, ReviewRoleType.REVIEWER, shareId, sessionShareId);
-
-        log.info("User subscribed to share: shareId={}, userId={}", shareId, userId);
+        log.info("User subscribed to share: shareId={}, userId={}", shareId, sessionInfo.userId());
     }
 
     @MessageMapping("/share/{shareId}/text-update")
@@ -72,18 +59,23 @@ public class WebSocketMessageController {
             SimpMessageHeaderAccessor headerAccessor
     ) {
         log.info("Writer send text update request: shareId={}, request={}, path={}", shareId, request, headerAccessor.getDestination());
+
+        WebSocketSessionInfo sessionInfo = extractSessionInfo(headerAccessor);
+
+        webSocketMessageService.handleTextUpdate(shareId, sessionInfo.shareId(), sessionInfo.userId(), sessionInfo.role(), request);
+    }
+
+    private WebSocketSessionInfo extractSessionInfo(SimpMessageHeaderAccessor headerAccessor) {
         Map<String, Object> sessionAttributes = headerAccessor.getSessionAttributes();
         if (sessionAttributes == null) {
-            log.warn("Session attributes is null during text update");
+            log.warn("Session attributes is null");
             throw new BaseException(WebSocketErrorCode.INVALID_SESSION);
         }
 
+        String shareId = WebSocketSessionAttributes.getShareId(sessionAttributes);
         String userId = WebSocketSessionAttributes.getUserId(sessionAttributes);
-        String sessionShareId = WebSocketSessionAttributes.getShareId(sessionAttributes);
         ReviewRoleType role = WebSocketSessionAttributes.getRole(sessionAttributes);
 
-        // 비즈니스 로직은 서비스에 위임
-        webSocketMessageService.handleTextUpdate(shareId, sessionShareId, userId, role, request);
+        return new WebSocketSessionInfo(shareId, userId, role);
     }
-
 }
