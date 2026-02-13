@@ -238,6 +238,7 @@ export const updateReviewRanges = <T extends Review>(
   for (const r of activeReviews) {
     if (r.range.start < lastEnd) {
       conflictIds.add(r.id);
+      lastEnd = Math.max(lastEnd, r.range.end);
     } else {
       lastEnd = r.range.end;
     }
