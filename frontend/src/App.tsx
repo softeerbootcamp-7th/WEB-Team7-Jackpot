@@ -3,13 +3,19 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 
 import CoverLetterQnAFriendsPage from '@/pages//CoverLetterQnAFriendsPage';
 import CoverLetterLandingPage from '@/pages/CoverLetterLandingPage';
+import CoverLetterQnAFriendsPage from '@/pages/CoverLetterQnAFriendsPage';
 import HomePage from '@/pages/HomePage';
+import LandingPage from '@/pages/LandingPage';
 import LoginPage from '@/pages/LoginPage';
 import ReviewPage from '@/pages/ReviewPage';
 import SignUpCompletePage from '@/pages/SignUpCompletePage';
 import SignUpPage from '@/pages/SignUpPage';
 import UploadPage from '@/pages/UploadPage';
 
+import CoverLetterEditContent from '@/features/coverLetter/components/CoverLetterEditContent';
+import NewCoverLetterContent from '@/features/coverLetter/components/NewCoverLetterContent';
+import CoverLetterLayout from '@/features/coverLetter/layouts/CoverLetterLayout';
+import WriteSidebarLayout from '@/features/coverLetter/layouts/WriteSidebarLayout';
 import DetailView from '@/features/library/components/DetailView';
 import LibraryLayout from '@/features/library/components/LibraryLayout';
 import LibrarySidebarLayout from '@/features/library/components/LibrarySidebarLayout';
@@ -23,43 +29,12 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
-          <Route path='/login' element={<LoginPage />} />
-          <Route path='/signup' element={<SignUpPage />} />
           <Route element={<RootLayout />}>
             {/* <Route path="/" element={<LandingPage />}/> */}
             <Route path='/home' element={<HomePage />} />
             <Route path='/upload' element={<UploadPage />} />
             <Route path='/cover-letter' element={<CoverLetterLandingPage />} />
             <Route path='/cover-letter/new' element={<CoverLetterPage />} />
-            <Route path='/library' element={<LibraryLayout />}>
-              <Route element={<LibrarySidebarLayout />}>
-                <Route path='company'>
-                  <Route
-                    index
-                    element={<EmptyCase {...emptyCaseText.folder} />}
-                  />
-                  <Route
-                    path=':companyName'
-                    element={<EmptyCase {...emptyCaseText.folder} />}
-                  />
-                  <Route
-                    path=':companyName/:coverLetterId'
-                    element={<DetailView />}
-                  />
-                </Route>
-                <Route path='qna'>
-                  <Route
-                    index
-                    element={<EmptyCase {...emptyCaseText.folder} />}
-                  />
-                  <Route
-                    path=':qnAName'
-                    element={<EmptyCase {...emptyCaseText.folder} />}
-                  />
-                  <Route path=':qnAName/:qnAId' element={<DetailView />} />
-                </Route>
-              </Route>
-            </Route>
             <Route path='/review/:id' element={<ReviewPage />} />
 
             {/* <Route path="/recruit" element={<RecruitPage />}/> */}

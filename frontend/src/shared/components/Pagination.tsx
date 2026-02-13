@@ -20,7 +20,7 @@ const Pagination = ({
   align = 'center',
 }: PaginationProps) => {
   const isFirst = current === 0;
-  const isLast = current === total - 1;
+  const isLast = total <= 1 || current === total - 1;
 
   return (
     <div

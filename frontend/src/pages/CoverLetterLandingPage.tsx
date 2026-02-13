@@ -20,7 +20,7 @@ const CoverLetterLandingPage = () => {
         <SearchInput
           onSearch={handleSearch}
           placeholder='문항 유형을 입력해주세요'
-        />
+        /> 
         {/* [박소민] TODO: Link로 변환 */}
         <NewCoverLetterButton />
       </div>
