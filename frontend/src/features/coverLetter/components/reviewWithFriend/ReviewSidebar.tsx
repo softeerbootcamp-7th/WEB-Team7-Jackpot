@@ -1,33 +1,28 @@
 import { useLocation, useNavigate } from 'react-router';
 
 import CoverLetterCard from '@/features/coverLetter/components/reviewWithFriend/CoverLetterCard';
+import type { RecentCoverLetter } from '@/shared/types/coverLetter';
 
 const mock = [
   {
-    id: 1,
-    applySeason: '2025년 상반기',
+    coverLetterId: 1,
     companyName: '삼성전자',
-    jobPosition: '개발자',
-    questionCount: 3,
-    modifiedAt: '2025-01-25T09:41:00Z',
-  },
-  {
-    id: 2,
-    applySeason: '2024년 하반기',
-    companyName: '네이버',
-    jobPosition: '프론트엔드 개발자',
-    questionCount: 4,
-    modifiedAt: '2024-07-15T14:22:00Z',
-  },
-  {
-    id: 3,
-    applySeason: '2025년 상반기',
-    companyName: '카카오',
     jobPosition: '백엔드 개발자',
-    questionCount: 5,
-    modifiedAt: '2025-02-10T11:30:00Z',
+    applyYear: 2026,
+    applyHalf: 'FIRST_HALF',
+    deadline: '2025-01-25',
+    questionCount: 3,
   },
-];
+  {
+    coverLetterId: 2,
+    companyName: '현대자동차',
+    jobPosition: '백엔드 개발자',
+    applyYear: 2026,
+    applyHalf: 'FIRST_HALF',
+    deadline: '2025-01-25',
+    questionCount: 3,
+  },
+] as RecentCoverLetter[];
 
 interface ReviewSidebarProps {
   selectedDocumentId: number | null;
@@ -48,8 +43,8 @@ const ReviewSidebar = ({ selectedDocumentId }: ReviewSidebarProps) => {
         <CoverLetterCard
           key={idx}
           isSelectStatus={selectedDocumentId !== null}
-          isSelected={item.id === selectedDocumentId}
-          onClick={() => handleSelect(item.id)}
+          isSelected={item.coverLetterId === selectedDocumentId}
+          onClick={() => handleSelect(item.coverLetterId)}
           coverLetter={item}
         />
       ))}

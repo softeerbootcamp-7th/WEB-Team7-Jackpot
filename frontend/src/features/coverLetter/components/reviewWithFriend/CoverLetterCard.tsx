@@ -1,10 +1,11 @@
-import type { CoverLetter } from '@/features/library/types';
+import type { RecentCoverLetter } from '@/shared/types/coverLetter';
+import { mapApplyHalf } from '@/shared/utils/recruitSeason';
 
 interface CoverLetterCardProps {
   isSelected?: boolean;
   isSelectStatus: boolean;
   onClick?: () => void;
-  coverLetter: CoverLetter;
+  coverLetter: RecentCoverLetter;
 }
 
 const CoverLetterCard = ({
@@ -38,7 +39,7 @@ const CoverLetterCard = ({
             className='flex items-center justify-center gap-1 rounded-xl bg-gray-50 px-3 py-1.5'
           >
             <div className='justify-start text-xs leading-4 font-medium text-gray-600'>
-              {coverLetter.applySeason}
+              {mapApplyHalf(coverLetter.applyHalf)}
             </div>
           </div>
         </div>
@@ -50,15 +51,6 @@ const CoverLetterCard = ({
         <div className='inline-flex items-start justify-start gap-1'>
           <div className='justify-start text-xs leading-5 font-normal text-gray-400'>
             총 {coverLetter.questionCount}문항
-          </div>
-          <div className='justify-start text-sm leading-5 font-normal text-gray-400'>
-            ·
-          </div>
-          <div className='text-xs leading-5 font-normal text-gray-400'>
-            {(() => {
-              const date = new Date(coverLetter.modifiedAt);
-              return `${date.getFullYear()}.${date.getMonth() + 1}.${date.getDate()}`;
-            })()}
           </div>
         </div>
       </div>
