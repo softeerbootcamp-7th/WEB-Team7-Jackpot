@@ -15,7 +15,7 @@ const UploadPage = () => {
   const currentStep = getCurrentStep();
   return (
     <div>
-      <div className='mb-12 px-75'>
+      <div className='mb-12 h-screen px-75 select-none'>
         <div className='mb-12'>
           <UploadLayoutHeader />
           <StepItem step={currentStep.toString()} />

@@ -14,7 +14,7 @@ const CoverLetterContentArea = () => {
   };
 
   return (
-    <div className='flex flex-2 flex-col gap-6'>
+    <div className='flex flex-2 flex-col gap-6 mb-12'>
       <div>
         <div className='flex items-center gap-3'>
           <div className='text-body-m flex h-9 w-9 items-center justify-center rounded-md bg-gray-50 font-bold text-gray-600 select-none'>
