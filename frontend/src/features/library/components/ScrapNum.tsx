@@ -1,4 +1,8 @@
-const ScrapNum = ({ value }: { value: number }) => {
+import { useScrapNumQueries } from '@/features/library/hooks/queries/useScrapNumQueries';
+
+const ScrapNum = () => {
+  const { data } = useScrapNumQueries();
+
   return (
     <div className='flex flex-row items-center justify-center gap-2.5 pt-7.5'>
       <p className='text-body-l flex-shrink-0 flex-grow-0 font-bold text-gray-400'>
@@ -9,7 +13,7 @@ const ScrapNum = ({ value }: { value: number }) => {
           aria-live='polite'
           className='text-caption-s justify-start text-center font-bold text-white'
         >
-          {value}
+          {data?.scrapCount ?? 0}
         </div>
       </div>
     </div>

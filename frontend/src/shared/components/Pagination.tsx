@@ -3,19 +3,29 @@ interface PaginationProps {
   total: number;
   onChange: (index: number) => void;
   ariaLabel?: string;
+  align?: 'start' | 'center' | 'end';
 }
+
+const alignMap = {
+  start: 'justify-start',
+  center: 'justify-center',
+  end: 'justify-end',
+} as const;
 
 const Pagination = ({
   current,
   total,
   onChange,
   ariaLabel = '페이지',
+  align = 'center',
 }: PaginationProps) => {
   const isFirst = current === 0;
-  const isLast = current === total - 1;
+  const isLast = total <= 1 || current === total - 1;
 
   return (
-    <div className='inline-flex shrink-0 items-center gap-[1.25rem]'>
+    <div
+      className={`flex w-full items-center ${alignMap[align]} gap-[1.25rem]`}
+    >
       <button
         type='button'
         onClick={() => onChange(current - 1)}

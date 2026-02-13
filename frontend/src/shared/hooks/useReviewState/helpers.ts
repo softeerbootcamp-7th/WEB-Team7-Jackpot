@@ -17,7 +17,7 @@ export const mockCoverLetterApi: {
   },
   qnas: [
     {
-      qnaId: 1,
+      qnAId: 1,
       question:
         '본인의 성장과정, 성격의 장단점, 핵심 역량 및 지원 동기와 입사 후 포부를 구체적인 사례를 바탕으로 기술해 주십시오. (공백 포함 3,000자 이내)',
       answer:
@@ -29,7 +29,7 @@ export const mockCoverLetterApi: {
       modifiedAt: '2026-02-12T18:00:00',
     },
     {
-      qnaId: 2,
+      qnAId: 2,
       question:
         '삼성전자에 지원한 이유와 해당 직무에 필요한 역량에 대해 설명해 주십시오. (공백 포함 1,500자 이내)',
       answer:
@@ -42,8 +42,8 @@ export const mockCoverLetterApi: {
   ],
 };
 
-export const mockFetchReviewsByQnaId = (qnaId: number) => {
-  if (qnaId === 1) {
+export const mockFetchReviewsByQnaId = (qnAId: number) => {
+  if (qnAId === 1) {
     return {
       reviews: [
         {
@@ -103,7 +103,7 @@ export const mockFetchReviewsByQnaId = (qnaId: number) => {
     };
   }
 
-  if (qnaId === 2) {
+  if (qnAId === 2) {
     return {
       reviews: [],
       hasNext: false,

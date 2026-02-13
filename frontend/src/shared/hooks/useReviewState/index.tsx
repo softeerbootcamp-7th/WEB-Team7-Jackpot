@@ -25,7 +25,7 @@ export const useReviewState = (coverLetterId: number = 1) => {
   const [currentReviews, setCurrentReviews] = useState<Review[]>(() => {
     if (!currentQna) return [];
     const { cleaned, taggedRanges } = parseTaggedText(currentQna.answer);
-    const apiReviews = mockFetchReviewsByQnaId(currentQna.qnaId).reviews;
+    const apiReviews = mockFetchReviewsByQnaId(currentQna.qnAId).reviews;
     return buildReviewsFromApi(cleaned, taggedRanges, apiReviews);
   });
 
@@ -45,7 +45,7 @@ export const useReviewState = (coverLetterId: number = 1) => {
       const nextQna = qnas[index];
       if (nextQna) {
         const { cleaned, taggedRanges } = parseTaggedText(nextQna.answer);
-        const apiReviews = mockFetchReviewsByQnaId(nextQna.qnaId).reviews;
+        const apiReviews = mockFetchReviewsByQnaId(nextQna.qnAId).reviews;
         setCurrentReviews(
           buildReviewsFromApi(cleaned, taggedRanges, apiReviews),
         );

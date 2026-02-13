@@ -1,16 +1,13 @@
+import { generatePath, NavLink, useParams } from 'react-router';
+
+import type { CoverLetter } from '@/features/library/types';
 import { getDate } from '@/shared/utils/dates';
 
-interface DocumentProps {
-  selectedDocumentId: number | null;
-  content: object;
-  handleDocumentId: (id: number | null) => void;
+interface CompanyDocumentProps {
+  content: CoverLetter;
 }
 
-const Document = ({
-  selectedDocumentId,
-  content,
-  handleDocumentId,
-}: DocumentProps) => {
+const CompanyDocument = ({ content }: CompanyDocumentProps) => {
   const {
     id,
     companyName,
@@ -18,22 +15,21 @@ const Document = ({
     applySeason,
     questionCount,
     modifiedAt,
-  } = content as {
-    id: number;
-    companyName: string;
-    jobPosition: string;
-    applySeason: string;
-    questionCount: number;
-    modifiedAt: string;
-  };
+  } = content;
 
+  const { coverLetterId } = useParams<{ coverLetterId?: string }>();
   const date = getDate(modifiedAt);
 
+  // coverLetterId가 없으면(폴더만 선택) 또는 현재 문서의 id와 같으면 선택 상태
+  const isSelected = !coverLetterId || Number(coverLetterId) === id;
+
   return (
-    <button
-      type='button'
-      className={`w-full ${selectedDocumentId !== null && selectedDocumentId !== id && 'opacity-30'}`} // 수정
-      onClick={() => handleDocumentId(id)}
+    <NavLink
+      className={`w-full ${isSelected ? 'opacity-0' : 'opacity-30'}`}
+      to={generatePath('/library/company/:companyName/:coverLetterId', {
+        companyName,
+        coverLetterId: String(id),
+      })}
     >
       <div className='inline-flex w-full flex-col items-start justify-start gap-1 border-b border-gray-100 px-3 py-5'>
         <div className='inline-flex items-center justify-start gap-1 self-stretch pr-1'>
@@ -61,8 +57,8 @@ const Document = ({
           </div>
         </div>
       </div>
-    </button>
+    </NavLink>
   );
 };
 
-export default Document;
+export default CompanyDocument;

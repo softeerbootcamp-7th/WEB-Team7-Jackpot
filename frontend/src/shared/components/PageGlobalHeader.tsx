@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import NotificationDropdown from '@/features/notification/components/NotificationDropdown';
 import NavItem from '@/shared/components/NavItem';
 import { NAV_ITEMS } from '@/shared/constants/globalHeader';
 import { CommonIcon as I } from '@/shared/icons';

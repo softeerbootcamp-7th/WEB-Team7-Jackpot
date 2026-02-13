@@ -52,7 +52,7 @@ const UpcomingSchedule = ({ date, dDay, schedules }: UpcomingScheduleProps) => {
               <div className='line-clamp-1 justify-start text-base leading-6 font-bold text-gray-700'>
                 {schedule.company}
               </div>
-              <div className='line-clamp-1 justify-start self-stretch text-xs leading-5 font-medium text-gray-400'>
+              <div className='text-caption-l line-clamp-1 justify-start self-stretch font-medium text-gray-400'>
                 {schedule.position}
               </div>
             </div>

@@ -1,5 +1,5 @@
 export interface QnA {
-  qnaId: number;
+  qnAId: number;
   question: string;
   answer: string;
   answerSize: number;

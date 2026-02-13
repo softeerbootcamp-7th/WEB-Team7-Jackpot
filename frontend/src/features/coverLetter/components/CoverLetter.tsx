@@ -101,7 +101,7 @@ const CoverLetter = ({
   }, [handleDocumentMouseDown]);
 
   useEffect(() => {
-    const qnAId = qnas[currentPageIndex]?.qnaId;
+    const qnAId = qnas[currentPageIndex]?.qnAId;
     if (!qnAId) return;
     setSearchParams(
       (prev) => {

@@ -23,7 +23,6 @@ export const emptyCaseText = {
   },
 };
 
-// 합치는 방법 찾기 나중에
 export const libraryContent: TabContentType<LibraryView>[] = [
   {
     name: 'COMPANY',
@@ -32,9 +31,14 @@ export const libraryContent: TabContentType<LibraryView>[] = [
     path: '/library/company',
   },
   {
-    name: 'QUESTIONS',
+    name: 'QUESTION',
     label: '문항 라이브러리',
     icon: <QnALibrary />,
     path: '/library/qnA',
   },
 ];
+
+export const SITE_MAP: Record<LibraryView, string> = {
+  COMPANY: 'company',
+  QUESTION: 'qna',
+};
