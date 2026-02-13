@@ -13,6 +13,9 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+  defaults:
+    run:
+      working-directory: ./frontend
 
     steps:
       - name: Checkout repository
@@ -27,7 +30,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '24'
-          cache: 'pnpm'
+          cache-dependency-path: ./frontend/pnpm-lock.yaml
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
