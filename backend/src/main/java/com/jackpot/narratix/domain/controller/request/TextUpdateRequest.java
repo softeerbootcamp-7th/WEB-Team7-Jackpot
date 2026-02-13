@@ -21,7 +21,7 @@ public record TextUpdateRequest(
         String replacedText
 ) {
     public TextUpdateRequest {
-        if (startIdx > endIdx) {
+        if (startIdx != null && endIdx != null && startIdx > endIdx) {
             throw new IllegalArgumentException("시작 인덱스는 종료 인덱스보다 작거나 같아야 합니다.");
         }
     }
