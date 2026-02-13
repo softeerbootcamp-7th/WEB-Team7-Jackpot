@@ -55,6 +55,10 @@ export const searchCoverLetters = async ({
 export const getCoverLetter = async (
   coverLetterId: number,
 ): Promise<CoverLetter> => {
+  if (!coverLetterId || Number.isNaN(coverLetterId) || coverLetterId <= 0) {
+    throw new Error(`Invalid coverLetterId: ${coverLetterId}`);
+  }
+
   const response = await fetch(`${BASE_URL}/coverletter/${coverLetterId}`, {
     headers: {
       Authorization: getAccessToken(),

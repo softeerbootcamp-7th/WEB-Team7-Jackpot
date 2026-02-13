@@ -30,5 +30,5 @@ export const getReviewsByQnaId = async (
     await parseErrorResponse(response);
   }
 
-  return response.json();
+  return (await response.json()) as GetReviewsResponse;
 };

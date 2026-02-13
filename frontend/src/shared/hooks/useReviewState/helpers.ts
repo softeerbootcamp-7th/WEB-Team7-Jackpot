@@ -175,6 +175,7 @@ export const updateReviewRanges = <T extends Review>(
   changeStart: number,
   oldLength: number,
   newLength: number,
+  newDocumentText: string, // 변경 후 전체 텍스트
 ): T[] => {
   const lengthDiff = newLength - oldLength;
   const changeEnd = changeStart + oldLength;
@@ -182,6 +183,7 @@ export const updateReviewRanges = <T extends Review>(
   const shiftedReviews = reviews.map((review): T => {
     const { start, end } = review.range;
 
+    // 1. 변경 영역과 겹치지 않는 리뷰는 위치만 이동
     if (end <= changeStart) return review;
     if (start >= changeEnd) {
       return {
@@ -190,9 +192,7 @@ export const updateReviewRanges = <T extends Review>(
       };
     }
 
-    // 1-3. 변경 범위에 리뷰가 완전히 포함되는 경우
-    // 순수 삭제(newLength === 0)뿐만 아니라 텍스트가 대체되는 경우에도
-    // 기존 리뷰의 원본 텍스트(originText)가 유실되었으므로 무효화합니다.
+    // 2. 변경 영역에 리뷰가 완전히 포함되는 경우 → 무효화
     if (start >= changeStart && end <= changeEnd) {
       return {
         ...review,
@@ -201,19 +201,19 @@ export const updateReviewRanges = <T extends Review>(
       };
     }
 
-    // 1-4. 변경 범위와 부분적으로 겹치는 경우 (경계 보정)
+    // 3. 부분 겹침 (경계 보정)
     let newStart = start;
     let newEnd = end;
 
     if (start >= changeStart && start < changeEnd) {
-      // 리뷰의 시작점이 변경 영역 내부인 경우
-      newStart = changeStart + newLength; // 변경된 텍스트 이후로 밀어냄
+      // 리뷰 시작점이 변경 영역 내부
+      newStart = changeStart + newLength;
       newEnd = end + lengthDiff;
     } else if (end > changeStart && end <= changeEnd) {
-      // 리뷰의 끝점이 변경 영역 내부인 경우
+      // 리뷰 끝점이 변경 영역 내부
       newEnd = changeStart;
     } else if (start < changeStart && end > changeEnd) {
-      // 리뷰가 변경 영역을 통째로 포함하는 경우
+      // 리뷰가 변경 영역을 통째로 포함
       newEnd = end + lengthDiff;
     }
 
@@ -226,10 +226,24 @@ export const updateReviewRanges = <T extends Review>(
     };
   });
 
-  // [Step 2] 겹침 검증
-  // 시작점 기준으로 정렬하여 앞 리뷰의 끝점이 뒤 리뷰의 시작점보다 큰지 확인
-  const activeReviews = [...shiftedReviews]
-    .filter((r) => r.range.start !== -1 && r.isValid !== false)
+  // 4. originText 검증
+  const validatedReviews = shiftedReviews.map((review) => {
+    const { start, end } = review.range;
+    if (start < 0 || end < 0 || !review.isValid)
+      return { ...review, isValid: false };
+
+    const currentText = newDocumentText.slice(start, end);
+    const isTextValid = currentText === review.originText;
+
+    return {
+      ...review,
+      isValid: isTextValid,
+    };
+  });
+
+  // 5. 겹침 검증
+  const activeReviews = validatedReviews
+    .filter((r) => r.range.start !== -1 && r.isValid)
     .sort((a, b) => a.range.start - b.range.start);
 
   const conflictIds = new Set<string>();
@@ -243,8 +257,8 @@ export const updateReviewRanges = <T extends Review>(
     }
   }
 
-  // 겹친 리뷰 무효화 처리하여 반환
-  return shiftedReviews.map((r) =>
+  // 6. 겹친 리뷰 무효화
+  return validatedReviews.map((r) =>
     conflictIds.has(r.id) ? { ...r, isValid: false } : r,
   );
 };

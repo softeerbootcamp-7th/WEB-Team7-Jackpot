@@ -4,27 +4,26 @@ import { useCoverLetter } from '@/shared/hooks/useCoverLetterQueries';
 import { useQnAIdList, useQnAList } from '@/shared/hooks/useQnAQueries';
 import useReviewState from '@/shared/hooks/useReviewState';
 
+interface CoverLetterSectionProps {
+  id: number;
+  isReviewActive: boolean;
+  setIsReviewActive: (v: boolean) => void;
+  selectedReviewId: string | null;
+  onReviewClick: (reviewId: string | null) => void;
+}
+
 const CoverLetterSection = ({
   id,
   isReviewActive,
   setIsReviewActive,
   selectedReviewId,
   onReviewClick,
-}: {
-  id: number;
-  isReviewActive: boolean;
-  setIsReviewActive: (v: boolean) => void;
-  selectedReviewId: string | null;
-  onReviewClick: (reviewId: string | null) => void;
-}) => {
+}: CoverLetterSectionProps) => {
   const { data: coverLetter } = useCoverLetter(id);
   const { data: qnaIds } = useQnAIdList(id);
   const { data: qnas } = useQnAList(qnaIds ?? []);
 
-  const reviewState = useReviewState(
-    coverLetter ?? { companyName: '', jobPosition: '' },
-    qnas ?? [],
-  );
+  const reviewState = useReviewState(coverLetter, qnas);
 
   const hasQnas = qnas && qnas.length > 0;
 

@@ -7,19 +7,19 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 interface GetScrapsParams {
   searchWord?: string;
   size?: number;
-  lastQnaId?: number;
+  lastQnAId?: number;
 }
 
 export const fetchScraps = async ({
   searchWord,
   size,
-  lastQnaId,
+  lastQnAId,
 }: GetScrapsParams = {}): Promise<GetScrapsResponse> => {
   const params = new URLSearchParams();
 
   if (searchWord) params.set('searchWord', searchWord);
   if (size !== undefined) params.set('size', String(size));
-  if (lastQnaId !== undefined) params.set('lastQnaId', String(lastQnaId));
+  if (lastQnAId !== undefined) params.set('lastQnaId', String(lastQnAId));
 
   const response = await fetch(
     `${BASE_URL}/search/scrap?${params.toString()}`,
@@ -76,7 +76,7 @@ export const toggleSharedLinkStatus = async ({
       method: 'PATCH',
       headers: {
         Authorization: getAccessToken(),
-        'Content-Type': 'application/json;charset=UTF-8',
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({ active }),
     },

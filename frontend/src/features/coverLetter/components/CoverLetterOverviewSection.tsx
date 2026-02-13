@@ -16,10 +16,10 @@ const CoverLetterOverviewSection = ({
 }: CoverLetterSectionProps) => {
   const { data } = useCoverLetterSearch(searchWord, 9, page + 1);
   const coverLetters = data.coverLetters ?? [];
-  const coverLetterEmptyCaseText = emptyCaseText['overview'];
+  const overviewEmptyText = emptyCaseText['overview'];
 
   if (coverLetters.length === 0) {
-    return <EmptyCase {...coverLetterEmptyCaseText} />;
+    return <EmptyCase {...overviewEmptyText} />;
   }
 
   return (
