@@ -3,12 +3,12 @@ import { Suspense, useCallback, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
 
 import ScrapSection from '@/features/coverLetter/components/ScrapSection';
-import { ScrapListSkeleton } from '@/features/coverLetter/components/ScrapSkeleton';
 import SideBar from '@/features/library/components/SideBar';
 import useLibraryData from '@/features/library/hooks/useLibraryData';
 import ErrorBoundary from '@/shared/components/ErrorBoundary';
 import SearchInput from '@/shared/components/SearchInput';
 import SectionError from '@/shared/components/SectionError';
+import { SidebarSkeleton } from '@/shared/components/SidebarSkeleton';
 import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
 import { validateSearchKeyword } from '@/shared/utils/validation';
 
@@ -119,7 +119,7 @@ const CoverLetterWriteSidebar = ({
             />
           )}
         >
-          <Suspense fallback={<ScrapListSkeleton />}>
+          <Suspense fallback={<SidebarSkeleton />}>
             <ScrapSection searchWord={searchWord} deleteScrap={deleteScrap} />
           </Suspense>
         </ErrorBoundary>

@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 
 import Scrap from '@/features/coverLetter/components/Scrap';
 import ScrapDetail from '@/features/coverLetter/components/ScrapDetail';
-import { ScrapListSkeleton } from '@/features/coverLetter/components/ScrapSkeleton';
 import { useScrapCoverLetters } from '@/features/coverLetter/hooks/useCoverLetterQueries';
 import type { ScrapItem } from '@/features/coverLetter/types/coverLetter';
+import { SidebarSkeleton } from '@/shared/components/SidebarSkeleton';
 
 const ScrapSection = ({
   searchWord,
@@ -65,7 +65,7 @@ const ScrapSection = ({
           onClick={() => setSelectedScrap(scrap)}
         />
       ))}
-      {isFetchingNextPage && <ScrapListSkeleton len={3} />}
+      {isFetchingNextPage && <SidebarSkeleton len={3} />}
       {hasNextPage && <div ref={sentinelRef} className='h-1' />}
     </>
   );

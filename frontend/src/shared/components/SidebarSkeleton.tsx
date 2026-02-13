@@ -1,4 +1,4 @@
-const ScrapSkeleton = () => {
+const SidebarCardSkeleton = () => {
   return (
     <div className='flex flex-col items-start justify-start gap-3 self-stretch'>
       <div className='flex flex-col items-start justify-start self-stretch px-3'>
@@ -25,14 +25,14 @@ const ScrapSkeleton = () => {
   );
 };
 
-export const ScrapListSkeleton = ({ len = 3 }: { len?: number }) => {
+export const SidebarSkeleton = ({ len = 3 }: { len?: number }) => {
   return (
     <>
       {Array.from({ length: len }).map((_, idx) => (
-        <ScrapSkeleton key={idx} />
+        <SidebarCardSkeleton key={idx} />
       ))}
     </>
   );
 };
 
-export default ScrapSkeleton;
+export default SidebarSkeleton;
