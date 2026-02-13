@@ -22,7 +22,7 @@ interface CoverLetterSectionProps {
   totalPages: number;
   editingReview: Review | null;
   onAddReview: (review: ReviewBase) => void;
-  onUpdateReview: (id: string, revision: string, comment: string) => void;
+  onUpdateReview: (id: number, revision: string, comment: string) => void;
   onCancelEdit: () => void;
   onPageChange: (index: number) => void;
 }

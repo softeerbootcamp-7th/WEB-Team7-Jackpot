@@ -11,8 +11,8 @@ import type { Review } from '@/shared/types/review';
 interface ReviewCardProps {
   review: Review;
   editingReview: Review | null;
-  handleEditReview: (id: string) => void;
-  handleDeleteReview: (id: string) => void;
+  handleEditReview: (id: number) => void;
+  handleDeleteReview: (id: number) => void;
 }
 
 const ReviewCard = ({

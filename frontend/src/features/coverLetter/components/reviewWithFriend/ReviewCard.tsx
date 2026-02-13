@@ -5,8 +5,8 @@ import { getKoreanDate, getKoreanTime } from '@/shared/utils/dates';
 
 interface ReviewCardProps {
   review: Review;
-  selectedReviewId: string | null;
-  onReviewClick: (reviewId: string) => void;
+  selectedReviewId: number | null;
+  onReviewClick: (reviewId: number) => void;
 }
 
 const ReviewCard = ({

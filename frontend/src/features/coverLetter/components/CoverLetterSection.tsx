@@ -8,8 +8,8 @@ interface CoverLetterSectionProps {
   id: number;
   isReviewActive: boolean;
   setIsReviewActive: (v: boolean) => void;
-  selectedReviewId: string | null;
-  onReviewClick: (reviewId: string | null) => void;
+  selectedReviewId: number | null;
+  onReviewClick: (reviewId: number | null) => void;
 }
 
 const CoverLetterSection = ({

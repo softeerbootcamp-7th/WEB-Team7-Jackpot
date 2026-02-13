@@ -2,7 +2,6 @@ import { getAccessToken } from '@/features/auth/libs/tokenStore';
 import { parseErrorResponse } from '@/shared/utils/fetchUtils';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const accessToken = getAccessToken();
 
 export interface ApiReview {
   id: number;
@@ -23,7 +22,7 @@ export const getReviewsByQnaId = async (
 ): Promise<GetReviewsResponse> => {
   const response = await fetch(`${BASE_URL}/qna/${qnaId}/reviews/all`, {
     headers: {
-      Authorization: accessToken,
+      Authorization: getAccessToken(),
     },
   });
 

@@ -16,7 +16,7 @@ export interface ReviewBase {
 }
 
 export interface Review extends ReviewBase {
-  id: string;
+  id: number;
   sender?: Sender;
   originText?: string;
   suggest?: string | null;

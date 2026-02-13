@@ -3,9 +3,9 @@ const ActionButtons = ({
   handleEditReview,
   handleDeleteReview,
 }: {
-  reviewId: string;
-  handleEditReview: (index: string) => void;
-  handleDeleteReview: (index: string) => void;
+  reviewId: number;
+  handleEditReview: (index: number) => void;
+  handleDeleteReview: (index: number) => void;
 }) => (
   <div className='flex items-center gap-2'>
     <button

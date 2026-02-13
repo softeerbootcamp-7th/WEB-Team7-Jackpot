@@ -24,8 +24,6 @@ interface CoverLetterSearchResponse {
 }
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const accessToken = getAccessToken();
-
 export const searchCoverLetters = async ({
   searchWord,
   size = 9,
@@ -41,7 +39,7 @@ export const searchCoverLetters = async ({
     `${BASE_URL}/search/coverletter?${params.toString()}`,
     {
       headers: {
-        Authorization: accessToken,
+        Authorization: getAccessToken(),
       },
     },
   );
@@ -62,7 +60,7 @@ export const getCoverLetter = async (
 
   const response = await fetch(`${BASE_URL}/coverletter/${coverLetterId}`, {
     headers: {
-      Authorization: accessToken,
+      Authorization: getAccessToken(),
     },
   });
 

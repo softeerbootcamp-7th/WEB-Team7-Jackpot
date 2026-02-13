@@ -30,6 +30,8 @@ export const useInitAuth = () => {
         if (data.accessToken) {
           setIsAuthenticated(true);
           await fetchUserInfo();
+        } else {
+          setIsAuthenticated(false);
         }
       } catch (error) {
         console.error('자동 로그인 실패:', error);

@@ -14,7 +14,7 @@ const CoverLetterReviewContent = ({
   isReviewActive: boolean;
   setIsReviewActive: (v: boolean) => void;
 }) => {
-  const [selectedReviewId, setSelectedReviewId] = useState<string | null>(null);
+  const [selectedReviewId, setSelectedReviewId] = useState<number | null>(null);
   const { coverLetterId } = useParams();
   const id = Number(coverLetterId);
   const isValidId = !!coverLetterId && !Number.isNaN(id);
@@ -34,7 +34,7 @@ const CoverLetterReviewContent = ({
     [setIsReviewActive],
   );
 
-  const handleReviewClick = useCallback((reviewId: string | null) => {
+  const handleReviewClick = useCallback((reviewId: number | null) => {
     setSelectedReviewId(reviewId);
   }, []);
 

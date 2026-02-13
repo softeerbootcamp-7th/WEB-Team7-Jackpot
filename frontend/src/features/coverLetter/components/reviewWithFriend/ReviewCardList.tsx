@@ -3,8 +3,8 @@ import type { Review } from '@/shared/types/review';
 
 interface ReviewCardListProps {
   reviews: Review[];
-  selectedReviewId: string | null;
-  onReviewClick: (reviewId: string) => void;
+  selectedReviewId: number | null;
+  onReviewClick: (reviewId: number) => void;
 }
 
 const ReviewCardList = ({

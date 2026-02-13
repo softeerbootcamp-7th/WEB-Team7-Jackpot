@@ -33,7 +33,16 @@ export const useReviewState = (coverLetter: CoverLetter, qnas: QnA[]) => {
   const answer = currentQna?.answer ?? '';
   const parsed = useMemo(
     () =>
-      answer ? parseTaggedText(answer) : { cleaned: '', taggedRanges: [] },
+      answer
+        ? parseTaggedText(answer)
+        : {
+            cleaned: '',
+            taggedRanges: [] as Array<{
+              id: number;
+              start: number;
+              end: number;
+            }>,
+          },
     [answer],
   );
   const originalText = parsed.cleaned;
@@ -56,7 +65,6 @@ export const useReviewState = (coverLetter: CoverLetter, qnas: QnA[]) => {
   }, [currentQnaId, reviewData, parsed, reviewsByQnaId]);
 
   const currentReviewsRef = useRef(currentReviews);
-
   useEffect(() => {
     currentReviewsRef.current = currentReviews;
   }, [currentReviews]);
@@ -67,7 +75,7 @@ export const useReviewState = (coverLetter: CoverLetter, qnas: QnA[]) => {
     [],
   );
 
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const editingReview = useMemo(
     () =>
       editingId != null
@@ -90,7 +98,7 @@ export const useReviewState = (coverLetter: CoverLetter, qnas: QnA[]) => {
           ...getLatestReviews(prev, currentQnaId),
           {
             ...review,
-            id: generateInternalReviewId(),
+            id: generateInternalReviewId(), // number 반환
             sender: { id: 'me', nickname: '나' },
             createdAt: new Date().toISOString(),
             isValid: true,
@@ -132,7 +140,7 @@ export const useReviewState = (coverLetter: CoverLetter, qnas: QnA[]) => {
   );
 
   const handleUpdateReview = useCallback(
-    (id: string, revision: string, comment: string) => {
+    (id: number, revision: string, comment: string) => {
       if (currentQnaId === undefined) return;
       setReviewsByQnaId((prev) => ({
         ...prev,
@@ -146,7 +154,7 @@ export const useReviewState = (coverLetter: CoverLetter, qnas: QnA[]) => {
   );
 
   const handleDeleteReview = useCallback(
-    (id: string) => {
+    (id: number) => {
       if (currentQnaId === undefined) return;
       setReviewsByQnaId((prev) => ({
         ...prev,
@@ -170,7 +178,7 @@ export const useReviewState = (coverLetter: CoverLetter, qnas: QnA[]) => {
     [qnas, coverLetter?.companyName, coverLetter?.jobPosition],
   );
 
-  const handleEditReview = useCallback((id: string) => setEditingId(id), []);
+  const handleEditReview = useCallback((id: number) => setEditingId(id), []);
   const handleCancelEdit = useCallback(() => setEditingId(null), []);
 
   return {

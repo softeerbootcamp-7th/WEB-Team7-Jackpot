@@ -11,9 +11,9 @@ interface CoverLetterContentProps {
   editingReview: Review | null;
   selection: SelectionInfo | null;
   isReviewOpen: boolean;
-  selectedReviewId: string | null;
+  selectedReviewId: number | null;
   onSelectionChange: (selection: SelectionInfo | null) => void;
-  onReviewClick: (reviewId: string) => void;
+  onReviewClick: (reviewId: number) => void;
   onTextChange?: (newText: string) => void;
 }
 
@@ -110,9 +110,12 @@ const CoverLetterContent = ({
   // 리뷰 클릭 이벤트 처리
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
-    const reviewId = target.getAttribute('data-review-id');
-    if (reviewId && isReviewOpen) {
-      onReviewClick(reviewId);
+    const reviewIdStr = target.getAttribute('data-review-id');
+    if (reviewIdStr && isReviewOpen) {
+      const reviewId = Number(reviewIdStr);
+      if (!isNaN(reviewId)) {
+        onReviewClick(reviewId);
+      }
     }
   };
 

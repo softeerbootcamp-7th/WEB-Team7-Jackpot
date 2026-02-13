@@ -20,8 +20,8 @@ interface CoverLetterProps {
   documentId: number;
   openReview: (value: boolean) => void;
   isReviewOpen: boolean;
-  selectedReviewId: string | null;
-  onReviewClick: (reviewId: string | null) => void;
+  selectedReviewId: number | null;
+  onReviewClick: (reviewId: number | null) => void;
   reviewState: {
     coverLetter: CoverLetterType;
     qnas: QnA[];
@@ -74,9 +74,10 @@ const CoverLetter = ({
     setIsReviewOpen: openReview,
   });
 
-  const editingReview = selectedReviewId
-    ? (currentReviews.find((r) => r.id === selectedReviewId) ?? null)
-    : null;
+  const editingReview =
+    selectedReviewId != null
+      ? (currentReviews.find((r) => r.id === selectedReviewId) ?? null)
+      : null;
 
   const handleOutsideClick = useCallback(() => {
     setSelection(null);
