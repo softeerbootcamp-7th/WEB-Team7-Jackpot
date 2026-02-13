@@ -34,12 +34,11 @@ public class WebSocketMessageSender {
         messagingTemplate.convertAndSend(reviewerDestination, message);
     }
 
-    private String getDestination(ReviewRoleType role, String shareId){
-        if(role == ReviewRoleType.REVIEWER){
-            return DESTINATION_PREFIX + shareId + REVIEWER_DESTINATION_SUFFIX;
-        } else if (role == ReviewRoleType.WRITER) {
-            return DESTINATION_PREFIX + shareId + WRITER_DESTINATION_SUFFIX;
-        }
-        throw new BaseException(WebSocketErrorCode.ROLE_NOT_FOUND);
+    private String getDestination(ReviewRoleType role, String shareId) {
+
+        return switch (role) {
+            case REVIEWER -> DESTINATION_PREFIX + shareId + REVIEWER_DESTINATION_SUFFIX;
+            case WRITER -> DESTINATION_PREFIX + shareId + WRITER_DESTINATION_SUFFIX;
+        };
     }
 }
