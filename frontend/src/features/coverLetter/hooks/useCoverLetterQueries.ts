@@ -27,7 +27,7 @@ export const useScrapCoverLetters = (searchWord = '', size = 9) => {
   return useSuspenseInfiniteQuery({
     queryKey: ['coverletter', 'scrap', { searchWord, size }],
     queryFn: ({ pageParam }) =>
-      fetchScraps({ searchWord, size, lastQnAId: pageParam }),
+      fetchScraps({ searchWord, size, lastQnaId: pageParam }),
     initialPageParam: undefined as number | undefined,
     getNextPageParam: (lastPage) => {
       const lastScrap = lastPage.scraps.at(-1);

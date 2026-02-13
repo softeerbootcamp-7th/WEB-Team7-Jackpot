@@ -8,19 +8,20 @@ const accessToken = getAccessToken();
 interface GetScrapsParams {
   searchWord?: string;
   size?: number;
-  lastQnAId?: number;
+  lastQnaId?: number;
 }
 
+// lastQnaId: 백엔드 API 명세에 따라 'Qna' 대문자 표기 유지
 export const fetchScraps = async ({
   searchWord,
   size,
-  lastQnAId,
+  lastQnaId,
 }: GetScrapsParams = {}): Promise<GetScrapsResponse> => {
   const params = new URLSearchParams();
 
   if (searchWord) params.set('searchWord', searchWord);
   if (size !== undefined) params.set('size', String(size));
-  if (lastQnAId !== undefined) params.set('lastQnaId', String(lastQnAId));
+  if (lastQnaId !== undefined) params.set('lastQnaId', String(lastQnaId));
 
   const response = await fetch(
     `${BASE_URL}/search/scrap?${params.toString()}`,
