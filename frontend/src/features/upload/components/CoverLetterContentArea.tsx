@@ -1,11 +1,9 @@
-// 페이지네이션 경로 추후에 shared로 변경 필요
 import { useState } from 'react';
 
 import { MOCK_COVER_LETTER } from '@/features/upload/constants/uploadPage';
 import Pagination from '@/shared/components/Pagination';
 
 const CoverLetterContentArea = () => {
-  // const { currentPageIndex, handlePageChange } = useReviewState();
   const [currentIndex, setCurrentIndex] = useState<number>(1);
   const currentContent = MOCK_COVER_LETTER[currentIndex].content;
 
