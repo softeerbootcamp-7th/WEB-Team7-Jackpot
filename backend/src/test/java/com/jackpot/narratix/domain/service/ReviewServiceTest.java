@@ -10,6 +10,7 @@ import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import com.jackpot.narratix.domain.entity.enums.NotificationType;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
 import com.jackpot.narratix.domain.entity.notification_meta.FeedbackNotificationMeta;
+import com.jackpot.narratix.domain.exception.ReviewErrorCode;
 import com.jackpot.narratix.domain.fixture.CoverLetterFixture;
 import com.jackpot.narratix.domain.fixture.QnAFixture;
 import com.jackpot.narratix.domain.fixture.ReviewFixture;
@@ -418,7 +419,7 @@ class ReviewServiceTest {
         // when & then
         assertThatThrownBy(() -> reviewService.editReview(userId, requestQnAId, reviewId, request))
                 .isInstanceOf(BaseException.class)
-                .hasFieldOrPropertyWithValue("errorCode", com.jackpot.narratix.domain.exception.ReviewErrorCode.REVIEW_NOT_BELONGS_TO_QNA);
+                .hasFieldOrPropertyWithValue("errorCode", ReviewErrorCode.REVIEW_NOT_BELONGS_TO_QNA);
 
         verify(reviewRepository, times(1)).findByIdOrElseThrow(reviewId);
         verify(reviewRepository, never()).save(any());
