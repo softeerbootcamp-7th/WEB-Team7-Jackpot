@@ -46,4 +46,14 @@ public class ReviewController {
         reviewService.deleteReview(userId, qnAId, reviewId);
         return ResponseEntity.noContent().build();
     }
+
+    @PatchMapping("/qna/{qnAId}/reviews/{reviewId}/approve")
+    public ResponseEntity<Void> approveReview(
+            @UserId String userId,
+            @PathVariable Long qnAId,
+            @PathVariable Long reviewId
+    ) {
+        reviewService.approveReview(userId, qnAId, reviewId);
+        return ResponseEntity.noContent().build();
+    }
 }
