@@ -36,6 +36,7 @@ public class UploadJob extends BaseTimeEntity {
 
     public void addFile(UploadFile file) {
         this.files.add(file);
+        file.assignToJob(this);
     }
 
 }

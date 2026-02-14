@@ -54,6 +54,10 @@ public class UploadFile {
         this.status = UploadStatus.PENDING;
     }
 
+    protected void assignToJob(UploadJob uploadJob) {
+        this.uploadJob = uploadJob;
+    }
+
     private void changeStatus(UploadStatus status) {
         this.status = status;
     }
