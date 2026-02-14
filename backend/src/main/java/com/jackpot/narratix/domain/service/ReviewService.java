@@ -9,6 +9,7 @@ import com.jackpot.narratix.domain.entity.Review;
 import com.jackpot.narratix.domain.entity.User;
 import com.jackpot.narratix.domain.entity.enums.NotificationType;
 import com.jackpot.narratix.domain.entity.notification_meta.FeedbackNotificationMeta;
+import com.jackpot.narratix.domain.exception.ReviewErrorCode;
 import com.jackpot.narratix.domain.repository.QnARepository;
 import com.jackpot.narratix.domain.repository.ReviewRepository;
 import com.jackpot.narratix.domain.repository.UserRepository;
@@ -64,6 +65,7 @@ public class ReviewService {
 
         Review review = reviewRepository.findByIdOrElseThrow(reviewId);
 
+        validateReviewBelongsToQnA(review, qnAId);
         validateIsReviewOwner(userId, review);
 
         review.editSuggest(request.suggest());
@@ -73,6 +75,10 @@ public class ReviewService {
         // TODO: 첨삭 댓글 수정 이벤트 수신
 
         return new ReviewEditResponse(review.getModifiedAt());
+    }
+
+    private void validateReviewBelongsToQnA(Review review, Long qnAId) {
+        if(!review.belongsToQnA(qnAId)) throw new BaseException(ReviewErrorCode.REVIEW_NOT_BELONGS_TO_QNA);
     }
 
     private void validateIsReviewOwner(String userId, Review review) {

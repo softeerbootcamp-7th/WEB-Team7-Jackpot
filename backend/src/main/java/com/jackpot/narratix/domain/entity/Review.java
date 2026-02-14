@@ -51,4 +51,8 @@ public class Review extends BaseTimeEntity {
     public boolean isOwner(String userId) {
         return Objects.equals(this.reviewerId, userId);
     }
+
+    public boolean belongsToQnA(Long qnAId){
+        return Objects.equals(this.qnaId, qnAId);
+    }
 }
