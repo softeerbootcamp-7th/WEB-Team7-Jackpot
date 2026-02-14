@@ -1,6 +1,8 @@
 package com.jackpot.narratix.domain.service;
 
 import com.jackpot.narratix.domain.controller.request.ReviewCreateRequest;
+import com.jackpot.narratix.domain.controller.request.ReviewEditRequest;
+import com.jackpot.narratix.domain.controller.response.ReviewEditResponse;
 import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.Review;
@@ -17,6 +19,8 @@ import com.jackpot.narratix.domain.repository.QnARepository;
 import com.jackpot.narratix.domain.repository.ReviewRepository;
 import com.jackpot.narratix.domain.repository.UserRepository;
 import com.jackpot.narratix.domain.service.dto.NotificationSendRequest;
+import com.jackpot.narratix.global.exception.BaseException;
+import com.jackpot.narratix.global.exception.GlobalErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,6 +30,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -310,5 +315,82 @@ class ReviewServiceTest {
 
         NotificationSendRequest capturedNotification = notificationCaptor.getValue();
         assertThat(capturedNotification.content()).isEqualTo(answerText);
+    }
+
+    @Test
+    @DisplayName("리뷰 수정 성공")
+    void editReview_Success() {
+        // given
+        String userId = "reviewer123";
+        Long qnAId = 1L;
+        Long reviewId = 1L;
+
+        ReviewEditRequest request = new ReviewEditRequest(
+                "수정된 제안 텍스트",
+                "수정된 코멘트"
+        );
+
+        Review existingReview = ReviewFixture.builder()
+                .id(reviewId)
+                .reviewerId(userId)
+                .qnaId(qnAId)
+                .suggest("기존 제안 텍스트")
+                .comment("기존 코멘트")
+                .build();
+
+        Review updatedReview = ReviewFixture.builder()
+                .id(reviewId)
+                .reviewerId(userId)
+                .qnaId(qnAId)
+                .suggest(request.suggest())
+                .comment(request.comment())
+                .build();
+
+        given(reviewRepository.findByIdOrElseThrow(reviewId)).willReturn(existingReview);
+        given(reviewRepository.save(existingReview)).willReturn(updatedReview);
+
+        // when
+        ReviewEditResponse response = reviewService.editReview(userId, qnAId, reviewId, request);
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.modifiedAt()).isNotNull();
+        assertThat(existingReview.getSuggest()).isEqualTo(request.suggest());
+        assertThat(existingReview.getComment()).isEqualTo(request.comment());
+        verify(reviewRepository, times(1)).findByIdOrElseThrow(reviewId);
+        verify(reviewRepository, times(1)).save(existingReview);
+    }
+
+    @Test
+    @DisplayName("리뷰 수정 실패 - 리뷰 소유자가 아닌 경우 FORBIDDEN 에러 발생")
+    void editReview_Fail_NotReviewOwner() {
+        // given
+        String ownerId = "reviewer123";
+        String otherUserId = "otherUser456";
+        Long qnAId = 1L;
+        Long reviewId = 1L;
+
+        ReviewEditRequest request = new ReviewEditRequest(
+                "수정된 제안 텍스트",
+                "수정된 코멘트"
+        );
+
+        Review existingReview = ReviewFixture.builder()
+                .id(reviewId)
+                .reviewerId(ownerId)
+                .qnaId(qnAId)
+                .suggest("기존 제안 텍스트")
+                .comment("기존 코멘트")
+                .build();
+
+        given(reviewRepository.findByIdOrElseThrow(reviewId)).willReturn(existingReview);
+
+        // when & then
+        assertThatThrownBy(() -> reviewService.editReview(otherUserId, qnAId, reviewId, request))
+                .isInstanceOf(BaseException.class)
+                .hasFieldOrPropertyWithValue("errorCode", GlobalErrorCode.FORBIDDEN);
+
+        verify(reviewRepository, times(1)).findByIdOrElseThrow(reviewId);
+        verify(reviewRepository, never()).save(any());
     }
 }
