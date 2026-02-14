@@ -11,7 +11,9 @@ import { CommonIcon as I } from '@/shared/icons';
 const PageGlobalHeader = () => {
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
-  const { userInfo } = useAuth();
+  const { userInfo, isLoading } = useAuth();
+
+  if (isLoading) return;
 
   return (
     <header className='mb-[1.875rem] flex h-[3.75rem] w-full items-center justify-between bg-white px-75'>
