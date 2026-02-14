@@ -22,7 +22,7 @@ public class SqsConsumer {
         log.info("SQS Message Received. FileID: {}, Status: {}", message.fileId(), message.status());
 
         try {
-            if (message.status().equals(UploadStatus.FAILED)) {
+            if (message.status() == UploadStatus.FAILED) {
                 fileProcessService.processFailedFile(message.fileId(), message.errorMessage());
                 return;
             }
