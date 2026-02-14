@@ -39,7 +39,6 @@ export interface TabDataType {
 
 export interface UploadTabDataType {
   label: string;
-  targetTab: 'file' | 'text';
   icon: React.ReactNode;
 }
 

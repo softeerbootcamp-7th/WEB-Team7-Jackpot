@@ -5,61 +5,38 @@ import { UploadPageIcons as I } from '@/features/upload/icons';
 import { formatFileSize } from '@/features/upload/utils/formatFileSize';
 
 interface UploadInputHeaderProps {
-  uploadTab: 'file' | 'text';
-  setUploadTab: (newValue: 'file' | 'text') => void;
   totalSize: number;
   isContent: boolean;
-  setIsContent?: (state: boolean) => void;
   nextStep: (step: string) => void;
 }
 
 const UploadInputHeader = ({
-  uploadTab,
   isContent,
   totalSize,
-  setIsContent = () => {},
-  setUploadTab,
   nextStep,
 }: UploadInputHeaderProps) => {
-  const isOverSize =
-    uploadTab === 'file' && !!totalSize && totalSize > MAX_BYTES;
+  const isOverSize = !!totalSize && totalSize > MAX_BYTES;
   const canLabeling = isContent && !isOverSize;
 
   return (
     <div className='flex items-center justify-between'>
       <div className='flex items-center'>
-        {UPLOAD_TAB_DATA.map((data) => (
-          <TabButton
-            key={data.targetTab}
-            isActived={uploadTab === data.targetTab}
-            onClick={() => {
-              if (
-                !isContent ||
-                window.confirm('탭 전환을 하면 업로드한 내용이 사라집니다.')
-              ) {
-                setIsContent(false);
-                setUploadTab(data.targetTab);
-              }
-            }}
-            icon={data.icon}
-            label={data.label}
-          />
-        ))}
+        <TabButton
+          icon={UPLOAD_TAB_DATA[0].icon}
+          label={UPLOAD_TAB_DATA[0].label}
+        />
       </div>
       <div className='flex items-center gap-6'>
-        {uploadTab === 'file' && (
-          <div className='flex items-center gap-1 text-gray-400 select-none'>
-            <span
-              className={
-                totalSize && totalSize > MAX_BYTES ? 'text-red-600' : ''
-              }
-            >
-              {formatFileSize(totalSize ?? 0)}
-            </span>
-            <span>/</span>
-            <span>10MB</span>
-          </div>
-        )}
+        <div className='flex items-center gap-1 text-gray-400 select-none'>
+          <span
+            className={totalSize && totalSize > MAX_BYTES ? 'text-red-600' : ''}
+          >
+            {formatFileSize(totalSize ?? 0)}
+          </span>
+          <span>/</span>
+          <span>10MB</span>
+        </div>
+
         <button
           className='text-title-s flex cursor-pointer gap-[0.375rem] rounded-lg bg-gray-900 px-[1.125rem] py-3 font-bold text-white disabled:cursor-default disabled:bg-gray-50 disabled:text-gray-400'
           onClick={() => nextStep?.('2')}
