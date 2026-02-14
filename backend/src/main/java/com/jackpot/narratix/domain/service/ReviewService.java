@@ -32,24 +32,24 @@ public class ReviewService {
 
         // TODO: 첨삭 댓글 생성 이벤트 발행
 
-        sendFeedbackNotificationToWriter(reviewerId, qnaId);
+        sendFeedbackNotificationToWriter(reviewerId, qnaId, request.originText());
     }
 
-    private void sendFeedbackNotificationToWriter(String reviewerId, Long qnaId) {
+    private void sendFeedbackNotificationToWriter(String reviewerId, Long qnAId, String originText) {
         User reviewer = userRepository.findByIdOrElseThrow(reviewerId);
-        QnA qnA = qnARepository.findByIdOrElseThrow(qnaId);
+        QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
         CoverLetter coverLetter = qnA.getCoverLetter();
         String writerId = coverLetter.getUserId();
 
         FeedbackNotificationMeta feedbackNotificationMeta = FeedbackNotificationMeta.of(
-                reviewer.getId(), reviewer.getNickname(), qnA.getId()
+                reviewer.getId(), reviewer.getNickname(), qnAId
         );
 
         NotificationSendRequest notificationSendRequest = NotificationSendRequest.builder()
                 .type(NotificationType.FEEDBACK)
                 .meta(feedbackNotificationMeta)
                 .title(coverLetter.getCompanyName() + " " + coverLetter.getApplyYear() + " " + coverLetter.getApplyHalf().getDescription())
-                .content(qnA.getAnswer())
+                .content(originText)
                 .build();
 
         notificationService.sendNotification(writerId, notificationSendRequest);
