@@ -1,32 +1,30 @@
-import { useNavigate, useSearchParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 
 import LabelingResultHeader from '@/features/upload/components/LabelingResultHeader';
 import LabelingResultItem from '@/features/upload/components/LabelingResultItem';
 
 const LabelingResultSection = () => {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const coverLetterParam = searchParams.get('coverLetterId');
-  const qnAParam = searchParams.get('qnAId');
-  const currentCoverLetterId: number =
-    coverLetterParam && ['1', '2', '3'].includes(coverLetterParam)
-      ? Number(coverLetterParam)
-      : 1;
-  const currentQnAId: number = qnAParam ? Number(qnAParam) : 0;
+  const { coverLetterId, qnAId } = useParams<{
+    coverLetterId: string;
+    qnAId: string;
+  }>();
+  const currentCoverLetterId: number = coverLetterId
+    ? Number(coverLetterId)
+    : 0;
+  const currentQnAId: number = qnAId ? Number(qnAId) : 0;
 
   const hanldeNextStep = () => {
     navigate('/upload/complete', { replace: true });
   };
-  const handleCoverLetterIdChange = (newId: number) => {
-    setSearchParams(
-      { coverLetterId: newId.toString(), qnAId: '0' },
-      { replace: true },
-    );
-  };
 
-  const handleQnAIdChange = (newId: number) => {
-    setSearchParams({ qnAId: newId.toString() }, { replace: true });
-  };
+  const handleCoverLetterIdChange = (newId: number) =>
+    navigate(`/upload/labeling/${newId}/0`, { replace: true });
+
+  const handleQnAIdChange = (newId: number) =>
+    navigate(`/upload/labeling/${currentCoverLetterId}/${newId}`, {
+      replace: true,
+    });
 
   return (
     <div className='flex flex-col gap-6'>
