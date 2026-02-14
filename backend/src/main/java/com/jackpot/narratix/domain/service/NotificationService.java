@@ -55,10 +55,10 @@ public class NotificationService {
         return new UnreadNotificationCountResponse(unreadNotificationCount);
     }
 
-    public void sendNotification(String userId, NotificationSendRequest request){
-        Notification notification = request.toEntity();
+    public void sendNotification(String receiverId, NotificationSendRequest request){
+        Notification notification = request.toEntity(receiverId);
         notificationRepository.save(notification);
 
-        sseEmitterService.send(userId, NotificationSendResponse.of(notification));
+        sseEmitterService.send(receiverId, NotificationSendResponse.of(notification));
     }
 }

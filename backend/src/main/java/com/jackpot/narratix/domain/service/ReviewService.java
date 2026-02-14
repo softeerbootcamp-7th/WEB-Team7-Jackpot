@@ -13,6 +13,7 @@ import com.jackpot.narratix.domain.repository.UserRepository;
 import com.jackpot.narratix.domain.service.dto.NotificationSendRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +24,7 @@ public class ReviewService {
     private final QnARepository qnARepository;
     private final NotificationService notificationService;
 
+    @Transactional
     public void createReview(String reviewerId, Long qnaId, ReviewCreateRequest request) {
         Review review = reviewRepository.save(request.toEntity(reviewerId, qnaId));
 

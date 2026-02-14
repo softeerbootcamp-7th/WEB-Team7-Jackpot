@@ -12,8 +12,9 @@ public record NotificationSendRequest(
         String content,
         NotificationMeta meta
 ) {
-    public Notification toEntity() {
+    public Notification toEntity(String receiverId) {
         return Notification.builder()
+                .userId(receiverId)
                 .type(type)
                 .title(title)
                 .content(content)
