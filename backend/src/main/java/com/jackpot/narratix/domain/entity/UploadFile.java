@@ -1,6 +1,6 @@
 package com.jackpot.narratix.domain.entity;
 
-import com.jackpot.narratix.domain.entity.enums.UploadStatusType;
+import com.jackpot.narratix.domain.entity.enums.UploadStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -29,7 +29,7 @@ public class UploadFile {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private UploadStatusType status;
+    private UploadStatus status;
 
     @Lob
     @Column(columnDefinition = "TEXT")
@@ -38,7 +38,7 @@ public class UploadFile {
 
     public void successExtract(String extractedText) {
         this.extractedText = extractedText;
-        changeStatus(UploadStatusType.EXTRACTED);
+        changeStatus(UploadStatus.EXTRACTED);
     }
 
     public void failExtract() {
@@ -51,15 +51,15 @@ public class UploadFile {
         this.id = id;
         this.originalFileName = originalFileName;
         this.s3Key = s3Key;
-        this.status = UploadStatusType.PENDING;
+        this.status = UploadStatus.PENDING;
     }
 
-    private void changeStatus(UploadStatusType status) {
+    private void changeStatus(UploadStatus status) {
         this.status = status;
     }
 
     public void fail() {
-        this.status = UploadStatusType.FAILED;
+        this.status = UploadStatus.FAILED;
     }
 
 }
