@@ -1,3 +1,5 @@
+// [박소민] 달력 훅
+
 import { useCallback, useMemo, useState } from 'react';
 
 import { useDataGrid } from '@/shared/hooks/useDataGrid';
@@ -9,7 +11,6 @@ import {
 } from '@/shared/utils/dates';
 
 export const useCalendar = () => {
-  // [박소민] 이거 왜 굳이 이렇게 두번씩 new Date()를 만들어야 할까?
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
 
@@ -33,6 +34,8 @@ export const useCalendar = () => {
   }, []);
 
   return {
+    startDate,
+    endDate,
     currentDate,
     selectedDate,
     days,
