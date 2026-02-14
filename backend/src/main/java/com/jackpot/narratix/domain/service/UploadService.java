@@ -1,5 +1,6 @@
 package com.jackpot.narratix.domain.service;
 
+import com.github.f4b6a3.ulid.UlidCreator;
 import com.jackpot.narratix.domain.controller.request.PresignedUrlRequest;
 import com.jackpot.narratix.domain.controller.response.PresignedUrlResponse;
 import com.jackpot.narratix.domain.entity.UploadFile;
@@ -20,7 +21,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -42,7 +42,7 @@ public class UploadService {
     public PresignedUrlResponse createAllPresignedUrl(String userId, PresignedUrlRequest request) {
         validateFileCount(request.files());
 
-        String jobId = UUID.randomUUID().toString();
+        String jobId = UlidCreator.getUlid().toString();
         UploadJob job = UploadJob.builder()
                 .id(jobId)
                 .userId(userId)
@@ -53,7 +53,7 @@ public class UploadService {
         for (PresignedUrlRequest.FileRequest fileRequest : request.files()) {
             validateFile(fileRequest);
 
-            String fileId = UUID.randomUUID().toString();
+            String fileId = UlidCreator.getUlid().toString();
             String s3Key = generateS3Key(userId, fileId);
 
             UploadFile file = UploadFile.builder()
