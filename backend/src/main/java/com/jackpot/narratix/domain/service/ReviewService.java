@@ -1,6 +1,8 @@
 package com.jackpot.narratix.domain.service;
 
 import com.jackpot.narratix.domain.controller.request.ReviewCreateRequest;
+import com.jackpot.narratix.domain.controller.request.ReviewEditRequest;
+import com.jackpot.narratix.domain.controller.response.ReviewEditResponse;
 import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.Review;
@@ -53,5 +55,18 @@ public class ReviewService {
                 .build();
 
         notificationService.sendNotification(writerId, notificationSendRequest);
+    }
+
+    @Transactional
+    public ReviewEditResponse editReview(String userId, Long qnAId, Long reviewId, ReviewEditRequest request) {
+
+        Review review = reviewRepository.findByIdOrElseThrow(reviewId);
+        review.editSuggest(request.suggest());
+        review.editComment(request.comment());
+        review = reviewRepository.save(review);
+
+        // TODO: 첨삭 댓글 수정 이벤트 수신
+
+        return new ReviewEditResponse(review.getModifiedAt());
     }
 }

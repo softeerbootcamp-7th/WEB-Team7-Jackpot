@@ -36,4 +36,12 @@ public class Review extends BaseTimeEntity {
 
     @Column(name = "is_approved", nullable = false)
     private boolean isApproved = false;
+
+    public void editSuggest(String suggest) {
+        this.suggest = suggest;
+    }
+
+    public void editComment(String comment) {
+        this.comment = comment;
+    }
 }
