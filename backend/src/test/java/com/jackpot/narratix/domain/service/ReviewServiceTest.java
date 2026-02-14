@@ -117,12 +117,13 @@ class ReviewServiceTest {
         String reviewerId = "reviewer123";
         String writerId = "writer456";
         Long qnaId = 1L;
+        String originText = "원본 텍스트";
 
         ReviewCreateRequest request = new ReviewCreateRequest(
                 1L,
                 0L,
                 100L,
-                "원본 텍스트",
+                originText,
                 "수정 제안 텍스트",
                 "피드백 코멘트"
         );
@@ -171,7 +172,7 @@ class ReviewServiceTest {
         NotificationSendRequest capturedNotification = notificationCaptor.getValue();
         assertThat(capturedNotification.type()).isEqualTo(NotificationType.FEEDBACK);
         assertThat(capturedNotification.title()).isEqualTo("카카오 2024 하반기");
-        assertThat(capturedNotification.content()).isNull(); // answer가 설정되지 않았으므로 null
+        assertThat(capturedNotification.content()).isEqualTo(originText);
         assertThat(capturedNotification.meta()).isInstanceOf(FeedbackNotificationMeta.class);
 
         FeedbackNotificationMeta meta = (FeedbackNotificationMeta) capturedNotification.meta();
@@ -251,19 +252,19 @@ class ReviewServiceTest {
     }
 
     @Test
-    @DisplayName("리뷰 생성 시 QnA의 answer가 있으면 알림 content에 포함된다")
+    @DisplayName("리뷰 생성 시 Review의 OriginText가 알림 content에 포함된다")
     void createReview_IncludesAnswerInNotificationContent() {
         // given
         String reviewerId = "reviewer123";
         String writerId = "writer456";
         Long qnaId = 1L;
-        String answerText = "저는 귀사의 비전에 공감하여 지원하게 되었습니다.";
+        String originText = "원본 텍스트";
 
         ReviewCreateRequest request = new ReviewCreateRequest(
                 1L,
                 0L,
                 100L,
-                "원본 텍스트",
+                originText,
                 "수정 제안",
                 null
         );
@@ -294,7 +295,7 @@ class ReviewServiceTest {
                 "지원동기는 무엇인가요?",
                 QuestionCategoryType.MOTIVATION
         );
-        qnA.editAnswer(answerText);
+        qnA.editAnswer("저는 귀사의 비전에 공감하여 지원하게 되었습니다.");
 
         given(reviewRepository.save(any(Review.class))).willReturn(savedReview);
         given(userRepository.findByIdOrElseThrow(reviewerId)).willReturn(reviewer);
@@ -309,6 +310,6 @@ class ReviewServiceTest {
         verify(notificationService, times(1)).sendNotification(eq(writerId), notificationCaptor.capture());
 
         NotificationSendRequest capturedNotification = notificationCaptor.getValue();
-        assertThat(capturedNotification.content()).isEqualTo(answerText);
+        assertThat(capturedNotification.content()).isEqualTo(originText);
     }
 }
