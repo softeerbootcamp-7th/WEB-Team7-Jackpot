@@ -43,7 +43,7 @@ public class UploadFile {
 
     public void failExtract() {
         this.extractedText = null;
-        fail();
+        changeStatus(UploadStatus.FAILED);
     }
 
     @Builder
@@ -56,10 +56,6 @@ public class UploadFile {
 
     private void changeStatus(UploadStatus status) {
         this.status = status;
-    }
-
-    public void fail() {
-        this.status = UploadStatus.FAILED;
     }
 
 }
