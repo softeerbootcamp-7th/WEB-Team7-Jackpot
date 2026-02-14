@@ -29,6 +29,11 @@ import RootLayout from '@/shared/components/RootLayout';
 import { queryClient } from '@/shared/queries/queryClient';
 
 function App() {
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const currentMonth = String(today.getMonth() + 1).padStart(2, '0');
+  const currentDay = String(today.getDate()).padStart(2, '0');
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
@@ -102,8 +107,23 @@ function App() {
                 element={<CoverLetterQnAFriendsPage />}
               />
             </Route>
+            <Route
+              path='/recruit'
+              element={
+                <Navigate
+                  to={`/recruit/${currentYear}/${currentMonth}/${currentDay}`}
+                  replace
+                />
+              }
+            />
+
+            {/* 2. 실제 페이지 (day는 선택 사항) */}
+            <Route
+              path='/recruit/:year/:month/:day?'
+              element={<RecruitPage />}
+            />
           </Route>
-          {/* <Route path="/recruit" element={<RecruitPage />}/> */}
+
           <Route path='/' element={<LandingPage />} />
           <Route path='/login' element={<LoginPage />} />
           <Route path='/signup' element={<SignUpPage />} />
