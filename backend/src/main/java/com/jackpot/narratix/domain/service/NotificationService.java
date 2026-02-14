@@ -18,7 +18,6 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
@@ -55,6 +54,7 @@ public class NotificationService {
         return new UnreadNotificationCountResponse(unreadNotificationCount);
     }
 
+    @Transactional
     public void sendNotification(String receiverId, NotificationSendRequest request){
         Notification notification = request.toEntity(receiverId);
         notificationRepository.save(notification);
