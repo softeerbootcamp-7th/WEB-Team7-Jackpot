@@ -19,6 +19,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class ReviewService {
@@ -87,7 +89,10 @@ public class ReviewService {
     @Transactional
     public void deleteReview(String userId, Long qnAId, Long reviewId) {
 
-        Review review = reviewRepository.findByIdOrElseThrow(reviewId);
+        Optional<Review> reviewOptional = reviewRepository.findById(reviewId);
+        if(reviewOptional.isEmpty()) return;
+        Review review = reviewOptional.get();
+
         QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
 
         validateReviewBelongsToQnA(review, qnAId);
