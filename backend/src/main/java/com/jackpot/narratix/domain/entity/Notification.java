@@ -42,6 +42,7 @@ public class Notification extends BaseTimeEntity {
     private String content;
 
     @NotNull
+    @Builder.Default
     @JsonProperty("isRead")
     @Column(name = "is_read", nullable = false)
     private boolean isRead = false;
