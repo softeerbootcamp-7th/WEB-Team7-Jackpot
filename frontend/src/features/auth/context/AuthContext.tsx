@@ -8,9 +8,8 @@ interface UserInfoType {
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  // 회원 정보를 가져올 때까지 기다리기 위해 비동기로 변경
-  login: () => Promise<void>;
   userInfo: UserInfoType;
+  isLoading: boolean;
   // [윤종근] - TODO: 로그아웃 메서드 구현 필요
 }
 
@@ -21,13 +20,13 @@ interface AuthProviderProps {
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const { isInitialized, isAuthenticated, login, userInfo } = useInitAuth();
+  const { isInitialized, isAuthenticated, userInfo, isLoading } = useInitAuth();
   if (!isInitialized) {
     return null;
   }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, userInfo }}>
+    <AuthContext.Provider value={{ isAuthenticated, userInfo, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

@@ -6,7 +6,6 @@ import { useNavigate } from 'react-router';
 import InputBar from '@/features/auth/components/InputBar';
 import SubmitButton from '@/features/auth/components/SubmitButton';
 import { INPUT_BAR_IN_LOGIN } from '@/features/auth/constants/constantsInLoginPage';
-import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useLogin } from '@/features/auth/hooks/useAuthClient';
 import useAuthForm from '@/features/auth/hooks/useAuthForm';
 import type { AuthInputKey } from '@/features/auth/types/auth';
@@ -16,7 +15,6 @@ import { validateId } from '@/shared/utils/validation';
 const LoginForm = () => {
   const { mutateAsync: login } = useLogin();
   const { showToast } = useToastMessageContext();
-  const { login: setLoginState } = useAuth();
   const navigate = useNavigate();
   // 로그인 실패 시를 위한 상태
   const [isLoginFailed, setIsLoginFailed] = useState<boolean>(false);
@@ -48,7 +46,6 @@ const LoginForm = () => {
         password: formData.password,
       });
 
-      setLoginState();
       showToast('로그인 되었습니다.', true);
       navigate('/home');
     } catch (error) {

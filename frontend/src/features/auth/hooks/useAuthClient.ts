@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { setAccessToken } from '@/features/auth/libs/tokenStore';
 import type {
@@ -32,6 +32,8 @@ export const useSignUp = () => {
 
 // 로그인을 위한 커스텀 훅
 export const useLogin = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: (userData: LoginRequest) =>
       apiClient.post({
@@ -42,7 +44,7 @@ export const useLogin = () => {
         },
         skipAuth: true,
       }),
-    // onSuccess: () => queryClient.invalidateQueries({ queryKey: ['login'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['userInfo'] }),
   });
 };
 

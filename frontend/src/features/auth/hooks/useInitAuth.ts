@@ -1,43 +1,26 @@
 import { useEffect, useState } from 'react';
 
-import { useRefresh } from '@/features/auth/hooks/useAuthClient';
-import { userInformation } from '@/shared/api/user';
+import { getAccessToken } from '../libs/tokenStore';
 
-interface UserInfoType {
-  nickname: string;
-}
+import { useRefresh } from '@/features/auth/hooks/useAuthClient';
+import { useGetNickname } from '@/shared/hooks/useUserInfo';
 
 export const useInitAuth = () => {
+  const { data: userInfo, isLoading: isUserInfoLoading } = useGetNickname();
   const { mutateAsync: refresh } = useRefresh();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   // 토큰을 확인하는 중인지 체크하는 상태 값
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
-  const [userInfo, setUserInfo] = useState<UserInfoType>({ nickname: '' });
-
-  const fetchUserInfo = async () => {
-    try {
-      const data = await userInformation.getNickname();
-      setUserInfo({ nickname: data.nickname });
-    } catch (error) {
-      console.error('사용자 정보 가져오기 실패:', error);
-    }
-  };
 
   useEffect(() => {
     const initAuth = async () => {
+      if (getAccessToken()) {
+        setIsInitialized(true);
+        return;
+      }
       try {
-        const data = await refresh();
-
-        if (data.accessToken) {
-          setIsAuthenticated(true);
-          await fetchUserInfo();
-        } else {
-          setIsAuthenticated(false);
-        }
+        await refresh();
       } catch (error) {
-        console.error('자동 로그인 실패:', error);
-        setIsAuthenticated(false);
-        setUserInfo({ nickname: '' });
+        console.error('자동 로그인 실패 (세션 만료):', error);
       } finally {
         setIsInitialized(true);
       }
@@ -46,15 +29,10 @@ export const useInitAuth = () => {
     initAuth();
   }, [refresh]);
 
-  const login = async () => {
-    setIsAuthenticated(true);
-    await fetchUserInfo();
-  };
-
   return {
     isInitialized: isInitialized,
-    isAuthenticated: isAuthenticated,
-    login: login,
+    isAuthenticated: !!userInfo,
     userInfo: userInfo,
+    isLoading: isUserInfoLoading,
   };
 };
