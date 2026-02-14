@@ -2,10 +2,12 @@ package com.jackpot.narratix.domain.controller.response;
 
 import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.QnA;
+import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
 
 import java.util.List;
 
 public record QuestionLibraryResponse(
+        String questionCategory,
         List<QnAItem> qnAs,
         boolean hasNext
 ) {
@@ -33,7 +35,7 @@ public record QuestionLibraryResponse(
         }
     }
 
-    public static QuestionLibraryResponse of(List<QnAItem> qnAs, boolean hasNext) {
-        return new QuestionLibraryResponse(qnAs, hasNext);
+    public static QuestionLibraryResponse of(QuestionCategoryType questionCategory, List<QnAItem> qnAs, boolean hasNext) {
+        return new QuestionLibraryResponse(questionCategory.getDescription(), qnAs, hasNext);
     }
 }
