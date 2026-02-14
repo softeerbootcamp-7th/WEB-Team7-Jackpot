@@ -7,8 +7,16 @@
   font-style: normal;
 }
 
+@font-face {
+  font-family: 'Helvetica';
+  src: url('/fonts/HelveticaBold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+}
+
 body {
-  font-family: var(--font-pretendard);
+  --font-helvetica: 'Helvetica', 'Arial', sans-serif;
+  --font-pretendard: 'Pretendard', sans-serif;
 }
 
 @theme {
