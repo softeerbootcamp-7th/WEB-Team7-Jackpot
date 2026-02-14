@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -68,6 +69,24 @@ public class SseEmitterService {
             log.warn("SSE send initial event failed: userId={}, emitterId={}, reason={}", userId, emitterId, e.getMessage());
             sseEmitterRepository.deleteByEmitterId(userId, emitterId);
             sseEmitter.complete();
+        }
+    }
+
+    public void send(String userId, Object data){
+        Map<String, SseEmitter> emitters = sseEmitterRepository.findAllByUserId(userId);
+
+        for (Map.Entry<String, SseEmitter> entry : emitters.entrySet()) {
+            String emitterId = entry.getKey();
+            SseEmitter emitter = entry.getValue();
+
+            try {
+                emitter.send(SseEmitter.event().name("notification").data(data));
+                log.info("SSE sent: userId={}, emitterId={}", userId, emitterId);
+            } catch (IOException e) {
+                log.warn("Failed to send SSE: userId={}, emitterId={}, error={}", userId, emitterId, e.getMessage());
+                sseEmitterRepository.deleteByEmitterId(userId, emitterId);
+                emitter.complete();
+            }
         }
     }
 }

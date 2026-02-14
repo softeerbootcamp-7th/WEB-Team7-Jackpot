@@ -38,4 +38,20 @@ public class SseEmitterRepository {
         Set<String> emitterIds = userEmitterIds.get(userId);
         return emitterIds != null ? emitterIds.size() : 0;
     }
+
+    public Map<String, SseEmitter> findAllByUserId(String userId) {
+        Set<String> emitterIds = userEmitterIds.get(userId);
+        if (emitterIds == null || emitterIds.isEmpty()) {
+            return Map.of();
+        }
+
+        Map<String, SseEmitter> result = new ConcurrentHashMap<>();
+        for (String emitterId : emitterIds) {
+            SseEmitter emitter = emitters.get(emitterId);
+            if (emitter != null) {
+                result.put(emitterId, emitter);
+            }
+        }
+        return result;
+    }
 }
