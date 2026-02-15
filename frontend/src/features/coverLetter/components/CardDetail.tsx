@@ -19,7 +19,7 @@ const CardDetail = ({ scrap, onBack }: CardDetailProps) => {
             <button
               type='button'
               onClick={onBack}
-              className='flex h-7 w-7 items-center justify-center'
+              className='flex h-7 w-7 cursor-pointer items-center justify-center'
               aria-label='뒤로가기'
             >
               <RightArrow className='rotate-180' />
