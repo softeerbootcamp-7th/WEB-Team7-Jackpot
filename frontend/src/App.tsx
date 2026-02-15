@@ -2,7 +2,6 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 
 import CoverLetterLandingPage from '@/pages/CoverLetterLandingPage';
-import CoverLetterQnAFriendsPage from '@/pages/CoverLetterQnAFriendsPage';
 import HomePage from '@/pages/HomePage';
 import LandingPage from '@/pages/LandingPage';
 import LoginPage from '@/pages/LoginPage';
@@ -34,12 +33,14 @@ function App() {
         <Routes>
           <Route element={<RootLayout />}>
             <Route path='/home' element={<HomePage />} />
+
             <Route path='/upload' element={<UploadPage />}>
               <Route index element={<Navigate to='input' replace />} />
               <Route path='input' element={<UploadInputSection />} />
               <Route path='labeling' element={<LabelingResultSection />} />
               <Route path='complete' element={<UploadCompleteSection />} />
             </Route>
+
             <Route path='/library' element={<LibraryLayout />}>
               {/* [박소민] /library로 접속시 자동으로 /library/company로 이동 */}
               {/* TODO: 렌더링을 최소화할 수 있는 방법이 없는지 확인 (라우팅 변경해도 됨) */}
@@ -75,6 +76,7 @@ function App() {
                 </Route>
               </Route>
             </Route>
+
             <Route path='/review/:coverLetterId' element={<ReviewPage />} />
 
             <Route path='/cover-letter' element={<CoverLetterLayout />}>
@@ -92,14 +94,14 @@ function App() {
                   element={<NewCoverLetterContent />}
                 />
                 <Route
-                  path='/cover-letter/edit/:coverLetterId?'
+                  path='/cover-letter/edit'
+                  element={<Navigate to='/cover-letter/list' replace />}
+                />
+                <Route
+                  path='/cover-letter/edit/:coverLetterId'
                   element={<CoverLetterEditContent />}
                 />
               </Route>
-              <Route
-                path='/cover-letter/qna-friends/:coverLetterId?'
-                element={<CoverLetterQnAFriendsPage />}
-              />
             </Route>
           </Route>
           {/* <Route path="/recruit" element={<RecruitPage />}/> */}
