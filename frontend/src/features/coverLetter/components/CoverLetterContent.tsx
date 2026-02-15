@@ -5,6 +5,7 @@ import type { TextChunk } from '@/shared/hooks/useTextSelection/helpers';
 import type { Review } from '@/shared/types/review';
 import type { SelectionInfo } from '@/shared/types/selectionInfo';
 
+// caret 저장
 const saveCaret = (el: HTMLElement): number => {
   const sel = window.getSelection();
   if (!sel || sel.rangeCount === 0) return 0;
@@ -15,6 +16,7 @@ const saveCaret = (el: HTMLElement): number => {
   return preRange.toString().length;
 };
 
+// caret 복원
 const restoreCaret = (el: HTMLElement, offset: number) => {
   const sel = window.getSelection();
   if (!sel) return;
@@ -36,7 +38,8 @@ const restoreCaret = (el: HTMLElement, offset: number) => {
   }
 };
 
-const buildHTML = (
+// 리뷰 기반 텍스트 변환 JSX
+const buildChunks = (
   before: TextChunk[],
   after: TextChunk[],
   chunkPositions: number[],
@@ -44,42 +47,49 @@ const buildHTML = (
   selectedReviewId: number | null,
   isReviewOpen: boolean,
   selection: SelectionInfo | null,
-): string => {
-  const beforeHTML = before
-    .map((chunk, i) => {
-      if (!chunk.isHighlighted) return chunk.text;
+) => {
+  const beforeChunks = before.map((chunk, i) => {
+    const chunkStart = chunkPositions[i];
+    const chunkEnd = chunkStart + chunk.text.length;
 
-      const chunkStart = chunkPositions[i];
-      const chunkEnd = chunkStart + chunk.text.length;
+    if (!chunk.isHighlighted) return chunk.text;
 
-      const matchingReview = reviews.find(
-        (review) =>
-          review.isValid &&
-          review.range.start <= chunkStart &&
-          review.range.end >= chunkEnd,
-      );
+    const matchingReview = reviews.find(
+      (review) =>
+        review.isValid &&
+        review.range.start <= chunkStart &&
+        review.range.end >= chunkEnd,
+    );
 
-      if (!matchingReview) return chunk.text;
+    if (!matchingReview) return chunk.text;
 
-      const isSelected = selectedReviewId === matchingReview.id;
-      const className = `${isReviewOpen ? 'cursor-pointer font-bold' : ''} ${
-        isSelected ? 'bg-red-100' : ''
-      }`;
+    const isSelected = selectedReviewId === matchingReview.id;
+    const className = `${isReviewOpen ? 'cursor-pointer font-bold' : ''} ${
+      isSelected ? 'bg-red-100' : ''
+    }`;
 
-      return `<span class="${className}" data-review-id="${matchingReview.id}">${chunk.text}</span>`;
-    })
-    .join('');
+    return (
+      <span key={i} className={className} data-review-id={matchingReview.id}>
+        {chunk.text}
+      </span>
+    );
+  });
 
-  if (!selection || after.length === 0) return beforeHTML;
+  if (!selection || after.length === 0) return beforeChunks;
 
-  const afterHTML = after
-    .map(
-      (chunk) =>
-        `<span class="${chunk.isHighlighted ? 'font-bold' : ''}">${chunk.text}</span>`,
-    )
-    .join('');
+  const afterChunks = after.map((chunk, i) => (
+    <span key={`after-${i}`} className={chunk.isHighlighted ? 'font-bold' : ''}>
+      {chunk.text}
+    </span>
+  ));
 
-  return `${beforeHTML}<div class="h-2.5"></div><span class="opacity-30">${afterHTML}</span>`;
+  return [
+    ...beforeChunks,
+    <div key='spacer' className='h-2.5' />,
+    <span key='after' className='opacity-30'>
+      {afterChunks}
+    </span>,
+  ];
 };
 
 interface CoverLetterContentProps {
@@ -117,6 +127,7 @@ const CoverLetterContent = ({
 
   const contentRef = useRef<HTMLDivElement>(null);
   const isInputtingRef = useRef(false);
+  const caretOffsetRef = useRef(0);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -138,9 +149,9 @@ const CoverLetterContent = ({
     [before],
   );
 
-  const html = useMemo(
+  const chunks = useMemo(
     () =>
-      buildHTML(
+      buildChunks(
         before,
         after,
         chunkPositions,
@@ -161,28 +172,21 @@ const CoverLetterContent = ({
   );
 
   useEffect(() => {
-    if (!contentRef.current) return;
+    if (!contentRef.current || !isInputtingRef.current) return;
+    isInputtingRef.current = false;
+    restoreCaret(contentRef.current, caretOffsetRef.current);
+  }, [chunks]);
 
-    if (isInputtingRef.current) {
-      isInputtingRef.current = false;
-      return;
-    }
-
-    const caretOffset = saveCaret(contentRef.current);
-    contentRef.current.innerHTML = html;
-    restoreCaret(contentRef.current, caretOffset);
-  }, [html]);
-
-  // 편집 이벤트 처리
   const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
+    if (!contentRef.current) return;
     const newText = e.currentTarget.textContent || '';
+    caretOffsetRef.current = saveCaret(contentRef.current);
     if (onTextChange) {
       isInputtingRef.current = true;
       onTextChange(newText);
     }
   };
 
-  // 리뷰 클릭 이벤트 처리
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
     const reviewIdStr = target.getAttribute('data-review-id');
@@ -206,13 +210,20 @@ const CoverLetterContent = ({
       >
         <div
           ref={contentRef}
-          contentEditable={true}
-          suppressContentEditableWarning={true}
+          contentEditable
+          // ⚠️ 경고: contentEditable 내부에 React children을 렌더링하고 있음
+          // React가 Virtual DOM으로 children을 관리하고,
+          // 브라우저가 직접 DOM을 수정하는 경우 충돌 가능
+          // 이 경고는 React가 직접 수정 사항을 보장하지 않음을 알리는 것임
+          // 사용자가 입력하면 isInputtingRef와 caretOffsetRef로 caret 복원 및 입력 유지
+          suppressContentEditableWarning={true} // 경고 억제
           onInput={handleInput}
           onClick={handleClick}
           className='w-full cursor-text py-3 text-base leading-7 font-normal text-gray-800 outline-none'
           style={{ paddingBottom: spacerHeight }}
-        />
+        >
+          {chunks} {/* React가 관리하는 children */}
+        </div>
       </div>
     </div>
   );
