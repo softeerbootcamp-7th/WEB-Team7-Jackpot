@@ -25,8 +25,7 @@ public class ScrapService {
 
     @Transactional
     public CreateScrapResponse createScrap(String userId, CreateScrapRequest request) {
-        ScrapId scrapId = new ScrapId(userId, request.qnAId());
-        if (isIdDuplicated(scrapId)) {
+        if (isIdDuplicated(userId, request.qnAId())) {
             throw new BaseException(ScrapErrorCode.DUPLICATE_SCRAP);
         }
         Scrap scrap = Scrap.of(userId, request.qnAId());
@@ -35,8 +34,8 @@ public class ScrapService {
         return new CreateScrapResponse(scrap.getId().getQnAId(), scrapRepository.countByUserId(userId));
     }
 
-    private boolean isIdDuplicated(ScrapId scrapId) {
-        return scrapRepository.existsById(scrapId);
+    private boolean isIdDuplicated(String userId, Long qnAId) {
+        return scrapRepository.existsById(userId, qnAId);
     }
 
     @Transactional(readOnly = true)

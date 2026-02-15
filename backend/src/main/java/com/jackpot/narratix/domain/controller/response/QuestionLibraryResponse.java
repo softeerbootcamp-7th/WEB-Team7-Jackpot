@@ -4,7 +4,6 @@ import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 public record QuestionLibraryResponse(
@@ -19,9 +18,7 @@ public record QuestionLibraryResponse(
             String applySeason,
             String question,
             String answer,
-            Long coverLetterId,
-            Integer answerSize,
-            LocalDateTime modifiedAt
+            Long coverLetterId
     ) {
         public static QnAItem from(QnA qna) {
             CoverLetter coverLetter = qna.getCoverLetter();
@@ -36,9 +33,7 @@ public record QuestionLibraryResponse(
                             coverLetter.getApplyHalf().getDescription()),
                     qna.getQuestion(),
                     answer,
-                    coverLetter.getId(),
-                    answer != null ? answer.length() : 0,
-                    qna.getModifiedAt()
+                    coverLetter.getId()
             );
         }
     }

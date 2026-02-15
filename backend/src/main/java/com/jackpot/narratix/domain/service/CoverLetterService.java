@@ -11,6 +11,7 @@ import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import com.jackpot.narratix.domain.exception.CoverLetterErrorCode;
 import com.jackpot.narratix.domain.repository.CoverLetterRepository;
 import com.jackpot.narratix.domain.repository.QnARepository;
+import com.jackpot.narratix.domain.repository.ScrapRepository;
 import com.jackpot.narratix.domain.repository.dto.QnACountProjection;
 import com.jackpot.narratix.global.exception.BaseException;
 import com.jackpot.narratix.global.exception.GlobalErrorCode;
@@ -31,6 +32,7 @@ public class CoverLetterService {
 
     private final CoverLetterRepository coverLetterRepository;
     private final QnARepository qnARepository;
+    private final ScrapRepository scrapRepository;
 
     @Transactional
     public CreateCoverLetterResponse createNewCoverLetter(String userId, CreateCoverLetterRequest createCoverLetterRequest) {
@@ -180,7 +182,9 @@ public class CoverLetterService {
 
         if (!qnA.isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
 
-        return QnAResponse.of(qnA);
+        Boolean isScraped = scrapRepository.existsById(userId, qnAId);
+
+        return QnAResponse.of(qnA, isScraped);
     }
 
     @Transactional

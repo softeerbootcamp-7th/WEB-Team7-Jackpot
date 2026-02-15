@@ -46,9 +46,7 @@ class ScrapServiceTest {
         Long qnAId = 1L;
         CreateScrapRequest request = new CreateScrapRequest(qnAId);
 
-        ScrapId expectedScrapId = new ScrapId(userId, qnAId);
-
-        when(scrapRepository.existsById(expectedScrapId)).thenReturn(false);
+        when(scrapRepository.existsById(userId, qnAId)).thenReturn(false);
         when(scrapRepository.countByUserId(userId)).thenReturn(1L);
 
         // when
@@ -58,7 +56,7 @@ class ScrapServiceTest {
         assertThat(response.qnAId()).isEqualTo(qnAId);
         assertThat(response.scrapCount()).isEqualTo(1L);
 
-        verify(scrapRepository, times(1)).existsById(expectedScrapId);
+        verify(scrapRepository, times(1)).existsById(userId, qnAId);
 
         ArgumentCaptor<Scrap> scrapCaptor = ArgumentCaptor.forClass(Scrap.class);
         verify(scrapRepository, times(1)).save(scrapCaptor.capture());
@@ -69,7 +67,7 @@ class ScrapServiceTest {
         assertThat(savedScrap.getId().getQnAId()).isEqualTo(qnAId);
 
         InOrder inOrder = inOrder(scrapRepository);
-        inOrder.verify(scrapRepository).existsById(expectedScrapId);
+        inOrder.verify(scrapRepository).existsById(userId, qnAId);
         inOrder.verify(scrapRepository).save(any(Scrap.class));
         inOrder.verify(scrapRepository).countByUserId(userId);
 
@@ -83,9 +81,7 @@ class ScrapServiceTest {
         Long qnAId = 1L;
         CreateScrapRequest request = new CreateScrapRequest(qnAId);
 
-        ScrapId expectedScrapId = new ScrapId(userId, qnAId);
-
-        when(scrapRepository.existsById(expectedScrapId)).thenReturn(true);
+        when(scrapRepository.existsById(userId, qnAId)).thenReturn(true);
 
         // when
         BaseException exception = assertThrows(BaseException.class,
@@ -94,7 +90,7 @@ class ScrapServiceTest {
         // then
         assertThat(exception.getErrorCode()).isEqualTo(ScrapErrorCode.DUPLICATE_SCRAP);
 
-        verify(scrapRepository, times(1)).existsById(expectedScrapId);
+        verify(scrapRepository, times(1)).existsById(userId, qnAId);
         verify(scrapRepository, never()).save(any(Scrap.class));
         verify(scrapRepository, never()).countByUserId(anyString());
     }

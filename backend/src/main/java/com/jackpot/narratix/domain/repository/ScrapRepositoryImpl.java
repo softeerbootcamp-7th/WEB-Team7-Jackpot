@@ -26,8 +26,8 @@ public class ScrapRepositoryImpl implements ScrapRepository {
     }
 
     @Override
-    public boolean existsById(ScrapId scrapId) {
-        return scrapJpaRepository.existsById(scrapId);
+    public boolean existsById(String userId, Long qnAId) {
+        return scrapJpaRepository.existsById(userId, qnAId);
     }
 
     @Override
