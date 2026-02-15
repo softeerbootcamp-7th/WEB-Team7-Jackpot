@@ -10,7 +10,7 @@ public interface ScrapRepository {
 
     Long countByUserId(String userId);
 
-    boolean existsById(ScrapId scrapId);
+    boolean existsById(String userId, Long qnAId);
 
     void deleteById(ScrapId scrapId);
 

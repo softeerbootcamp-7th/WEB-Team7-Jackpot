@@ -14,7 +14,11 @@ public interface ScrapJpaRepository extends JpaRepository<Scrap, ScrapId> {
     @Query("SELECT COUNT(s) FROM Scrap s WHERE s.id.userId = :userId")
     Long countByUserId(String userId);
 
-    boolean existsById(ScrapId scrapId);
+    @Query("SELECT COUNT(s) > 0 FROM Scrap s WHERE s.id.userId = :userId AND s.id.qnAId = :qnAId")
+    boolean existsById(
+            @Param("userId") String userId,
+            @Param("qnAId") Long qnAid
+    );
 
     @Query("""
             SELECT q
