@@ -6,6 +6,8 @@ import com.jackpot.narratix.global.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -22,5 +24,10 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public User findByIdOrElseThrow(String userId) {
         return this.findById(userId).orElseThrow(() -> new BaseException(UserErrorCode.USER_NOT_FOUND));
+    }
+
+    @Override
+    public List<User> findAllByIdIn(Collection<String> reviewerIds) {
+        return userJpaRepository.findAllByIdIn(reviewerIds);
     }
 }
