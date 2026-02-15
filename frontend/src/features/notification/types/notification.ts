@@ -13,12 +13,13 @@ interface FeedbackNotificationType extends NotificationBaseType {
       id: string;
       nickname: string;
     };
+    qnAId: number;
   };
 }
 
 interface CoverLetterType {
   coverLetterId: number;
-  questionIds: number[];
+  questionIds: (number | null)[];
 }
 
 interface LabelingNotificationType extends NotificationBaseType {
@@ -31,3 +32,8 @@ interface LabelingNotificationType extends NotificationBaseType {
 export type NotificationType =
   | FeedbackNotificationType
   | LabelingNotificationType;
+
+export interface NotificationResponse {
+  notifications: NotificationType[];
+  hasNext: boolean;
+}
