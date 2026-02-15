@@ -12,11 +12,18 @@ interface methodProps {
   params?: Record<string, unknown>;
   options?: RequestInit;
   skipAuth?: boolean;
+  isStream?: boolean;
 }
 
 // 인터셉터 패턴처럼 fetch Wrapper
 export const apiClient = {
-  get: async ({ endpoint, params, options, skipAuth }: methodProps) => {
+  get: async ({
+    endpoint,
+    params,
+    options,
+    skipAuth,
+    isStream,
+  }: methodProps) => {
     const cleanParams: Record<string, unknown> = {};
     if (params) {
       for (const key in params) {
@@ -34,6 +41,7 @@ export const apiClient = {
       `${endpoint}${queryString}`,
       { ...options, method: 'GET' },
       skipAuth,
+      isStream,
     );
   },
   post: async ({ endpoint, body, options, skipAuth }: methodProps) => {
@@ -86,6 +94,8 @@ const request = async (
   endpoint: string,
   options: RequestInit,
   skipAuth: boolean = false,
+  // SSE 스트리밍 용도인지 파악하는 파라미터
+  isStream: boolean = false,
 ) => {
   // 헤더 설정
   const headers = new Headers(options.headers || {});
@@ -140,6 +150,11 @@ const request = async (
 
     if (!response.ok) {
       throw new Error(`Error: ${response.status}`);
+    }
+
+    // SSE 용도라면 파싱하지 않고 response 그대로 반환
+    if (!isStream) {
+      return response;
     }
 
     const text = await response.text();
