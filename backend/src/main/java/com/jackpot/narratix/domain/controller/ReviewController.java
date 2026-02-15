@@ -2,6 +2,7 @@ package com.jackpot.narratix.domain.controller;
 
 import com.jackpot.narratix.domain.controller.request.ReviewCreateRequest;
 import com.jackpot.narratix.domain.controller.request.ReviewEditRequest;
+import com.jackpot.narratix.domain.controller.response.ReviewsGetResponse;
 import com.jackpot.narratix.domain.service.ReviewService;
 import com.jackpot.narratix.global.auth.UserId;
 import jakarta.validation.Valid;
@@ -55,5 +56,13 @@ public class ReviewController {
     ) {
         reviewService.approveReview(userId, qnAId, reviewId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/qna/{qnAId}/reviews/all")
+    public ResponseEntity<ReviewsGetResponse> getAllReviews(
+            @UserId String userId,
+            @PathVariable Long qnAId
+    ) {
+        return ResponseEntity.ok(reviewService.getAllReviews(userId, qnAId));
     }
 }
