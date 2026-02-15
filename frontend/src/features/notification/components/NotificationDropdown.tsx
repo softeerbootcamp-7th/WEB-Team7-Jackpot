@@ -1,5 +1,8 @@
 import NotificationList from '@/features/notification/components/NotificationList';
-import { NOTIFICATION_LIST } from '@/features/notification/constants/notification';
+import {
+  useGetNotificationCount,
+  useReadAllNotification,
+} from '@/features/notification/hooks/useNotification';
 import { NotificationDropdownIcon as I } from '@/features/notification/icons';
 
 interface NotificationDropdownProps {
@@ -11,8 +14,10 @@ const NotificationDropdown = ({
   handleDropdown,
   isOpen,
 }: NotificationDropdownProps) => {
-  // 임시로 안읽은 알림 설정 (추후에 별도의 안읽은 알림 API로 받아오기)
-  const unreadCount = NOTIFICATION_LIST.notifications.length;
+  const { data: unreadCount, isLoading, isError } = useGetNotificationCount();
+  const { mutateAsync: readAllNotification } = useReadAllNotification();
+  if (isLoading) return <div>로딩 중...</div>;
+  if (isError) return <div>에러 발생</div>;
 
   return (
     <div className='relative inline-block'>
@@ -43,15 +48,16 @@ const NotificationDropdown = ({
                   최근 도착한 알림
                 </span>
               </div>
-              <button type='button' className='text-caption-m flex items-center justify-center rounded-md bg-gray-50 px-2 py-1 font-medium text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-700 active:scale-95'>
+              <button
+                type='button'
+                onClick={() => readAllNotification()}
+                className='text-caption-m flex items-center justify-center rounded-md bg-gray-50 px-2 py-1 font-medium text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-700 active:scale-95'
+              >
                 모두 읽음
               </button>
             </div>
             <div className='flex flex-col gap-1 p-1'>
-              <NotificationList
-                handleDropdown={handleDropdown}
-                data={NOTIFICATION_LIST.notifications}
-              />
+              <NotificationList handleDropdown={handleDropdown} />
             </div>
           </div>
         </>
