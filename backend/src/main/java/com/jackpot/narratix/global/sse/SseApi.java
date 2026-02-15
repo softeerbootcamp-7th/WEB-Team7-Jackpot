@@ -1,7 +1,7 @@
 package com.jackpot.narratix.global.sse;
 
-import com.jackpot.narratix.global.auth.UserId;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -29,5 +29,5 @@ public interface SseApi {
                     description = "인증 실패 - 유효하지 않은 토큰"
             )
     })
-    SseEmitter connect(@UserId String userId);
+    SseEmitter connect(@Parameter(hidden = true) String userId);
 }

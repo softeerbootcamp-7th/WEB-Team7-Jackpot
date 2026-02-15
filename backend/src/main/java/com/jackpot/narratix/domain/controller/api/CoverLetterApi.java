@@ -8,7 +8,6 @@ import com.jackpot.narratix.domain.controller.response.FilteredCoverLettersRespo
 import com.jackpot.narratix.domain.controller.response.CreateCoverLetterResponse;
 import com.jackpot.narratix.domain.controller.response.TotalCoverLetterCountResponse;
 import com.jackpot.narratix.domain.controller.response.UpcomingCoverLetterResponse;
-import com.jackpot.narratix.global.auth.UserId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -37,7 +36,7 @@ public interface CoverLetterApi {
             @ApiResponse(responseCode = "401", description = "인증 실패")
     })
     ResponseEntity<CreateCoverLetterResponse> createCoverLetter(
-            @Parameter(hidden = true) @UserId String userId,
+            @Parameter(hidden = true) String userId,
             CreateCoverLetterRequest createCoverLetterRequest
     );
 
@@ -50,7 +49,7 @@ public interface CoverLetterApi {
             @ApiResponse(responseCode = "404", description = "자기소개서를 찾을 수 없음")
     })
     ResponseEntity<Void> editCoverLetter(
-            @Parameter(hidden = true) @UserId String userId,
+            @Parameter(hidden = true) String userId,
             EditCoverLetterRequest editCoverLetterRequest
     );
 
@@ -66,7 +65,7 @@ public interface CoverLetterApi {
             @ApiResponse(responseCode = "404", description = "자기소개서를 찾을 수 없음")
     })
     ResponseEntity<CoverLetterResponse> findCoverLetterById(
-            @Parameter(hidden = true) @UserId String userId,
+            @Parameter(hidden = true) String userId,
             @Parameter(description = "자기소개서 ID", required = true, example = "1") Long coverLetterId
     );
 
@@ -78,7 +77,7 @@ public interface CoverLetterApi {
             @ApiResponse(responseCode = "404", description = "자기소개서를 찾을 수 없음")
     })
     ResponseEntity<Void> deleteCoverLetterById(
-            @Parameter(hidden = true) @UserId String userId,
+            @Parameter(hidden = true) String userId,
             @Parameter(description = "자기소개서 ID", required = true, example = "1") Long coverLetterId
     );
 
@@ -92,7 +91,7 @@ public interface CoverLetterApi {
             @ApiResponse(responseCode = "401", description = "인증 실패")
     })
     ResponseEntity<TotalCoverLetterCountResponse> getTotalCoverLetterCount(
-            @Parameter(hidden = true) @UserId String userId,
+            @Parameter(hidden = true) String userId,
             @Parameter(description = "기준 날짜 (yyyy-MM-dd)", required = true, example = "2024-01-01") LocalDate date
     );
 
@@ -106,7 +105,7 @@ public interface CoverLetterApi {
             @ApiResponse(responseCode = "401", description = "인증 실패")
     })
     ResponseEntity<FilteredCoverLettersResponse> getAllCoverLetterByFilter(
-            @Parameter(hidden = true) @UserId String userId,
+            @Parameter(hidden = true) String userId,
             @Parameter(description = "자기소개서 필터링 Request 정보", required = true)
             CoverLetterFilterRequest request
     );
@@ -121,7 +120,7 @@ public interface CoverLetterApi {
             @ApiResponse(responseCode = "401", description = "인증 실패")
     })
     ResponseEntity<List<UpcomingCoverLetterResponse>> getUpcomingCoverLetters(
-            @Parameter(hidden = true) @UserId String userId,
+            @Parameter(hidden = true) String userId,
             @Parameter(description = "기준 날짜 (yyyy-MM-dd)", required = true, example = "2024-01-01") LocalDate date,
             @Parameter(description = "최대 마감일 개수", required = true) Integer maxDeadLineSize,
             @Parameter(description = "마감일당 최대 자기소개서 개수", required = true) Integer maxCoverLetterSizePerDeadLine
@@ -137,7 +136,7 @@ public interface CoverLetterApi {
             @ApiResponse(responseCode = "401", description = "인증 실패")
     })
     ResponseEntity<List<LocalDate>> findDeadlineByDateRange(
-            @Parameter(hidden = true) @UserId String userId,
+            @Parameter(hidden = true) String userId,
             @Parameter(description = "시작 날짜 (yyyy-MM-dd)", required = true, example = "2024-01-01") LocalDate startDate,
             @Parameter(description = "종료 날짜 (yyyy-MM-dd)", required = true, example = "2024-12-31") LocalDate endDate
     );

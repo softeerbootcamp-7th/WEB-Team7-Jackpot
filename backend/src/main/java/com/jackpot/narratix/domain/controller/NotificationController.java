@@ -19,6 +19,7 @@ public class NotificationController implements NotificationApi {
     private final NotificationService notificationService;
 
     @Override
+    @GetMapping("/all")
     public ResponseEntity<NotificationsPaginationResponse> getNotifications(
             @UserId String userId,
             @RequestParam(required = false) Optional<Long> lastNotificationId,
@@ -28,6 +29,7 @@ public class NotificationController implements NotificationApi {
     }
 
     @Override
+    @PatchMapping("/{notificationId}/read")
     public ResponseEntity<Void> markNotificationAsRead(
             @UserId String userId,
             @PathVariable Long notificationId
@@ -37,6 +39,7 @@ public class NotificationController implements NotificationApi {
     }
 
     @Override
+    @PatchMapping("/all/read")
     public ResponseEntity<Void> markAllNotificationAsRead(
             @UserId String userId
     ) {
@@ -45,6 +48,7 @@ public class NotificationController implements NotificationApi {
     }
 
     @Override
+    @GetMapping("/count")
     public ResponseEntity<UnreadNotificationCountResponse> getUnreadNotificationCount(
             @UserId String userId
     ) {
