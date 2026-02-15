@@ -80,7 +80,14 @@ const request = async <T>(
 
   const text = await response.text();
   if (!text) return null as unknown as T;
-  return JSON.parse(text) as T;
+
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    throw new Error(
+      `Failed to parse response as JSON (status: ${response.status}): ${text.slice(0, 200)}`,
+    );
+  }
 };
 
 export const apiClient = {

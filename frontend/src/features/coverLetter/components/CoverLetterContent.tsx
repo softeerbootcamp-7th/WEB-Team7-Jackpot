@@ -177,14 +177,14 @@ const CoverLetterContent = ({
       isComposingRef.current
     )
       return;
-
     restoreCaret(contentRef.current, caretOffsetRef.current);
-    isInputtingRef.current = false; // ref로 상태 관리
+    isInputtingRef.current = false;
   }, [chunks]);
 
-  const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
+  // ⚡ 공통 입력 처리
+  const processInput = () => {
     if (!contentRef.current || isComposingRef.current) return;
-    const newText = e.currentTarget.textContent || '';
+    const newText = contentRef.current.textContent || '';
     caretOffsetRef.current = saveCaret(contentRef.current);
     if (onTextChange) {
       isInputtingRef.current = true;
@@ -192,13 +192,17 @@ const CoverLetterContent = ({
     }
   };
 
+  const handleInput = () => {
+    processInput();
+  };
+
   const handleCompositionStart = () => {
     isComposingRef.current = true;
   };
 
-  const handleCompositionEnd = (e: React.CompositionEvent<HTMLDivElement>) => {
+  const handleCompositionEnd = () => {
     isComposingRef.current = false;
-    handleInput(e as unknown as React.FormEvent<HTMLDivElement>);
+    processInput();
   };
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -225,11 +229,9 @@ const CoverLetterContent = ({
         <div
           ref={contentRef}
           contentEditable
-          // ⚠️ 경고: contentEditable 내부에 React children을 렌더링하고 있음
-          // React가 Virtual DOM으로 children을 관리하고,
-          // 브라우저가 직접 DOM을 수정하는 경우 충돌 가능
-          // 이 경고는 React가 직접 수정 사항을 보장하지 않음을 알리는 것임
-          // 사용자가 입력하면 isInputtingRef와 caretOffsetRef로 caret 복원 및 입력 유지
+          role='textbox'
+          aria-multiline='true'
+          aria-label='자기소개서 내용'
           suppressContentEditableWarning={true}
           onInput={handleInput}
           onCompositionStart={handleCompositionStart}
