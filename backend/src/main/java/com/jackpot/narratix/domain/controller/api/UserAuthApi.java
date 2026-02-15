@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -71,6 +72,6 @@ public interface UserAuthApi {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "로그아웃 성공"),
     })
-    @PostMapping("/logout")
+    @DeleteMapping("/logout")
     ResponseEntity<Void> logout(@CookieValue(value = "refreshToken", required = false) String refreshToken);
 }

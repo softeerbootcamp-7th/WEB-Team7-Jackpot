@@ -14,7 +14,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -64,6 +67,22 @@ public class UserAuthController implements UserAuthApi {
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body(new UserTokenResponse(accessTokenValue));
+    }
+
+    @Override
+    public ResponseEntity<Void> logout(@CookieValue(value = "refreshToken", required = false) String refreshToken) {
+
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
+                .maxAge(0)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")  //  - sameSite("Lax" 또는 "Strict"): CSRF 공격 방지
+                .path("/")
+                .build();
+
+        return ResponseEntity.noContent()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .build();
     }
 }
 
