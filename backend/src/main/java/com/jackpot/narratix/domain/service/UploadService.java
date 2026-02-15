@@ -84,7 +84,7 @@ public class UploadService {
         validateFile(request);
 
         Map<String, String> metadata = Map.of(
-                "fileid", fileId
+                "fileId", fileId
         );
 
         try {
@@ -105,7 +105,7 @@ public class UploadService {
                     s3Key,
                     Map.of(
                             "Content-Type", request.contentType(),
-                            "x-amz-meta-fileid", fileId)
+                            "x-amz-meta-fileId", fileId)
             );
         } catch (SdkException e) {
             log.error("AWS S3 Error occurred while generating URL. key: {}, Error: {}", s3Key, e.getMessage());
