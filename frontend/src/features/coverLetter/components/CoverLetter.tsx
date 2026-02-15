@@ -102,7 +102,7 @@ const CoverLetter = ({
   if (!currentQna) return null;
 
   return (
-    <div className='flex h-full w-full flex-col gap-2 border-l border-gray-100 px-8 py-7'>
+    <div className='flex h-full w-full flex-col gap-2 overflow-hidden border-l border-gray-100 px-8 py-7'>
       <CoverLetterToolbar
         companyName={coverLetter.companyName}
         jobPosition={coverLetter.jobPosition}
@@ -132,7 +132,7 @@ const CoverLetter = ({
         </div>
       </div>
 
-      <div className='flex min-h-0 flex-1 flex-col gap-3.5'>
+      <div className='flex min-h-0 flex-1 flex-col gap-3.5 overflow-hidden'>
         <div className='flex flex-shrink-0 items-start gap-3'>
           <div className='flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gray-50'>
             <span className='text-base font-bold text-gray-600'>
@@ -159,7 +159,7 @@ const CoverLetter = ({
 
       <div className='flex h-8 flex-shrink-0 items-center justify-between gap-5 py-0.5'>
         <div className='flex gap-0.5 pl-12 text-base text-gray-400'>
-          <span>{currentQna.answerSize.toLocaleString()}</span>
+          <span>{currentText.length.toLocaleString()}</span>
           <span>자</span>
         </div>
 
