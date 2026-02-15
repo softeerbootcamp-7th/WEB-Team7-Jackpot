@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 
 import Calendar from '@/features/recruit/components/calendar/Calendar';
 import { useInfiniteCalendarDates } from '@/features/recruit/hooks/queries/useCalendarQuery';
-import { useCalendar } from '@/features/recruit/hooks/useCalendar';
+import { useCalendar } from '@/features/recruit/hooks/useCalendar'; 
 import { getISODate } from '@/shared/utils/dates';
 
 const CalendarContainer = () => {
@@ -12,7 +12,7 @@ const CalendarContainer = () => {
     startDate,
     endDate,
     days,
-    helpers,
+    helpers, 
   } = useCalendar();
 
   const startDateStr = getISODate(startDate);
@@ -21,7 +21,7 @@ const CalendarContainer = () => {
   const { data, isLoading } = useInfiniteCalendarDates({
     startDate: startDateStr,
     endDate: endDateStr,
-    size: 100, // 달력 조회용으로는 한 번에 많이 가져온다.
+    size: 100,
   });
 
   const eventsByDate = useMemo(() => {
@@ -31,7 +31,8 @@ const CalendarContainer = () => {
     const map: Record<string, typeof allItems> = {};
 
     allItems.forEach((item) => {
-      const dateKey = item.deadline;
+      const dateKey = item.deadline ? item.deadline.split('T')[0] : '';
+      if (!dateKey) return;
 
       if (!map[dateKey]) {
         map[dateKey] = [];
