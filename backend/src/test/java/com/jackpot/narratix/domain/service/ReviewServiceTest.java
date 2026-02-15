@@ -10,6 +10,7 @@ import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import com.jackpot.narratix.domain.entity.enums.NotificationType;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
 import com.jackpot.narratix.domain.entity.notification_meta.FeedbackNotificationMeta;
+import com.jackpot.narratix.domain.exception.ReviewErrorCode;
 import com.jackpot.narratix.domain.fixture.CoverLetterFixture;
 import com.jackpot.narratix.domain.fixture.QnAFixture;
 import com.jackpot.narratix.domain.fixture.ReviewFixture;
@@ -419,9 +420,146 @@ class ReviewServiceTest {
         // when & then
         assertThatThrownBy(() -> reviewService.editReview(userId, requestQnAId, reviewId, request))
                 .isInstanceOf(BaseException.class)
-                .hasFieldOrPropertyWithValue("errorCode", com.jackpot.narratix.domain.exception.ReviewErrorCode.REVIEW_NOT_BELONGS_TO_QNA);
+                .hasFieldOrPropertyWithValue("errorCode", ReviewErrorCode.REVIEW_NOT_BELONGS_TO_QNA);
 
         verify(reviewRepository, times(1)).findByIdOrElseThrow(reviewId);
         verify(reviewRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("리뷰 삭제 성공 - ReviewOwner가 삭제")
+    void deleteReview_Success_ByReviewOwner() {
+        // given
+        String reviewerId = "reviewer123";
+        String writerId = "writer456";
+        Long qnAId = 1L;
+        Long reviewId = 1L;
+
+        Review review = ReviewFixture.builder()
+                .id(reviewId)
+                .reviewerId(reviewerId)
+                .qnaId(qnAId)
+                .suggest("수정 제안 텍스트")
+                .comment("코멘트")
+                .build();
+
+        CoverLetter coverLetter = CoverLetterFixture.builder()
+                .id(1L)
+                .userId(writerId)
+                .companyName("카카오")
+                .applyYear(2024)
+                .applyHalf(ApplyHalfType.FIRST_HALF)
+                .build();
+
+        QnA qnA = QnAFixture.createQnAWithId(
+                qnAId,
+                coverLetter,
+                writerId,
+                "지원동기는 무엇인가요?",
+                QuestionCategoryType.MOTIVATION
+        );
+
+        given(reviewRepository.findById(reviewId)).willReturn(java.util.Optional.of(review));
+        given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(qnA);
+
+        // when
+        reviewService.deleteReview(reviewerId, qnAId, reviewId);
+
+        // then
+        verify(reviewRepository, times(1)).findById(reviewId);
+        verify(qnARepository, times(1)).findByIdOrElseThrow(qnAId);
+        verify(reviewRepository, times(1)).delete(review);
+    }
+
+    @Test
+    @DisplayName("리뷰 삭제 성공 - QnAOwner가 삭제")
+    void deleteReview_Success_ByQnAOwner() {
+        // given
+        String reviewerId = "reviewer123";
+        String writerId = "writer456";
+        Long qnAId = 1L;
+        Long reviewId = 1L;
+
+        Review review = ReviewFixture.builder()
+                .id(reviewId)
+                .reviewerId(reviewerId)
+                .qnaId(qnAId)
+                .suggest("수정 제안 텍스트")
+                .comment("코멘트")
+                .build();
+
+        CoverLetter coverLetter = CoverLetterFixture.builder()
+                .id(1L)
+                .userId(writerId)
+                .companyName("토스")
+                .applyYear(2024)
+                .applyHalf(ApplyHalfType.SECOND_HALF)
+                .build();
+
+        QnA qnA = QnAFixture.createQnAWithId(
+                qnAId,
+                coverLetter,
+                writerId,
+                "지원동기는 무엇인가요?",
+                QuestionCategoryType.MOTIVATION
+        );
+
+        given(reviewRepository.findById(reviewId)).willReturn(java.util.Optional.of(review));
+        given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(qnA);
+
+        // when
+        reviewService.deleteReview(writerId, qnAId, reviewId);
+
+        // then
+        verify(reviewRepository, times(1)).findById(reviewId);
+        verify(qnARepository, times(1)).findByIdOrElseThrow(qnAId);
+        verify(reviewRepository, times(1)).delete(review);
+    }
+
+    @Test
+    @DisplayName("리뷰 삭제 실패 - ReviewOwner도 QnAOwner도 아닌 사용자가 삭제 요청")
+    void deleteReview_Fail_NotReviewOwnerNorQnAOwner() {
+        // given
+        String reviewerId = "reviewer123";
+        String writerId = "writer456";
+        String otherUserId = "otherUser789";
+        Long qnAId = 1L;
+        Long reviewId = 1L;
+
+        Review review = ReviewFixture.builder()
+                .id(reviewId)
+                .reviewerId(reviewerId)
+                .qnaId(qnAId)
+                .suggest("수정 제안 텍스트")
+                .comment("코멘트")
+                .build();
+
+        CoverLetter coverLetter = CoverLetterFixture.builder()
+                .id(1L)
+                .userId(writerId)
+                .companyName("네이버")
+                .applyYear(2025)
+                .applyHalf(ApplyHalfType.FIRST_HALF)
+                .build();
+
+        QnA qnA = QnAFixture.createQnAWithId(
+                qnAId,
+                coverLetter,
+                writerId,
+                "지원동기는 무엇인가요?",
+                QuestionCategoryType.MOTIVATION
+        );
+
+        given(reviewRepository.findById(reviewId)).willReturn(java.util.Optional.of(review));
+        given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(qnA);
+
+        // when & then
+        assertThatThrownBy(() -> reviewService.deleteReview(otherUserId, qnAId, reviewId))
+                .isInstanceOf(BaseException.class)
+                .hasFieldOrPropertyWithValue("errorCode", GlobalErrorCode.FORBIDDEN);
+
+        verify(reviewRepository, times(1)).findById(reviewId);
+        verify(qnARepository, times(1)).findByIdOrElseThrow(qnAId);
+        verify(reviewRepository, never()).delete(any());
     }
 }

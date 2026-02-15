@@ -19,6 +19,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class ReviewService {
@@ -30,7 +32,7 @@ public class ReviewService {
 
     @Transactional
     public void createReview(String reviewerId, Long qnaId, ReviewCreateRequest request) {
-        Review review = reviewRepository.save(request.toEntity(reviewerId, qnaId));
+        reviewRepository.save(request.toEntity(reviewerId, qnaId));
 
         // TODO: 본문 텍스트 전체 변경 이벤트 발행
 
@@ -69,7 +71,7 @@ public class ReviewService {
 
         review.editSuggest(request.suggest());
         review.editComment(request.comment());
-        review = reviewRepository.save(review);
+        reviewRepository.save(review);
 
         // TODO: 첨삭 댓글 수정 이벤트 수신
     }
@@ -80,6 +82,30 @@ public class ReviewService {
 
     private void validateIsReviewOwner(String userId, Review review) {
         if (!review.isOwner(userId)) {
+            throw new BaseException(GlobalErrorCode.FORBIDDEN);
+        }
+    }
+
+    @Transactional
+    public void deleteReview(String userId, Long qnAId, Long reviewId) {
+
+        Optional<Review> reviewOptional = reviewRepository.findById(reviewId);
+        if(reviewOptional.isEmpty()) return;
+        Review review = reviewOptional.get();
+
+        QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
+
+        validateReviewBelongsToQnA(review, qnAId);
+        validateIsReviewOwnerOrQnAOwner(userId, review, qnA);
+
+        reviewRepository.delete(review);
+
+        // TODO: Writer, Reviewer 본문 텍스트 전체 변경 이벤트 발송
+        // TODO: Writer, Reviewer 첨삭 댓글 수정 이벤트 발송
+    }
+
+    private void validateIsReviewOwnerOrQnAOwner(String userId, Review review, QnA qnA) {
+        if (!review.isOwner(userId) && !qnA.isOwner(userId)) {
             throw new BaseException(GlobalErrorCode.FORBIDDEN);
         }
     }

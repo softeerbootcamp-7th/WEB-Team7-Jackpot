@@ -26,8 +26,7 @@ public class ReviewController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping
-            ("/qna/{qnAId}/reviews/{reviewId}")
+    @PutMapping("/qna/{qnAId}/reviews/{reviewId}")
     public ResponseEntity<Void> editReview(
             @UserId String userId,
             @PathVariable Long qnAId,
@@ -35,6 +34,16 @@ public class ReviewController {
             @RequestBody ReviewEditRequest request
     ) {
         reviewService.editReview(userId, qnAId, reviewId, request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/qna/{qnAId}/reviews/{reviewId}")
+    public ResponseEntity<Void> deleteReview(
+            @UserId String userId,
+            @PathVariable Long qnAId,
+            @PathVariable Long reviewId
+    ) {
+        reviewService.deleteReview(userId, qnAId, reviewId);
         return ResponseEntity.noContent().build();
     }
 }
