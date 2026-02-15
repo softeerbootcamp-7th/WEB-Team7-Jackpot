@@ -15,6 +15,7 @@ public class ReviewFixture {
         private Long id;
         private Long qnaId = 1L;
         private String reviewerId = "reviewer123";
+        private String originText = "기본 원본 텍스트";
         private String comment;
         private String suggest;
         private boolean isApproved = false;
@@ -31,6 +32,11 @@ public class ReviewFixture {
 
         public ReviewFixtureBuilder reviewerId(String reviewerId) {
             this.reviewerId = reviewerId;
+            return this;
+        }
+
+        public ReviewFixtureBuilder originText(String originText) {
+            this.originText = originText;
             return this;
         }
 
@@ -53,6 +59,7 @@ public class ReviewFixture {
             Review review = Review.builder()
                     .qnaId(qnaId)
                     .reviewerId(reviewerId)
+                    .originText(originText)
                     .comment(comment)
                     .suggest(suggest)
                     .build();

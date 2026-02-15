@@ -2,6 +2,7 @@ package com.jackpot.narratix.domain.service;
 
 import com.jackpot.narratix.domain.controller.request.ReviewCreateRequest;
 import com.jackpot.narratix.domain.controller.request.ReviewEditRequest;
+import com.jackpot.narratix.domain.controller.response.ReviewsGetResponse;
 import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.Review;
@@ -28,6 +29,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -560,5 +563,387 @@ class ReviewServiceTest {
         verify(reviewRepository, times(1)).findById(reviewId);
         verify(qnARepository, times(1)).findByIdOrElseThrow(qnAId);
         verify(reviewRepository, never()).delete(any());
+    }
+
+    @Test
+    @DisplayName("리뷰 삭제 실패 - 리뷰가 해당 QnA에 속하지 않는 경우")
+    void deleteReview_Fail_ReviewNotBelongsToQnA() {
+        // given
+        String userId = "reviewer123";
+        Long reviewQnAId = 1L;
+        Long requestQnAId = 2L;
+        Long reviewId = 1L;
+
+        Review review = ReviewFixture.builder()
+                .id(reviewId)
+                .reviewerId(userId)
+                .qnaId(reviewQnAId)
+                .build();
+
+        CoverLetter coverLetter = CoverLetterFixture.builder()
+                .id(1L)
+                .userId(userId)
+                .build();
+
+        QnA qnA = QnAFixture.createQnAWithId(
+                requestQnAId,
+                coverLetter,
+                userId,
+                "질문",
+                QuestionCategoryType.MOTIVATION
+        );
+
+        given(reviewRepository.findById(reviewId)).willReturn(java.util.Optional.of(review));
+        given(qnARepository.findByIdOrElseThrow(requestQnAId)).willReturn(qnA);
+
+        // when & then
+        assertThatThrownBy(() -> reviewService.deleteReview(userId, requestQnAId, reviewId))
+                .isInstanceOf(BaseException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ReviewErrorCode.REVIEW_NOT_BELONGS_TO_QNA);
+
+        verify(reviewRepository, never()).delete(any());
+    }
+
+    @Test
+    @DisplayName("첨삭 댓글 적용 성공 - QnA 작성자가 리뷰를 승인")
+    void approveReview_Success() {
+        // given
+        String writerId = "writer123";
+        String reviewerId = "reviewer456";
+        Long qnAId = 1L;
+        Long reviewId = 1L;
+
+        String originalText = "기존 텍스트";
+        String suggestedText = "수정된 텍스트";
+
+        Review review = ReviewFixture.builder()
+                .id(reviewId)
+                .reviewerId(reviewerId)
+                .qnaId(qnAId)
+                .originText(originalText)
+                .suggest(suggestedText)
+                .isApproved(false)
+                .build();
+
+        CoverLetter coverLetter = CoverLetterFixture.builder()
+                .id(1L)
+                .userId(writerId)
+                .build();
+
+        QnA qnA = QnAFixture.createQnAWithId(
+                qnAId,
+                coverLetter,
+                writerId,
+                "지원동기는 무엇인가요?",
+                QuestionCategoryType.MOTIVATION
+        );
+
+        given(reviewRepository.findByIdOrElseThrow(reviewId)).willReturn(review);
+        given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(qnA);
+
+        // when
+        reviewService.approveReview(writerId, qnAId, reviewId);
+
+        // then
+        assertThat(review.isApproved()).isTrue();
+        assertThat(review.getOriginText()).isEqualTo(suggestedText);
+        assertThat(review.getSuggest()).isEqualTo(originalText);
+        verify(reviewRepository, times(1)).findByIdOrElseThrow(reviewId);
+        verify(qnARepository, times(1)).findByIdOrElseThrow(qnAId);
+    }
+
+    @Test
+    @DisplayName("첨삭 댓글 적용 실패 - QnA 작성자가 아닌 경우 FORBIDDEN 에러 발생")
+    void approveReview_Fail_NotQnAOwner() {
+        // given
+        String writerId = "writer123";
+        String reviewerId = "reviewer456";
+        String otherUserId = "other789";
+        Long qnAId = 1L;
+        Long reviewId = 1L;
+
+        Review review = ReviewFixture.builder()
+                .id(reviewId)
+                .reviewerId(reviewerId)
+                .qnaId(qnAId)
+                .build();
+
+        CoverLetter coverLetter = CoverLetterFixture.builder()
+                .id(1L)
+                .userId(writerId)
+                .build();
+
+        QnA qnA = QnAFixture.createQnAWithId(
+                qnAId,
+                coverLetter,
+                writerId,
+                "지원동기는 무엇인가요?",
+                QuestionCategoryType.MOTIVATION
+        );
+
+        given(reviewRepository.findByIdOrElseThrow(reviewId)).willReturn(review);
+        given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(qnA);
+
+        // when & then
+        assertThatThrownBy(() -> reviewService.approveReview(otherUserId, qnAId, reviewId))
+                .isInstanceOf(BaseException.class)
+                .hasFieldOrPropertyWithValue("errorCode", GlobalErrorCode.FORBIDDEN);
+
+        assertThat(review.isApproved()).isFalse();
+    }
+
+    @Test
+    @DisplayName("첨삭 댓글 적용 실패 - 리뷰가 해당 QnA에 속하지 않는 경우")
+    void approveReview_Fail_ReviewNotBelongsToQnA() {
+        // given
+        String writerId = "writer123";
+        Long reviewQnAId = 1L;
+        Long requestQnAId = 2L;
+        Long reviewId = 1L;
+
+        Review review = ReviewFixture.builder()
+                .id(reviewId)
+                .reviewerId("reviewer")
+                .qnaId(reviewQnAId)
+                .build();
+
+        CoverLetter coverLetter = CoverLetterFixture.builder()
+                .id(1L)
+                .userId(writerId)
+                .build();
+
+        QnA qnA = QnAFixture.createQnAWithId(
+                requestQnAId,
+                coverLetter,
+                writerId,
+                "질문",
+                QuestionCategoryType.MOTIVATION
+        );
+
+        given(reviewRepository.findByIdOrElseThrow(reviewId)).willReturn(review);
+        given(qnARepository.findByIdOrElseThrow(requestQnAId)).willReturn(qnA);
+
+        // when & then
+        assertThatThrownBy(() -> reviewService.approveReview(writerId, requestQnAId, reviewId))
+                .isInstanceOf(BaseException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ReviewErrorCode.REVIEW_NOT_BELONGS_TO_QNA);
+    }
+
+    @Test
+    @DisplayName("전체 첨삭 댓글 조회 - WRITER는 모든 리뷰를 조회할 수 있다")
+    void getAllReviews_Writer_CanSeeAllReviews() {
+        // given
+        String writerId = "writer123";
+        String reviewer1Id = "reviewer1";
+        String reviewer2Id = "reviewer2";
+        Long qnAId = 1L;
+
+        CoverLetter coverLetter = CoverLetterFixture.builder()
+                .id(1L)
+                .userId(writerId)
+                .companyName("테스트기업")
+                .applyYear(2024)
+                .applyHalf(ApplyHalfType.FIRST_HALF)
+                .build();
+
+        QnA qnA = QnAFixture.createQnAWithId(
+                qnAId,
+                coverLetter,
+                writerId,
+                "지원동기는 무엇인가요?",
+                QuestionCategoryType.MOTIVATION
+        );
+
+        Review review1 = ReviewFixture.builder()
+                .id(1L)
+                .reviewerId(reviewer1Id)
+                .qnaId(qnAId)
+                .originText("원본1")
+                .suggest("제안1")
+                .comment("코멘트1")
+                .build();
+
+        Review review2 = ReviewFixture.builder()
+                .id(2L)
+                .reviewerId(reviewer2Id)
+                .qnaId(qnAId)
+                .originText("원본2")
+                .suggest("제안2")
+                .comment("코멘트2")
+                .build();
+
+        User reviewer1 = UserFixture.builder()
+                .id(reviewer1Id)
+                .nickname("리뷰어1")
+                .build();
+
+        User reviewer2 = UserFixture.builder()
+                .id(reviewer2Id)
+                .nickname("리뷰어2")
+                .build();
+
+        given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(qnA);
+        given(reviewRepository.findAllByQnaId(qnAId)).willReturn(List.of(review1, review2));
+        given(userRepository.findAllByIdIn(any())).willReturn(List.of(reviewer1, reviewer2));
+
+        // when
+        ReviewsGetResponse response = reviewService.getAllReviews(writerId, qnAId);
+
+        // then
+        assertThat(response.reviews()).hasSize(2);
+        assertThat(response.reviews()).extracting("id").containsExactlyInAnyOrder(1L, 2L);
+        assertThat(response.reviews()).extracting(r -> r.sender().id())
+                .containsExactlyInAnyOrder(reviewer1Id, reviewer2Id);
+        verify(qnARepository, times(1)).findByIdOrElseThrow(qnAId);
+        verify(reviewRepository, times(1)).findAllByQnaId(qnAId);
+        verify(userRepository, times(1)).findAllByIdIn(any());
+    }
+
+    @Test
+    @DisplayName("전체 첨삭 댓글 조회 - REVIEWER는 자신이 작성한 리뷰만 조회할 수 있다")
+    void getAllReviews_Reviewer_CanSeeOnlyOwnReviews() {
+        // given
+        String writerId = "writer123";
+        String reviewerId = "reviewer1";
+        Long qnAId = 1L;
+
+        CoverLetter coverLetter = CoverLetterFixture.builder()
+                .id(1L)
+                .userId(writerId)
+                .companyName("테스트기업")
+                .applyYear(2024)
+                .applyHalf(ApplyHalfType.FIRST_HALF)
+                .build();
+
+        QnA qnA = QnAFixture.createQnAWithId(
+                qnAId,
+                coverLetter,
+                writerId,
+                "지원동기는 무엇인가요?",
+                QuestionCategoryType.MOTIVATION
+        );
+
+        Review review1 = ReviewFixture.builder()
+                .id(1L)
+                .reviewerId(reviewerId)
+                .qnaId(qnAId)
+                .originText("원본1")
+                .suggest("제안1")
+                .comment("코멘트1")
+                .build();
+
+        Review review2 = ReviewFixture.builder()
+                .id(2L)
+                .reviewerId(reviewerId)
+                .qnaId(qnAId)
+                .originText("원본2")
+                .suggest("제안2")
+                .comment("코멘트2")
+                .build();
+
+        User reviewer = UserFixture.builder()
+                .id(reviewerId)
+                .nickname("리뷰어")
+                .build();
+
+        given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(qnA);
+        given(userRepository.findByIdOrElseThrow(reviewerId)).willReturn(reviewer);
+        given(reviewRepository.findAllByQnaIdAndReviewerId(qnAId, reviewerId))
+                .willReturn(List.of(review1, review2));
+
+        // when
+        ReviewsGetResponse response = reviewService.getAllReviews(reviewerId, qnAId);
+
+        // then
+        assertThat(response.reviews()).hasSize(2);
+        assertThat(response.reviews()).extracting("id").containsExactlyInAnyOrder(1L, 2L);
+        assertThat(response.reviews()).allMatch(r -> r.sender().id().equals(reviewerId));
+        verify(qnARepository, times(1)).findByIdOrElseThrow(qnAId);
+        verify(userRepository, times(1)).findByIdOrElseThrow(reviewerId);
+        verify(reviewRepository, times(1)).findAllByQnaIdAndReviewerId(qnAId, reviewerId);
+    }
+
+    @Test
+    @DisplayName("전체 첨삭 댓글 조회 - 탈퇴한 유저의 리뷰는 제외된다 (WRITER)")
+    void getAllReviews_FiltersDeletedUserReviews() {
+        // given
+        String writerId = "writer123";
+        String activeReviewerId = "reviewer1";
+        String deletedReviewerId = "deletedReviewer";
+        Long qnAId = 1L;
+
+        CoverLetter coverLetter = CoverLetterFixture.builder()
+                .id(1L)
+                .userId(writerId)
+                .build();
+
+        QnA qnA = QnAFixture.createQnAWithId(
+                qnAId,
+                coverLetter,
+                writerId,
+                "질문",
+                QuestionCategoryType.MOTIVATION
+        );
+
+        Review activeReview = ReviewFixture.builder()
+                .id(1L)
+                .reviewerId(activeReviewerId)
+                .qnaId(qnAId)
+                .build();
+
+        Review deletedUserReview = ReviewFixture.builder()
+                .id(2L)
+                .reviewerId(deletedReviewerId)
+                .qnaId(qnAId)
+                .build();
+
+        User activeReviewer = UserFixture.builder()
+                .id(activeReviewerId)
+                .nickname("활성리뷰어")
+                .build();
+
+        given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(qnA);
+        given(reviewRepository.findAllByQnaId(qnAId)).willReturn(List.of(activeReview, deletedUserReview));
+        given(userRepository.findAllByIdIn(any()))
+                .willReturn(List.of(activeReviewer)); // deletedReviewer는 조회되지 않음
+
+        // when
+        ReviewsGetResponse response = reviewService.getAllReviews(writerId, qnAId);
+
+        // then
+        assertThat(response.reviews()).hasSize(1);
+        assertThat(response.reviews().get(0).id()).isEqualTo(1L);
+        assertThat(response.reviews().get(0).sender().id()).isEqualTo(activeReviewerId);
+    }
+
+    @Test
+    @DisplayName("전체 첨삭 댓글 조회 - 리뷰가 없는 경우 빈 리스트 반환")
+    void getAllReviews_ReturnsEmptyListWhenNoReviews() {
+        // given
+        String writerId = "writer123";
+        Long qnAId = 1L;
+
+        CoverLetter coverLetter = CoverLetterFixture.builder()
+                .id(1L)
+                .userId(writerId)
+                .build();
+
+        QnA qnA = QnAFixture.createQnAWithId(
+                qnAId,
+                coverLetter,
+                writerId,
+                "질문",
+                QuestionCategoryType.MOTIVATION
+        );
+
+        given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(qnA);
+        given(reviewRepository.findAllByQnaId(qnAId)).willReturn(List.of());
+        given(userRepository.findAllByIdIn(any())).willReturn(List.of());
+
+        // when
+        ReviewsGetResponse response = reviewService.getAllReviews(writerId, qnAId);
+
+        // then
+        assertThat(response.reviews()).isEmpty();
     }
 }
