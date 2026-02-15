@@ -9,14 +9,32 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 interface methodProps {
   endpoint: string;
   body?: unknown;
+  params?: Record<string, unknown>;
   options?: RequestInit;
   skipAuth?: boolean;
 }
 
 // 인터셉터 패턴처럼 fetch Wrapper
 export const apiClient = {
-  get: async ({ endpoint, options, skipAuth }: methodProps) => {
-    return request(endpoint, { ...options, method: 'GET' }, skipAuth);
+  get: async ({ endpoint, params, options, skipAuth }: methodProps) => {
+    const cleanParams: Record<string, unknown> = {};
+    if (params) {
+      for (const key in params) {
+        const value = params[key];
+        if (value !== null && value !== undefined) {
+          cleanParams[key] = value;
+        }
+      }
+    }
+    const queryString =
+      Object.keys(cleanParams).length > 0
+        ? `?${new URLSearchParams(cleanParams as Record<string, string>).toString()}`
+        : '';
+    return request(
+      `${endpoint}${queryString}`,
+      { ...options, method: 'GET' },
+      skipAuth,
+    );
   },
   post: async ({ endpoint, body, options, skipAuth }: methodProps) => {
     return request(
