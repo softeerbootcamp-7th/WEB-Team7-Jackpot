@@ -21,7 +21,8 @@ public record SearchLibraryAndQnAResponse(
             String jobPosition,
             String applySeason,
             String question,
-            String answer
+            String answer,
+            Long coverLetterId
     ) {
         public static QnAItem from(QnA qnA) {
             CoverLetter coverLetter = qnA.getCoverLetter();
@@ -34,7 +35,8 @@ public record SearchLibraryAndQnAResponse(
                             coverLetter.getApplyYear(),
                             coverLetter.getApplyHalf().getDescription()),
                     qnA.getQuestion(),
-                    qnA.getAnswer()
+                    qnA.getAnswer(),
+                    coverLetter.getId()
             );
         }
     }

@@ -15,7 +15,8 @@ public record SearchScrapResponse(
             String jobPosition,
             String applySeason,
             String question,
-            String answer
+            String answer,
+            Long coverLetterId
     ) {
         public static QnAItem from(QnA qna) {
             CoverLetter coverLetter = qna.getCoverLetter();
@@ -28,7 +29,8 @@ public record SearchScrapResponse(
                             coverLetter.getApplyYear(),
                             coverLetter.getApplyHalf().getDescription()),
                     qna.getQuestion(),
-                    qna.getAnswer()
+                    qna.getAnswer(),
+                    coverLetter.getId()
             );
         }
     }
