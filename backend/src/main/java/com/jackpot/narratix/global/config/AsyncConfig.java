@@ -30,6 +30,8 @@ public class AsyncConfig implements AsyncConfigurer {
         executor.setThreadNamePrefix(THREAD_NAME_PREFIX);
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(AWAIT_TERMINATION_SECONDS);
+        executor.setRejectedExecutionHandler((r, e) ->
+                log.warn("비동기 태스크가 거부되었습니다. Queue 및 스레드 풀이 포화 상태입니다. Task: {}", r));
         executor.initialize();
         return executor;
     }
