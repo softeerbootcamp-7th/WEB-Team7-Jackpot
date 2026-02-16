@@ -5,7 +5,7 @@ import com.jackpot.narratix.domain.event.ReviewCreatedEvent;
 
 import java.time.LocalDateTime;
 
-public record WebSocketCreateCommentMessage(
+public record WebSocketCreateReviewMessage(
         Sender sender,
         Long reviewId,
         String originText,
@@ -14,9 +14,9 @@ public record WebSocketCreateCommentMessage(
         LocalDateTime createdAt
 ) {
 
-    public static WebSocketCreateCommentMessage of(User reviewer, ReviewCreatedEvent event) {
-        return new WebSocketCreateCommentMessage(
-                WebSocketCreateCommentMessage.Sender.of(reviewer),
+    public static WebSocketCreateReviewMessage of(User reviewer, ReviewCreatedEvent event) {
+        return new WebSocketCreateReviewMessage(
+                WebSocketCreateReviewMessage.Sender.of(reviewer),
                 event.reviewId(),
                 event.originText(),
                 event.suggest(),

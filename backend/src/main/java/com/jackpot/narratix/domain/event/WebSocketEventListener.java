@@ -9,9 +9,9 @@ import com.jackpot.narratix.domain.repository.UserRepository;
 import com.jackpot.narratix.domain.service.ShareLinkLockManager;
 import com.jackpot.narratix.domain.service.ShareLinkService;
 import com.jackpot.narratix.domain.service.WebSocketMessageSender;
-import com.jackpot.narratix.domain.service.dto.WebSocketCreateCommentMessage;
-import com.jackpot.narratix.domain.service.dto.WebSocketDeleteCommentMessage;
-import com.jackpot.narratix.domain.service.dto.WebSocketEditCommentMessage;
+import com.jackpot.narratix.domain.service.dto.WebSocketCreateReviewMessage;
+import com.jackpot.narratix.domain.service.dto.WebSocketDeleteReviewMessage;
+import com.jackpot.narratix.domain.service.dto.WebSocketEditReviewMessage;
 import com.jackpot.narratix.global.websocket.WebSocketSessionAttributes;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +48,7 @@ public class WebSocketEventListener {
         if (shareLink.isEmpty()) return;
 
         User reviewer = userRepository.findByIdOrElseThrow(event.reviewerId());
-        WebSocketCreateCommentMessage message = WebSocketCreateCommentMessage.of(reviewer, event);
+        WebSocketCreateReviewMessage message = WebSocketCreateReviewMessage.of(reviewer, event);
         webSocketMessageSender.sendMessageToShare(
                 shareLink.get().getShareId(),
                 new WebSocketMessageResponse(WebSocketMessageType.REVIEW_CREATED, message)
@@ -63,7 +63,7 @@ public class WebSocketEventListener {
         Optional<ShareLink> shareLink = shareLinkService.getActiveShareLinkByCoverLetterId(event.coverLetterId());
         if (shareLink.isEmpty()) return;
 
-        WebSocketEditCommentMessage message = WebSocketEditCommentMessage.of(event);
+        WebSocketEditReviewMessage message = WebSocketEditReviewMessage.of(event);
         webSocketMessageSender.sendMessageToShare(
                 shareLink.get().getShareId(),
                 new WebSocketMessageResponse(WebSocketMessageType.REVIEW_UPDATED, message)
@@ -78,7 +78,7 @@ public class WebSocketEventListener {
         Optional<ShareLink> shareLink = shareLinkService.getActiveShareLinkByCoverLetterId(event.coverLetterId());
         if (shareLink.isEmpty()) return;
 
-        WebSocketDeleteCommentMessage message = new WebSocketDeleteCommentMessage(event.reviewId());
+        WebSocketDeleteReviewMessage message = new WebSocketDeleteReviewMessage(event.reviewId());
         webSocketMessageSender.sendMessageToShare(
                 shareLink.get().getShareId(),
                 new WebSocketMessageResponse(WebSocketMessageType.REVIEW_DELETED, message)

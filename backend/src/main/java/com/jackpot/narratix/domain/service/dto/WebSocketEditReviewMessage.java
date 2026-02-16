@@ -4,15 +4,15 @@ import com.jackpot.narratix.domain.event.ReviewEditEvent;
 
 import java.time.LocalDateTime;
 
-public record WebSocketEditCommentMessage(
+public record WebSocketEditReviewMessage(
         Long reviewId,
         String originText,
         String suggest,
         String content,
         LocalDateTime modifiedAt
 ) {
-    public static WebSocketEditCommentMessage of(ReviewEditEvent event) {
-        return new WebSocketEditCommentMessage(
+    public static WebSocketEditReviewMessage of(ReviewEditEvent event) {
+        return new WebSocketEditReviewMessage(
                 event.reviewId(),
                 event.originText(),
                 event.suggest(),
