@@ -5,16 +5,23 @@ import EmptyCase from '@/shared/components/EmptyCase';
 
 interface CoverLetterSectionProps {
   searchWord: string;
+  isFilterActive: boolean;
   page: number;
   onPageChange: (page: number) => void;
 }
 
 const CoverLetterOverviewSection = ({
   searchWord,
+  isFilterActive,
   page,
   onPageChange,
 }: CoverLetterSectionProps) => {
-  const { data } = useCoverLetterSearch(searchWord, 9, page + 1);
+  // TODO: isFilterActive가 true일 때 첨삭 active 필터링 API로 교체
+  const { data } = useCoverLetterSearch(
+    isFilterActive ? '' : searchWord,
+    9,
+    page + 1,
+  );
   const coverLetters = data.coverLetters ?? [];
   const overviewEmptyText = emptyCaseText['overview'];
 

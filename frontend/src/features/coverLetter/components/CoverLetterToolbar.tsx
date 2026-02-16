@@ -43,7 +43,7 @@ const CoverLetterToolbar = ({
         <button
           type='button'
           onClick={onToggleReview}
-          className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-sm font-medium transition-colors ${
+          className={`flex cursor-pointer items-center gap-1.5 rounded-xl border px-3 py-1.5 text-sm font-medium transition-colors ${
             isReviewOpen
               ? 'border-gray-800 bg-gray-800 text-white'
               : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'

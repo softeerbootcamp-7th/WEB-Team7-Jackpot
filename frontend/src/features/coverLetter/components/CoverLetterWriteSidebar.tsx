@@ -64,8 +64,8 @@ const CoverLetterWriteSidebar = ({
               onClick={() => handleTabChange('scrap')}
               className={`flex h-11 flex-1 items-center justify-center gap-1.5 rounded-md px-16 py-2.5 transition-all ${
                 isScrap
-                  ? 'bg-white shadow-[0px_0px_10px_0px_rgba(41,41,41,0.06)]'
-                  : ''
+                  ? 'cursor-default bg-white shadow-[0px_0px_10px_0px_rgba(41,41,41,0.06)]'
+                  : 'cursor-pointer'
               }`}
             >
               <div
@@ -82,8 +82,8 @@ const CoverLetterWriteSidebar = ({
               onClick={() => handleTabChange('library')}
               className={`flex h-11 flex-1 items-center justify-center rounded-md px-10 py-2.5 transition-all ${
                 !isScrap
-                  ? 'bg-white shadow-[0px_0px_10px_0px_rgba(41,41,41,0.06)]'
-                  : ''
+                  ? 'cursor-default bg-white shadow-[0px_0px_10px_0px_rgba(41,41,41,0.06)]'
+                  : 'cursor-pointer'
               }`}
             >
               <div
@@ -93,7 +93,7 @@ const CoverLetterWriteSidebar = ({
                     : 'font-normal text-gray-400'
                 }`}
               >
-                자기소개서 검색
+                라이브러리 검색
               </div>
             </button>
           </div>
@@ -102,8 +102,8 @@ const CoverLetterWriteSidebar = ({
           onSearch={handleSearch}
           placeholder={
             isScrap
-              ? '문항 유형을 입력해주세요'
-              : '기업명 또는 직무를 입력해주세요'
+              ? '질문 또는 답변을 입력해주세요'
+              : '문항 유형을 입력해주세요'
           }
         />
       </div>

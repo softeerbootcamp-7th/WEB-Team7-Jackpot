@@ -10,7 +10,7 @@ const SearchInput = ({ onSearch, placeholder }: SearchBarProps) => {
   const { keyword, handleChange } = useSearch({ onSearch });
 
   return (
-    <search className='mb-6 inline-flex h-12 w-full max-w-[25rem] items-center justify-between rounded-lg bg-gray-50 px-5 py-3.5'>
+    <search className='inline-flex h-12 w-full max-w-[25rem] items-center justify-between rounded-lg bg-gray-50 px-5 py-3.5'>
       <input
         aria-label='검색어 입력'
         type='search'

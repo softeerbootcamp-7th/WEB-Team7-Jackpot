@@ -1,9 +1,8 @@
-import { getAccessToken } from '@/features/auth/libs/tokenStore';
+import { apiClient } from '@/shared/api/apiClient';
 import type {
   CoverLetter,
   RecentCoverLetter,
 } from '@/shared/types/coverLetter';
-import { parseErrorResponse } from '@/shared/utils/fetchUtils';
 
 interface SearchCoverLettersParams {
   searchWord?: string;
@@ -23,7 +22,6 @@ interface CoverLetterSearchResponse {
   page: PageInfo;
 }
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export const searchCoverLetters = async ({
   searchWord,
   size = 9,
@@ -35,20 +33,9 @@ export const searchCoverLetters = async ({
   params.append('size', size.toString());
   params.append('page', page.toString());
 
-  const response = await fetch(
-    `${BASE_URL}/search/coverletter?${params.toString()}`,
-    {
-      headers: {
-        Authorization: getAccessToken(),
-      },
-    },
-  );
-
-  if (!response.ok) {
-    await parseErrorResponse(response);
-  }
-
-  return response.json();
+  return apiClient.get<CoverLetterSearchResponse>({
+    endpoint: `/search/coverletter?${params.toString()}`,
+  });
 };
 
 export const getCoverLetter = async (
@@ -58,15 +45,7 @@ export const getCoverLetter = async (
     throw new Error(`Invalid coverLetterId: ${coverLetterId}`);
   }
 
-  const response = await fetch(`${BASE_URL}/coverletter/${coverLetterId}`, {
-    headers: {
-      Authorization: getAccessToken(),
-    },
+  return apiClient.get<CoverLetter>({
+    endpoint: `/coverletter/${coverLetterId}`,
   });
-
-  if (!response.ok) {
-    await parseErrorResponse(response);
-  }
-
-  return response.json();
 };

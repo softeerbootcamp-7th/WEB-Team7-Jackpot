@@ -1,32 +1,18 @@
-import { getAccessToken } from '@/features/auth/libs/tokenStore';
 import type {
   CalendarDatesResponse,
   HomeCountResponse,
   UpcomingDeadlinesResponse,
 } from '@/features/home/types/home';
-import { parseErrorResponse } from '@/shared/utils/fetchUtils';
-
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { apiClient } from '@/shared/api/apiClient';
 
 export const fetchHomeCount = async (
   date: string,
 ): Promise<HomeCountResponse> => {
   const params = new URLSearchParams({ date });
 
-  const response = await fetch(
-    `${BASE_URL}/coverletter/count?${params.toString()}`,
-    {
-      headers: {
-        Authorization: getAccessToken(),
-      },
-    },
-  );
-
-  if (!response.ok) {
-    await parseErrorResponse(response);
-  }
-
-  return response.json();
+  return apiClient.get<HomeCountResponse>({
+    endpoint: `/coverletter/count?${params.toString()}`,
+  });
 };
 
 interface FetchUpcomingDeadlinesParams {
@@ -46,20 +32,9 @@ export const fetchUpcomingDeadlines = async ({
     maxCoverLetterSizePerDeadLine: maxCoverLetterSizePerDeadLine.toString(),
   });
 
-  const response = await fetch(
-    `${BASE_URL}/coverletter/upcoming?${params.toString()}`,
-    {
-      headers: {
-        Authorization: getAccessToken(),
-      },
-    },
-  );
-
-  if (!response.ok) {
-    await parseErrorResponse(response);
-  }
-
-  return response.json();
+  return apiClient.get<UpcomingDeadlinesResponse>({
+    endpoint: `/coverletter/upcoming?${params.toString()}`,
+  });
 };
 
 interface FetchCalendarDatesParams {
@@ -76,18 +51,7 @@ export const fetchCalendarDates = async ({
     endDate,
   });
 
-  const response = await fetch(
-    `${BASE_URL}/coverletter/calendar?${params.toString()}`,
-    {
-      headers: {
-        Authorization: getAccessToken(),
-      },
-    },
-  );
-
-  if (!response.ok) {
-    await parseErrorResponse(response);
-  }
-
-  return response.json();
+  return apiClient.get<CalendarDatesResponse>({
+    endpoint: `/coverletter/calendar?${params.toString()}`,
+  });
 };
