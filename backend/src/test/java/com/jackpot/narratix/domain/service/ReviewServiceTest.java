@@ -104,8 +104,9 @@ class ReviewServiceTest {
         given(reviewRepository.save(any(Review.class))).willReturn(savedReview);
         given(qnARepository.findByIdOrElseThrow(qnaId)).willReturn(qnA);
         doNothing().when(notificationService).sendFeedbackNotificationToWriter(any(), any(), any(), any());
-
+        given(qnARepository.getCoverLetterIdByQnAId(qnaId)).willReturn(Optional.of(1L));
         // when
+
         reviewService.createReview(reviewerId, qnaId, request);
 
         // then
