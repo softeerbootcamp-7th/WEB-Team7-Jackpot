@@ -7,5 +7,5 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum WebSocketMessageType {
     COMMENT_CREATED,
-    TEXT_UPDATE
+    COMMENT_UPDATED, TEXT_UPDATE
 }
