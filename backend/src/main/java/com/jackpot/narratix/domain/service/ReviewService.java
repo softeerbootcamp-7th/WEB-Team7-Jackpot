@@ -3,21 +3,19 @@ package com.jackpot.narratix.domain.service;
 import com.jackpot.narratix.domain.controller.request.ReviewCreateRequest;
 import com.jackpot.narratix.domain.controller.request.ReviewEditRequest;
 import com.jackpot.narratix.domain.controller.response.ReviewsGetResponse;
-import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.Review;
 import com.jackpot.narratix.domain.entity.User;
-import com.jackpot.narratix.domain.entity.enums.NotificationType;
 import com.jackpot.narratix.domain.entity.enums.ReviewRoleType;
-import com.jackpot.narratix.domain.entity.notification_meta.FeedbackNotificationMeta;
 import com.jackpot.narratix.domain.exception.ReviewErrorCode;
+import com.jackpot.narratix.domain.event.ReviewCreatedEvent;
 import com.jackpot.narratix.domain.repository.QnARepository;
 import com.jackpot.narratix.domain.repository.ReviewRepository;
 import com.jackpot.narratix.domain.repository.UserRepository;
-import com.jackpot.narratix.domain.service.dto.NotificationSendRequest;
 import com.jackpot.narratix.global.exception.BaseException;
 import com.jackpot.narratix.global.exception.GlobalErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,36 +33,21 @@ public class ReviewService {
     private final UserRepository userRepository;
     private final QnARepository qnARepository;
     private final NotificationService notificationService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    public void createReview(String reviewerId, Long qnaId, ReviewCreateRequest request) {
-        reviewRepository.save(request.toEntity(reviewerId, qnaId));
+    public void createReview(String reviewerId, Long qnAId, ReviewCreateRequest request) {
+
+        // TODO: 버전과 비교해서 리뷰를 달 수 있는지 확인
+
+        Review review = reviewRepository.save(request.toEntity(reviewerId, qnAId));
+        QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
 
         // TODO: 본문 텍스트 전체 변경 이벤트 발행
 
-        // TODO: 첨삭 댓글 생성 이벤트 발행
-
-        sendFeedbackNotificationToWriter(reviewerId, qnaId, request.originText());
-    }
-
-    private void sendFeedbackNotificationToWriter(String reviewerId, Long qnAId, String originText) {
-        User reviewer = userRepository.findByIdOrElseThrow(reviewerId);
-        QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
-        CoverLetter coverLetter = qnA.getCoverLetter();
-        String writerId = coverLetter.getUserId();
-
-        FeedbackNotificationMeta feedbackNotificationMeta = FeedbackNotificationMeta.of(
-                reviewer.getId(), reviewer.getNickname(), qnAId
-        );
-
-        NotificationSendRequest notificationSendRequest = NotificationSendRequest.builder()
-                .type(NotificationType.FEEDBACK)
-                .meta(feedbackNotificationMeta)
-                .title(coverLetter.getCompanyName() + " " + coverLetter.getApplyYear() + " " + coverLetter.getApplyHalf().getDescription())
-                .content(originText)
-                .build();
-
-        notificationService.sendNotification(writerId, notificationSendRequest);
+        Long coverLetterId = qnA.getCoverLetter().getId();
+        eventPublisher.publishEvent(ReviewCreatedEvent.of(coverLetterId, review));
+        notificationService.sendFeedbackNotificationToWriter(reviewerId, qnA, request.originText());
     }
 
     @Transactional
@@ -133,7 +116,7 @@ public class ReviewService {
             review.approve();
         }
 
-        // TODO: 웹소켓 본문 전체 텍스트 변경 이벤트 발송
+        // TODO: 웹소켓 본문 텍스트 변경 이벤트 발송
         // TODO: 첨삭 댓글 수정 이벤트 발송
     }
 
