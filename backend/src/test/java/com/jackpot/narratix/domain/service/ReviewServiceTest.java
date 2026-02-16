@@ -31,6 +31,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -147,7 +148,7 @@ class ReviewServiceTest {
 
         given(reviewRepository.findByIdOrElseThrow(reviewId)).willReturn(existingReview);
         given(reviewRepository.save(existingReview)).willReturn(updatedReview);
-        given(qnARepository.getCoverLetterIdByQnAId(qnAId)).willReturn(coverLetterId);
+        given(qnARepository.getCoverLetterIdByQnAId(qnAId)).willReturn(Optional.of(coverLetterId));
 
         // when
         reviewService.editReview(userId, qnAId, reviewId, request);
@@ -263,7 +264,7 @@ class ReviewServiceTest {
 
         given(reviewRepository.findById(reviewId)).willReturn(java.util.Optional.of(review));
         given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(qnA);
-        given(qnARepository.getCoverLetterIdByQnAId(qnAId)).willReturn(coverLetterId);
+        given(qnARepository.getCoverLetterIdByQnAId(qnAId)).willReturn(java.util.Optional.of(coverLetterId));
 
         // when
         reviewService.deleteReview(reviewerId, qnAId, reviewId);
@@ -312,7 +313,7 @@ class ReviewServiceTest {
 
         given(reviewRepository.findById(reviewId)).willReturn(java.util.Optional.of(review));
         given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(qnA);
-        given(qnARepository.getCoverLetterIdByQnAId(qnAId)).willReturn(coverLetterId);
+        given(qnARepository.getCoverLetterIdByQnAId(qnAId)).willReturn(java.util.Optional.of(coverLetterId));
 
         // when
         reviewService.deleteReview(writerId, qnAId, reviewId);
@@ -448,7 +449,7 @@ class ReviewServiceTest {
 
         given(reviewRepository.findByIdOrElseThrow(reviewId)).willReturn(review);
         given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(qnA);
-        given(qnARepository.getCoverLetterIdByQnAId(qnAId)).willReturn(coverLetterId);
+        given(qnARepository.getCoverLetterIdByQnAId(qnAId)).willReturn(java.util.Optional.of(coverLetterId));
         given(reviewRepository.save(review)).willReturn(review);
 
         // when
@@ -578,7 +579,7 @@ class ReviewServiceTest {
 
         given(reviewRepository.findByIdOrElseThrow(reviewId)).willReturn(review);
         given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(qnA);
-        given(qnARepository.getCoverLetterIdByQnAId(qnAId)).willReturn(coverLetterId);
+        given(qnARepository.getCoverLetterIdByQnAId(qnAId)).willReturn(java.util.Optional.of(coverLetterId));
         given(reviewRepository.save(review)).willReturn(review);
 
         // when

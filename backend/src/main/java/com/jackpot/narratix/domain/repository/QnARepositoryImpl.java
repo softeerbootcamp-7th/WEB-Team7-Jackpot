@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -79,7 +80,7 @@ public class QnARepositoryImpl implements QnARepository {
     }
 
     @Override
-    public Long getCoverLetterIdByQnAId(Long qnAId) {
+    public Optional<Long> getCoverLetterIdByQnAId(Long qnAId) {
         return qnAJpaRepository.getCoverLetterIdByQnAId(qnAId);
     }
 

@@ -8,6 +8,7 @@ import org.springframework.data.domain.Slice;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface QnARepository {
 
@@ -34,5 +35,5 @@ public interface QnARepository {
 
     Long countSearchQnA(String userId, String keyword);
 
-    Long getCoverLetterIdByQnAId(Long qnAId);
+    Optional<Long> getCoverLetterIdByQnAId(Long qnAId);
 }

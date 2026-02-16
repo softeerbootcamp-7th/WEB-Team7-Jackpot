@@ -18,6 +18,7 @@ import com.jackpot.narratix.domain.repository.UserRepository;
 import com.jackpot.narratix.global.exception.BaseException;
 import com.jackpot.narratix.global.exception.GlobalErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,8 +27,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ReviewService {
@@ -66,8 +69,9 @@ public class ReviewService {
         review.editComment(request.comment());
         Review updatedReview = reviewRepository.save(review);
 
-        Long coverLetterId = qnARepository.getCoverLetterIdByQnAId(qnAId);
-        eventPublisher.publishEvent(ReviewEditEvent.of(coverLetterId, qnAId, updatedReview));
+        publishEventWithCoverLetter(qnAId,
+            coverLetterId -> eventPublisher.publishEvent(ReviewEditEvent.of(coverLetterId, qnAId, updatedReview))
+        );
     }
 
     private void validateReviewBelongsToQnA(Review review, Long qnAId) {
@@ -96,8 +100,9 @@ public class ReviewService {
 
         // TODO: Writer, Reviewer 본문 텍스트 전체 변경 이벤트 발송
 
-        Long coverLetterId = qnARepository.getCoverLetterIdByQnAId(qnAId);
-        eventPublisher.publishEvent(new ReviewDeleteEvent(coverLetterId, qnAId, reviewId));
+        publishEventWithCoverLetter(qnAId,
+            coverLetterId -> eventPublisher.publishEvent(new ReviewDeleteEvent(coverLetterId, qnAId, reviewId))
+        );
     }
 
     private void validateIsReviewOwnerOrQnAOwner(String userId, Review review, QnA qnA) {
@@ -126,14 +131,22 @@ public class ReviewService {
 
         // TODO: 웹소켓 본문 텍스트 변경 이벤트 발송
 
-        Long coverLetterId = qnARepository.getCoverLetterIdByQnAId(qnAId);
-        eventPublisher.publishEvent(ReviewEditEvent.of(coverLetterId, qnAId, updatedReview));
+        publishEventWithCoverLetter(qnAId,
+            coverLetterId -> eventPublisher.publishEvent(ReviewEditEvent.of(coverLetterId, qnAId, updatedReview))
+        );
     }
 
     private void validateIsQnAOwner(String userId, QnA qnA) {
         if (!qnA.isOwner(userId)) {
             throw new BaseException(GlobalErrorCode.FORBIDDEN);
         }
+    }
+
+    private void publishEventWithCoverLetter(Long qnAId, Consumer<Long> action) {
+        qnARepository.getCoverLetterIdByQnAId(qnAId).ifPresentOrElse(
+            action,
+            () -> log.warn("coverLetterId is empty for qnAId: {}", qnAId)
+        );
     }
 
     @Transactional(readOnly = true)
