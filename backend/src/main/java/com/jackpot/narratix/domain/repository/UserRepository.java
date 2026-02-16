@@ -12,5 +12,5 @@ public interface UserRepository {
 
     User findByIdOrElseThrow(String userId);
 
-    List<User> findAllByIdIn(Collection<String> reviewerIds);
+    List<User> findAllByIdIn(Collection<String> userIds);
 }

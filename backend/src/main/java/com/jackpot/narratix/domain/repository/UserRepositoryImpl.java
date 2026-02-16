@@ -27,7 +27,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public List<User> findAllByIdIn(Collection<String> reviewerIds) {
-        return userJpaRepository.findAllByIdIn(reviewerIds);
+    public List<User> findAllByIdIn(Collection<String> userIds) {
+        return userJpaRepository.findAllByIdIn(userIds);
     }
 }
