@@ -154,11 +154,6 @@ class WebSocketEventListenerTest {
         String reviewerId = "reviewer123";
         Long coverLetterId = 1L;
 
-        User reviewer = UserFixture.builder()
-                .id(reviewerId)
-                .nickname("리뷰어닉네임")
-                .build();
-
         ReviewCreatedEvent event = new ReviewCreatedEvent(
                 coverLetterId,
                 reviewerId,
@@ -169,14 +164,12 @@ class WebSocketEventListenerTest {
                 LocalDateTime.now()
         );
 
-        given(userRepository.findByIdOrElseThrow(reviewerId)).willReturn(reviewer);
         given(shareLinkService.getActiveShareLinkByCoverLetterId(coverLetterId)).willReturn(Optional.empty());
 
         // when
         webSocketEventListener.handleReviewCreatedEvent(event);
 
         // then
-        verify(userRepository).findByIdOrElseThrow(reviewerId);
         verify(shareLinkService).getActiveShareLinkByCoverLetterId(coverLetterId);
         verify(webSocketMessageSender, never()).sendMessageToShare(anyString(), any());
     }
