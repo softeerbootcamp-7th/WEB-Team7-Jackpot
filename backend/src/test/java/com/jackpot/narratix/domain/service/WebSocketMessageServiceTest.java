@@ -115,6 +115,7 @@ class WebSocketMessageServiceTest {
     void handleTextUpdate_Success() {
         // given
         String shareId = "test-share-123";
+        Long qnAId = 1L;
         String sessionShareId = "test-share-123";
         String userId = "user123";
         ReviewRoleType role = ReviewRoleType.WRITER;
@@ -127,7 +128,7 @@ class WebSocketMessageServiceTest {
         );
 
         // when
-        webSocketMessageService.handleTextUpdate(shareId, sessionShareId, userId, role, request);
+        webSocketMessageService.handleTextUpdate(shareId, qnAId, sessionShareId, userId, role, request);
 
         // then
         ArgumentCaptor<WebSocketMessageResponse> responseCaptor =
@@ -136,6 +137,7 @@ class WebSocketMessageServiceTest {
 
         WebSocketMessageResponse capturedResponse = responseCaptor.getValue();
         assertThat(capturedResponse).isNotNull();
+        assertThat(capturedResponse.qnAId()).isEqualTo(qnAId);
         assertThat(capturedResponse.payload()).isEqualTo(request);
     }
 
@@ -144,6 +146,7 @@ class WebSocketMessageServiceTest {
     void handleTextUpdate_ShareIdMismatch_ThrowsException() {
         // given
         String shareId = "test-share-123";
+        Long qnAId = 1L;
         String sessionShareId = "different-share-456";
         String userId = "user123";
         ReviewRoleType role = ReviewRoleType.WRITER;
@@ -152,7 +155,7 @@ class WebSocketMessageServiceTest {
 
         // when & then
         assertThatThrownBy(() ->
-            webSocketMessageService.handleTextUpdate(shareId, sessionShareId, userId, role, request)
+            webSocketMessageService.handleTextUpdate(shareId, qnAId, sessionShareId, userId, role, request)
         ).isInstanceOf(BaseException.class)
          .hasFieldOrPropertyWithValue("errorCode", WebSocketErrorCode.SHARE_ID_MISMATCH);
     }
@@ -162,6 +165,7 @@ class WebSocketMessageServiceTest {
     void handleTextUpdate_ReviewerRole_ThrowsException() {
         // given
         String shareId = "test-share-123";
+        Long qnAId = 1L;
         String sessionShareId = "test-share-123";
         String userId = "user456";
         ReviewRoleType role = ReviewRoleType.REVIEWER;
@@ -170,7 +174,7 @@ class WebSocketMessageServiceTest {
 
         // when & then
         assertThatThrownBy(() ->
-            webSocketMessageService.handleTextUpdate(shareId, sessionShareId, userId, role, request)
+            webSocketMessageService.handleTextUpdate(shareId, qnAId, sessionShareId, userId, role, request)
         ).isInstanceOf(BaseException.class)
          .hasFieldOrPropertyWithValue("errorCode", WebSocketErrorCode.UNAUTHORIZED_TEXT_UPDATE);
     }
@@ -180,6 +184,7 @@ class WebSocketMessageServiceTest {
     void handleTextUpdate_ShareIdValidationFirst() {
         // given
         String shareId = "test-share-123";
+        Long qnAId = 1L;
         String sessionShareId = "different-share-456";
         String userId = "user456";
         ReviewRoleType role = ReviewRoleType.REVIEWER; // REVIEWER이지만 shareId 검증이 먼저 실패해야 함
@@ -188,7 +193,7 @@ class WebSocketMessageServiceTest {
 
         // when & then - shareId 불일치 예외가 먼저 발생해야 함
         assertThatThrownBy(() ->
-            webSocketMessageService.handleTextUpdate(shareId, sessionShareId, userId, role, request)
+            webSocketMessageService.handleTextUpdate(shareId, qnAId, sessionShareId, userId, role, request)
         ).isInstanceOf(BaseException.class)
          .hasFieldOrPropertyWithValue("errorCode", WebSocketErrorCode.SHARE_ID_MISMATCH);
     }
@@ -198,6 +203,7 @@ class WebSocketMessageServiceTest {
     void handleTextUpdate_CreatesAndSendsResponse() {
         // given
         String shareId = "test-share-123";
+        Long qnAId = 5L;
         String sessionShareId = "test-share-123";
         String userId = "writer-user";
         ReviewRoleType role = ReviewRoleType.WRITER;
@@ -210,7 +216,7 @@ class WebSocketMessageServiceTest {
         );
 
         // when
-        webSocketMessageService.handleTextUpdate(shareId, sessionShareId, userId, role, request);
+        webSocketMessageService.handleTextUpdate(shareId, qnAId, sessionShareId, userId, role, request);
 
         // then
         ArgumentCaptor<String> shareIdCaptor = ArgumentCaptor.forClass(String.class);
@@ -226,6 +232,7 @@ class WebSocketMessageServiceTest {
 
         WebSocketMessageResponse response = responseCaptor.getValue();
         assertThat(response).isNotNull();
+        assertThat(response.qnAId()).isEqualTo(qnAId);
         assertThat(response.payload()).isInstanceOf(TextUpdateRequest.class);
 
         TextUpdateRequest capturedPayload = (TextUpdateRequest) response.payload();

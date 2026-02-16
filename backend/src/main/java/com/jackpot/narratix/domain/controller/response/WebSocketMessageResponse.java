@@ -5,10 +5,11 @@ import com.jackpot.narratix.domain.entity.enums.WebSocketMessageType;
 
 public record WebSocketMessageResponse(
         WebSocketMessageType type,
+        Long qnAId,
         Object payload
 ) {
 
-    public static WebSocketMessageResponse createTextUpdateResponse(TextUpdateRequest request){
-        return new WebSocketMessageResponse(WebSocketMessageType.TEXT_UPDATE, request);
+    public static WebSocketMessageResponse createTextUpdateResponse(Long qnAId, TextUpdateRequest request){
+        return new WebSocketMessageResponse(WebSocketMessageType.TEXT_UPDATE, qnAId, request);
     }
 }

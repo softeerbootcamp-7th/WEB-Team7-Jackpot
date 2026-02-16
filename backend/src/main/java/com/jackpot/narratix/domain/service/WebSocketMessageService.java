@@ -45,6 +45,7 @@ public class WebSocketMessageService {
 
     public void handleTextUpdate(
             String shareId,
+            Long qnAId,
             String sessionShareId,
             String userId,
             ReviewRoleType role,
@@ -53,10 +54,10 @@ public class WebSocketMessageService {
         validateShareId(shareId, sessionShareId);
         validateWriterRole(role, userId, shareId);
 
-        log.info("Text update received: userId={}, shareId={}, version={}, startIdx={}, endIdx={}",
-                userId, shareId, request.version(), request.startIdx(), request.endIdx());
+        log.info("Text update received: userId={}, shareId={}, qnAId={}, version={}, startIdx={}, endIdx={}",
+                userId, shareId, qnAId, request.version(), request.startIdx(), request.endIdx());
 
-        WebSocketMessageResponse response = WebSocketMessageResponse.createTextUpdateResponse(request);
+        WebSocketMessageResponse response = WebSocketMessageResponse.createTextUpdateResponse(qnAId, request);
 
         webSocketMessageSender.sendMessageToReviewer(shareId, response);
     }
