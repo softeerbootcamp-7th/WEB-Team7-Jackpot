@@ -19,6 +19,7 @@ public record ReviewCreateRequest(
         return Review.builder()
                 .reviewerId(userId)
                 .qnaId(qnaId)
+                .originText(originText)
                 .suggest(suggest)
                 .comment(comment)
                 .build();

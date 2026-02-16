@@ -1,6 +1,12 @@
 package com.jackpot.narratix.domain.service;
 
+import com.jackpot.narratix.domain.entity.CoverLetter;
+import com.jackpot.narratix.domain.entity.QnA;
+import com.jackpot.narratix.domain.entity.User;
+import com.jackpot.narratix.domain.entity.enums.NotificationType;
+import com.jackpot.narratix.domain.entity.notification_meta.FeedbackNotificationMeta;
 import com.jackpot.narratix.domain.event.NotificationSendEvent;
+import com.jackpot.narratix.domain.repository.UserRepository;
 import com.jackpot.narratix.domain.service.dto.NotificationSendRequest;
 import com.jackpot.narratix.domain.service.dto.NotificationSendResponse;
 import com.jackpot.narratix.domain.controller.response.UnreadNotificationCountResponse;
@@ -21,6 +27,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class NotificationService {
 
+    private final UserRepository userRepository;
     private final NotificationRepository notificationRepository;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -56,11 +63,25 @@ public class NotificationService {
     }
 
     @Transactional
-    public void sendNotification(String receiverId, NotificationSendRequest request){
-        Notification notification = request.toEntity(receiverId);
+    public void sendFeedbackNotificationToWriter(String reviewerId, QnA qnA, String originText){
+        User reviewer = userRepository.findByIdOrElseThrow(reviewerId);
+        CoverLetter coverLetter = qnA.getCoverLetter();
+        String writerId = coverLetter.getUserId();
+
+        FeedbackNotificationMeta feedbackNotificationMeta = FeedbackNotificationMeta.of(
+                reviewer.getId(), reviewer.getNickname(), qnA.getId()
+        );
+
+        NotificationSendRequest request = NotificationSendRequest.builder()
+                .type(NotificationType.FEEDBACK)
+                .meta(feedbackNotificationMeta)
+                .title(coverLetter.getCompanyName() + " " + coverLetter.getApplyYear() + " " + coverLetter.getApplyHalf().getDescription())
+                .content(originText)
+                .build();
+
+        Notification notification = request.toEntity(writerId);
         notificationRepository.save(notification);
 
-        // 트랜잭션 커밋 이후 비동기로 SSE 전송
-        eventPublisher.publishEvent(new NotificationSendEvent(receiverId, NotificationSendResponse.of(notification)));
+        eventPublisher.publishEvent(new NotificationSendEvent(writerId, NotificationSendResponse.of(notification)));
     }
 }

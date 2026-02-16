@@ -10,11 +10,13 @@ import com.jackpot.narratix.domain.repository.ShareLinkRepository;
 import com.jackpot.narratix.global.exception.BaseException;
 import com.jackpot.narratix.global.exception.GlobalErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ShareLinkService {
@@ -86,5 +88,21 @@ public class ShareLinkService {
 
         CoverLetter coverLetter = coverLetterRepository.findByIdOrElseThrow(shareLink.getCoverLetterId());
         return coverLetter.isOwner(userId) ? ReviewRoleType.WRITER : ReviewRoleType.REVIEWER;
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<ShareLink> getActiveShareLinkByCoverLetterId(Long coverLetterId) {
+        Optional<ShareLink> shareLink = shareLinkRepository.findById(coverLetterId);
+        if (shareLink.isEmpty()) {
+            log.info("share link not found. coverLetterId={}", coverLetterId);
+            return Optional.empty();
+        }
+
+        if (!shareLink.get().isValid()) {
+            log.info("share link is not valid. coverLetterId={}", coverLetterId);
+            return Optional.empty();
+        }
+
+        return shareLink;
     }
 }

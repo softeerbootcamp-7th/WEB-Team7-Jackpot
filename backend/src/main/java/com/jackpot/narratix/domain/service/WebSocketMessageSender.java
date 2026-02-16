@@ -2,8 +2,6 @@ package com.jackpot.narratix.domain.service;
 
 import com.jackpot.narratix.domain.controller.response.WebSocketMessageResponse;
 import com.jackpot.narratix.domain.entity.enums.ReviewRoleType;
-import com.jackpot.narratix.domain.exception.WebSocketErrorCode;
-import com.jackpot.narratix.global.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
