@@ -1,8 +1,12 @@
 package com.jackpot.narratix.domain.service;
 
+import com.github.f4b6a3.ulid.UlidCreator;
 import com.jackpot.narratix.domain.controller.request.PresignedUrlRequest;
 import com.jackpot.narratix.domain.controller.response.PresignedUrlResponse;
+import com.jackpot.narratix.domain.entity.UploadFile;
+import com.jackpot.narratix.domain.entity.UploadJob;
 import com.jackpot.narratix.domain.exception.UploadErrorCode;
+import com.jackpot.narratix.domain.repository.UploadJobRepository;
 import com.jackpot.narratix.global.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,9 +18,9 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequ
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -24,6 +28,8 @@ import java.util.UUID;
 public class UploadService {
 
     private final S3Presigner s3Presigner;
+
+    private final UploadJobRepository uploadJobRepository;
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
@@ -35,9 +41,32 @@ public class UploadService {
 
     public PresignedUrlResponse createAllPresignedUrl(String userId, PresignedUrlRequest request) {
         validateFileCount(request.files());
-        List<PresignedUrlResponse.PresignedUrlInfo> responses = request.files().stream()
-                .map(fileRequest -> createSinglePresignedUrl(userId, fileRequest))
-                .toList();
+
+        String jobId = UlidCreator.getUlid().toString();
+        UploadJob job = UploadJob.builder()
+                .id(jobId)
+                .userId(userId)
+                .build();
+
+        List<PresignedUrlResponse.PresignedUrlInfo> responses = new ArrayList<>();
+
+        for (PresignedUrlRequest.FileRequest fileRequest : request.files()) {
+            validateFile(fileRequest);
+
+            String fileId = UlidCreator.getUlid().toString();
+            String s3Key = generateS3Key(userId, fileId);
+
+            UploadFile file = UploadFile.builder()
+                    .id(fileId)
+                    .originalFileName(fileRequest.fileName())
+                    .s3Key(s3Key)
+                    .build();
+
+            job.addFile(file);
+
+            responses.add(createSinglePresignedUrl(s3Key, fileId, fileRequest));
+        }
+        uploadJobRepository.save(job);
 
         return new PresignedUrlResponse(responses);
     }
@@ -51,10 +80,12 @@ public class UploadService {
         }
     }
 
-    private PresignedUrlResponse.PresignedUrlInfo createSinglePresignedUrl(String userId, PresignedUrlRequest.FileRequest request) {
+    private PresignedUrlResponse.PresignedUrlInfo createSinglePresignedUrl(String s3Key, String fileId, PresignedUrlRequest.FileRequest request) {
         validateFile(request);
 
-        String s3Key = generateS3Key(userId);
+        Map<String, String> metadata = Map.of(
+                "fileId", fileId
+        );
 
         try {
             PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
@@ -62,7 +93,8 @@ public class UploadService {
                     .putObjectRequest(p -> p
                             .bucket(bucket)
                             .key(s3Key)
-                            .contentType(request.contentType()))
+                            .contentType(request.contentType())
+                            .metadata(metadata))
                     .build();
 
             PresignedPutObjectRequest presigned = s3Presigner.presignPutObject(presignRequest);
@@ -71,10 +103,12 @@ public class UploadService {
                     request.fileName(),
                     presigned.url().toString(),
                     s3Key,
-                    Map.of("Content-Type", request.contentType())
+                    Map.of(
+                            "Content-Type", request.contentType(),
+                            "x-amz-meta-fileId", fileId)
             );
         } catch (SdkException e) {
-            log.error("AWS S3 Error occurred while generating URL. User: {}, Error: {}", userId, e.getMessage());
+            log.error("AWS S3 Error occurred while generating URL. key: {}, Error: {}", s3Key, e.getMessage());
             throw new BaseException(UploadErrorCode.PRESIGNED_URL_GENERATION_FAILED);
         }
     }
@@ -93,8 +127,7 @@ public class UploadService {
         }
     }
 
-    private String generateS3Key(String userId) {
-        String uuid = UUID.randomUUID().toString();
-        return "%s/%s/%s.pdf".formatted(FOLDER_NAME, userId, uuid);
+    private String generateS3Key(String userId, String fileId) {
+        return "%s/%s/%s.pdf".formatted(FOLDER_NAME, userId, fileId);
     }
 }

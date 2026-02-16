@@ -15,9 +15,9 @@ import java.util.concurrent.Executor;
 @EnableAsync
 public class AsyncConfig implements AsyncConfigurer {
 
-    private static final int CORE_POOL_SIZE = 2;
-    private static final int MAX_POOL_SIZE = 10;
-    private static final int QUEUE_CAPACITY = 50;
+    private static final int CORE_POOL_SIZE = 7;
+    private static final int MAX_POOL_SIZE = 15;
+    private static final int QUEUE_CAPACITY = 10;
     private static final String THREAD_NAME_PREFIX = "async-event-";
     private static final int AWAIT_TERMINATION_SECONDS = 30;
 
@@ -30,6 +30,8 @@ public class AsyncConfig implements AsyncConfigurer {
         executor.setThreadNamePrefix(THREAD_NAME_PREFIX);
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(AWAIT_TERMINATION_SECONDS);
+        executor.setRejectedExecutionHandler((r, e) ->
+                log.warn("비동기 태스크가 거부되었습니다. Queue 및 스레드 풀이 포화 상태입니다. Task: {}", r));
         executor.initialize();
         return executor;
     }

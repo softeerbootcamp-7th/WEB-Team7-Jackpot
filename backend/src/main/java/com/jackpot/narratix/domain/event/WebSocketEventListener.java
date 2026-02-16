@@ -51,7 +51,7 @@ public class WebSocketEventListener {
         WebSocketCreateReviewMessage message = WebSocketCreateReviewMessage.of(reviewer, event);
         webSocketMessageSender.sendMessageToShare(
                 shareLink.get().getShareId(),
-                new WebSocketMessageResponse(WebSocketMessageType.REVIEW_CREATED, message)
+                new WebSocketMessageResponse(WebSocketMessageType.REVIEW_CREATED, event.qnAId(), message)
         );
     }
 
@@ -66,7 +66,7 @@ public class WebSocketEventListener {
         WebSocketEditReviewMessage message = WebSocketEditReviewMessage.of(event);
         webSocketMessageSender.sendMessageToShare(
                 shareLink.get().getShareId(),
-                new WebSocketMessageResponse(WebSocketMessageType.REVIEW_UPDATED, message)
+                new WebSocketMessageResponse(WebSocketMessageType.REVIEW_UPDATED, event.qnAId(), message)
         );
     }
 
@@ -81,7 +81,7 @@ public class WebSocketEventListener {
         WebSocketDeleteReviewMessage message = new WebSocketDeleteReviewMessage(event.reviewId());
         webSocketMessageSender.sendMessageToShare(
                 shareLink.get().getShareId(),
-                new WebSocketMessageResponse(WebSocketMessageType.REVIEW_DELETED, message)
+                new WebSocketMessageResponse(WebSocketMessageType.REVIEW_DELETED, event.qnAId(), message)
         );
     }
 

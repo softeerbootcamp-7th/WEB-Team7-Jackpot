@@ -49,8 +49,9 @@ public class ReviewService {
 
         // TODO: 본문 텍스트 전체 변경 이벤트 발행
 
+        Long coverLetterId = qnA.getCoverLetter().getId();
+        eventPublisher.publishEvent(ReviewCreatedEvent.of(coverLetterId, qnAId, review));
         CoverLetter coverLetter = qnA.getCoverLetter();
-        eventPublisher.publishEvent(ReviewCreatedEvent.of(coverLetter.getId(), review));
         notificationService.sendFeedbackNotificationToWriter(reviewerId, coverLetter, qnAId, request.originText());
     }
 
@@ -66,7 +67,7 @@ public class ReviewService {
         Review updatedReview = reviewRepository.save(review);
 
         Long coverLetterId = qnARepository.getCoverLetterIdByQnAId(qnAId);
-        eventPublisher.publishEvent(ReviewEditEvent.of(coverLetterId, updatedReview));
+        eventPublisher.publishEvent(ReviewEditEvent.of(coverLetterId, qnAId, updatedReview));
     }
 
     private void validateReviewBelongsToQnA(Review review, Long qnAId) {
@@ -96,7 +97,7 @@ public class ReviewService {
         // TODO: Writer, Reviewer 본문 텍스트 전체 변경 이벤트 발송
 
         Long coverLetterId = qnARepository.getCoverLetterIdByQnAId(qnAId);
-        eventPublisher.publishEvent(new ReviewDeleteEvent(coverLetterId, reviewId));
+        eventPublisher.publishEvent(new ReviewDeleteEvent(coverLetterId, qnAId, reviewId));
     }
 
     private void validateIsReviewOwnerOrQnAOwner(String userId, Review review, QnA qnA) {
@@ -126,7 +127,7 @@ public class ReviewService {
         // TODO: 웹소켓 본문 텍스트 변경 이벤트 발송
 
         Long coverLetterId = qnARepository.getCoverLetterIdByQnAId(qnAId);
-        eventPublisher.publishEvent(ReviewEditEvent.of(coverLetterId, updatedReview));
+        eventPublisher.publishEvent(ReviewEditEvent.of(coverLetterId, qnAId, updatedReview));
     }
 
     private void validateIsQnAOwner(String userId, QnA qnA) {

@@ -5,6 +5,7 @@ import com.jackpot.narratix.domain.entity.ShareLink;
 import com.jackpot.narratix.domain.entity.User;
 import com.jackpot.narratix.domain.entity.enums.ReviewRoleType;
 import com.jackpot.narratix.domain.event.ReviewCreatedEvent;
+import com.jackpot.narratix.domain.event.ReviewEditEvent;
 import com.jackpot.narratix.domain.event.WebSocketEventListener;
 import com.jackpot.narratix.domain.fixture.UserFixture;
 import com.jackpot.narratix.domain.repository.UserRepository;
@@ -117,6 +118,7 @@ class WebSocketEventListenerTest {
         String reviewerId = "reviewer123";
         Long coverLetterId = 1L;
         Long reviewId = 10L;
+        Long qnAId = 2L;
 
         User reviewer = UserFixture.builder()
                 .id(reviewerId)
@@ -127,6 +129,7 @@ class WebSocketEventListenerTest {
 
         ReviewCreatedEvent event = new ReviewCreatedEvent(
                 coverLetterId,
+                qnAId,
                 reviewerId,
                 reviewId,
                 "원본 텍스트",
@@ -153,9 +156,11 @@ class WebSocketEventListenerTest {
         // given
         String reviewerId = "reviewer123";
         Long coverLetterId = 1L;
+        Long qnAId = 2L;
 
         ReviewCreatedEvent event = new ReviewCreatedEvent(
                 coverLetterId,
+                qnAId,
                 reviewerId,
                 10L,
                 "원본 텍스트",
@@ -181,11 +186,13 @@ class WebSocketEventListenerTest {
         String reviewerId = "reviewer123";
         Long coverLetterId = 1L;
         Long reviewId = 10L;
+        Long qnAId = 2L;
 
         ShareLink shareLink = ShareLink.newActivatedShareLink(coverLetterId);
 
-        com.jackpot.narratix.domain.event.ReviewEditEvent event = new com.jackpot.narratix.domain.event.ReviewEditEvent(
+        ReviewEditEvent event = new com.jackpot.narratix.domain.event.ReviewEditEvent(
                 coverLetterId,
+                qnAId,
                 reviewId,
                 reviewerId,
                 "원본 텍스트",
@@ -212,6 +219,7 @@ class WebSocketEventListenerTest {
 
         com.jackpot.narratix.domain.event.ReviewEditEvent event = new com.jackpot.narratix.domain.event.ReviewEditEvent(
                 coverLetterId,
+                2L,
                 10L,
                 "reviewer123",
                 "원본 텍스트",
@@ -235,12 +243,14 @@ class WebSocketEventListenerTest {
     void handleReviewDeleteEvent_ActiveShareLink_SendsWebSocketMessage() {
         // given
         Long coverLetterId = 1L;
+        Long qnAId = 1L;
         Long reviewId = 10L;
 
         ShareLink shareLink = ShareLink.newActivatedShareLink(coverLetterId);
 
         com.jackpot.narratix.domain.event.ReviewDeleteEvent event = new com.jackpot.narratix.domain.event.ReviewDeleteEvent(
                 coverLetterId,
+                qnAId,
                 reviewId
         );
 
@@ -262,6 +272,7 @@ class WebSocketEventListenerTest {
 
         com.jackpot.narratix.domain.event.ReviewDeleteEvent event = new com.jackpot.narratix.domain.event.ReviewDeleteEvent(
                 coverLetterId,
+                2L,
                 10L
         );
 

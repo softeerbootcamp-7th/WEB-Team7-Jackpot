@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 
 public record ReviewEditEvent(
         Long coverLetterId,
+        Long qnAId,
         Long reviewId,
         String reviewerId,
         String originText,
@@ -13,9 +14,10 @@ public record ReviewEditEvent(
         String comment,
         LocalDateTime modifiedAt
 ) {
-    public static ReviewEditEvent of(Long coverLetterId, Review review) {
+    public static ReviewEditEvent of(Long coverLetterId, Long qnAId, Review review) {
         return new ReviewEditEvent(
                 coverLetterId,
+                qnAId,
                 review.getId(),
                 review.getReviewerId(),
                 review.getOriginText(),
