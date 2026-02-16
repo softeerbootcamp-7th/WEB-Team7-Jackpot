@@ -8,6 +8,7 @@ import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.Review;
 import com.jackpot.narratix.domain.entity.User;
 import com.jackpot.narratix.domain.entity.enums.ReviewRoleType;
+import com.jackpot.narratix.domain.event.ReviewDeleteEvent;
 import com.jackpot.narratix.domain.event.ReviewEditEvent;
 import com.jackpot.narratix.domain.exception.ReviewErrorCode;
 import com.jackpot.narratix.domain.event.ReviewCreatedEvent;
@@ -93,7 +94,9 @@ public class ReviewService {
         reviewRepository.delete(review);
 
         // TODO: Writer, Reviewer 본문 텍스트 전체 변경 이벤트 발송
-        // TODO: Writer, Reviewer 첨삭 댓글 삭제 이벤트 발송
+
+        Long coverLetterId = qnARepository.getCoverLetterIdByQnAId(qnAId);
+        eventPublisher.publishEvent(new ReviewDeleteEvent(coverLetterId, reviewId));
     }
 
     private void validateIsReviewOwnerOrQnAOwner(String userId, Review review, QnA qnA) {
