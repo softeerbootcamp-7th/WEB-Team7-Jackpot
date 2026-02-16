@@ -8,9 +8,11 @@ import {
 } from 'react';
 
 import { buildChunks } from '@/features/coverLetter/libs/buildChunks';
-import { restoreCaret } from '@/features/coverLetter/libs/caret';
+import {
+  getCaretPosition,
+  restoreCaret,
+} from '@/features/coverLetter/libs/caret';
 import { useTextSelection } from '@/shared/hooks/useTextSelection';
-import { rangeToTextIndices } from '@/shared/hooks/useTextSelection/helpers';
 import type { Review } from '@/shared/types/review';
 import type { SelectionInfo } from '@/shared/types/selectionInfo';
 
@@ -25,6 +27,29 @@ interface CoverLetterContentProps {
   onReviewClick: (reviewId: number) => void;
   onTextChange?: (newText: string) => void;
 }
+
+/**
+ * contentEditable DOM에서 텍스트를 추출할 때 <br>을 \n으로 변환.
+ * textContent는 <br>을 무시하므로 직접 순회해야 한다.
+ * renderText가 항상 마지막에 <br>을 추가하므로 trailing \n 하나를 제거한다.
+ */
+const getTextFromDOM = (el: HTMLElement): string => {
+  let result = '';
+  const walk = (node: Node) => {
+    if (node.nodeName === 'BR') {
+      result += '\n';
+      return;
+    }
+    if (node.nodeType === Node.TEXT_NODE) {
+      result += node.textContent || '';
+      return;
+    }
+    node.childNodes.forEach(walk);
+  };
+  el.childNodes.forEach(walk);
+  result = result.replace(/\u200B/g, '');
+  return result;
+};
 
 const CoverLetterContent = ({
   text,
@@ -42,6 +67,16 @@ const CoverLetterContent = ({
   const isInputtingRef = useRef(false);
   const caretOffsetRef = useRef(0);
   const isComposingRef = useRef(false);
+
+  const latestTextRef = useRef(text);
+  useEffect(() => {
+    latestTextRef.current = text;
+  }, [text]);
+
+  const onTextChangeRef = useRef(onTextChange);
+  useEffect(() => {
+    onTextChangeRef.current = onTextChange;
+  }, [onTextChange]);
 
   const undoStack = useRef<string[]>([]);
   const redoStack = useRef<string[]>([]);
@@ -96,30 +131,26 @@ const CoverLetterContent = ({
     ],
   );
 
-  // === 텍스트 변경 + Undo 스택 관리 ===
-  const updateText = useCallback(
-    (newText: string) => {
-      if (!onTextChange) return;
+  // 텍스트 변경 + Undo 스택 관리 (ref 기반 — 항상 최신 값 사용)
+  const updateText = useCallback((newText: string) => {
+    if (!onTextChangeRef.current) return;
 
-      // 이전 상태 undo stack에 저장
-      if (newText !== text) {
-        undoStack.current.push(text);
-        if (undoStack.current.length > 100) undoStack.current.shift();
-        redoStack.current = []; // 새 입력 → redo 초기화
-        isInputtingRef.current = true;
-        onTextChange(newText);
-      }
-    },
-    [text, onTextChange],
-  );
+    const currentText = latestTextRef.current;
+    if (newText !== currentText) {
+      undoStack.current.push(currentText);
+      if (undoStack.current.length > 100) undoStack.current.shift();
+      redoStack.current = [];
+      isInputtingRef.current = true;
+      latestTextRef.current = newText; // 즉시 동기 업데이트 — re-render 전 다음 입력에서도 최신 값 사용
+      onTextChangeRef.current(newText);
+    }
+  }, []);
 
   // 일반 입력 처리
   const processInput = () => {
     if (!contentRef.current || isComposingRef.current) return;
 
-    const rawText =
-      contentRef.current.textContent?.replace(/\u200B/g, '') || '';
-    const newText = rawText;
+    const newText = getTextFromDOM(contentRef.current);
 
     if (newText === '') {
       if (contentRef.current.childNodes.length === 0) {
@@ -127,34 +158,40 @@ const CoverLetterContent = ({
       }
       caretOffsetRef.current = 0;
     } else {
-      const sel = window.getSelection();
-      if (sel && sel.rangeCount > 0) {
-        const range = sel.getRangeAt(0);
-        const { start } = rangeToTextIndices(contentRef.current, range);
-        caretOffsetRef.current = start;
-      }
+      const { start } = getCaretPosition(contentRef.current);
+      caretOffsetRef.current = start;
     }
 
     updateText(newText);
   };
 
-  // 커서 위치에 텍스트 삽입
+  // compositionEnd의 rAF processInput이 아직 실행되지 않았을 때
+  // DOM과 latestTextRef가 불일치할 수 있으므로 먼저 동기화
+  const syncDOMToState = useCallback(() => {
+    if (!contentRef.current) return;
+    const domText = getTextFromDOM(contentRef.current);
+    if (domText !== latestTextRef.current) {
+      updateText(domText);
+    }
+  }, [updateText]);
+
+  // 커서 위치에 텍스트 삽입 (ref 기반)
   const insertTextAtCaret = useCallback(
     (insertStr: string) => {
       if (!contentRef.current) return;
 
-      const sel = window.getSelection();
-      if (!sel || sel.rangeCount === 0) return;
+      syncDOMToState();
 
-      const range = sel.getRangeAt(0);
-      const { start, end } = rangeToTextIndices(contentRef.current, range);
+      const { start, end } = getCaretPosition(contentRef.current);
 
-      const newText = text.slice(0, start) + insertStr + text.slice(end);
+      const currentText = latestTextRef.current;
+      const newText =
+        currentText.slice(0, start) + insertStr + currentText.slice(end);
       caretOffsetRef.current = start + insertStr.length;
 
       updateText(newText);
     },
-    [text, updateText], // 이제 경고 없어짐
+    [syncDOMToState, updateText],
   );
 
   // caret 복원
@@ -181,76 +218,88 @@ const CoverLetterContent = ({
     }
 
     isInputtingRef.current = false;
-  }, [chunks, text]);
+  }, [text]);
 
   const handleInput = () => processInput();
-  const handleCompositionStart = () => (isComposingRef.current = true);
+  const handleCompositionStart = () => {
+    isComposingRef.current = true;
+  };
   const handleCompositionEnd = () => {
     isComposingRef.current = false;
-    processInput();
+    // Chrome: compositionEnd가 최종 input 이벤트보다 먼저 발생할 수 있음
+    // rAF로 한 프레임 지연하여 DOM이 확정된 후 처리
+    // 만약 handleInput의 processInput이 먼저 실행되면 updateText는 no-op (같은 텍스트)
+    requestAnimationFrame(() => {
+      processInput();
+    });
   };
 
-  // === Undo/Redo ===
+  // Undo/Redo (ref 기반)
   useEffect(() => {
+    const performUndo = () => {
+      if (undoStack.current.length === 0) return;
+      const prevText = undoStack.current.pop()!;
+      const currentText = latestTextRef.current;
+      redoStack.current.push(currentText);
+      caretOffsetRef.current = prevText.length;
+      isInputtingRef.current = true;
+      latestTextRef.current = prevText;
+      onTextChangeRef.current?.(prevText);
+    };
+
+    const performRedo = () => {
+      if (redoStack.current.length === 0) return;
+      const nextText = redoStack.current.pop()!;
+      const currentText = latestTextRef.current;
+      undoStack.current.push(currentText);
+      caretOffsetRef.current = nextText.length;
+      isInputtingRef.current = true;
+      latestTextRef.current = nextText;
+      onTextChangeRef.current?.(nextText);
+    };
+
     const handleKey = (e: KeyboardEvent) => {
+      // 현재 contentEditable에 포커스가 있을 때만 동작
+      if (!contentRef.current?.contains(document.activeElement)) return;
+
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
         e.preventDefault();
-        if (e.shiftKey) {
-          // redo
-          if (redoStack.current.length === 0) return;
-          const nextText = redoStack.current.pop()!;
-          undoStack.current.push(text);
-          caretOffsetRef.current = nextText.length;
-          isInputtingRef.current = true;
-          onTextChange?.(nextText);
-        } else {
-          // undo
-          if (undoStack.current.length === 0) return;
-          const prevText = undoStack.current.pop()!;
-          redoStack.current.push(text);
-          caretOffsetRef.current = prevText.length;
-          isInputtingRef.current = true;
-          onTextChange?.(prevText);
-        }
+        if (e.shiftKey) performRedo();
+        else performUndo();
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
         e.preventDefault();
-        // redo
-        if (redoStack.current.length === 0) return;
-        const nextText = redoStack.current.pop()!;
-        undoStack.current.push(text);
-        caretOffsetRef.current = nextText.length;
-        isInputtingRef.current = true;
-        onTextChange?.(nextText);
+        performRedo();
       }
     };
 
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
-  }, [text, onTextChange]);
+  }, []);
 
-  // 핵심: Backspace / Delete 안전 처리
+  // Backspace / Delete / Enter 처리 (ref 기반)
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (isComposingRef.current || e.nativeEvent.isComposing) return;
+
     if (e.key === 'Backspace' || e.key === 'Delete') {
       e.preventDefault();
       if (!contentRef.current) return;
 
-      const sel = window.getSelection();
-      if (!sel || sel.rangeCount === 0) return;
+      syncDOMToState();
 
-      const range = sel.getRangeAt(0);
-      const { start, end } = rangeToTextIndices(contentRef.current, range);
+      const { start, end } = getCaretPosition(contentRef.current);
 
-      let newText = text;
+      const currentText = latestTextRef.current;
+      let newText = currentText;
 
       if (start !== end) {
-        newText = text.slice(0, start) + text.slice(end);
+        newText = currentText.slice(0, start) + currentText.slice(end);
         caretOffsetRef.current = start;
       } else {
         if (e.key === 'Backspace' && start > 0) {
-          newText = text.slice(0, start - 1) + text.slice(end);
+          newText = currentText.slice(0, start - 1) + currentText.slice(end);
           caretOffsetRef.current = start - 1;
-        } else if (e.key === 'Delete' && start < text.length) {
-          newText = text.slice(0, start) + text.slice(end + 1);
+        } else if (e.key === 'Delete' && start < currentText.length) {
+          newText = currentText.slice(0, start) + currentText.slice(end + 1);
           caretOffsetRef.current = start;
         }
       }

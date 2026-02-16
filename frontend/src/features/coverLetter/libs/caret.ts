@@ -9,6 +9,55 @@ export const saveCaret = (el: HTMLElement): number => {
   return preRange.toString().length;
 };
 
+/**
+ * DocumentFragment에서 텍스트를 추출 (BR → \n, zwsp 제거)
+ */
+const getTextFromFragment = (fragment: DocumentFragment): string => {
+  let result = '';
+  const walk = (node: Node) => {
+    if (node.nodeName === 'BR') {
+      result += '\n';
+      return;
+    }
+    if (node.nodeType === Node.TEXT_NODE) {
+      result += node.textContent || '';
+      return;
+    }
+    node.childNodes.forEach(walk);
+  };
+  fragment.childNodes.forEach(walk);
+  return result.replace(/\u200B/g, '');
+};
+
+/**
+ * DOM 구조에 의존하지 않는 커서 위치 계산.
+ * Range.cloneContents()로 컨테이너 시작~커서까지의 내용을 복사해 텍스트 길이를 센다.
+ * 한글 IME 조합 중 브라우저가 만드는 임시 span 등에 영향받지 않는다.
+ */
+export const getCaretPosition = (
+  container: HTMLElement,
+): { start: number; end: number } => {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return { start: 0, end: 0 };
+
+  const range = sel.getRangeAt(0);
+  if (!container.contains(range.startContainer)) return { start: 0, end: 0 };
+
+  const countOffset = (endContainer: Node, endOffset: number): number => {
+    const tempRange = document.createRange();
+    tempRange.selectNodeContents(container);
+    tempRange.setEnd(endContainer, endOffset);
+    return getTextFromFragment(tempRange.cloneContents()).length;
+  };
+
+  const start = countOffset(range.startContainer, range.startOffset);
+  const end = range.collapsed
+    ? start
+    : countOffset(range.endContainer, range.endOffset);
+
+  return { start, end };
+};
+
 // caret 복원
 export const restoreCaret = (el: HTMLElement, offset: number) => {
   const sel = window.getSelection();

@@ -14,15 +14,16 @@ export const buildChunks = (
   selection: SelectionInfo | null,
 ) => {
   const renderText = (text: string, keyPrefix: string, isDimmed = false) => {
+    const lines = text.split('\n');
     return (
       <span
         key={`${keyPrefix}-wrapper`}
         className={isDimmed ? 'opacity-30' : ''}
       >
-        {text.split('\n').map((line, i) => (
+        {lines.map((line, i) => (
           <React.Fragment key={`line-${i}`}>
             {line === '' ? <span>&#8203;</span> : line}
-            <br />
+            {i < lines.length - 1 && <br />}
           </React.Fragment>
         ))}
       </span>
