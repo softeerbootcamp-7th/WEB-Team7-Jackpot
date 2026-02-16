@@ -730,6 +730,54 @@ class ReviewServiceTest {
     }
 
     @Test
+    @DisplayName("첨삭 댓글 적용 성공 - 이미 승인된 리뷰를 다시 승인하면 원상복구된다")
+    void approveReview_Success_AlreadyApprovedReviewCanBeRestored() {
+        // given
+        String writerId = "writer123";
+        String reviewerId = "reviewer456";
+        Long qnAId = 1L;
+        Long reviewId = 1L;
+
+        String currentOriginText = "수정된 텍스트"; // 이미 승인되어 suggest와 swap된 상태
+        String currentSuggestText = "기존 텍스트"; // 이미 승인되어 originText와 swap된 상태
+
+        Review review = ReviewFixture.builder()
+                .id(reviewId)
+                .reviewerId(reviewerId)
+                .qnaId(qnAId)
+                .originText(currentOriginText)
+                .suggest(currentSuggestText)
+                .isApproved(true)  // 이미 승인된 상태
+                .build();
+
+        CoverLetter coverLetter = CoverLetterFixture.builder()
+                .id(1L)
+                .userId(writerId)
+                .build();
+
+        QnA qnA = QnAFixture.createQnAWithId(
+                qnAId,
+                coverLetter,
+                writerId,
+                "지원동기는 무엇인가요?",
+                QuestionCategoryType.MOTIVATION
+        );
+
+        given(reviewRepository.findByIdOrElseThrow(reviewId)).willReturn(review);
+        given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(qnA);
+
+        // when
+        reviewService.approveReview(writerId, qnAId, reviewId);
+
+        // then
+        assertThat(review.isApproved()).isFalse(); // 원복되어 승인 상태가 해제됨
+        assertThat(review.getOriginText()).isEqualTo(currentSuggestText); // swap되어 원복됨
+        assertThat(review.getSuggest()).isEqualTo(currentOriginText); // swap되어 원복됨
+        verify(reviewRepository, times(1)).findByIdOrElseThrow(reviewId);
+        verify(qnARepository, times(1)).findByIdOrElseThrow(qnAId);
+    }
+
+    @Test
     @DisplayName("전체 첨삭 댓글 조회 - WRITER는 모든 리뷰를 조회할 수 있다")
     void getAllReviews_Writer_CanSeeAllReviews() {
         // given
