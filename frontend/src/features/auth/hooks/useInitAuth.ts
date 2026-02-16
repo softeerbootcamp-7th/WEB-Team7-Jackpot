@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 
-import { getAccessToken } from '../libs/tokenStore';
-
 import { useRefresh } from '@/features/auth/hooks/useAuthClient';
+import { getAccessToken } from '@/features/auth/libs/tokenStore';
 import { useGetNickname } from '@/shared/hooks/useUserInfo';
 
 export const useInitAuth = () => {
