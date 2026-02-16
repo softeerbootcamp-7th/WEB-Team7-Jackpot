@@ -1,0 +1,77 @@
+package com.jackpot.narratix.domain.event;
+
+import com.jackpot.narratix.domain.entity.ShareLink;
+import com.jackpot.narratix.domain.entity.User;
+import com.jackpot.narratix.domain.entity.enums.ReviewRoleType;
+import com.jackpot.narratix.domain.repository.ShareLinkRepository;
+import com.jackpot.narratix.domain.repository.UserRepository;
+import com.jackpot.narratix.domain.service.ShareLinkLockManager;
+import com.jackpot.narratix.domain.service.WebSocketMessageService;
+import com.jackpot.narratix.domain.service.dto.WebSocketCreateCommentMessage;
+import com.jackpot.narratix.global.websocket.WebSocketSessionAttributes;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.event.EventListener;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
+import org.springframework.web.socket.messaging.SessionDisconnectEvent;
+
+import java.util.Map;
+import java.util.Optional;
+
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class WebSocketEventListener {
+
+    private final WebSocketMessageService webSocketMessageService;
+    private final ShareLinkLockManager shareLinkLockManager;
+
+    private final UserRepository userRepository;
+    private final ShareLinkRepository shareLinkRepository;
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleReviewCreatedEvent(ReviewCreatedEvent event) {
+        User reviewer = userRepository.findByIdOrElseThrow(event.reviewerId());
+
+        // 활성화 된 ShareLink가 존재할 때만 첨삭 댓글 생성 웹소켓 메시지를 전송한다.
+        Optional<ShareLink> shareLinkOptional = shareLinkRepository.findById(event.coverLetterId());
+        if (shareLinkOptional.isEmpty()) {
+            log.info("share link not found");
+            return;
+        }
+        ShareLink shareLink = shareLinkOptional.get();
+        if (!shareLink.isValid()) {
+            log.info("share link is not valid");
+            return;
+        }
+
+        WebSocketCreateCommentMessage message = WebSocketCreateCommentMessage.of(reviewer, event);
+        webSocketMessageService.sendCreateCommentMessage(shareLink.getShareId(), message);
+    }
+
+    @EventListener
+    public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
+        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
+        Map<String, Object> attributes = headerAccessor.getSessionAttributes();
+
+        // 세션 속성 추출
+        String userId = WebSocketSessionAttributes.getUserId(attributes);
+        String shareId = WebSocketSessionAttributes.getShareId(attributes);
+        ReviewRoleType role = WebSocketSessionAttributes.getRole(attributes);
+
+        log.info("웹소켓 연결 종료. UserId: {}, ShareId: {}, Role: {}", userId, shareId, role);
+
+        // 락 해제
+        try {
+            shareLinkLockManager.unlock(shareId, role, userId);
+        } catch (Exception e) {
+            log.error("Failed to release lock on disconnect: shareId={}, role={}, userId={}", shareId, role, userId, e);
+        }
+
+    }
+}

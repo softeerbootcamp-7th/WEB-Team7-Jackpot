@@ -1,6 +1,7 @@
 package com.jackpot.narratix.domain.service;
 
 import com.jackpot.narratix.domain.entity.enums.ReviewRoleType;
+import com.jackpot.narratix.domain.event.WebSocketEventListener;
 import com.jackpot.narratix.global.websocket.WebSocketSessionAttributes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
