@@ -8,7 +8,7 @@ import UploadInputHeader from '@/features/upload/components/UploadInputHeader';
 const UploadInputSection = () => {
   const navigate = useNavigate();
 
-  const hanldeNextStep = () => {
+  const handleNextStep = () => {
     navigate('/upload/labeling', { replace: true });
   };
 
@@ -19,7 +19,7 @@ const UploadInputSection = () => {
       <UploadInputHeader
         isContent={isContent}
         totalSize={totalSize}
-        nextStep={hanldeNextStep}
+        nextStep={handleNextStep}
       />
       <UploadFileArea setIsContent={setIsContent} setTotalSize={setTotalSize} />
     </div>

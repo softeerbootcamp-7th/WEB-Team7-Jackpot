@@ -14,7 +14,7 @@ const LabelingResultSection = () => {
     : 0;
   const currentQnAId: number = qnAId ? Number(qnAId) : 0;
 
-  const hanldeNextStep = () => {
+  const handleNextStep = () => {
     navigate('/upload/complete', { replace: true });
   };
 
@@ -28,7 +28,7 @@ const LabelingResultSection = () => {
 
   return (
     <div className='flex flex-col gap-6'>
-      <LabelingResultHeader nextStep={hanldeNextStep} />
+      <LabelingResultHeader nextStep={handleNextStep} />
       <LabelingResultItem
         tabState={currentCoverLetterId}
         setTabState={handleCoverLetterIdChange}
