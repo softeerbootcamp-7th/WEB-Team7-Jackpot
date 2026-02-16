@@ -44,7 +44,7 @@ const LandingTypographyAnimation = () => {
           <I.TypographyCursor />
         </div>
       </h1>
-      <span className='relative -mt-2 w-fit text-6xl font-bold tracking-tighter md:-mt-6 md:text-[140px] lg:text-[180px]'>
+      <div className='relative -mt-2 w-fit text-6xl font-bold tracking-tighter md:-mt-6 md:text-[140px] lg:text-[180px]'>
         <div
           className={`overflow-hidden transition-[width] delay-400 duration-1500 ease-out ${
             isLoaded ? 'w-full' : 'w-0'
@@ -57,7 +57,7 @@ const LandingTypographyAnimation = () => {
             {line2Text}
           </div>
         </div>
-      </span>
+      </div>
     </div>
   );
 };
