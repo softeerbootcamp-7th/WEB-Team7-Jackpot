@@ -28,7 +28,7 @@ const RecruitFormContainer = ({ recruitId, onClose }: Props) => {
 
   // 4. 서버 데이터가 로드되면 폼 상태 동기화
   useEffect(() => {
-    if (recruitId && data) {
+    if (recruitId && data && data.coverLetterId === recruitId) {
       const mappedData = mapServerDataToFormData(data);
       setFormData(mappedData);
     } else if (!recruitId) {
@@ -62,7 +62,7 @@ const RecruitFormContainer = ({ recruitId, onClose }: Props) => {
       mode={recruitId ? 'EDIT' : 'CREATE'}
       formData={formData}
       isSubmitting={isCreating || isUpdating}
-      onChange={handleChange} // [추가] View에서 입력을 처리하려면 필요함
+      onChange={handleChange}
       onSubmit={handleSubmit}
       onClose={onClose}
     />

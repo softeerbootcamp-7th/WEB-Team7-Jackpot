@@ -48,11 +48,13 @@ const Calendar = ({
                 <CalendarDaySkeleton key={`skeleton-${index}`} tagCount={2} />
               ))
             : days.map((date) => {
+                const dateKey = getISODate(date);
+
                 return (
                   <CalendarDay
-                    key={date.toString()}
+                    key={dateKey}
                     today={today}
-                    items={eventsByDate[getISODate(date)] || []}
+                    items={eventsByDate[dateKey] || []}
                     date={date}
                     isSelected={helpers.isSelected(date)}
                     isCurrentMonth={helpers.isCurrentMonth(date)}

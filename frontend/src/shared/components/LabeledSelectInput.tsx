@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 
 interface LabeledSelectInputProps<T extends string | number> {
   label: string;
@@ -29,14 +29,34 @@ const LabeledSelectInput = <T extends string | number>({
     );
   }, [constantData, value]);
 
+  const inputId = `labeled-select-${name}`;
+
+  // [박소민] 모달 이벤트 핸들러 커스텀 훅으로 옮기기 (RecruitPeriodSelectInput과 공유 가능)
+  useEffect(() => {
+    if (!isOpen || !handleDropdown) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleDropdown(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, handleDropdown]);
+
   return (
     <div className='flex flex-col gap-3'>
-      <label className='text-lg font-bold text-gray-950'>
+      <label htmlFor={inputId} className='text-lg font-bold text-gray-950'>
         {label} <span className='text-red-600'>*</span>
       </label>
 
       <div className='relative'>
         <input
+          id={inputId}
           type='text'
           name={name}
           value={value}
@@ -53,6 +73,7 @@ const LabeledSelectInput = <T extends string | number>({
         {constantData.length > 0 && isOpen && (
           <>
             <div
+              role='presentation'
               className='fixed inset-0 z-10 cursor-default'
               onClick={() => handleDropdown(false)}
             />

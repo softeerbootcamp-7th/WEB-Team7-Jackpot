@@ -46,11 +46,19 @@ export const convertFormDataToRequest = (
 
   // 3. 최종 객체 반환
   return {
-    companyName: formData.get('companyName') as string,
-    jobPosition: formData.get('jobPosition') as string,
-    applyYear: Number(formData.get('applyYear')),
-    applyHalf: formData.get('applyHalf') as 'FIRST_HALF' | 'SECOND_HALF', // 타입 캐스팅 필요 시 적용
-    deadline: formData.get('deadline') as string,
+    companyName: (formData.get('companyName') as string) ?? '',
+    jobPosition: (formData.get('jobPosition') as string) ?? '',
+    applyYear: Number(formData.get('applyYear')) || new Date().getFullYear(),
+    applyHalf:
+      (formData.get('applyHalf') as 'FIRST_HALF' | 'SECOND_HALF') ??
+      'FIRST_HALF',
+    deadline: (formData.get('deadline') as string) ?? '',
     questions: questions,
   };
+};
+
+export const createRecruitPath = (date: Date) => {
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  return `/recruit/${year}/${month}`;
 };

@@ -33,7 +33,8 @@ const CalendarContainer = () => {
     const map: Record<string, typeof allItems> = {};
 
     allItems.forEach((item) => {
-      const dateKey = item.deadline ? item.deadline.split('T')[0] : '';
+      const dateKey = getISODate(item.deadline);
+
       if (!dateKey) return;
 
       if (!map[dateKey]) {

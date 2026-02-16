@@ -60,7 +60,7 @@ const RecruitListContainer = ({
       <DocumentList
         documents={formattedDocuments}
         emptyMessage='해당 기간에 마감되는 공고가 없습니다.'
-        // [핵심] renderAction을 통해 버튼 주입
+        // renderAction으로 버튼 주입
         renderAction={(doc) => (
           <div className='flex items-center gap-3'>
             <button
@@ -89,6 +89,7 @@ const RecruitListContainer = ({
 
       {hasNextPage && (
         <button
+          type='button'
           onClick={() => fetchNextPage()}
           disabled={isFetchingNextPage}
           className='w-full cursor-pointer py-4 text-sm text-gray-400 hover:text-gray-600'

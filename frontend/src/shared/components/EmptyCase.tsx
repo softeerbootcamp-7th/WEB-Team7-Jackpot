@@ -55,7 +55,8 @@ const EmptyCase = ({
       <img
         className={imageClasses[size]}
         src={`${icon ? icon : '/images/EmptyFiles.png'}`}
-        alt='Empty Files'
+        alt=''
+        aria-hidden='true'
       />
     </div>
   );

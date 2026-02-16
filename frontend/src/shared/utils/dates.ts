@@ -1,8 +1,3 @@
-export const getDate = (date: string) => {
-  if (!date) return;
-  return date.slice(0, 10).replace(/-/g, '.');
-};
-
 export const getKoreanDate = (datetime: string) => {
   if (!datetime) return '';
 
@@ -45,10 +40,12 @@ export const getKoreanTime = (datetime: string) => {
 const cloneDate = (date: Date) => new Date(date.getTime());
 
 export const isPastDay = (currentDate: Date, targetDate: Date) => {
-  currentDate.setHours(0, 0, 0, 0);
-  targetDate.setHours(0, 0, 0, 0);
+  const current = cloneDate(currentDate);
+  const target = cloneDate(targetDate);
+  current.setHours(0, 0, 0, 0);
+  target.setHours(0, 0, 0, 0);
 
-  return targetDate < currentDate;
+  return target < current;
 };
 
 export const isSameDay = (dateLeft: Date, dateRight: Date): boolean => {
@@ -72,7 +69,12 @@ export const isPastDate = (date: Date, currentDay: Date) => {
 // [박소민] Date 객체는 setMonth()의 값을 저절로 0 ~ 11 범위 안에서 정해지도록 구현되어 있다.
 export const addMonths = (date: Date, amount = 1): Date => {
   const newDate = cloneDate(date);
+  const dayOfMonth = newDate.getDate();
   newDate.setMonth(newDate.getMonth() + amount);
+  // 월말 오버플로우 방지: 원래 날짜가 새 달의 마지막 날보다 크면 클램핑 (1월 31일 + 1달 → 2월 28일 또는 29일)
+  if (newDate.getDate() !== dayOfMonth) {
+    newDate.setDate(0); // 이전 달의 마지막 날
+  }
   return newDate;
 };
 
@@ -124,6 +126,7 @@ export const endOfWeek = (date: Date): Date => {
   return newDate;
 };
 
+// [박소민] 캘린더에 표시할 날짜 배열을 반환합니다. start가 포함된 주부터 end가 포함된 주까지의 날짜를 반환합니다.
 export const eachDayOfInterval = ({
   start,
   end,
@@ -184,4 +187,21 @@ export const getISODate = (date: Date | string): string => {
 
 export const getTodayISODate = (): string => {
   return getISODate(new Date());
+};
+
+// [박소민] 기존 getDate의 불안정한 slice 로직을 제거하고 getISODate를 재사용
+export const getDate = (date: Date | string): string => {
+  const isoDate = getISODate(date);
+  if (!isoDate) return '';
+
+  return isoDate.replace(/-/g, '.');
+};
+
+export const generateYearList = (year: number) => {
+  const yearList = [];
+  for (let i = 0; i < 100; i += 1) {
+    yearList.push(year - i);
+  }
+
+  return yearList;
 };

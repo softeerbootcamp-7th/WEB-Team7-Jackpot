@@ -62,11 +62,7 @@ export const MOCK_CALENDAR_COVER_LETTERS: CoverLetterItem[] = [
 ];
 
 const isWithinRange = (date: string, startDate: string, endDate: string) => {
-  const target = new Date(date).getTime();
-  const start = new Date(startDate).getTime();
-  const end = new Date(endDate).getTime();
-
-  return target >= start && target <= end;
+  return date >= startDate && date <= endDate;
 };
 
 export const getMockCalendarResponse = (

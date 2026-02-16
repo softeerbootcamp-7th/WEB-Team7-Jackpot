@@ -2,14 +2,15 @@ import { useState } from 'react';
 
 import Deadline from '@/features/recruit/components/recruitForm/Deadline';
 import type { CreateCoverLetterRequest } from '@/features/recruit/types';
-import type { DropdownStateType } from '@/features/upload/types/upload'; // 경로 확인
 import LabeledSelectInput from '@/shared/components/LabeledSelectInput';
 import RecruitPeriodSelectInput from '@/shared/components/RecruitPeriodSelectInput';
 import type { ApiApplyHalf } from '@/shared/types/coverLetter';
+import type { DropdownStateType } from '@/shared/types/dropdown';
+import { generateYearList } from '@/shared/utils/dates';
 
 const COMPANY_NAME_LIST = ['삼성전자', 'SK하이닉스', '네이버'];
 const JOB_POSITION_LIST = ['개발자', '기획자', '디자이너'];
-const yearList = [2025, 2026, 2027];
+const yearList = generateYearList(new Date().getFullYear());
 
 interface Props {
   formData: CreateCoverLetterRequest;

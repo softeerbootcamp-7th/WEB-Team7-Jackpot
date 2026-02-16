@@ -10,12 +10,14 @@ import {
   recruitEmptyText,
   recruitHeaderText,
 } from '@/features/recruit/constants';
+import { useDeleteCoverLetter } from '@/features/recruit/hooks/queries/useCoverLetterMutation';
 import ContentHeader from '@/shared/components/ContentHeader';
 import EmptyCase from '@/shared/components/EmptyCase';
 import { getISODate } from '@/shared/utils/dates';
 
 const RecruitPage = () => {
   const { year, month, day } = useParams();
+  const { mutate: deleteCoverLetter } = useDeleteCoverLetter();
 
   // 상태 관리
   // 폼이 열려있는지 여부
@@ -39,7 +41,7 @@ const RecruitPage = () => {
     setIsFormOpen(true);
   }, []);
 
-  // 리스트 아이템 클릭 (상세 조회)
+  // [박소민] 리스트 아이템 클릭 (상세 조회) TODO: 기획 확인
   const handleDocumentClick = useCallback((id: number) => {
     console.log('상세 조회:', id);
     // 상세 모달 로직 등
@@ -52,12 +54,14 @@ const RecruitPage = () => {
   }, []);
 
   // 삭제 버튼 클릭
-  const handleDeleteClick = useCallback((id: number) => {
-    if (window.confirm('정말 삭제하시겠습니까?')) {
-      console.log('삭제 요청:', id);
-      // TODO: useDeleteRecruit() 훅 등을 사용하여 삭제 API 호출 + 모달
-    }
-  }, []);
+  const handleDeleteClick = useCallback(
+    (id: number) => {
+      if (window.confirm('정말 삭제하시겠습니까?')) {
+        deleteCoverLetter({ coverLetterId: id });
+      }
+    },
+    [deleteCoverLetter],
+  );
 
   // 폼 닫기
   const handleCloseForm = useCallback(() => {

@@ -1,4 +1,6 @@
-interface PaginationIconProps {
+import type { SVGProps } from 'react';
+
+interface PaginationIconProps extends SVGProps<SVGSVGElement> {
   size?: number;
   direction?: 'right' | 'left';
 }
@@ -6,6 +8,7 @@ interface PaginationIconProps {
 export const PaginationIcon = ({
   size = 28,
   direction = 'right',
+  ...props
 }: PaginationIconProps) => {
   const transformStyle = direction === 'left' ? 'scaleX(-1)' : 'none';
 
@@ -13,10 +16,11 @@ export const PaginationIcon = ({
     <svg
       width={size}
       height={size}
-      viewBox={`0 0 28 28`}
+      viewBox='0 0 28 28'
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
       style={{ transform: transformStyle, transformOrigin: 'center' }}
+      {...props}
     >
       <title>페이지 이동</title>
       <rect width='28' height='28' rx='7' fill='#F0F2FD' />

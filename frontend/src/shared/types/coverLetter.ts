@@ -4,6 +4,12 @@ export type ApiApplyHalf = 'FIRST_HALF' | 'SECOND_HALF';
 
 export type ISODateString = string;
 
+// 질문 아이템 타입
+export interface CoverLetterQuestion {
+  question: string;
+  category: string;
+}
+
 export interface CoverLetter {
   coverLetterId: number;
   companyName: string;
@@ -11,10 +17,7 @@ export interface CoverLetter {
   applyYear: number;
   applyHalf: ApiApplyHalf;
   deadline: ISODateString;
-  questions?: {
-    question: string;
-    category: string;
-  }[];
+  questions?: CoverLetterQuestion[];
 }
 
 export interface RecentCoverLetter extends CoverLetter {
