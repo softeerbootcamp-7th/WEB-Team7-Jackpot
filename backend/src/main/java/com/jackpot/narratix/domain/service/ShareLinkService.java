@@ -90,6 +90,7 @@ public class ShareLinkService {
         return coverLetter.isOwner(userId) ? ReviewRoleType.WRITER : ReviewRoleType.REVIEWER;
     }
 
+    @Transactional(readOnly = true)
     public Optional<ShareLink> getActiveShareLinkByCoverLetterId(Long coverLetterId) {
         Optional<ShareLink> shareLink = shareLinkRepository.findById(coverLetterId);
         if (shareLink.isEmpty()) {
