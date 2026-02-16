@@ -1,4 +1,4 @@
-const TypograyphyCursor = () => {
+const TypographyCursor = () => {
   return (
     <svg
       width='27'
@@ -15,4 +15,4 @@ const TypograyphyCursor = () => {
   );
 };
 
-export default TypograyphyCursor;
+export default TypographyCursor;
