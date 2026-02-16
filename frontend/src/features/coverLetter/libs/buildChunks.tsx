@@ -1,3 +1,5 @@
+import React from 'react';
+
 import type { TextChunk } from '@/shared/hooks/useTextSelection/helpers';
 import type { Review } from '@/shared/types/review';
 import type { SelectionInfo } from '@/shared/types/selectionInfo';
@@ -11,53 +13,68 @@ export const buildChunks = (
   isReviewOpen: boolean,
   selection: SelectionInfo | null,
 ) => {
-  const renderText = (text: string) => (text === '' ? '\u200B' : text);
+  const renderText = (text: string, keyPrefix: string, isDimmed = false) => {
+    const lines = text.split('\n');
+    return (
+      <span
+        key={`${keyPrefix}-wrapper`}
+        className={isDimmed ? 'opacity-30' : ''}
+      >
+        {lines.map((line, i) => (
+          <React.Fragment key={`line-${i}`}>
+            {line === '' ? <span>&#8203;</span> : line}
+            {i < lines.length - 1 && <br />}
+          </React.Fragment>
+        ))}
+      </span>
+    );
+  };
 
-  // beforeChunks 처리
-  const beforeChunks = before.length
-    ? before.map((chunk, i) => {
-        if (!chunk.isHighlighted) return renderText(chunk.text);
-        const matchingReview = reviews.find(
-          (review) =>
-            review.isValid &&
-            review.range.start <= chunkPositions[i] &&
-            review.range.end >= chunkPositions[i] + chunk.text.length,
-        );
-        if (!matchingReview) return renderText(chunk.text);
-        const isSelected = selectedReviewId === matchingReview.id;
-        const className = `${isReviewOpen ? 'cursor-pointer font-bold' : ''} ${
-          isSelected ? 'bg-red-100' : ''
-        }`;
-        return (
-          <span
-            key={i}
-            className={className}
-            data-review-id={matchingReview.id}
-          >
-            {renderText(chunk.text)}
-          </span>
-        );
-      })
-    : [<br key='empty-before' />]; // 비어있으면 <br>로 최소 구조
+  // 기존 before/after chunks 생성 로직
+  const beforeChunks = before.flatMap((chunk, i) => {
+    if (!chunk.text) return [];
 
-  // afterChunks 처리
-  const afterChunks = after.length
-    ? after.map((chunk, i) =>
-        chunk.isHighlighted ? (
-          <span key={`after-${i}`} className='font-bold'>
-            {renderText(chunk.text)}
-          </span>
-        ) : (
-          renderText(chunk.text)
-        ),
-      )
-    : [];
+    const key = `before-${i}`;
+    if (!chunk.isHighlighted) return renderText(chunk.text, key);
 
-  if (!selection || afterChunks.length === 0) return beforeChunks;
+    const matchingReview = reviews.find(
+      (review) =>
+        review.isValid &&
+        review.range.start <= chunkPositions[i] &&
+        review.range.end >= chunkPositions[i] + chunk.text.length,
+    );
+    if (!matchingReview) return renderText(chunk.text, key);
 
-  return [
-    ...beforeChunks,
-    <div key='spacer' className='h-2.5' />,
-    ...afterChunks, // span 대신 그냥 텍스트 노드로
-  ];
+    const isSelected = selectedReviewId === matchingReview.id;
+
+    return (
+      <span
+        key={`review-wrap-${matchingReview.id}-${i}`}
+        className={`${isReviewOpen ? 'cursor-pointer font-bold' : ''} ${
+          isSelected ? 'rounded-sm bg-red-100 ring-1 ring-red-200' : ''
+        }`}
+        data-review-id={matchingReview.id}
+      >
+        {renderText(chunk.text, `review-content-${matchingReview.id}-${i}`)}
+      </span>
+    );
+  });
+
+  const afterChunksElements = after.flatMap((chunk, i) =>
+    renderText(chunk.text, `after-${i}`, !!selection),
+  );
+
+  const finalChunks: React.ReactNode[] = [...beforeChunks];
+  if (selection && afterChunksElements.length > 0) {
+    finalChunks.push(
+      <span
+        key='selection-spacer'
+        className='block h-12 w-full'
+        contentEditable={false}
+      />,
+    );
+    finalChunks.push(...afterChunksElements);
+  }
+
+  return finalChunks;
 };

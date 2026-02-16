@@ -45,6 +45,7 @@ const CoverLetter = ({
 }: CoverLetterProps) => {
   const [, setSearchParams] = useSearchParams();
   const [selection, setSelection] = useState<SelectionInfo | null>(null);
+  const [composingLength, setComposingLength] = useState<number | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -154,12 +155,15 @@ const CoverLetter = ({
           onSelectionChange={setSelection}
           onReviewClick={onReviewClick}
           onTextChange={handleTextChange}
+          onComposingLengthChange={setComposingLength}
         />
       </div>
 
       <div className='flex h-8 flex-shrink-0 items-center justify-between gap-5 py-0.5'>
         <div className='flex gap-0.5 pl-12 text-base text-gray-400'>
-          <span>{currentText.length.toLocaleString()}</span>
+          <span>
+            {(composingLength ?? currentText.length).toLocaleString()}
+          </span>
           <span>자</span>
         </div>
 
