@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 
 import { DEFAULT_DATA } from '@/features/recruit/constants';
-import type { CreateCoverLetterRequest } from '@/features/recruit/types';
+import type { CreateCoverLetterRequest } from '@/shared/types/coverLetter';
 
 export const useRecruitForm = (initialData?: CreateCoverLetterRequest) => {
   const [formData, setFormData] = useState<CreateCoverLetterRequest>(

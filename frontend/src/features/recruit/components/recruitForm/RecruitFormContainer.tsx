@@ -2,13 +2,13 @@ import { useEffect } from 'react';
 
 import RecruitFormView from '@/features/recruit/components/recruitForm/RecruitFormView';
 import { DEFAULT_DATA } from '@/features/recruit/constants';
-import { useCoverLetterDetail } from '@/features/recruit/hooks/queries/useCalendarQuery';
 import {
   useCreateCoverLetter,
   useUpdateCoverLetter,
 } from '@/features/recruit/hooks/queries/useCoverLetterMutation';
 import { useRecruitForm } from '@/features/recruit/hooks/useRecruitForm';
 import { mapServerDataToFormData } from '@/features/recruit/utils';
+import { useCoverLetter } from '@/shared/hooks/useCoverLetterQueries';
 
 interface Props {
   recruitId?: number | null; // [수정] RecruitPage의 state(number | null)와 타입 일치
@@ -17,7 +17,7 @@ interface Props {
 
 const RecruitFormContainer = ({ recruitId, onClose }: Props) => {
   // 1. 상세 데이터 조회 (recruitId가 있을 때만 enabled)
-  const { data, isLoading } = useCoverLetterDetail(recruitId || 0);
+  const { data, isLoading } = useCoverLetter(recruitId || 0);
 
   // 2. 뮤테이션 훅
   const { mutate: create, isPending: isCreating } = useCreateCoverLetter();
