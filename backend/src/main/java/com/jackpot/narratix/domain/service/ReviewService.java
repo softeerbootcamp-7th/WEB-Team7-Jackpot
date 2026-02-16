@@ -116,6 +116,7 @@ public class ReviewService {
         }
     }
 
+    @Transactional
     public void approveReview(String userId, Long qnAId, Long reviewId) {
         Review review = reviewRepository.findByIdOrElseThrow(reviewId);
         QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
