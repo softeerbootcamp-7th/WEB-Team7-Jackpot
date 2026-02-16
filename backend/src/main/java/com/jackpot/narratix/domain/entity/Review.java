@@ -9,10 +9,7 @@ import lombok.*;
 import java.util.Objects;
 
 @Entity
-@Table(
-        name = "review",
-        indexes = @Index(name = "idx_qna_id_reviewer_id", columnList = "qna_id, reviewer_id")
-)
+@Table(name = "review", indexes = @Index(name = "idx_qna_id_reviewer_id", columnList = "qna_id, reviewer_id"))
 @Getter
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -58,16 +55,31 @@ public class Review extends BaseTimeEntity {
         return Objects.equals(this.reviewerId, userId);
     }
 
-    public boolean belongsToQnA(Long qnAId){
+    public boolean belongsToQnA(Long qnAId) {
         return Objects.equals(this.qnaId, qnAId);
     }
 
     public void approve() {
-        if(suggest == null) throw new BaseException(ReviewErrorCode.REVIEW_SUGGEST_IS_NULL);
+        validateSuggest();
+        if (isApproved) return;
+        applyTextSwap();
+        this.isApproved = true;
+    }
 
+    public void restore() {
+        validateSuggest();
+        if (!isApproved) return;
+        applyTextSwap();
+        this.isApproved = false;
+    }
+
+    private void validateSuggest() {
+        if (suggest == null) throw new BaseException(ReviewErrorCode.REVIEW_SUGGEST_IS_NULL);
+    }
+
+    private void applyTextSwap() {
         String temp = this.originText;
         this.originText = this.suggest;
         this.suggest = temp;
-        this.isApproved = true;
     }
 }
