@@ -17,6 +17,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
@@ -36,14 +37,14 @@ public class WebSocketEventListener {
     private final UserRepository userRepository;
 
     @Async
+    @Transactional(readOnly = true)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleReviewCreatedEvent(ReviewCreatedEvent event) {
-        User reviewer = userRepository.findByIdOrElseThrow(event.reviewerId());
-
         // 활성화 된 ShareLink가 존재할 때만 첨삭 댓글 생성 웹소켓 메시지를 전송한다.
         Optional<ShareLink> shareLink = shareLinkService.getActiveShareLinkByCoverLetterId(event.coverLetterId());
         if (shareLink.isEmpty()) return;
 
+        User reviewer = userRepository.findByIdOrElseThrow(event.reviewerId());
         WebSocketCreateCommentMessage message = WebSocketCreateCommentMessage.of(reviewer, event);
         webSocketMessageSender.sendMessageToShare(
                 shareLink.get().getShareId(),
