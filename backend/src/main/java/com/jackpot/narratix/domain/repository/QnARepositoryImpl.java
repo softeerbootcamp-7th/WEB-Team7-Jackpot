@@ -78,4 +78,9 @@ public class QnARepositoryImpl implements QnARepository {
         return qnAJpaRepository.countSearchQnA(userId, keyword);
     }
 
+    @Override
+    public Long getCoverLetterIdByQnAId(Long qnAId) {
+        return qnAJpaRepository.getCoverLetterIdByQnAId(qnAId);
+    }
+
 }

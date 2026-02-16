@@ -33,4 +33,6 @@ public interface QnARepository {
     Slice<QnA> searchQnA(String userId, String keyword, Integer size, Long lastQnAId);
 
     Long countSearchQnA(String userId, String keyword);
+
+    Long getCoverLetterIdByQnAId(Long qnAId);
 }

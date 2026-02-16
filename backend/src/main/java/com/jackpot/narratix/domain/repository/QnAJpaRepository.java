@@ -77,4 +77,7 @@ public interface QnAJpaRepository extends JpaRepository<QnA, Long> {
     Long countSearchQnA(
             @Param("userId") String userId,
             @Param("keyword") String keyword);
+
+    @Query("SELECT qna.coverLetter.id FROM QnA qna WHERE qna.id = :qnAId")
+    Long getCoverLetterIdByQnAId(@Param("qnAId") Long qnAId);
 }
