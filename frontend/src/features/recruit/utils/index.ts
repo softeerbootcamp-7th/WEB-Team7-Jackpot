@@ -1,6 +1,4 @@
-import type {
-  CreateCoverLetterRequest, // 폼에서 사용하는 요청 타입
-} from '@/features/recruit/types';
+import type { CreateCoverLetterRequest } from '@/shared/types/coverLetter';
 
 /**
  * 서버 데이터를 폼 데이터 구조로 변환합니다.
@@ -50,8 +48,9 @@ export const convertFormDataToRequest = (
     jobPosition: (formData.get('jobPosition') as string) ?? '',
     applyYear: Number(formData.get('applyYear')) || new Date().getFullYear(),
     applyHalf:
-      (formData.get('applyHalf') as 'FIRST_HALF' | 'SECOND_HALF') ??
-      'FIRST_HALF',
+      formData.get('applyHalf') === 'SECOND_HALF'
+        ? 'SECOND_HALF'
+        : 'FIRST_HALF',
     deadline: (formData.get('deadline') as string) ?? '',
     questions: questions,
   };

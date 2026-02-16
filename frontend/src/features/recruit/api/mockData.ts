@@ -76,10 +76,15 @@ export const getMockCalendarResponse = (
   ).sort((a, b) => a.deadline.localeCompare(b.deadline));
 
   const startIndex = lastIdParam
-    ? Math.max(
-        filtered.findIndex((item) => item.coverLetterId === lastIdParam) + 1,
-        0,
-      )
+    ? (() => {
+        const idx = filtered.findIndex(
+          (item) => item.coverLetterId === lastIdParam,
+        );
+        if (idx === -1) {
+          return 0;
+        }
+        return idx + 1;
+      })()
     : 0;
 
   const paged = filtered.slice(startIndex, startIndex + size);

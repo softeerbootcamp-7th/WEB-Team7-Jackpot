@@ -38,7 +38,8 @@ export const useCalendar = () => {
   const selectedDate = useMemo(() => {
     if (!dayNum) return null;
     const safeMonth = Math.min(Math.max(monthNum, 1), 12);
-    const safeDay = Math.min(Math.max(dayNum, 1), 31);
+    const maxDay = new Date(yearNum, safeMonth, 0).getDate();
+    const safeDay = Math.min(Math.max(dayNum, 1), maxDay);
     return new Date(yearNum, safeMonth - 1, safeDay);
   }, [yearNum, monthNum, dayNum]);
 

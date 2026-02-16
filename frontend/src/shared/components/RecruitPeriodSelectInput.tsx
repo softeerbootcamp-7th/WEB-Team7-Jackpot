@@ -5,8 +5,6 @@ import type { ApiApplyHalf } from '@/shared/types/coverLetter';
 
 interface RecruitPeriodSelectInputProps {
   label: string;
-  nameYear: string;
-  nameSeason: string;
   yearValue: number;
   seasonValue: ApiApplyHalf;
   onChangeYear: (year: number) => void;
@@ -20,8 +18,6 @@ interface RecruitPeriodSelectInputProps {
 
 const RecruitPeriodSelectInput = ({
   label,
-  nameYear,
-  nameSeason,
   yearValue,
   seasonValue,
   onChangeYear,
@@ -54,8 +50,6 @@ const RecruitPeriodSelectInput = ({
       <div className='text-lg font-bold text-gray-950'>
         {label} <span className='text-red-600'>*</span>
       </div>
-
-      <input type='hidden' name={nameYear} value={yearValue} />
 
       <div className='flex items-center gap-2'>
         {/* 1. 연도 선택 */}
@@ -107,7 +101,6 @@ const RecruitPeriodSelectInput = ({
               <label key={each.season} className='flex-1 cursor-pointer'>
                 <input
                   type='radio'
-                  name={nameSeason}
                   value={each.season}
                   checked={isSelected}
                   onChange={() => onChangeSeason(each.season)} // [Controlled]

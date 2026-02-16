@@ -11,13 +11,13 @@ export const RecruitIcon = (props: SVGProps<SVGSVGElement>) => {
       viewBox='0 0 36 36'
       {...props}
     >
-      <g clipPath='url(#a)'>
+      <g clipPath='url(#clipPathA)'>
         <path
           fill='#FFD983'
           d='M32 0H10a4 4 0 0 0-4 4v24H4a4 4 0 0 0 0 8h24a4 4 0 0 0 4-4V8a4 4 0 0 0 0-8'
         />
         <path
-          fill='url(#a)'
+          fill='url(#gradientA)'
           d='M32 0H10a4 4 0 0 0-4 4v24H4a4 4 0 0 0 0 8h24a4 4 0 0 0 4-4V8a4 4 0 0 0 0-8'
         />
         <path fill='#8D91EC' d='M8 10h24V8H10L8 7z' />
@@ -40,7 +40,7 @@ export const RecruitIcon = (props: SVGProps<SVGSVGElement>) => {
       </g>
       <defs>
         <linearGradient
-          id='a'
+          id='gradientA'
           x1='18'
           x2='18'
           y1='0'

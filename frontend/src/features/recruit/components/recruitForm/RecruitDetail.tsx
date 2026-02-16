@@ -1,10 +1,12 @@
 import { useState } from 'react';
 
 import Deadline from '@/features/recruit/components/recruitForm/Deadline';
-import type { CreateCoverLetterRequest } from '@/features/recruit/types';
 import LabeledSelectInput from '@/shared/components/LabeledSelectInput';
 import RecruitPeriodSelectInput from '@/shared/components/RecruitPeriodSelectInput';
-import type { ApiApplyHalf } from '@/shared/types/coverLetter';
+import type {
+  ApiApplyHalf,
+  CreateCoverLetterRequest,
+} from '@/shared/types/coverLetter';
 import type { DropdownStateType } from '@/shared/types/dropdown';
 import { generateYearList } from '@/shared/utils/dates';
 
@@ -62,8 +64,6 @@ const RecruitDetail = ({ formData, onUpdate }: Props) => {
 
       <RecruitPeriodSelectInput
         label='채용 시기'
-        nameYear='applyYear'
-        nameSeason='applyHalf'
         yearValue={formData.applyYear}
         seasonValue={formData.applyHalf}
         onChangeYear={(val) => onUpdate('applyYear', val)}

@@ -48,7 +48,13 @@ const RecruitFormContainer = ({ recruitId, onClose }: Props) => {
 
   // 6. 제출 핸들러
   const handleSubmit = () => {
-    const options = { onSuccess: onClose };
+    const options = {
+      onSuccess: onClose,
+      onError: (error: Error) => {
+        console.error('공고 저장 실패:', error);
+        // TODO: 토스트 메시지 등 사용자 피드백 추가
+      },
+    };
 
     if (recruitId) {
       update({ coverLetterId: recruitId, ...formData }, options);

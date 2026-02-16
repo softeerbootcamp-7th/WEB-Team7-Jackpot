@@ -21,7 +21,7 @@ const Question = ({
         <button
           type='button'
           onClick={onRemove}
-          className='absolute top-3 right-3 text-xs font-medium text-gray-400 opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-500'
+          className='absolute top-3 right-3 text-xs font-medium text-gray-400 opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-500 focus:opacity-100'
         >
           삭제
         </button>

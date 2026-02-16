@@ -1,10 +1,7 @@
 export type ApplyHalf = '상반기' | '하반기';
-
 export type ApiApplyHalf = 'FIRST_HALF' | 'SECOND_HALF';
-
 export type ISODateString = string;
 
-// 질문 아이템 타입
 export interface CoverLetterQuestion {
   question: string;
   category: string;
@@ -24,8 +21,26 @@ export interface RecentCoverLetter extends CoverLetter {
   questionCount: number;
 }
 
-// 질문 아이템 타입
-export interface CoverLetterQuestion {
-  question: string;
-  category: string;
+// --- Added Types (Moved from features) ---
+
+export interface CreateCoverLetterRequest {
+  companyName: string;
+  applyYear: number;
+  applyHalf: ApiApplyHalf;
+  jobPosition: string;
+  deadline: string;
+  questions?: CoverLetterQuestion[];
+}
+
+export interface CreateCoverLetterResponse {
+  coverLetterId: number;
+}
+
+export interface UpdateCoverLetterRequest {
+  coverLetterId: number;
+  companyName: string;
+  applyYear: number;
+  applyHalf: ApiApplyHalf;
+  jobPosition: string;
+  deadline: string;
 }
