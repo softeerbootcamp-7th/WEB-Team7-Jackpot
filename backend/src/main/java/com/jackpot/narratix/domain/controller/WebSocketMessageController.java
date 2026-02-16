@@ -43,20 +43,21 @@ public class WebSocketMessageController {
         handleSubscription(shareId, headerAccessor, ReviewRoleType.REVIEWER);
     }
 
-    private void handleSubscription(String shareId, SimpMessageHeaderAccessor headerAccessor, ReviewRoleType expectedRole){
+    private void handleSubscription(String shareId, SimpMessageHeaderAccessor headerAccessor, ReviewRoleType expectedRole) {
         WebSocketSessionInfo sessionInfo = extractSessionInfo(headerAccessor);
         this.validateShareId(shareId, sessionInfo.shareId());
         this.validateRole(sessionInfo.role(), expectedRole, shareId, sessionInfo.shareId());
         log.info("User subscribed to share: shareId={}, userId={}, role={}", shareId, sessionInfo.userId(), expectedRole);
     }
 
-    @MessageMapping("/share/{shareId}/text-update")
+    @MessageMapping("/share/{shareId}/qna/{qnAId}/text-update")
     public void updateText(
             @DestinationVariable String shareId,
+            @DestinationVariable Long qnAId,
             @Valid @Payload TextUpdateRequest request,
             SimpMessageHeaderAccessor headerAccessor
     ) {
-        log.info("Writer send text update request: shareId={}, request={}, path={}", shareId, request, headerAccessor.getDestination());
+        log.info("Writer send text update request: shareId={}, qnAId={}, request={}, path={}", shareId, qnAId, request, headerAccessor.getDestination());
 
         WebSocketSessionInfo sessionInfo = extractSessionInfo(headerAccessor);
 
@@ -66,7 +67,7 @@ public class WebSocketMessageController {
         log.info("Text update received: userId={}, shareId={}, version={}, startIdx={}, endIdx={}",
                 sessionInfo.userId(), shareId, request.version(), request.startIdx(), request.endIdx());
 
-        WebSocketMessageResponse response = WebSocketMessageResponse.createTextUpdateResponse(request);
+        WebSocketMessageResponse response = WebSocketMessageResponse.createTextUpdateResponse(qnAId, request);
 
         webSocketMessageSender.sendMessageToReviewer(shareId, response);
     }

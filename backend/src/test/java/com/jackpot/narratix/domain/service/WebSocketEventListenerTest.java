@@ -117,6 +117,7 @@ class WebSocketEventListenerTest {
         String reviewerId = "reviewer123";
         Long coverLetterId = 1L;
         Long reviewId = 10L;
+        Long qnAId = 2L;
 
         User reviewer = UserFixture.builder()
                 .id(reviewerId)
@@ -127,6 +128,7 @@ class WebSocketEventListenerTest {
 
         ReviewCreatedEvent event = new ReviewCreatedEvent(
                 coverLetterId,
+                qnAId,
                 reviewerId,
                 reviewId,
                 "원본 텍스트",
@@ -153,9 +155,11 @@ class WebSocketEventListenerTest {
         // given
         String reviewerId = "reviewer123";
         Long coverLetterId = 1L;
+        Long qnAId = 2L;
 
         ReviewCreatedEvent event = new ReviewCreatedEvent(
                 coverLetterId,
+                qnAId,
                 reviewerId,
                 10L,
                 "원본 텍스트",

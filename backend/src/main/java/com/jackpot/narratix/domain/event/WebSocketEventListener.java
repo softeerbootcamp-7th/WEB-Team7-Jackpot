@@ -49,7 +49,7 @@ public class WebSocketEventListener {
         WebSocketCreateCommentMessage message = WebSocketCreateCommentMessage.of(reviewer, event);
         webSocketMessageSender.sendMessageToShare(
                 shareLink.get().getShareId(),
-                new WebSocketMessageResponse(WebSocketMessageType.COMMENT_CREATED, message)
+                new WebSocketMessageResponse(WebSocketMessageType.COMMENT_CREATED, event.qnAId(), message)
         );
     }
 

@@ -46,7 +46,7 @@ public class ReviewService {
         // TODO: 본문 텍스트 전체 변경 이벤트 발행
 
         Long coverLetterId = qnA.getCoverLetter().getId();
-        eventPublisher.publishEvent(ReviewCreatedEvent.of(coverLetterId, review));
+        eventPublisher.publishEvent(ReviewCreatedEvent.of(coverLetterId, qnAId, review));
         notificationService.sendFeedbackNotificationToWriter(reviewerId, qnA, request.originText());
     }
 
