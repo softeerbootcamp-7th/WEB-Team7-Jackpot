@@ -10,9 +10,10 @@ export const saveCaret = (el: HTMLElement): number => {
 };
 
 /**
- * DocumentFragment에서 텍스트를 추출 (BR → \n, zwsp 제거)
+ * Node의 자식을 순회하며 텍스트를 추출 (BR → \n, zwsp 제거).
+ * HTMLElement, DocumentFragment 등 어떤 Node든 사용할 수 있다.
  */
-const getTextFromFragment = (fragment: DocumentFragment): string => {
+export const collectText = (root: Node): string => {
   let result = '';
   const walk = (node: Node) => {
     if (node.nodeName === 'BR') {
@@ -25,7 +26,7 @@ const getTextFromFragment = (fragment: DocumentFragment): string => {
     }
     node.childNodes.forEach(walk);
   };
-  fragment.childNodes.forEach(walk);
+  root.childNodes.forEach(walk);
   return result.replace(/\u200B/g, '');
 };
 
@@ -41,13 +42,17 @@ export const getCaretPosition = (
   if (!sel || sel.rangeCount === 0) return { start: 0, end: 0 };
 
   const range = sel.getRangeAt(0);
-  if (!container.contains(range.startContainer)) return { start: 0, end: 0 };
+  if (
+    !container.contains(range.startContainer) ||
+    !container.contains(range.endContainer)
+  )
+    return { start: 0, end: 0 };
 
   const countOffset = (endContainer: Node, endOffset: number): number => {
     const tempRange = document.createRange();
     tempRange.selectNodeContents(container);
     tempRange.setEnd(endContainer, endOffset);
-    return getTextFromFragment(tempRange.cloneContents()).length;
+    return collectText(tempRange.cloneContents()).length;
   };
 
   const start = countOffset(range.startContainer, range.startOffset);
@@ -106,4 +111,11 @@ export const restoreCaret = (el: HTMLElement, offset: number) => {
       remaining -= actualLength;
     }
   }
+
+  // fallback: offset이 전체 텍스트 길이를 초과하면 마지막 위치에 캐럿 배치
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  range.collapse(false); // 끝으로 이동
+  sel.removeAllRanges();
+  sel.addRange(range);
 };

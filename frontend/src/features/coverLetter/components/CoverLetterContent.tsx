@@ -9,6 +9,7 @@ import {
 
 import { buildChunks } from '@/features/coverLetter/libs/buildChunks';
 import {
+  collectText,
   getCaretPosition,
   restoreCaret,
 } from '@/features/coverLetter/libs/caret';
@@ -27,29 +28,6 @@ interface CoverLetterContentProps {
   onReviewClick: (reviewId: number) => void;
   onTextChange?: (newText: string) => void;
 }
-
-/**
- * contentEditable DOM에서 텍스트를 추출할 때 <br>을 \n으로 변환.
- * textContent는 <br>을 무시하므로 직접 순회해야 한다.
- * renderText가 항상 마지막에 <br>을 추가하므로 trailing \n 하나를 제거한다.
- */
-const getTextFromDOM = (el: HTMLElement): string => {
-  let result = '';
-  const walk = (node: Node) => {
-    if (node.nodeName === 'BR') {
-      result += '\n';
-      return;
-    }
-    if (node.nodeType === Node.TEXT_NODE) {
-      result += node.textContent || '';
-      return;
-    }
-    node.childNodes.forEach(walk);
-  };
-  el.childNodes.forEach(walk);
-  result = result.replace(/\u200B/g, '');
-  return result;
-};
 
 const CoverLetterContent = ({
   text,
@@ -78,8 +56,8 @@ const CoverLetterContent = ({
     onTextChangeRef.current = onTextChange;
   }, [onTextChange]);
 
-  const undoStack = useRef<string[]>([]);
-  const redoStack = useRef<string[]>([]);
+  const undoStack = useRef<{ text: string; caret: number }[]>([]);
+  const redoStack = useRef<{ text: string; caret: number }[]>([]);
 
   const { containerRef, before, after } = useTextSelection({
     text,
@@ -137,7 +115,10 @@ const CoverLetterContent = ({
 
     const currentText = latestTextRef.current;
     if (newText !== currentText) {
-      undoStack.current.push(currentText);
+      undoStack.current.push({
+        text: currentText,
+        caret: caretOffsetRef.current,
+      });
       if (undoStack.current.length > 100) undoStack.current.shift();
       redoStack.current = [];
       isInputtingRef.current = true;
@@ -150,12 +131,9 @@ const CoverLetterContent = ({
   const processInput = () => {
     if (!contentRef.current || isComposingRef.current) return;
 
-    const newText = getTextFromDOM(contentRef.current);
+    const newText = collectText(contentRef.current);
 
     if (newText === '') {
-      if (contentRef.current.childNodes.length === 0) {
-        contentRef.current.appendChild(document.createTextNode(''));
-      }
       caretOffsetRef.current = 0;
     } else {
       const { start } = getCaretPosition(contentRef.current);
@@ -169,7 +147,7 @@ const CoverLetterContent = ({
   // DOM과 latestTextRef가 불일치할 수 있으므로 먼저 동기화
   const syncDOMToState = useCallback(() => {
     if (!contentRef.current) return;
-    const domText = getTextFromDOM(contentRef.current);
+    const domText = collectText(contentRef.current);
     if (domText !== latestTextRef.current) {
       updateText(domText);
     }
@@ -238,24 +216,30 @@ const CoverLetterContent = ({
   useEffect(() => {
     const performUndo = () => {
       if (undoStack.current.length === 0) return;
-      const prevText = undoStack.current.pop()!;
+      const prev = undoStack.current.pop()!;
       const currentText = latestTextRef.current;
-      redoStack.current.push(currentText);
-      caretOffsetRef.current = prevText.length;
+      redoStack.current.push({
+        text: currentText,
+        caret: caretOffsetRef.current,
+      });
+      caretOffsetRef.current = prev.caret;
       isInputtingRef.current = true;
-      latestTextRef.current = prevText;
-      onTextChangeRef.current?.(prevText);
+      latestTextRef.current = prev.text;
+      onTextChangeRef.current?.(prev.text);
     };
 
     const performRedo = () => {
       if (redoStack.current.length === 0) return;
-      const nextText = redoStack.current.pop()!;
+      const next = redoStack.current.pop()!;
       const currentText = latestTextRef.current;
-      undoStack.current.push(currentText);
-      caretOffsetRef.current = nextText.length;
+      undoStack.current.push({
+        text: currentText,
+        caret: caretOffsetRef.current,
+      });
+      caretOffsetRef.current = next.caret;
       isInputtingRef.current = true;
-      latestTextRef.current = nextText;
-      onTextChangeRef.current?.(nextText);
+      latestTextRef.current = next.text;
+      onTextChangeRef.current?.(next.text);
     };
 
     const handleKey = (e: KeyboardEvent) => {
