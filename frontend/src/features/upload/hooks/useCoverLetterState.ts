@@ -8,7 +8,7 @@ import { halfInfo } from '@/features/upload/utils/generateAboutDate';
 
 const useCoverLetterState = () => {
   const [contents, setContents] = useState<ContentStateType>(
-    [1, 2, 3].reduce(
+    [0, 1, 2].reduce(
       (acc, key) => ({
         ...acc,
         [key]: {

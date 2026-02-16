@@ -37,7 +37,10 @@ function App() {
             <Route path='/upload' element={<UploadPage />}>
               <Route index element={<Navigate to='input' replace />} />
               <Route path='input' element={<UploadInputSection />} />
-              <Route path='labeling' element={<LabelingResultSection />} />
+              <Route
+                path='labeling/:coverLetterId?/:qnAId?'
+                element={<LabelingResultSection />}
+              />
               <Route path='complete' element={<UploadCompleteSection />} />
             </Route>
 
