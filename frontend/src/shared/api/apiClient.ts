@@ -153,7 +153,7 @@ const request = async (
     }
 
     // SSE 용도라면 파싱하지 않고 response 그대로 반환
-    if (!isStream) {
+    if (isStream) {
       return response;
     }
 
