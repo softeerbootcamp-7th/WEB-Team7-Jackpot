@@ -8,7 +8,7 @@ public record WebSocketEditReviewMessage(
         Long reviewId,
         String originText,
         String suggest,
-        String content,
+        String comment,
         LocalDateTime modifiedAt
 ) {
     public static WebSocketEditReviewMessage of(ReviewEditEvent event) {
