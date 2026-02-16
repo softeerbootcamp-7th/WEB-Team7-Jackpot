@@ -1,12 +1,14 @@
 package com.jackpot.narratix.domain.event;
 
+import com.jackpot.narratix.domain.controller.response.WebSocketMessageResponse;
 import com.jackpot.narratix.domain.entity.ShareLink;
 import com.jackpot.narratix.domain.entity.User;
 import com.jackpot.narratix.domain.entity.enums.ReviewRoleType;
+import com.jackpot.narratix.domain.entity.enums.WebSocketMessageType;
 import com.jackpot.narratix.domain.repository.ShareLinkRepository;
 import com.jackpot.narratix.domain.repository.UserRepository;
 import com.jackpot.narratix.domain.service.ShareLinkLockManager;
-import com.jackpot.narratix.domain.service.WebSocketMessageService;
+import com.jackpot.narratix.domain.service.WebSocketMessageSender;
 import com.jackpot.narratix.domain.service.dto.WebSocketCreateCommentMessage;
 import com.jackpot.narratix.global.websocket.WebSocketSessionAttributes;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +29,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class WebSocketEventListener {
 
-    private final WebSocketMessageService webSocketMessageService;
+    private final WebSocketMessageSender webSocketMessageSender;
     private final ShareLinkLockManager shareLinkLockManager;
 
     private final UserRepository userRepository;
@@ -51,7 +53,10 @@ public class WebSocketEventListener {
         }
 
         WebSocketCreateCommentMessage message = WebSocketCreateCommentMessage.of(reviewer, event);
-        webSocketMessageService.sendCreateCommentMessage(shareLink.getShareId(), message);
+        webSocketMessageSender.sendMessageToShare(
+                shareLink.getShareId(),
+                new WebSocketMessageResponse(WebSocketMessageType.COMMENT_CREATED, message)
+        );
     }
 
     @EventListener
