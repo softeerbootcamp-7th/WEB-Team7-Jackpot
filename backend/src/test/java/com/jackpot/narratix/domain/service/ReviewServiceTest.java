@@ -8,9 +8,8 @@ import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.Review;
 import com.jackpot.narratix.domain.entity.User;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
-import com.jackpot.narratix.domain.entity.enums.NotificationType;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
-import com.jackpot.narratix.domain.entity.notification_meta.FeedbackNotificationMeta;
+import com.jackpot.narratix.domain.event.ReviewCreatedEvent;
 import com.jackpot.narratix.domain.exception.ReviewErrorCode;
 import com.jackpot.narratix.domain.fixture.CoverLetterFixture;
 import com.jackpot.narratix.domain.fixture.QnAFixture;
@@ -19,16 +18,15 @@ import com.jackpot.narratix.domain.fixture.UserFixture;
 import com.jackpot.narratix.domain.repository.QnARepository;
 import com.jackpot.narratix.domain.repository.ReviewRepository;
 import com.jackpot.narratix.domain.repository.UserRepository;
-import com.jackpot.narratix.domain.service.dto.NotificationSendRequest;
 import com.jackpot.narratix.global.exception.BaseException;
 import com.jackpot.narratix.global.exception.GlobalErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.List;
 
@@ -57,6 +55,9 @@ class ReviewServiceTest {
     @Mock
     private NotificationService notificationService;
 
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
     @Test
     @DisplayName("리뷰 생성 성공")
     void createReview_Success() {
@@ -82,11 +83,6 @@ class ReviewServiceTest {
                 .comment(request.comment())
                 .build();
 
-        User reviewer = UserFixture.builder()
-                .id(reviewerId)
-                .nickname("리뷰어")
-                .build();
-
         CoverLetter coverLetter = CoverLetterFixture.builder()
                 .id(1L)
                 .userId(writerId)
@@ -104,222 +100,24 @@ class ReviewServiceTest {
         );
 
         given(reviewRepository.save(any(Review.class))).willReturn(savedReview);
-        given(userRepository.findByIdOrElseThrow(reviewerId)).willReturn(reviewer);
         given(qnARepository.findByIdOrElseThrow(qnaId)).willReturn(qnA);
-        doNothing().when(notificationService).sendNotification(any(), any());
+        doNothing().when(notificationService).sendFeedbackNotificationToWriter(any(), any(), any());
 
         // when
         reviewService.createReview(reviewerId, qnaId, request);
 
         // then
         verify(reviewRepository, times(1)).save(any(Review.class));
-        verify(userRepository, times(1)).findByIdOrElseThrow(reviewerId);
         verify(qnARepository, times(1)).findByIdOrElseThrow(qnaId);
-        verify(notificationService, times(1)).sendNotification(eq(writerId), any(NotificationSendRequest.class));
+        verify(eventPublisher, times(1)).publishEvent(any(ReviewCreatedEvent.class));
+        verify(notificationService, times(1)).sendFeedbackNotificationToWriter(reviewerId, qnA, request.originText());
     }
 
-    @Test
-    @DisplayName("리뷰 생성 시 피드백 알림이 올바르게 생성된다")
-    void createReview_CreatesCorrectNotification() {
-        // given
-        String reviewerId = "reviewer123";
-        String writerId = "writer456";
-        Long qnaId = 1L;
-        String originText = "원본 텍스트";
+    // 알림 생성 로직은 NotificationService의 책임이므로 NotificationServiceTest에서 테스트
 
-        ReviewCreateRequest request = new ReviewCreateRequest(
-                1L,
-                0L,
-                100L,
-                originText,
-                "수정 제안 텍스트",
-                "피드백 코멘트"
-        );
+    // 알림 수신자 및 발신자 검증은 NotificationService의 책임이므로 NotificationServiceTest에서 테스트
 
-        Review savedReview = ReviewFixture.builder()
-                .id(1L)
-                .reviewerId(reviewerId)
-                .qnaId(qnaId)
-                .suggest(request.suggest())
-                .comment(request.comment())
-                .build();
-
-        User reviewer = UserFixture.builder()
-                .id(reviewerId)
-                .nickname("리뷰어닉네임")
-                .build();
-
-        CoverLetter coverLetter = CoverLetterFixture.builder()
-                .id(1L)
-                .userId(writerId)
-                .companyName("카카오")
-                .applyYear(2024)
-                .applyHalf(ApplyHalfType.SECOND_HALF)
-                .build();
-
-        QnA qnA = QnAFixture.createQnAWithId(
-                qnaId,
-                coverLetter,
-                writerId,
-                "지원동기는 무엇인가요?",
-                QuestionCategoryType.MOTIVATION
-        );
-
-        given(reviewRepository.save(any(Review.class))).willReturn(savedReview);
-        given(userRepository.findByIdOrElseThrow(reviewerId)).willReturn(reviewer);
-        given(qnARepository.findByIdOrElseThrow(qnaId)).willReturn(qnA);
-
-        ArgumentCaptor<NotificationSendRequest> notificationCaptor = ArgumentCaptor.forClass(NotificationSendRequest.class);
-
-        // when
-        reviewService.createReview(reviewerId, qnaId, request);
-
-        // then
-        verify(notificationService, times(1)).sendNotification(eq(writerId), notificationCaptor.capture());
-
-        NotificationSendRequest capturedNotification = notificationCaptor.getValue();
-        assertThat(capturedNotification.type()).isEqualTo(NotificationType.FEEDBACK);
-        assertThat(capturedNotification.title()).isEqualTo("카카오 2024 하반기");
-        assertThat(capturedNotification.content()).isEqualTo(originText);
-        assertThat(capturedNotification.meta()).isInstanceOf(FeedbackNotificationMeta.class);
-
-        FeedbackNotificationMeta meta = (FeedbackNotificationMeta) capturedNotification.meta();
-        assertThat(meta.getSender().getId()).isEqualTo(reviewerId);
-        assertThat(meta.getSender().getNickname()).isEqualTo("리뷰어닉네임");
-        assertThat(meta.getQnAId()).isEqualTo(qnaId);
-    }
-
-    @Test
-    @DisplayName("리뷰 생성 시 reviewer는 sender이고 writer는 알림을 받는다")
-    void createReview_ReviewerIsSenderAndWriterReceivesNotification() {
-        // given
-        String reviewerId = "reviewer123";
-        String writerId = "writer456";
-        Long qnaId = 1L;
-
-        ReviewCreateRequest request = new ReviewCreateRequest(
-                1L,
-                0L,
-                100L,
-                "원본 텍스트",
-                "수정 제안",
-                "코멘트"
-        );
-
-        Review savedReview = ReviewFixture.builder()
-                .id(1L)
-                .reviewerId(reviewerId)
-                .qnaId(qnaId)
-                .build();
-
-        User reviewer = UserFixture.builder()
-                .id(reviewerId)
-                .nickname("리뷰어닉네임")
-                .build();
-
-        CoverLetter coverLetter = CoverLetterFixture.builder()
-                .id(1L)
-                .userId(writerId)
-                .companyName("토스")
-                .applyYear(2024)
-                .applyHalf(ApplyHalfType.FIRST_HALF)
-                .build();
-
-        QnA qnA = QnAFixture.createQnAWithId(
-                qnaId,
-                coverLetter,
-                writerId,
-                "지원동기는 무엇인가요?",
-                QuestionCategoryType.MOTIVATION
-        );
-
-        given(reviewRepository.save(any(Review.class))).willReturn(savedReview);
-        given(userRepository.findByIdOrElseThrow(reviewerId)).willReturn(reviewer);
-        given(qnARepository.findByIdOrElseThrow(qnaId)).willReturn(qnA);
-
-        ArgumentCaptor<String> userIdCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<NotificationSendRequest> notificationCaptor = ArgumentCaptor.forClass(NotificationSendRequest.class);
-
-        // when
-        reviewService.createReview(reviewerId, qnaId, request);
-
-        // then
-        // 1. writer에게 알림이 전송된다
-        verify(notificationService, times(1)).sendNotification(userIdCaptor.capture(), notificationCaptor.capture());
-        assertThat(userIdCaptor.getValue()).isEqualTo(writerId);
-
-        // 2. reviewer는 알림의 sender이다
-        NotificationSendRequest capturedNotification = notificationCaptor.getValue();
-        assertThat(capturedNotification.meta()).isInstanceOf(FeedbackNotificationMeta.class);
-        FeedbackNotificationMeta meta = (FeedbackNotificationMeta) capturedNotification.meta();
-        assertThat(meta.getSender().getId()).isEqualTo(reviewerId);
-        assertThat(meta.getSender().getNickname()).isEqualTo("리뷰어닉네임");
-
-        // 3. reviewer에게는 알림이 전송되지 않는다
-        verify(notificationService, never()).sendNotification(eq(reviewerId), any());
-    }
-
-    @Test
-    @DisplayName("리뷰 생성 시 Review의 OriginText가 알림 content에 포함된다")
-    void createReview_IncludesAnswerInNotificationContent() {
-        // given
-        String reviewerId = "reviewer123";
-        String writerId = "writer456";
-        Long qnaId = 1L;
-        String originText = "원본 텍스트";
-
-        ReviewCreateRequest request = new ReviewCreateRequest(
-                1L,
-                0L,
-                100L,
-                originText,
-                "수정 제안",
-                null
-        );
-
-        Review savedReview = ReviewFixture.builder()
-                .id(1L)
-                .reviewerId(reviewerId)
-                .qnaId(qnaId)
-                .build();
-
-        User reviewer = UserFixture.builder()
-                .id(reviewerId)
-                .nickname("리뷰어")
-                .build();
-
-        CoverLetter coverLetter = CoverLetterFixture.builder()
-                .id(1L)
-                .userId(writerId)
-                .companyName("네이버")
-                .applyYear(2025)
-                .applyHalf(ApplyHalfType.FIRST_HALF)
-                .build();
-
-        QnA qnA = QnAFixture.createQnAWithId(
-                qnaId,
-                coverLetter,
-                writerId,
-                "지원동기는 무엇인가요?",
-                QuestionCategoryType.MOTIVATION
-        );
-        qnA.editAnswer("저는 귀사의 비전에 공감하여 지원하게 되었습니다.");
-
-        given(reviewRepository.save(any(Review.class))).willReturn(savedReview);
-        given(userRepository.findByIdOrElseThrow(reviewerId)).willReturn(reviewer);
-        given(qnARepository.findByIdOrElseThrow(qnaId)).willReturn(qnA);
-
-        ArgumentCaptor<NotificationSendRequest> notificationCaptor = ArgumentCaptor.forClass(NotificationSendRequest.class);
-
-        // when
-        reviewService.createReview(reviewerId, qnaId, request);
-
-        // then
-        verify(notificationService, times(1)).sendNotification(eq(writerId), notificationCaptor.capture());
-
-        NotificationSendRequest capturedNotification = notificationCaptor.getValue();
-        assertThat(capturedNotification.content()).isEqualTo(originText);
-    }
+    // 알림 content 검증은 NotificationService의 책임이므로 NotificationServiceTest에서 테스트
 
     @Test
     @DisplayName("리뷰 수정 성공")

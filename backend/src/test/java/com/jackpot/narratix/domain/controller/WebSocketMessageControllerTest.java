@@ -1,9 +1,10 @@
 package com.jackpot.narratix.domain.controller;
 
 import com.jackpot.narratix.domain.controller.request.TextUpdateRequest;
+import com.jackpot.narratix.domain.controller.response.WebSocketMessageResponse;
 import com.jackpot.narratix.domain.entity.enums.ReviewRoleType;
 import com.jackpot.narratix.domain.exception.WebSocketErrorCode;
-import com.jackpot.narratix.domain.service.WebSocketMessageService;
+import com.jackpot.narratix.domain.service.WebSocketMessageSender;
 import com.jackpot.narratix.global.exception.BaseException;
 import com.jackpot.narratix.global.websocket.WebSocketSessionAttributes;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +22,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,7 +33,7 @@ class WebSocketMessageControllerTest {
     private WebSocketMessageController webSocketMessageController;
 
     @Mock
-    private WebSocketMessageService webSocketMessageService;
+    private WebSocketMessageSender webSocketMessageSender;
 
     private SimpMessageHeaderAccessor headerAccessor;
     private Map<String, Object> sessionAttributes;
@@ -54,20 +57,16 @@ class WebSocketMessageControllerTest {
         WebSocketSessionAttributes.setShareId(sessionAttributes, shareId);
         WebSocketSessionAttributes.setRole(sessionAttributes, role);
 
-        doNothing().when(webSocketMessageService).validateShareId(shareId, shareId);
-        doNothing().when(webSocketMessageService).validateRole(role, ReviewRoleType.WRITER, shareId, shareId);
-
         // when
         webSocketMessageController.subscribeWriterCoverLetter(shareId, headerAccessor);
 
-        // then
-        verify(webSocketMessageService).validateShareId(shareId, shareId);
-        verify(webSocketMessageService).validateRole(role, ReviewRoleType.WRITER, shareId, shareId);
+        // then - 예외가 발생하지 않으면 성공
+        verifyNoInteractions(webSocketMessageSender);
     }
 
     @Test
-    @DisplayName("Writer 구독 시 shareId가 일치하지 않으면 검증 메서드를 호출한다")
-    void subscribeWriterCoverLetter_ShareIdMismatch() {
+    @DisplayName("Writer 구독 시 shareId가 일치하지 않으면 예외가 발생한다")
+    void subscribeWriterCoverLetter_ShareIdMismatch_ThrowsException() {
         // given
         String pathShareId = "path-share-123";
         String sessionShareId = "session-share-456";
@@ -78,41 +77,30 @@ class WebSocketMessageControllerTest {
         WebSocketSessionAttributes.setShareId(sessionAttributes, sessionShareId);
         WebSocketSessionAttributes.setRole(sessionAttributes, role);
 
-        doThrow(new BaseException(WebSocketErrorCode.SHARE_ID_MISMATCH))
-                .when(webSocketMessageService).validateShareId(pathShareId, sessionShareId);
-
         // when & then
         assertThatThrownBy(() ->
-            webSocketMessageController.subscribeWriterCoverLetter(pathShareId, headerAccessor)
+                webSocketMessageController.subscribeWriterCoverLetter(pathShareId, headerAccessor)
         ).isInstanceOf(BaseException.class)
-         .hasFieldOrPropertyWithValue("errorCode", WebSocketErrorCode.SHARE_ID_MISMATCH);
-
-        verify(webSocketMessageService).validateShareId(pathShareId, sessionShareId);
+                .hasFieldOrPropertyWithValue("errorCode", WebSocketErrorCode.SHARE_ID_MISMATCH);
     }
 
     @Test
-    @DisplayName("Writer 구독 시 role이 일치하지 않으면 예외가 발생한다")
-    void subscribeWriterCoverLetter_RoleMismatch() {
+    @DisplayName("Writer 구독 시 role이 REVIEWER이면 예외가 발생한다")
+    void subscribeWriterCoverLetter_RoleMismatch_ThrowsException() {
         // given
         String shareId = "test-share-123";
         String userId = "user123";
-        ReviewRoleType role = ReviewRoleType.REVIEWER; // WRITER가 아님
+        ReviewRoleType role = ReviewRoleType.REVIEWER;
 
         WebSocketSessionAttributes.setUserId(sessionAttributes, userId);
         WebSocketSessionAttributes.setShareId(sessionAttributes, shareId);
         WebSocketSessionAttributes.setRole(sessionAttributes, role);
 
-        doNothing().when(webSocketMessageService).validateShareId(shareId, shareId);
-        doThrow(new BaseException(WebSocketErrorCode.ROLE_MISMATCH))
-                .when(webSocketMessageService).validateRole(role, ReviewRoleType.WRITER, shareId, shareId);
-
         // when & then
         assertThatThrownBy(() ->
-            webSocketMessageController.subscribeWriterCoverLetter(shareId, headerAccessor)
+                webSocketMessageController.subscribeWriterCoverLetter(shareId, headerAccessor)
         ).isInstanceOf(BaseException.class)
-         .hasFieldOrPropertyWithValue("errorCode", WebSocketErrorCode.ROLE_MISMATCH);
-
-        verify(webSocketMessageService).validateRole(role, ReviewRoleType.WRITER, shareId, shareId);
+                .hasFieldOrPropertyWithValue("errorCode", WebSocketErrorCode.ROLE_MISMATCH);
     }
 
     @Test
@@ -127,20 +115,16 @@ class WebSocketMessageControllerTest {
         WebSocketSessionAttributes.setShareId(sessionAttributes, shareId);
         WebSocketSessionAttributes.setRole(sessionAttributes, role);
 
-        doNothing().when(webSocketMessageService).validateShareId(shareId, shareId);
-        doNothing().when(webSocketMessageService).validateRole(role, ReviewRoleType.REVIEWER, shareId, shareId);
-
         // when
         webSocketMessageController.subscribeReviewerCoverLetter(shareId, headerAccessor);
 
-        // then
-        verify(webSocketMessageService).validateShareId(shareId, shareId);
-        verify(webSocketMessageService).validateRole(role, ReviewRoleType.REVIEWER, shareId, shareId);
+        // then - 예외가 발생하지 않으면 성공
+        verifyNoInteractions(webSocketMessageSender);
     }
 
     @Test
     @DisplayName("Reviewer 구독 시 shareId가 일치하지 않으면 예외가 발생한다")
-    void subscribeReviewerCoverLetter_ShareIdMismatch() {
+    void subscribeReviewerCoverLetter_ShareIdMismatch_ThrowsException() {
         // given
         String pathShareId = "path-share-123";
         String sessionShareId = "session-share-456";
@@ -151,37 +135,30 @@ class WebSocketMessageControllerTest {
         WebSocketSessionAttributes.setShareId(sessionAttributes, sessionShareId);
         WebSocketSessionAttributes.setRole(sessionAttributes, role);
 
-        doThrow(new BaseException(WebSocketErrorCode.SHARE_ID_MISMATCH))
-                .when(webSocketMessageService).validateShareId(pathShareId, sessionShareId);
-
         // when & then
         assertThatThrownBy(() ->
-            webSocketMessageController.subscribeReviewerCoverLetter(pathShareId, headerAccessor)
+                webSocketMessageController.subscribeReviewerCoverLetter(pathShareId, headerAccessor)
         ).isInstanceOf(BaseException.class)
-         .hasFieldOrPropertyWithValue("errorCode", WebSocketErrorCode.SHARE_ID_MISMATCH);
+                .hasFieldOrPropertyWithValue("errorCode", WebSocketErrorCode.SHARE_ID_MISMATCH);
     }
 
     @Test
-    @DisplayName("Reviewer 구독 시 role이 일치하지 않으면 예외가 발생한다")
-    void subscribeReviewerCoverLetter_RoleMismatch() {
+    @DisplayName("Reviewer 구독 시 role이 WRITER이면 예외가 발생한다")
+    void subscribeReviewerCoverLetter_RoleMismatch_ThrowsException() {
         // given
         String shareId = "test-share-123";
         String userId = "user456";
-        ReviewRoleType role = ReviewRoleType.WRITER; // REVIEWER가 아님
+        ReviewRoleType role = ReviewRoleType.WRITER;
 
         WebSocketSessionAttributes.setUserId(sessionAttributes, userId);
         WebSocketSessionAttributes.setShareId(sessionAttributes, shareId);
         WebSocketSessionAttributes.setRole(sessionAttributes, role);
 
-        doNothing().when(webSocketMessageService).validateShareId(shareId, shareId);
-        doThrow(new BaseException(WebSocketErrorCode.ROLE_MISMATCH))
-                .when(webSocketMessageService).validateRole(role, ReviewRoleType.REVIEWER, shareId, shareId);
-
         // when & then
         assertThatThrownBy(() ->
-            webSocketMessageController.subscribeReviewerCoverLetter(shareId, headerAccessor)
+                webSocketMessageController.subscribeReviewerCoverLetter(shareId, headerAccessor)
         ).isInstanceOf(BaseException.class)
-         .hasFieldOrPropertyWithValue("errorCode", WebSocketErrorCode.ROLE_MISMATCH);
+                .hasFieldOrPropertyWithValue("errorCode", WebSocketErrorCode.ROLE_MISMATCH);
     }
 
     @Test
@@ -203,14 +180,11 @@ class WebSocketMessageControllerTest {
                 "Updated text"
         );
 
-        doNothing().when(webSocketMessageService)
-                .handleTextUpdate(shareId, shareId, userId, role, request);
-
         // when
         webSocketMessageController.updateText(shareId, request, headerAccessor);
 
         // then
-        verify(webSocketMessageService).handleTextUpdate(shareId, shareId, userId, role, request);
+        verify(webSocketMessageSender).sendMessageToReviewer(eq(shareId), any(WebSocketMessageResponse.class));
     }
 
     @Test
@@ -223,16 +197,16 @@ class WebSocketMessageControllerTest {
 
         // when & then
         assertThatThrownBy(() ->
-            webSocketMessageController.updateText(shareId, request, headerAccessor)
+                webSocketMessageController.updateText(shareId, request, headerAccessor)
         ).isInstanceOf(BaseException.class)
-         .hasFieldOrPropertyWithValue("errorCode", WebSocketErrorCode.INVALID_SESSION);
+                .hasFieldOrPropertyWithValue("errorCode", WebSocketErrorCode.INVALID_SESSION);
 
-        verifyNoInteractions(webSocketMessageService);
+        verifyNoInteractions(webSocketMessageSender);
     }
 
     @Test
-    @DisplayName("텍스트 업데이트 시 shareId가 일치하지 않으면 서비스 레이어에서 검증한다")
-    void updateText_ShareIdMismatch_ServiceValidates() {
+    @DisplayName("텍스트 업데이트 시 shareId가 일치하지 않으면 예외가 발생한다")
+    void updateText_ShareIdMismatch_ThrowsException() {
         // given
         String pathShareId = "path-share-123";
         String sessionShareId = "session-share-456";
@@ -245,22 +219,18 @@ class WebSocketMessageControllerTest {
 
         TextUpdateRequest request = new TextUpdateRequest(1L, 0, 10, "text");
 
-        doThrow(new BaseException(WebSocketErrorCode.SHARE_ID_MISMATCH))
-                .when(webSocketMessageService)
-                .handleTextUpdate(pathShareId, sessionShareId, userId, role, request);
-
         // when & then
         assertThatThrownBy(() ->
-            webSocketMessageController.updateText(pathShareId, request, headerAccessor)
+                webSocketMessageController.updateText(pathShareId, request, headerAccessor)
         ).isInstanceOf(BaseException.class)
-         .hasFieldOrPropertyWithValue("errorCode", WebSocketErrorCode.SHARE_ID_MISMATCH);
+                .hasFieldOrPropertyWithValue("errorCode", WebSocketErrorCode.SHARE_ID_MISMATCH);
 
-        verify(webSocketMessageService).handleTextUpdate(pathShareId, sessionShareId, userId, role, request);
+        verifyNoInteractions(webSocketMessageSender);
     }
 
     @Test
-    @DisplayName("텍스트 업데이트 시 REVIEWER는 권한이 없어 서비스 레이어에서 예외가 발생한다")
-    void updateText_ReviewerUnauthorized_ServiceThrowsException() {
+    @DisplayName("텍스트 업데이트 시 REVIEWER는 권한이 없어 예외가 발생한다")
+    void updateText_ReviewerUnauthorized_ThrowsException() {
         // given
         String shareId = "test-share-123";
         String userId = "user456";
@@ -272,27 +242,23 @@ class WebSocketMessageControllerTest {
 
         TextUpdateRequest request = new TextUpdateRequest(1L, 0, 10, "text");
 
-        doThrow(new BaseException(WebSocketErrorCode.UNAUTHORIZED_TEXT_UPDATE))
-                .when(webSocketMessageService)
-                .handleTextUpdate(shareId, shareId, userId, role, request);
-
         // when & then
         assertThatThrownBy(() ->
-            webSocketMessageController.updateText(shareId, request, headerAccessor)
+                webSocketMessageController.updateText(shareId, request, headerAccessor)
         ).isInstanceOf(BaseException.class)
-         .hasFieldOrPropertyWithValue("errorCode", WebSocketErrorCode.UNAUTHORIZED_TEXT_UPDATE);
+                .hasFieldOrPropertyWithValue("errorCode", WebSocketErrorCode.UNAUTHORIZED_TEXT_UPDATE);
 
-        verify(webSocketMessageService).handleTextUpdate(shareId, shareId, userId, role, request);
+        verifyNoInteractions(webSocketMessageSender);
     }
 
     @Test
-    @DisplayName("세션 속성이 null일 때 예외가 발생한다.")
-    void subscribeWriterCoverLetter_NullSessionAttributes_ValidatesWithNull() {
+    @DisplayName("구독 시 세션 속성이 null이면 예외가 발생한다")
+    void subscribeWriterCoverLetter_NullSessionAttributes_ThrowsException() {
         // given
         headerAccessor.setSessionAttributes(null);
         String shareId = "test-share-123";
 
-        // then - 세션이 null이어도 서비스의 validateShareId는 호출됨 (null 파라미터로)
+        // when & then
         assertThatThrownBy(() ->
                 webSocketMessageController.subscribeWriterCoverLetter(shareId, headerAccessor)
         ).isInstanceOf(BaseException.class)

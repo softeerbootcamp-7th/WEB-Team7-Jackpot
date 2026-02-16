@@ -1,17 +1,31 @@
 package com.jackpot.narratix.domain.service;
 
 import com.jackpot.narratix.domain.controller.response.UnreadNotificationCountResponse;
+import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.Notification;
+import com.jackpot.narratix.domain.entity.QnA;
+import com.jackpot.narratix.domain.entity.User;
+import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
+import com.jackpot.narratix.domain.entity.enums.NotificationType;
+import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
+import com.jackpot.narratix.domain.entity.notification_meta.FeedbackNotificationMeta;
+import com.jackpot.narratix.domain.event.NotificationSendEvent;
+import com.jackpot.narratix.domain.fixture.CoverLetterFixture;
 import com.jackpot.narratix.domain.fixture.NotificationFixture;
+import com.jackpot.narratix.domain.fixture.QnAFixture;
+import com.jackpot.narratix.domain.fixture.UserFixture;
 import com.jackpot.narratix.domain.repository.NotificationRepository;
+import com.jackpot.narratix.domain.repository.UserRepository;
 import com.jackpot.narratix.global.exception.BaseException;
 import com.jackpot.narratix.global.exception.GlobalErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -32,7 +46,13 @@ class NotificationServiceTest {
     private NotificationService notificationService;
 
     @Mock
+    private UserRepository userRepository;
+
+    @Mock
     private NotificationRepository notificationRepository;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @Test
     @DisplayName("lastNotificationId가 없을 때 findRecentByUserId 호출")
@@ -149,5 +169,153 @@ class NotificationServiceTest {
         // then
         assertThat(response.unreadNotificationCount()).isEqualTo(expectedCount);
         verify(notificationRepository, times(1)).countByUserIdAndIsRead(userId, false);
+    }
+
+    @Test
+    @DisplayName("피드백 알림 전송 - 올바른 알림이 생성된다")
+    void sendFeedbackNotificationToWriter_CreatesCorrectNotification() {
+        // given
+        String reviewerId = "reviewer123";
+        String writerId = "writer456";
+        Long qnaId = 1L;
+        String originText = "원본 텍스트";
+
+        User reviewer = UserFixture.builder()
+                .id(reviewerId)
+                .nickname("리뷰어닉네임")
+                .build();
+
+        CoverLetter coverLetter = CoverLetterFixture.builder()
+                .id(1L)
+                .userId(writerId)
+                .companyName("카카오")
+                .applyYear(2024)
+                .applyHalf(ApplyHalfType.SECOND_HALF)
+                .build();
+
+        QnA qnA = QnAFixture.createQnAWithId(
+                qnaId,
+                coverLetter,
+                writerId,
+                "지원동기는 무엇인가요?",
+                QuestionCategoryType.MOTIVATION
+        );
+
+        given(userRepository.findByIdOrElseThrow(reviewerId)).willReturn(reviewer);
+
+        ArgumentCaptor<Notification> notificationCaptor = ArgumentCaptor.forClass(Notification.class);
+
+        // when
+        notificationService.sendFeedbackNotificationToWriter(reviewerId, qnA, originText);
+
+        // then
+        verify(userRepository).findByIdOrElseThrow(reviewerId);
+        verify(notificationRepository).save(notificationCaptor.capture());
+        verify(eventPublisher).publishEvent(any(NotificationSendEvent.class));
+
+        Notification savedNotification = notificationCaptor.getValue();
+        assertThat(savedNotification.getUserId()).isEqualTo(writerId);
+        assertThat(savedNotification.getType()).isEqualTo(NotificationType.FEEDBACK);
+        assertThat(savedNotification.getTitle()).isEqualTo("카카오 2024 하반기");
+        assertThat(savedNotification.getContent()).isEqualTo(originText);
+        assertThat(savedNotification.getMeta()).isInstanceOf(FeedbackNotificationMeta.class);
+
+        FeedbackNotificationMeta meta = (FeedbackNotificationMeta) savedNotification.getMeta();
+        assertThat(meta.getSender().getId()).isEqualTo(reviewerId);
+        assertThat(meta.getSender().getNickname()).isEqualTo("리뷰어닉네임");
+        assertThat(meta.getQnAId()).isEqualTo(qnaId);
+    }
+
+    @Test
+    @DisplayName("피드백 알림 전송 - writer에게 알림을 전송하고 reviewer는 sender이다")
+    void sendFeedbackNotificationToWriter_ReviewerIsSenderAndWriterReceivesNotification() {
+        // given
+        String reviewerId = "reviewer123";
+        String writerId = "writer456";
+        Long qnaId = 1L;
+
+        User reviewer = UserFixture.builder()
+                .id(reviewerId)
+                .nickname("리뷰어닉네임")
+                .build();
+
+        CoverLetter coverLetter = CoverLetterFixture.builder()
+                .id(1L)
+                .userId(writerId)
+                .companyName("토스")
+                .applyYear(2024)
+                .applyHalf(ApplyHalfType.FIRST_HALF)
+                .build();
+
+        QnA qnA = QnAFixture.createQnAWithId(
+                qnaId,
+                coverLetter,
+                writerId,
+                "지원동기는 무엇인가요?",
+                QuestionCategoryType.MOTIVATION
+        );
+
+        given(userRepository.findByIdOrElseThrow(reviewerId)).willReturn(reviewer);
+
+        ArgumentCaptor<Notification> notificationCaptor = ArgumentCaptor.forClass(Notification.class);
+
+        // when
+        notificationService.sendFeedbackNotificationToWriter(reviewerId, qnA, "원본 텍스트");
+
+        // then
+        // 1. writer에게 알림이 저장된다
+        verify(notificationRepository).save(notificationCaptor.capture());
+        Notification savedNotification = notificationCaptor.getValue();
+        assertThat(savedNotification.getUserId()).isEqualTo(writerId);
+
+        // 2. reviewer는 알림의 sender이다
+        assertThat(savedNotification.getMeta()).isInstanceOf(FeedbackNotificationMeta.class);
+        FeedbackNotificationMeta meta = (FeedbackNotificationMeta) savedNotification.getMeta();
+        assertThat(meta.getSender().getId()).isEqualTo(reviewerId);
+        assertThat(meta.getSender().getNickname()).isEqualTo("리뷰어닉네임");
+    }
+
+    @Test
+    @DisplayName("피드백 알림 전송 - originText가 알림 content에 포함된다")
+    void sendFeedbackNotificationToWriter_IncludesOriginTextInNotificationContent() {
+        // given
+        String reviewerId = "reviewer123";
+        String writerId = "writer456";
+        Long qnaId = 1L;
+        String originText = "원본 텍스트";
+
+        User reviewer = UserFixture.builder()
+                .id(reviewerId)
+                .nickname("리뷰어")
+                .build();
+
+        CoverLetter coverLetter = CoverLetterFixture.builder()
+                .id(1L)
+                .userId(writerId)
+                .companyName("네이버")
+                .applyYear(2025)
+                .applyHalf(ApplyHalfType.FIRST_HALF)
+                .build();
+
+        QnA qnA = QnAFixture.createQnAWithId(
+                qnaId,
+                coverLetter,
+                writerId,
+                "지원동기는 무엇인가요?",
+                QuestionCategoryType.MOTIVATION
+        );
+
+        given(userRepository.findByIdOrElseThrow(reviewerId)).willReturn(reviewer);
+
+        ArgumentCaptor<Notification> notificationCaptor = ArgumentCaptor.forClass(Notification.class);
+
+        // when
+        notificationService.sendFeedbackNotificationToWriter(reviewerId, qnA, originText);
+
+        // then
+        verify(notificationRepository).save(notificationCaptor.capture());
+
+        Notification savedNotification = notificationCaptor.getValue();
+        assertThat(savedNotification.getContent()).isEqualTo(originText);
     }
 }
