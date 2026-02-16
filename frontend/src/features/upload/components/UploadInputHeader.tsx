@@ -7,7 +7,7 @@ import { formatFileSize } from '@/features/upload/utils/formatFileSize';
 interface UploadInputHeaderProps {
   totalSize: number;
   isContent: boolean;
-  nextStep: (step: string) => void;
+  nextStep: () => void;
 }
 
 const UploadInputHeader = ({
@@ -39,7 +39,7 @@ const UploadInputHeader = ({
 
         <button
           className='text-title-s flex cursor-pointer gap-[0.375rem] rounded-lg bg-gray-900 px-[1.125rem] py-3 font-bold text-white disabled:cursor-default disabled:bg-gray-50 disabled:text-gray-400'
-          onClick={() => nextStep?.('2')}
+          onClick={nextStep}
           disabled={!canLabeling}
         >
           <I.AILabelingIcon
