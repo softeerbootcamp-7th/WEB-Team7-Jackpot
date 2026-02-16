@@ -10,33 +10,51 @@ export const readStream = async <T = unknown>(
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
 
+  // 데이터 chunk 처리 누락을 방지하기 위한 임시 버퍼
+  let buffer = '';
+
   try {
     while (true) {
       const { value, done } = await reader.read();
 
       // 읽을 데이터가 없으면 while 루프 탈출
-      if (done) break;
+      if (done) {
+        console.log('서버가 연결을 종료함 (done: true)');
+        break;
+      }
 
       // 깨지지 않도록 디코딩
       const chunk = decoder.decode(value, { stream: true });
+      buffer += chunk;
+
+      // 메시지 끝인지 엔터 두번의 여부로 확인
+      const parts = buffer.split('\n\n');
+
+      buffer = parts.pop() || '';
 
       // SSE 데이터 파싱 로직
-      // SSE 프로토콜에 맞게 메시지는 엔터 두 번으로 구분
-      const lines = chunk.split('\n\n');
-      lines.forEach((line) => {
-        // data: 로 시작하는 메시지 내부의 JSON 문자열만 남김
-        if (line.startsWith('data: ')) {
-          const jsonStr = line.replace('data: ', '');
+      parts.forEach((part) => {
+        const lines = part.split('\n');
+        const dataLine = lines.find((line) => line.startsWith('data: '));
+
+        if (dataLine) {
+          const jsonStr = dataLine.replace('data: ', '').trim();
+          // 종료 신호 무시
+          if (jsonStr === '[DONE]') return;
+
           try {
             const data = JSON.parse(jsonStr) as T;
-            // 파싱 성공하면 콜백 실행
             onMessage(data);
           } catch (error) {
-            console.error(error);
+            console.error('JSON 파싱 에러:', error, '원본 데이터:', jsonStr);
           }
         }
       });
     }
+  } catch (err) {
+    console.error('스트림 읽기 중 에러:', err);
+    // 에러를 상위로 던져서 재연결 로직이 작동하게 함
+    throw err;
   } finally {
     // 스트림 locking
     reader.releaseLock();
