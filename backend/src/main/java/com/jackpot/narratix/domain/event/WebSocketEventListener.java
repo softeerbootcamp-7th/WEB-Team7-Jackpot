@@ -24,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
-import org.springframework.web.socket.messaging.SessionUnsubscribeEvent; // 추가됨
+import org.springframework.web.socket.messaging.SessionUnsubscribeEvent;
 
 import java.util.Map;
 import java.util.Optional;
