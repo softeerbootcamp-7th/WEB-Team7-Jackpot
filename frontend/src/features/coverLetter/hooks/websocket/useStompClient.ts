@@ -77,10 +77,11 @@ export const useStompClient = ({
     return () => {
       console.log('websocket disconnecting');
       client.deactivate();
+      setIsConnected(false);
     };
   }, [shareId, qnaId]);
 
-  const sendMessage = (destination: string, body: string) => {
+  const sendMessage = (destination: string, body: unknown) => {
     if (clientRef.current && clientRef.current.connected) {
       clientRef.current.publish({
         destination,
