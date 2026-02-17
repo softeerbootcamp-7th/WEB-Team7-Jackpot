@@ -44,14 +44,13 @@ public class ReviewService {
 
     @Transactional
     public void createReview(String reviewerId, Long qnAId, ReviewCreateRequest request) {
-        Long coverLetterId = qnARepository.getCoverLetterIdByQnAIdOrElseThrow(qnAId);
+        QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
+        Long coverLetterId = qnA.getCoverLetter().getId();
         validateWebSocketConnected(reviewerId, coverLetterId, ReviewRoleType.REVIEWER);
 
         // TODO: 버전과 비교해서 리뷰를 달 수 있는지 확인
 
-        QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
         Review review = reviewRepository.save(request.toEntity(reviewerId, qnAId));
-
 
         // TODO: 본문 텍스트 전체 변경 이벤트 발행
 
