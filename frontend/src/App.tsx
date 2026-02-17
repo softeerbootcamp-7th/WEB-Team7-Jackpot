@@ -1,10 +1,10 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 
 import CoverLetterLandingPage from '@/pages/CoverLetterLandingPage';
-import CoverLetterQnAFriendsPage from '@/pages/CoverLetterQnAFriendsPage';
 import HomePage from '@/pages/HomePage';
 import LandingPage from '@/pages/LandingPage';
 import LoginPage from '@/pages/LoginPage';
+import RecruitPage from '@/pages/RecruitPage';
 import ReviewPage from '@/pages/ReviewPage';
 import SignUpCompletePage from '@/pages/SignUpCompletePage';
 import SignUpPage from '@/pages/SignUpPage';
@@ -19,6 +19,7 @@ import WriteSidebarLayout from '@/features/coverLetter/layouts/WriteSidebarLayou
 import DetailView from '@/features/library/components/DetailView';
 import LibraryLayout from '@/features/library/components/LibraryLayout';
 import LibrarySidebarLayout from '@/features/library/components/LibrarySidebarLayout';
+import RecruitRedirect from '@/features/recruit/components/RecruitRedirect';
 import LabelingResultSection from '@/features/upload/components/LabelingResultSection';
 import UploadCompleteSection from '@/features/upload/components/UploadCompleteSection';
 import UploadInputSection from '@/features/upload/components/UploadInputSection';
@@ -40,12 +41,17 @@ function App() {
         <Route element={<PrivateGuard />}>
           <Route element={<RootLayout />}>
             <Route path='/home' element={<HomePage />} />
+
             <Route path='/upload' element={<UploadPage />}>
               <Route index element={<Navigate to='input' replace />} />
               <Route path='input' element={<UploadInputSection />} />
-              <Route path='labeling' element={<LabelingResultSection />} />
+              <Route
+                path='labeling/:coverLetterId?/:qnAId?'
+                element={<LabelingResultSection />}
+              />
               <Route path='complete' element={<UploadCompleteSection />} />
             </Route>
+
             <Route path='/library' element={<LibraryLayout />}>
               {/* [박소민] /library로 접속시 자동으로 /library/company로 이동 */}
               {/* TODO: 렌더링을 최소화할 수 있는 방법이 없는지 확인 (라우팅 변경해도 됨) */}
@@ -81,6 +87,7 @@ function App() {
                 </Route>
               </Route>
             </Route>
+
             <Route path='/review/:coverLetterId' element={<ReviewPage />} />
 
             <Route path='/cover-letter' element={<CoverLetterLayout />}>
@@ -98,15 +105,22 @@ function App() {
                   element={<NewCoverLetterContent />}
                 />
                 <Route
-                  path='/cover-letter/edit/:coverLetterId?'
+                  path='/cover-letter/edit'
+                  element={<Navigate to='/cover-letter/list' replace />}
+                />
+                <Route
+                  path='/cover-letter/edit/:coverLetterId'
                   element={<CoverLetterEditContent />}
                 />
               </Route>
-              <Route
-                path='/cover-letter/qna-friends/:coverLetterId?'
-                element={<CoverLetterQnAFriendsPage />}
-              />
             </Route>
+            <Route path='/recruit' element={<RecruitRedirect />} />
+
+            {/* 2. 실제 페이지 (day는 선택 사항) */}
+            <Route
+              path='/recruit/:year/:month/:day?'
+              element={<RecruitPage />}
+            />
           </Route>
           {/* <Route path="/recruit" element={<RecruitPage />}/> */}
         </Route>

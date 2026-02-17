@@ -1,12 +1,15 @@
+import { useEffect } from 'react';
+
 import { RECRUIT_SEASON_LIST } from '@/shared/constants/recruitSeason';
+import type { ApiApplyHalf } from '@/shared/types/coverLetter';
 
 interface RecruitPeriodSelectInputProps {
   label: string;
   yearValue: number;
-  seasonValue: string;
+  seasonValue: ApiApplyHalf;
+  onChangeYear: (year: number) => void;
+  onChangeSeason: (season: ApiApplyHalf) => void;
   constantData?: number[];
-  handleYearChange: (value: number) => void;
-  handleSeasonChange: (value: string) => void;
   handleDropdown?: (isOpen: boolean) => void;
   isOpen?: boolean;
   dropdownDirection?: 'top' | 'bottom';
@@ -17,83 +20,104 @@ const RecruitPeriodSelectInput = ({
   label,
   yearValue,
   seasonValue,
+  onChangeYear,
+  onChangeSeason,
   constantData = [],
-  handleYearChange,
-  handleSeasonChange,
   handleDropdown,
-  isOpen,
+  isOpen = false,
   dropdownDirection = 'bottom',
   icon,
 }: RecruitPeriodSelectInputProps) => {
-  const hasDropdown = constantData.length > 0;
+  // [박소민] 모달 이벤트 핸들러 커스텀 훅으로 옮기기 (LabelSelectedInput과 공유 가능)
+  useEffect(() => {
+    if (!isOpen || !handleDropdown) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleDropdown(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, handleDropdown]);
 
   return (
     <div className='flex flex-col gap-3'>
-      <div className='text-lg font-bold'>
+      <div className='text-lg font-bold text-gray-950'>
         {label} <span className='text-red-600'>*</span>
       </div>
+
       <div className='flex items-center gap-2'>
-        <div className='relative inline-block'>
+        {/* 1. 연도 선택 */}
+        <div className='relative flex-1'>
           <button
             type='button'
-            className={`relative flex flex-1 items-center justify-between gap-6 bg-gray-50 px-5 py-[0.875rem] ${isOpen ? 'z-20' : 'z-0'} cursor-pointer rounded-lg`}
+            className={`relative flex w-full items-center justify-between rounded-lg bg-gray-50 px-5 py-[0.875rem] text-left ${isOpen ? 'ring-2 ring-gray-200' : ''}`}
             onClick={() => handleDropdown?.(!isOpen)}
           >
-            <div className='font-medium'>{yearValue}</div>
+            <span className='font-medium text-gray-950'>{yearValue}</span>
             {icon}
           </button>
 
-          {hasDropdown && isOpen && (
+          {isOpen && (
             <>
               <div
+                role='presentation'
                 className='fixed inset-0 z-10 cursor-default'
                 onClick={() => handleDropdown?.(false)}
               />
               <div
-                className={`absolute z-20 mt-2 max-h-40 w-56 overflow-y-scroll rounded-lg bg-white shadow-lg select-none ${dropdownDirection === 'top' ? 'bottom-full mb-2' : 'mt-2'}`}
+                className={`absolute z-20 w-full overflow-hidden rounded-lg bg-white shadow-lg ${dropdownDirection === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'}`}
               >
-                <div className='flex flex-col gap-1 p-1'>
-                  {constantData &&
-                    constantData.map((year) => (
-                      <button
-                        type='button'
-                        onClick={() => {
-                          handleYearChange(year);
-                          handleDropdown?.(false);
-                        }}
-                        key={year}
-                        className='w-full cursor-pointer rounded-md px-4 py-[0.875rem] text-left text-[0.813rem] font-medium text-gray-700 hover:bg-gray-50 hover:font-bold hover:text-gray-950 focus:bg-gray-100 focus:text-gray-900 focus:outline-hidden'
-                      >
-                        {year}
-                      </button>
-                    ))}
+                <div className='max-h-40 overflow-y-auto p-1'>
+                  {constantData.map((year) => (
+                    <button
+                      key={year}
+                      type='button'
+                      onClick={() => {
+                        onChangeYear(year); // [Controlled]
+                        handleDropdown?.(false);
+                      }}
+                      className='w-full rounded-md px-4 py-3 text-left text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-950'
+                    >
+                      {year}
+                    </button>
+                  ))}
                 </div>
               </div>
             </>
           )}
         </div>
-        <div className='flex flex-3 justify-between rounded-lg bg-gray-50 px-1 py-1'>
-          {RECRUIT_SEASON_LIST.map((each) => (
-            <div key={each.season} className='flex-grow'>
-              <label className='cursor-pointer items-center select-none'>
+
+        {/* 2. 시즌 선택 */}
+        <div className='flex flex-[2] gap-1 rounded-lg bg-gray-50 p-1'>
+          {RECRUIT_SEASON_LIST.map((each) => {
+            const isSelected = seasonValue === each.season;
+            return (
+              <label key={each.season} className='flex-1 cursor-pointer'>
                 <input
                   type='radio'
-                  className='peer sr-only'
-                  checked={seasonValue === each.season}
-                  onChange={() => handleSeasonChange(each.season)}
+                  value={each.season}
+                  checked={isSelected}
+                  onChange={() => onChangeSeason(each.season)} // [Controlled]
+                  className='sr-only'
                 />
                 <div
-                  className={`flex justify-center rounded-md ${seasonValue === each.season ? 'bg-white' : ''} px-8 py-[0.625rem]`}
+                  className={`flex h-full items-center justify-center rounded-md px-4 py-[0.625rem] transition-colors ${
+                    isSelected
+                      ? 'bg-white font-bold text-gray-950 shadow-sm'
+                      : 'text-gray-400 hover:text-gray-600'
+                  }`}
                 >
-                  <span
-                    className={`${seasonValue === each.season ? 'font-bold text-gray-950' : 'text-gray-400'}`}
-                  >
-                    {each.label}
-                  </span>
+                  {each.label}
                 </div>
               </label>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

@@ -3,23 +3,104 @@ import {
   setAccessToken,
 } from '@/features/auth/libs/tokenStore';
 
-// 환경 변수 속의 요청 주소 불러오기
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-interface methodProps {
+interface MethodProps {
   endpoint: string;
   body?: unknown;
   options?: RequestInit;
   skipAuth?: boolean;
 }
 
-// 인터셉터 패턴처럼 fetch Wrapper
+// 모듈 레벨에서 refresh Promise 공유 (race condition 방지)
+let refreshPromise: Promise<string> | null = null;
+
+const refreshAccessToken = async (): Promise<string> => {
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    try {
+      const refreshResponse = await fetch(`${BASE_URL}/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (!refreshResponse.ok) {
+        throw new Error('Refresh token expired');
+      }
+
+      const refreshData = await refreshResponse.json();
+
+      if (!refreshData.accessToken) {
+        throw new Error('Invalid refresh response: missing accessToken');
+      }
+
+      setAccessToken(refreshData.accessToken);
+      return refreshData.accessToken;
+    } finally {
+      refreshPromise = null; // 다음 리프레시 시 새 Promise 생성
+    }
+  })();
+
+  return refreshPromise;
+};
+
+const request = async <T>(
+  endpoint: string,
+  options: RequestInit,
+  skipAuth: boolean = false,
+): Promise<T> => {
+  const headers = new Headers(options.headers || {});
+
+  // Body가 있는 요청만 JSON Content-Type 설정
+  if (options.body && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+
+  // 인증 토큰 설정
+  if (!skipAuth) {
+    const token = getAccessToken();
+    if (token) headers.set('Authorization', token);
+  }
+
+  let response = await fetch(`${BASE_URL}${endpoint}`, { ...options, headers });
+
+  // 액세스 토큰 만료 시 리프레시 후 재요청
+  if (response.status === 401 && !skipAuth) {
+    const newToken = await refreshAccessToken();
+    headers.set('Authorization', newToken);
+    response = await fetch(`${BASE_URL}${endpoint}`, { ...options, headers });
+  }
+
+  // API 에러 처리
+  if (!response.ok) {
+    const errorBody = await response.text().catch(() => '');
+    throw new Error(`API Error: ${response.status} ${errorBody}`);
+  }
+
+  const text = await response.text();
+  if (!text) return null as unknown as T;
+
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    throw new Error(
+      `Failed to parse response as JSON (status: ${response.status}): ${text.slice(0, 200)}`,
+    );
+  }
+};
+
 export const apiClient = {
-  get: async ({ endpoint, options, skipAuth }: methodProps) => {
-    return request(endpoint, { ...options, method: 'GET' }, skipAuth);
-  },
-  post: async ({ endpoint, body, options, skipAuth }: methodProps) => {
-    return request(
+  get: async <T>({ endpoint, options, skipAuth }: MethodProps): Promise<T> =>
+    request<T>(endpoint, { ...options, method: 'GET' }, skipAuth),
+
+  post: async <T>({
+    endpoint,
+    body,
+    options,
+    skipAuth,
+  }: MethodProps): Promise<T> =>
+    request<T>(
       endpoint,
       {
         ...options,
@@ -27,10 +108,15 @@ export const apiClient = {
         body: body ? JSON.stringify(body) : undefined,
       },
       skipAuth,
-    );
-  },
-  put: async ({ endpoint, body, options, skipAuth }: methodProps) => {
-    return request(
+    ),
+
+  put: async <T>({
+    endpoint,
+    body,
+    options,
+    skipAuth,
+  }: MethodProps): Promise<T> =>
+    request<T>(
       endpoint,
       {
         ...options,
@@ -38,10 +124,15 @@ export const apiClient = {
         body: body ? JSON.stringify(body) : undefined,
       },
       skipAuth,
-    );
-  },
-  patch: async ({ endpoint, body, options, skipAuth }: methodProps) => {
-    return request(
+    ),
+
+  patch: async <T>({
+    endpoint,
+    body,
+    options,
+    skipAuth,
+  }: MethodProps): Promise<T> =>
+    request<T>(
       endpoint,
       {
         ...options,
@@ -49,85 +140,12 @@ export const apiClient = {
         body: body ? JSON.stringify(body) : undefined,
       },
       skipAuth,
-    );
-  },
-  delete: async ({ endpoint, options, skipAuth }: methodProps) => {
-    return request(
-      endpoint,
-      {
-        ...options,
-        method: 'DELETE',
-      },
-      skipAuth,
-    );
-  },
-};
+    ),
 
-// fetch Wrapper 내부에서 사용하는 실제 요청 함수
-const request = async (
-  endpoint: string,
-  options: RequestInit,
-  skipAuth: boolean = false,
-) => {
-  // 헤더 설정
-  const headers = new Headers(options.headers || {});
-
-  // GET, DELETE에서는 Body가 없으므로 Content-Type이 필요가 없음
-  // Body가 있는 요청에서만 JSON 헤더 설정
-  if (options.body && !headers.has('Content-Type')) {
-    headers.set('Content-Type', 'application/json');
-  }
-
-  if (!skipAuth) {
-    const token = getAccessToken();
-    if (token) {
-      headers.set('Authorization', token);
-    }
-  }
-
-  try {
-    let response = await fetch(`${BASE_URL}${endpoint}`, {
-      ...options,
-      headers,
-    });
-
-    // 액세스 토큰이 만료되었다면 리프레시 후 재요청하는 로직
-    if (response.status === 401 && !skipAuth) {
-      try {
-        const refreshResponse = await fetch(`${BASE_URL}/auth/refresh`, {
-          method: 'POST',
-          credentials: 'include',
-        });
-
-        // 리프레시 토큰마저 만료된 경우
-        if (!refreshResponse.ok) {
-          throw new Error('리프레시 토큰 만료');
-        }
-
-        const refreshData = await refreshResponse.json();
-
-        setAccessToken(refreshData.accessToken);
-
-        headers.set('Authorization', getAccessToken());
-
-        response = await fetch(`${BASE_URL}${endpoint}`, {
-          ...options,
-          headers,
-        });
-      } catch (error) {
-        console.error('리프레시 에러', error);
-        throw error;
-      }
-    }
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status}`);
-    }
-
-    const text = await response.text();
-    return text ? JSON.parse(text) : null;
-  } catch (error) {
-    console.error('API Request Failed:', error);
-    throw error;
-  }
+  delete: async <T = void>({
+    endpoint,
+    options,
+    skipAuth,
+  }: MethodProps): Promise<T> =>
+    request<T>(endpoint, { ...options, method: 'DELETE' }, skipAuth),
 };

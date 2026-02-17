@@ -1,3 +1,4 @@
+// [박소민] TODO: 나의 채용공고 페이지의 캘린더와 동기화시키기
 import { useMemo } from 'react';
 
 import { useCalendarDates } from '@/features/home/hooks/useHomeQueries';
@@ -6,12 +7,13 @@ import RightArrow from '@/shared/icons/RightArrow';
 import { getISODate } from '@/shared/utils/dates';
 
 const MyApplicationCalendar = () => {
-  const { startDate, endDate } = useMemo(() => {
-    const now = new Date();
-    const currentDayOfWeek = now.getDay();
+  const today = useMemo(() => new Date(), []);
 
-    const weekStart = new Date(now);
-    weekStart.setDate(now.getDate() - currentDayOfWeek);
+  const { startDate, endDate } = useMemo(() => {
+    const currentDayOfWeek = today.getDay();
+
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() - currentDayOfWeek);
 
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekStart.getDate() + 20);
@@ -20,7 +22,7 @@ const MyApplicationCalendar = () => {
       startDate: getISODate(weekStart),
       endDate: getISODate(weekEnd),
     };
-  }, []);
+  }, [today]);
 
   const { data } = useCalendarDates(startDate, endDate);
 

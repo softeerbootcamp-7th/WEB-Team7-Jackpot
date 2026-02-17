@@ -101,7 +101,7 @@ export const useReviewState = (coverLetter: CoverLetter, qnas: QnA[]) => {
           ...getLatestReviews(prev, currentQnaId),
           {
             ...review,
-            id: generateInternalReviewId(), // number 반환
+            id: generateInternalReviewId(),
             sender: { id: 'me', nickname: '나' },
             createdAt: new Date().toISOString(),
             isValid: true,

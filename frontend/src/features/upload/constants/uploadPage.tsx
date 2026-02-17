@@ -36,21 +36,15 @@ export const STEP_DATA: Record<string, StepDataType> = {
 } as const;
 
 export const TAB_DATA: TabDataType[] = [
-  { tabName: '자기소개서 01', tabNumber: 1 },
-  { tabName: '자기소개서 02', tabNumber: 2 },
-  { tabName: '자기소개서 03', tabNumber: 3 },
+  { tabName: '자기소개서 01', tabNumber: 0 },
+  { tabName: '자기소개서 02', tabNumber: 1 },
+  { tabName: '자기소개서 03', tabNumber: 2 },
 ] as const;
 
 export const UPLOAD_TAB_DATA: UploadTabDataType[] = [
   {
     label: '파일 업로드하기',
-    targetTab: 'file',
     icon: <I.FileUploadIcon />,
-  },
-  {
-    label: '텍스트 붙여넣기',
-    targetTab: 'text',
-    icon: <I.TextUploadIcon />,
   },
 ] as const;
 

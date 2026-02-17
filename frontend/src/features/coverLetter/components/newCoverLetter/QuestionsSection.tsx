@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import Question from '@/features/coverLetter/components/newCoverLetter/Question';
-import { PlusIcon } from '@/features/coverLetter/icons/Plus';
+import { PlusIcon } from '@/shared/icons/Plus';
 
 const QuestionsSection = () => {
   const [questionNum, setQuestionNum] = useState(1);

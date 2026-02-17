@@ -1,9 +1,12 @@
-import { getAccessToken } from '@/features/auth/libs/tokenStore';
+import { z } from 'zod';
+
+import { apiClient } from '@/shared/api/apiClient';
 import type {
   CoverLetter,
+  CreateCoverLetterRequest,
+  CreateCoverLetterResponse,
   RecentCoverLetter,
 } from '@/shared/types/coverLetter';
-import { parseErrorResponse } from '@/shared/utils/fetchUtils';
 
 interface SearchCoverLettersParams {
   searchWord?: string;
@@ -23,7 +26,12 @@ interface CoverLetterSearchResponse {
   page: PageInfo;
 }
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const CreateCoverLetterResponseSchema = z.object({
+  coverLetterId: z.number(),
+});
+
+// --- Existing Search/Get APIs ---
+
 export const searchCoverLetters = async ({
   searchWord,
   size = 9,
@@ -35,20 +43,9 @@ export const searchCoverLetters = async ({
   params.append('size', size.toString());
   params.append('page', page.toString());
 
-  const response = await fetch(
-    `${BASE_URL}/search/coverletter?${params.toString()}`,
-    {
-      headers: {
-        Authorization: getAccessToken(),
-      },
-    },
-  );
-
-  if (!response.ok) {
-    await parseErrorResponse(response);
-  }
-
-  return response.json();
+  return apiClient.get<CoverLetterSearchResponse>({
+    endpoint: `/search/coverletter?${params.toString()}`,
+  });
 };
 
 export const getCoverLetter = async (
@@ -58,15 +55,36 @@ export const getCoverLetter = async (
     throw new Error(`Invalid coverLetterId: ${coverLetterId}`);
   }
 
-  const response = await fetch(`${BASE_URL}/coverletter/${coverLetterId}`, {
-    headers: {
-      Authorization: getAccessToken(),
-    },
+  return apiClient.get<CoverLetter>({
+    endpoint: `/coverletter/${coverLetterId}`,
   });
+};
 
-  if (!response.ok) {
-    await parseErrorResponse(response);
-  }
+// --- Added Mutation APIs (Moved from features) ---
 
-  return response.json();
+export const createCoverLetter = async (
+  payload: CreateCoverLetterRequest,
+): Promise<CreateCoverLetterResponse> => {
+  const response = await apiClient.post({
+    endpoint: '/coverletter',
+    body: payload,
+  });
+  return CreateCoverLetterResponseSchema.parse(response);
+};
+
+export const updateCoverLetter = async (
+  payload: CoverLetter,
+): Promise<void> => {
+  await apiClient.put({
+    endpoint: '/coverletter',
+    body: payload,
+  });
+};
+
+export const deleteCoverLetter = async (
+  coverLetterId: number,
+): Promise<void> => {
+  await apiClient.delete({
+    endpoint: `/coverletter/${coverLetterId}`,
+  });
 };
