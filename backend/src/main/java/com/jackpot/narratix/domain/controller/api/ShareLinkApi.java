@@ -1,6 +1,8 @@
 package com.jackpot.narratix.domain.controller.api;
 
 import com.jackpot.narratix.domain.controller.request.ShareLinkActiveRequest;
+import com.jackpot.narratix.domain.controller.response.CoverLetterAndQnAIdsResponse;
+import com.jackpot.narratix.domain.controller.response.QnAVersionResponse;
 import com.jackpot.narratix.domain.controller.response.ShareLinkActiveResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -44,5 +46,37 @@ public interface ShareLinkApi {
     })
     ResponseEntity<ShareLinkActiveResponse> getShareLinkStatus(
             @Parameter(hidden = true) String userId, Long coverLetterId
+    );
+
+    @Operation(summary = "첨삭 링크로 QnA 조회", description = "첨삭 링크를 통해 특정 QnA와 QnA의 버전 정보를 조회합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "QnA 조회 성공",
+                    content = @Content(schema = @Schema(implementation = QnAVersionResponse.class))
+            ),
+            @ApiResponse(responseCode = "401", description = "인증 실패"),
+            @ApiResponse(responseCode = "404", description = "첨삭 링크 또는 QnA를 찾을 수 없음"),
+            @ApiResponse(responseCode = "409", description = "첨삭 링크 접근 인원 초과"),
+            @ApiResponse(responseCode = "410", description = "첨삭 링크 만료")
+    })
+    ResponseEntity<QnAVersionResponse> getQnAWithVersion(
+            @Parameter(hidden = true) String userId, String shareId, Long qnAId
+    );
+
+    @Operation(summary = "첨삭 링크로 자기소개서 및 QnA ID 목록 조회", description = "첨삭 링크를 통해 자기소개서 정보와 QnA ID 목록을 조회합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "자기소개서 및 QnA ID 목록 조회 성공",
+                    content = @Content(schema = @Schema(implementation = CoverLetterAndQnAIdsResponse.class))
+            ),
+            @ApiResponse(responseCode = "401", description = "인증 실패"),
+            @ApiResponse(responseCode = "404", description = "첨삭 링크를 찾을 수 없음"),
+            @ApiResponse(responseCode = "409", description = "첨삭 링크 접근 인원 초과"),
+            @ApiResponse(responseCode = "410", description = "첨삭 링크 만료")
+    })
+    ResponseEntity<CoverLetterAndQnAIdsResponse> getCoverLetterAndQnAIds(
+            @Parameter(hidden = true) String userId, String shareId
     );
 }

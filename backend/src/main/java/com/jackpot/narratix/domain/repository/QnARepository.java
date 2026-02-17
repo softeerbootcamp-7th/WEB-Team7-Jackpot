@@ -18,14 +18,13 @@ public interface QnARepository {
 
     List<QuestionCategoryType> findQuestionCategoryByUserId(String userId);
 
-    Slice<QnA> findByUserIdAndQuestionCategoryTypeOrderByModifiedAtDesc(String userId,
-                                                                        QuestionCategoryType category,
-                                                                        LocalDateTime localDateTime,
-                                                                        Pageable pageable);
+    Slice<QnA> findByUserIdAndQuestionCategoryTypeOrderByModifiedAtDesc(
+            String userId, QuestionCategoryType category, LocalDateTime localDateTime, Pageable pageable
+    );
 
-    Slice<QnA> findByUserIdAndQuestionCategoryTypeOrderByModifiedAtDesc(String userId,
-                                                                        QuestionCategoryType category,
-                                                                        Pageable pageable);
+    Slice<QnA> findByUserIdAndQuestionCategoryTypeOrderByModifiedAtDesc(
+            String userId, QuestionCategoryType category, Pageable pageable
+    );
 
     QnA findByIdOrElseThrow(Long qnAId);
 
@@ -36,4 +35,6 @@ public interface QnARepository {
     Long countSearchQnA(String userId, String keyword);
 
     Optional<Long> getCoverLetterIdByQnAId(Long qnAId);
+
+    List<Long> findIdsByCoverLetterId(Long coverLetterId);
 }

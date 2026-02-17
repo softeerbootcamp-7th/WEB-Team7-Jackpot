@@ -5,8 +5,10 @@ import com.jackpot.narratix.domain.service.dto.FileProcessResult;
 import io.awspring.cloud.sqs.annotation.SqsListener;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+@Profile("prod")
 @Slf4j
 @Component
 @RequiredArgsConstructor

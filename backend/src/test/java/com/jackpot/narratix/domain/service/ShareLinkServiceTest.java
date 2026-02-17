@@ -1,10 +1,15 @@
 package com.jackpot.narratix.domain.service;
 
+import com.jackpot.narratix.domain.controller.response.CoverLetterAndQnAIdsResponse;
+import com.jackpot.narratix.domain.controller.response.QnAVersionResponse;
 import com.jackpot.narratix.domain.controller.response.ShareLinkActiveResponse;
 import com.jackpot.narratix.domain.entity.CoverLetter;
+import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.ShareLink;
 import com.jackpot.narratix.domain.exception.CoverLetterErrorCode;
+import com.jackpot.narratix.domain.exception.ShareLinkErrorCode;
 import com.jackpot.narratix.domain.repository.CoverLetterRepository;
+import com.jackpot.narratix.domain.repository.QnARepository;
 import com.jackpot.narratix.domain.repository.ShareLinkRepository;
 import com.jackpot.narratix.global.exception.BaseException;
 import com.jackpot.narratix.global.exception.GlobalErrorCode;
@@ -15,6 +20,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,6 +37,9 @@ class ShareLinkServiceTest {
 
     @Mock
     private CoverLetterRepository coverLetterRepository;
+
+    @Mock
+    private QnARepository qnARepository;
 
     @Mock
     private ShareLinkRepository shareLinkRepository;
@@ -242,6 +251,172 @@ class ShareLinkServiceTest {
         assertThat(response).isNotNull();
         assertThat(response.active()).isFalse();
         assertThat(response.shareLinkId()).isNull();
+    }
+
+    @Test
+    @DisplayName("getQnAWithVersion: 유효한 shareId와 qnAId로 QnA 버전 정보 조회 성공")
+    void getQnAWithVersion_WhenValidShareIdAndQnAId_ShouldReturnQnAVersionResponse() {
+        // given
+        String userId = "testUser";
+        String shareId = "valid-share-id";
+        Long qnAId = 1L;
+        Long coverLetterId = 10L;
+
+        ShareLink mockShareLink = mock(ShareLink.class);
+        QnA mockQnA = mock(QnA.class);
+        CoverLetter mockCoverLetter = mock(CoverLetter.class);
+
+        given(shareLinkRepository.findByShareId(shareId)).willReturn(Optional.of(mockShareLink));
+        given(mockShareLink.isValid()).willReturn(true);
+        given(mockShareLink.getCoverLetterId()).willReturn(coverLetterId);
+        given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(mockQnA);
+        given(mockQnA.getCoverLetter()).willReturn(mockCoverLetter);
+        given(mockCoverLetter.getId()).willReturn(coverLetterId);
+        given(mockQnA.getId()).willReturn(qnAId);
+        given(mockQnA.getQuestion()).willReturn("테스트 질문");
+        given(mockQnA.getAnswer()).willReturn("테스트 답변");
+        given(mockQnA.getVersion()).willReturn(0L);
+
+        // when
+        QnAVersionResponse response = shareLinkService.getQnAWithVersion(userId, shareId, qnAId);
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.qnAId()).isEqualTo(qnAId);
+        assertThat(response.question()).isEqualTo("테스트 질문");
+        assertThat(response.answer()).isEqualTo("테스트 답변");
+        assertThat(response.version()).isZero();
+    }
+
+    @Test
+    @DisplayName("getQnAWithVersion: 존재하지 않는 shareId로 조회 시 SHARE_LINK_NOT_FOUND 에러 발생")
+    void getQnAWithVersion_WhenShareLinkNotFound_ShouldThrowException() {
+        // given
+        String userId = "testUser";
+        String shareId = "invalid-share-id";
+        Long qnAId = 1L;
+
+        given(shareLinkRepository.findByShareId(shareId)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> shareLinkService.getQnAWithVersion(userId, shareId, qnAId))
+                .isInstanceOf(BaseException.class)
+                .extracting("errorCode")
+                .isEqualTo(ShareLinkErrorCode.SHARE_LINK_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("getQnAWithVersion: 만료된 첨삭 링크로 조회 시 SHARE_LINK_EXPIRED 에러 발생")
+    void getQnAWithVersion_WhenShareLinkExpired_ShouldThrowException() {
+        // given
+        String userId = "testUser";
+        String shareId = "expired-share-id";
+        Long qnAId = 1L;
+
+        ShareLink mockShareLink = mock(ShareLink.class);
+
+        given(shareLinkRepository.findByShareId(shareId)).willReturn(Optional.of(mockShareLink));
+        given(mockShareLink.isValid()).willReturn(false);
+
+        // when & then
+        assertThatThrownBy(() -> shareLinkService.getQnAWithVersion(userId, shareId, qnAId))
+                .isInstanceOf(BaseException.class)
+                .extracting("errorCode")
+                .isEqualTo(ShareLinkErrorCode.SHARE_LINK_EXPIRED);
+    }
+
+    @Test
+    @DisplayName("getQnAWithVersion: QnA가 해당 첨삭 링크의 자기소개서에 속하지 않으면 FORBIDDEN 에러 발생")
+    void getQnAWithVersion_WhenQnANotBelongsToShareLink_ShouldThrowForbiddenException() {
+        // given
+        String userId = "testUser";
+        String shareId = "valid-share-id";
+        Long qnAId = 1L;
+        Long shareLinkCoverLetterId = 10L;
+        Long differentCoverLetterId = 99L;
+
+        ShareLink mockShareLink = mock(ShareLink.class);
+        QnA mockQnA = mock(QnA.class);
+        CoverLetter mockCoverLetter = mock(CoverLetter.class);
+
+        given(shareLinkRepository.findByShareId(shareId)).willReturn(Optional.of(mockShareLink));
+        given(mockShareLink.isValid()).willReturn(true);
+        given(mockShareLink.getCoverLetterId()).willReturn(shareLinkCoverLetterId);
+        given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(mockQnA);
+        given(mockQnA.getCoverLetter()).willReturn(mockCoverLetter);
+        given(mockCoverLetter.getId()).willReturn(differentCoverLetterId);
+
+        // when & then
+        assertThatThrownBy(() -> shareLinkService.getQnAWithVersion(userId, shareId, qnAId))
+                .isInstanceOf(BaseException.class)
+                .extracting("errorCode")
+                .isEqualTo(GlobalErrorCode.FORBIDDEN);
+    }
+
+    @Test
+    @DisplayName("getCoverLetterAndQnAIds: 유효한 shareId로 자기소개서 및 QnA ID 목록 조회 성공")
+    void getCoverLetterAndQnAIds_WhenValidShareId_ShouldReturnResponse() {
+        // given
+        String userId = "testUser";
+        String shareId = "valid-share-id";
+        Long coverLetterId = 10L;
+
+        ShareLink mockShareLink = mock(ShareLink.class);
+        CoverLetter mockCoverLetter = mock(CoverLetter.class);
+
+        given(shareLinkRepository.findByShareId(shareId)).willReturn(Optional.of(mockShareLink));
+        given(mockShareLink.isValid()).willReturn(true);
+        given(mockShareLink.getCoverLetterId()).willReturn(coverLetterId);
+        given(coverLetterRepository.findByIdOrElseThrow(coverLetterId)).willReturn(mockCoverLetter);
+        given(mockCoverLetter.getId()).willReturn(coverLetterId);
+        given(qnARepository.findIdsByCoverLetterId(coverLetterId)).willReturn(List.of(1L, 2L));
+        given(mockCoverLetter.getCompanyName()).willReturn("테스트 기업");
+        given(mockCoverLetter.getJobPosition()).willReturn("백엔드 개발자");
+
+        // when
+        CoverLetterAndQnAIdsResponse response = shareLinkService.getCoverLetterAndQnAIds(userId, shareId);
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.coverLetter().coverLetterId()).isEqualTo(coverLetterId);
+        assertThat(response.coverLetter().companyName()).isEqualTo("테스트 기업");
+        assertThat(response.coverLetter().jobPosition()).isEqualTo("백엔드 개발자");
+        assertThat(response.qnAIds()).containsExactly(1L, 2L);
+    }
+
+    @Test
+    @DisplayName("getCoverLetterAndQnAIds: 존재하지 않는 shareId로 조회 시 SHARE_LINK_NOT_FOUND 에러 발생")
+    void getCoverLetterAndQnAIds_WhenShareLinkNotFound_ShouldThrowException() {
+        // given
+        String userId = "testUser";
+        String shareId = "invalid-share-id";
+
+        given(shareLinkRepository.findByShareId(shareId)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> shareLinkService.getCoverLetterAndQnAIds(userId, shareId))
+                .isInstanceOf(BaseException.class)
+                .extracting("errorCode")
+                .isEqualTo(ShareLinkErrorCode.SHARE_LINK_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("getCoverLetterAndQnAIds: 만료된 첨삭 링크로 조회 시 SHARE_LINK_EXPIRED 에러 발생")
+    void getCoverLetterAndQnAIds_WhenShareLinkExpired_ShouldThrowException() {
+        // given
+        String userId = "testUser";
+        String shareId = "expired-share-id";
+
+        ShareLink mockShareLink = mock(ShareLink.class);
+
+        given(shareLinkRepository.findByShareId(shareId)).willReturn(Optional.of(mockShareLink));
+        given(mockShareLink.isValid()).willReturn(false);
+
+        // when & then
+        assertThatThrownBy(() -> shareLinkService.getCoverLetterAndQnAIds(userId, shareId))
+                .isInstanceOf(BaseException.class)
+                .extracting("errorCode")
+                .isEqualTo(ShareLinkErrorCode.SHARE_LINK_EXPIRED);
     }
 
     @Test

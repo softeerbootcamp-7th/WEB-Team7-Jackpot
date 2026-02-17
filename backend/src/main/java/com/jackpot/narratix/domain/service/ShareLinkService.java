@@ -1,11 +1,15 @@
 package com.jackpot.narratix.domain.service;
 
+import com.jackpot.narratix.domain.controller.response.CoverLetterAndQnAIdsResponse;
+import com.jackpot.narratix.domain.controller.response.QnAVersionResponse;
 import com.jackpot.narratix.domain.controller.response.ShareLinkActiveResponse;
 import com.jackpot.narratix.domain.entity.CoverLetter;
+import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.ShareLink;
 import com.jackpot.narratix.domain.entity.enums.ReviewRoleType;
 import com.jackpot.narratix.domain.exception.ShareLinkErrorCode;
 import com.jackpot.narratix.domain.repository.CoverLetterRepository;
+import com.jackpot.narratix.domain.repository.QnARepository;
 import com.jackpot.narratix.domain.repository.ShareLinkRepository;
 import com.jackpot.narratix.global.exception.BaseException;
 import com.jackpot.narratix.global.exception.GlobalErrorCode;
@@ -14,6 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
@@ -22,6 +28,7 @@ import java.util.Optional;
 public class ShareLinkService {
 
     private final CoverLetterRepository coverLetterRepository;
+    private final QnARepository qnARepository;
     private final ShareLinkRepository shareLinkRepository;
     private final ShareLinkLockManager shareLinkLockManager;
 
@@ -79,12 +86,7 @@ public class ShareLinkService {
 
     @Transactional(readOnly = true)
     public ReviewRoleType validateShareLinkAndGetRole(String userId, String shareId) {
-        ShareLink shareLink = shareLinkRepository.findByShareId(shareId)
-                .orElseThrow(() -> new BaseException(ShareLinkErrorCode.SHARE_LINK_NOT_FOUND));
-
-        if (!shareLink.isValid()) {
-            throw new BaseException(ShareLinkErrorCode.SHARE_LINK_EXPIRED);
-        }
+        ShareLink shareLink = findValidShareLink(shareId);
 
         CoverLetter coverLetter = coverLetterRepository.findByIdOrElseThrow(shareLink.getCoverLetterId());
         return coverLetter.isOwner(userId) ? ReviewRoleType.WRITER : ReviewRoleType.REVIEWER;
@@ -103,6 +105,46 @@ public class ShareLinkService {
             return Optional.empty();
         }
 
+        return shareLink;
+    }
+
+    @Transactional(readOnly = true)
+    public QnAVersionResponse getQnAWithVersion(String userId, String shareId, Long qnAId) {
+        // TODO: userId로 Writer 또는 Reviewer인지 검증해야 함
+
+        ShareLink shareLink = findValidShareLink(shareId);
+        QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
+
+        validateShareLinkAndQnA(shareLink, qnA);
+
+        return QnAVersionResponse.of(qnA);
+    }
+
+    private void validateShareLinkAndQnA(ShareLink shareLink, QnA qnA) {
+        if (!Objects.equals(shareLink.getCoverLetterId(), qnA.getCoverLetter().getId())) {
+            log.warn("해당 첨삭링크로 해당 QnA를 조회할 수 없습니다. shareId={}, QnAId={}", shareLink.getShareId(), qnA.getId());
+            throw new BaseException(GlobalErrorCode.FORBIDDEN);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public CoverLetterAndQnAIdsResponse getCoverLetterAndQnAIds(String userId, String shareId) {
+        // TODO: userId로 Writer 또는 Reviewer인지 검증해야 함
+
+        ShareLink shareLink = findValidShareLink(shareId);
+        CoverLetter coverLetter = coverLetterRepository.findByIdOrElseThrow(shareLink.getCoverLetterId());
+        List<Long> qnAIds = qnARepository.findIdsByCoverLetterId(coverLetter.getId());
+
+        return CoverLetterAndQnAIdsResponse.of(coverLetter, qnAIds);
+    }
+
+    private ShareLink findValidShareLink(String shareId) {
+        ShareLink shareLink = shareLinkRepository.findByShareId(shareId)
+                .orElseThrow(() -> new BaseException(ShareLinkErrorCode.SHARE_LINK_NOT_FOUND));
+        if (!shareLink.isValid()) {
+            log.warn("해당 첨삭 링크가 유효하지 않습니다. shareId={}", shareId);
+            throw new BaseException(ShareLinkErrorCode.SHARE_LINK_EXPIRED);
+        }
         return shareLink;
     }
 }
