@@ -12,8 +12,8 @@ interface UseCoverLetterActionsParams {
   currentQna: { qnAId: number } | undefined;
   editedAnswers: Record<number, string>;
   currentReviews: Review[];
-  isReviewOpen: boolean;
-  setIsReviewOpen: (v: boolean) => void;
+  isReviewActive: boolean;
+  setIsReviewActive: (v: boolean) => void;
 }
 
 const useCoverLetterActions = ({
@@ -21,8 +21,8 @@ const useCoverLetterActions = ({
   currentQna,
   editedAnswers,
   currentReviews,
-  isReviewOpen,
-  setIsReviewOpen,
+  isReviewActive,
+  setIsReviewActive,
 }: UseCoverLetterActionsParams) => {
   const { mutate: updateQnA, isPending } = useUpdateQnA();
   const { showToast } = useToastMessageContext();
@@ -83,13 +83,13 @@ const useCoverLetterActions = ({
   };
 
   const handleToggleReview = () => {
-    const next = !isReviewOpen;
-    setIsReviewOpen(next);
+    const next = !isReviewActive;
+    setIsReviewActive(next);
     toggleLink(
-      { coverLetterId: coverLetterId, active: next },
+      { coverLetterId, active: next },
       {
         onError: () => {
-          setIsReviewOpen(!next);
+          setIsReviewActive(!next);
           showToast('공유 설정 변경에 실패했습니다.');
         },
       },

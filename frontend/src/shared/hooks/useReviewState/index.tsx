@@ -179,6 +179,11 @@ export const useReviewState = ({ qna, apiReviews }: UseReviewStateParams) => {
     [qnaId, getLatestReviews],
   );
 
+  const currentTextRef = useRef(currentText);
+  useEffect(() => {
+    currentTextRef.current = currentText;
+  }, [currentText]);
+
   // TODO: websocket 연결 시 approve 결과를 websocket 이벤트로 수신하여 반영
   const handleApproveReview = useCallback(
     (id: number) => {
@@ -189,11 +194,11 @@ export const useReviewState = ({ qna, apiReviews }: UseReviewStateParams) => {
         );
         return {
           ...prev,
-          [qnaId]: applyViewStatus(reviews, currentText),
+          [qnaId]: applyViewStatus(reviews, currentTextRef.current),
         };
       });
     },
-    [qnaId, getLatestReviews, currentText],
+    [qnaId, getLatestReviews],
   );
 
   const handleEditReview = useCallback((id: number) => setEditingId(id), []);

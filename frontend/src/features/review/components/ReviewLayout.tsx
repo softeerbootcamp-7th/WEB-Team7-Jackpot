@@ -1,9 +1,8 @@
-import { useState } from 'react';
-
 import { useParams } from 'react-router';
 
 import CoverLetterSection from '@/features/review/components/coverLetter/CoverLetterSection';
 import ReviewListSection from '@/features/review/components/review/ReviewListSection';
+import useCoverLetterPage from '@/shared/hooks/useCoverLetterPage';
 import { useReviewsByQnaId } from '@/shared/hooks/useReviewQueries';
 import useReviewState from '@/shared/hooks/useReviewState';
 import {
@@ -23,9 +22,9 @@ const ReviewLayout = () => {
   const { coverLetter, qnAIds } = shareData;
 
   // 2. 현재 페이지 인덱스 → 해당 QnA ID 결정
-  const [currentPageIndex, setCurrentPageIndex] = useState(0);
-  const safePageIndex =
-    qnAIds.length > 0 ? Math.min(currentPageIndex, qnAIds.length - 1) : 0;
+  const { safePageIndex, setCurrentPageIndex } = useCoverLetterPage(
+    qnAIds.length,
+  );
   const currentQnAId = qnAIds.length > 0 ? qnAIds[safePageIndex] : undefined;
 
   // 3. 현재 QnA만 단건 조회

@@ -22,7 +22,7 @@ interface CoverLetterContentProps {
   reviews: Review[];
   editingReview: Review | null;
   selection: SelectionInfo | null;
-  isReviewOpen: boolean;
+  isReviewActive: boolean;
   selectedReviewId: number | null;
   onSelectionChange: (selection: SelectionInfo | null) => void;
   onReviewClick: (reviewId: number) => void;
@@ -35,7 +35,7 @@ const CoverLetterContent = ({
   reviews,
   editingReview,
   selection,
-  isReviewOpen,
+  isReviewActive,
   selectedReviewId,
   onSelectionChange,
   onReviewClick,
@@ -102,7 +102,7 @@ const CoverLetterContent = ({
         chunkPositions,
         reviews,
         selectedReviewId,
-        isReviewOpen,
+        isReviewActive,
         selection,
       ),
     [
@@ -111,7 +111,7 @@ const CoverLetterContent = ({
       chunkPositions,
       reviews,
       selectedReviewId,
-      isReviewOpen,
+      isReviewActive,
       selection,
     ],
   );
@@ -331,7 +331,7 @@ const CoverLetterContent = ({
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
     const reviewIdStr = target.getAttribute('data-review-id');
-    if (reviewIdStr && isReviewOpen) {
+    if (reviewIdStr && isReviewActive) {
       const reviewId = Number(reviewIdStr);
       if (!isNaN(reviewId)) onReviewClick(reviewId);
     }

@@ -6,7 +6,7 @@ import TrashIcon from '@/features/coverLetter/icons/TrashIcon';
 interface CoverLetterToolbarProps {
   companyName: string;
   jobPosition: string;
-  isReviewOpen: boolean;
+  isReviewActive: boolean;
   isPending?: boolean;
   onToggleReview: () => void;
   onCopyLink: () => void;
@@ -18,7 +18,7 @@ interface CoverLetterToolbarProps {
 const CoverLetterToolbar = ({
   companyName,
   jobPosition,
-  isReviewOpen,
+  isReviewActive,
   isPending,
   onToggleReview,
   onCopyLink,
@@ -46,21 +46,21 @@ const CoverLetterToolbar = ({
           type='button'
           onClick={onToggleReview}
           className={`flex cursor-pointer items-center gap-1.5 rounded-xl border px-3 py-1.5 text-sm font-medium transition-colors ${
-            isReviewOpen
+            isReviewActive
               ? 'border-gray-800 bg-gray-800 text-white'
               : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
           }`}
         >
           <ReviewMessageIcon className='h-5 w-5' />
-          <span>{isReviewOpen ? '첨삭 비활성화' : '첨삭 활성화'}</span>
+          <span>{isReviewActive ? '첨삭 비활성화' : '첨삭 활성화'}</span>
         </button>
 
         <button
           type='button'
           onClick={onCopyLink}
-          disabled={!isReviewOpen}
+          disabled={!isReviewActive}
           className={`flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium transition-colors ${
-            isReviewOpen
+            isReviewActive
               ? 'cursor-pointer text-gray-700 hover:bg-gray-50'
               : 'cursor-not-allowed text-gray-400 opacity-50'
           }`}
@@ -79,9 +79,9 @@ const CoverLetterToolbar = ({
           <button
             type='button'
             onClick={onSave}
-            disabled={isPending}
+            disabled={isPending || !onSave}
             className={`flex items-center gap-1.5 rounded-xl px-4 py-1.5 text-sm font-bold text-white transition-colors ${
-              isPending
+              isPending || !onSave
                 ? 'cursor-not-allowed bg-gray-400'
                 : 'cursor-pointer bg-gray-800 hover:bg-gray-900'
             }`}

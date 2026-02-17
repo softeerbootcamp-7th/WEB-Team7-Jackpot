@@ -9,7 +9,7 @@ interface ReviewModalProps {
   initialRevision?: string;
   initialComment?: string;
   onDelete?: (reviewId: number) => void;
-  onApprove?: (reviewId: number) => void;
+  onToggleApproval?: (reviewId: number) => void;
 }
 
 const ReviewModal = ({
@@ -17,11 +17,11 @@ const ReviewModal = ({
   initialRevision,
   initialComment,
   onDelete,
-  onApprove,
+  onToggleApproval,
 }: ReviewModalProps) => {
   const viewStatus = review?.viewStatus ?? 'PENDING';
   const showBanner = viewStatus !== 'PENDING';
-  const canApprove = !!review?.suggest && !!onApprove;
+  const canApprove = !!review?.suggest && !!onToggleApproval;
   const isAccepted = viewStatus === 'ACCEPTED';
 
   return (
@@ -83,15 +83,17 @@ const ReviewModal = ({
           </div>
         </div>
         <div className='flex items-center justify-start gap-2'>
-          <button
-            type='button'
-            className='flex cursor-pointer items-center justify-start gap-1 rounded-xl px-3 py-1.5'
-            onClick={() => review && onDelete?.(review.id)}
-          >
-            <span className='text-center text-sm leading-5 font-medium text-red-600'>
-              삭제하기
-            </span>
-          </button>
+          {onDelete && (
+            <button
+              type='button'
+              className='flex cursor-pointer items-center justify-start gap-1 rounded-xl px-3 py-1.5'
+              onClick={() => review && onDelete?.(review.id)}
+            >
+              <span className='text-center text-sm leading-5 font-medium text-red-600'>
+                삭제하기
+              </span>
+            </button>
+          )}
           {canApprove && (
             <button
               type='button'
@@ -100,7 +102,7 @@ const ReviewModal = ({
                   ? 'bg-yellow-500 text-white'
                   : 'bg-gray-900 text-white'
               }`}
-              onClick={() => review && onApprove(review.id)}
+              onClick={() => review && onToggleApproval(review.id)}
             >
               <span className='text-center text-sm leading-5 font-bold'>
                 {isAccepted ? '되돌리기' : '적용하기'}

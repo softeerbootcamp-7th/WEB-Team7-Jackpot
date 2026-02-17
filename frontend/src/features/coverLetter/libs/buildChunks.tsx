@@ -10,7 +10,7 @@ export const buildChunks = (
   chunkPositions: number[],
   reviews: Review[],
   selectedReviewId: number | null,
-  isReviewOpen: boolean,
+  isReviewActive: boolean,
   selection: SelectionInfo | null,
 ) => {
   const renderText = (text: string, keyPrefix: string, isDimmed = false) => {
@@ -50,7 +50,7 @@ export const buildChunks = (
     return (
       <span
         key={`review-wrap-${matchingReview.id}-${i}`}
-        className={`${isReviewOpen ? 'cursor-pointer font-bold' : ''} ${
+        className={`${isReviewActive ? 'cursor-pointer font-bold' : ''} ${
           isSelected ? 'rounded-sm bg-red-100 ring-1 ring-red-200' : ''
         }`}
         data-review-id={matchingReview.id}

@@ -1,4 +1,4 @@
-import { useContext, useEffect } from 'react';
+import { useEffect } from 'react';
 
 import { useLocation, useNavigate } from 'react-router';
 
@@ -6,7 +6,7 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import ReviewLayout from '@/features/review/components/ReviewLayout';
 import { reviewHeaderText } from '@/features/review/constants';
 import ContentHeader from '@/shared/components/ContentHeader';
-import { ToastMessageContext } from '@/shared/context/ToastMessageContext';
+import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
 
 const ReviewPage = () => {
   // TODO: WebSocket 연결 및 접근 제어 후 데이터 요청 구현
@@ -19,16 +19,25 @@ const ReviewPage = () => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const toast = useContext(ToastMessageContext);
+  const { showToast } = useToastMessageContext();
 
   useEffect(() => {
     if (!isAuthenticated) {
-      toast?.showToast('로그인이 필요한 페이지입니다.', false);
-      navigate(`/login?redirect=${encodeURIComponent(location.pathname)}`, {
-        replace: true,
-      });
+      showToast('로그인이 필요한 페이지입니다.', false);
+      navigate(
+        `/login?redirect=${encodeURIComponent(location.pathname + location.search)}`,
+        {
+          replace: true,
+        },
+      );
     }
-  }, [isAuthenticated, navigate, location.pathname, toast]);
+  }, [
+    isAuthenticated,
+    navigate,
+    location.pathname,
+    showToast,
+    location.search,
+  ]);
 
   if (!isAuthenticated) return null;
 

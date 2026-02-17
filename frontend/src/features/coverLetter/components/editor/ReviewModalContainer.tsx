@@ -11,7 +11,7 @@ interface ReviewModalContainerProps {
   selection: SelectionInfo | null;
   editingReview: Review | null;
   onDelete: (reviewId: number) => void;
-  onApprove: (reviewId: number) => void;
+  onToggleApproval: (reviewId: number) => void;
   onDismiss: () => void;
 }
 
@@ -19,7 +19,7 @@ const ReviewModalContainer = ({
   selection,
   editingReview,
   onDelete,
-  onApprove,
+  onToggleApproval,
   onDismiss,
 }: ReviewModalContainerProps) => {
   const modalRef = useRef<HTMLDivElement>(null);
@@ -47,7 +47,7 @@ const ReviewModalContainer = ({
         initialRevision={editingReview?.revision}
         initialComment={editingReview?.comment}
         onDelete={onDelete}
-        onApprove={onApprove}
+        onToggleApproval={onToggleApproval}
       />
     </div>
   );

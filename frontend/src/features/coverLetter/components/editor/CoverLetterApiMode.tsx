@@ -1,7 +1,7 @@
 import CoverLetterEditor from '@/features/coverLetter/components/editor/CoverLetterEditor';
 import CoverLetterToolbar from '@/features/coverLetter/components/editor/CoverLetterToolbar';
 import useCoverLetterActions from '@/features/coverLetter/hooks/useCoverLetterActions';
-import useCoverLetterPage from '@/features/coverLetter/hooks/useCoverLetterPage';
+import useCoverLetterPage from '@/shared/hooks/useCoverLetterPage';
 import { useQnAList } from '@/shared/hooks/useQnAQueries';
 import { useReviewsByQnaId } from '@/shared/hooks/useReviewQueries';
 import useReviewState from '@/shared/hooks/useReviewState';
@@ -45,8 +45,8 @@ const CoverLetterApiMode = ({
     currentQna,
     editedAnswers: reviewState.editedAnswers,
     currentReviews: reviewState.currentReviews,
-    isReviewOpen: isReviewActive,
-    setIsReviewOpen: setIsReviewActive,
+    isReviewActive: isReviewActive,
+    setIsReviewActive: setIsReviewActive,
   });
 
   if (!qnas.length) {
@@ -61,7 +61,7 @@ const CoverLetterApiMode = ({
     <CoverLetterToolbar
       companyName={coverLetter.companyName}
       jobPosition={coverLetter.jobPosition}
-      isReviewOpen={isReviewActive}
+      isReviewActive={isReviewActive}
       isPending={isPending}
       onToggleReview={handleToggleReview}
       onCopyLink={handleCopyLink}
@@ -79,7 +79,7 @@ const CoverLetterApiMode = ({
       currentReviews={reviewState.currentReviews}
       currentPageIndex={safePageIndex}
       totalPages={qnas.length}
-      isReviewOpen={isReviewActive}
+      isReviewActive={isReviewActive}
       toolbar={toolbar}
       onPageChange={setCurrentPageIndex}
       onTextChange={reviewState.handleTextChange}

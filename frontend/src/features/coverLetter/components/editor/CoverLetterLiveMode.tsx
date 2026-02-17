@@ -1,7 +1,7 @@
 import CoverLetterEditor from '@/features/coverLetter/components/editor/CoverLetterEditor';
 import CoverLetterToolbar from '@/features/coverLetter/components/editor/CoverLetterToolbar';
 import useCoverLetterActions from '@/features/coverLetter/hooks/useCoverLetterActions';
-import useCoverLetterPage from '@/features/coverLetter/hooks/useCoverLetterPage';
+import useCoverLetterPage from '@/shared/hooks/useCoverLetterPage';
 import { useReviewsByQnaId } from '@/shared/hooks/useReviewQueries';
 import useReviewState from '@/shared/hooks/useReviewState';
 import { useShareQnA } from '@/shared/hooks/useShareQueries';
@@ -45,8 +45,8 @@ const CoverLetterLiveMode = ({
       currentQna,
       editedAnswers: reviewState.editedAnswers,
       currentReviews: reviewState.currentReviews,
-      isReviewOpen: isReviewActive,
-      setIsReviewOpen: setIsReviewActive,
+      isReviewActive: isReviewActive,
+      setIsReviewActive: setIsReviewActive,
     });
 
   // TODO: WebSocket 구독 관리
@@ -75,7 +75,7 @@ const CoverLetterLiveMode = ({
     <CoverLetterToolbar
       companyName={coverLetter.companyName}
       jobPosition={coverLetter.jobPosition}
-      isReviewOpen={isReviewActive}
+      isReviewActive={isReviewActive}
       onToggleReview={handleToggleReview}
       onCopyLink={handleCopyLink}
       onDelete={handleDelete}
@@ -92,7 +92,7 @@ const CoverLetterLiveMode = ({
       currentReviews={reviewState.currentReviews}
       currentPageIndex={safePageIndex}
       totalPages={qnaIds.length}
-      isReviewOpen={isReviewActive}
+      isReviewActive={isReviewActive}
       toolbar={toolbar}
       onPageChange={setCurrentPageIndex}
       onTextChange={reviewState.handleTextChange}

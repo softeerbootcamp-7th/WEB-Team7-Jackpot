@@ -17,7 +17,7 @@ const SidebarCardSection = ({
 }) => {
   const [selectedItem, setSelectedItem] = useState<ScrapItem | null>(null);
 
-  // 상세 내용이 선택되었다면 CardDetail 렌더링
+  // 상세 내용이 선택되었다면 SidebarCardDetail 렌더링
   if (selectedItem) {
     return (
       <SidebarCardDetail

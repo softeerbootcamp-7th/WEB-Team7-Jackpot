@@ -7,7 +7,7 @@ import CoverLetterFooter from '@/features/coverLetter/components/editor/CoverLet
 import CoverLetterHeader from '@/features/coverLetter/components/editor/CoverLetterHeader';
 import ReviewModalContainer from '@/features/coverLetter/components/editor/ReviewModalContainer';
 import ReviewCardList from '@/features/coverLetter/components/reviewWithFriend/ReviewCardList';
-import { useApproveReview } from '@/features/coverLetter/hooks/useReviewQueries';
+import { useApproveReview } from '@/shared/hooks/useReviewQueries';
 import { useDeleteReview } from '@/shared/hooks/useReviewQueries';
 import type { CoverLetter as CoverLetterType } from '@/shared/types/coverLetter';
 import type { Review } from '@/shared/types/review';
@@ -27,20 +27,20 @@ interface CoverLetterProps {
   currentReviews: Review[];
   currentPageIndex: number;
   totalPages: number;
-  isReviewOpen: boolean;
+  isReviewActive: boolean;
   toolbar: ReactNode;
   onPageChange: (index: number) => void;
   onTextChange: (newText: string) => void;
 }
 
-const CoverLetter = ({
+const CoverLetterEditor = ({
   coverLetter,
   currentQna,
   currentText,
   currentReviews,
   currentPageIndex,
   totalPages,
-  isReviewOpen,
+  isReviewActive,
   toolbar,
   onPageChange,
   onTextChange,
@@ -63,7 +63,7 @@ const CoverLetter = ({
     [currentQna?.qnAId, deleteReviewApi],
   );
 
-  const onApproveReview = useCallback(
+  const onToggleApproval = useCallback(
     (reviewId: number) => {
       if (!currentQna?.qnAId) return;
       updateReviewMutation(reviewId);
@@ -93,6 +93,7 @@ const CoverLetter = ({
     setSearchParams(
       (prev) => {
         const next = new URLSearchParams(prev);
+        if (prev.get('qnAId') === String(qnAId)) return prev;
         next.set('qnAId', String(qnAId));
         return next;
       },
@@ -131,7 +132,7 @@ const CoverLetter = ({
               reviews={currentReviews}
               editingReview={editingReview}
               selection={selection}
-              isReviewOpen={isReviewOpen}
+              isReviewActive={isReviewActive}
               selectedReviewId={selectedReviewId}
               onSelectionChange={setSelection}
               onReviewClick={handleReviewClick}
@@ -151,13 +152,13 @@ const CoverLetter = ({
             selection={selection}
             editingReview={editingReview}
             onDelete={onDeleteReview}
-            onApprove={onApproveReview}
+            onToggleApproval={onToggleApproval}
             onDismiss={handleDismiss}
           />
         </div>
       </div>
 
-      {isReviewOpen && (
+      {isReviewActive && (
         <aside className='h-full min-h-0 w-[248px] overflow-y-auto border-l border-gray-100'>
           <ReviewCardList
             reviews={currentReviews}
@@ -170,4 +171,4 @@ const CoverLetter = ({
   );
 };
 
-export default CoverLetter;
+export default CoverLetterEditor;

@@ -1,9 +1,11 @@
 import TrashCanIcon from '@/features/review/icons/TrashCanIcon';
 import type { ReviewViewStatus } from '@/shared/types/review';
 
-const STATUS_CONFIG: Record<
-  string,
-  { message: string; bgColor: string; textColor: string }
+const STATUS_CONFIG: Partial<
+  Record<
+    ReviewViewStatus,
+    { message: string; bgColor: string; textColor: string }
+  >
 > = {
   PENDING_CHANGED: {
     message: '원문이 수정되어 첨삭 내용과 달라졌어요.',
