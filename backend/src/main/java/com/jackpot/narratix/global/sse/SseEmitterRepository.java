@@ -26,7 +26,7 @@ public class SseEmitterRepository {
         emitters.remove(emitterId);
 
         userEmitterIds.compute(userId, (key, emitterIds) -> {
-            if(emitterIds == null){
+            if (emitterIds == null) {
                 return null;
             }
             emitterIds.remove(emitterId);
@@ -37,10 +37,14 @@ public class SseEmitterRepository {
     public void deleteByEmitterId(String emitterId) {
         emitters.remove(emitterId);
 
-        userEmitterIds.entrySet().removeIf(entry -> {
-            entry.getValue().remove(emitterId);
-            return entry.getValue().isEmpty();
-        });
+        userEmitterIds.forEach((userId, emitterIds) ->
+                userEmitterIds.compute(userId, (key, ids) -> {
+                    if (ids == null) {
+                        return null;
+                    }
+                    ids.remove(emitterId);
+                    return ids.isEmpty() ? null : ids;
+                }));
     }
 
     public int countByUserId(String userId) {
@@ -64,7 +68,7 @@ public class SseEmitterRepository {
         return result;
     }
 
-    public Map<String, SseEmitter> getAllEmitters(){
+    public Map<String, SseEmitter> getAllEmitters() {
         return Map.copyOf(emitters);
     }
 }
