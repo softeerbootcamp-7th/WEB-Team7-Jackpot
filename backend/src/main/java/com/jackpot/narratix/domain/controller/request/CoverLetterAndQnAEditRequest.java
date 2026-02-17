@@ -1,7 +1,5 @@
 package com.jackpot.narratix.domain.controller.request;
 
-import com.jackpot.narratix.domain.entity.CoverLetter;
-import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
@@ -22,17 +20,6 @@ public record CoverLetterAndQnAEditRequest(
             @NotNull(message = "직무명은 필수 입력 항목입니다.") String jobPosition,
             @Nullable LocalDate deadline
     ) {
-        public static CoverLetterEditRequest of(CoverLetter coverLetter) {
-            return new CoverLetterEditRequest(
-                    coverLetter.getId(),
-                    coverLetter.getCompanyName(),
-                    coverLetter.getApplyYear(),
-                    coverLetter.getApplyHalf(),
-                    coverLetter.getJobPosition(),
-                    coverLetter.getDeadline()
-            );
-        }
-
     }
 
     public record QnAEditRequest(
@@ -40,12 +27,5 @@ public record CoverLetterAndQnAEditRequest(
             @NotNull(message = "질문은 필수 입력 항목입니다.") String question,
             @NotNull(message = "문항 유형은 필수 입력 항목입니다.") String category
     ) {
-        public static QnAEditRequest of(QnA qnA) {
-            return new QnAEditRequest(
-                    qnA.getId(),
-                    qnA.getQuestion(),
-                    qnA.getQuestionCategory().getDescription()
-            );
-        }
     }
 }
