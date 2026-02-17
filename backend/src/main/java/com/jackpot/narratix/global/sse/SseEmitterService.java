@@ -101,6 +101,7 @@ public class SseEmitterService {
             } catch (IOException e) {
                 log.warn("Failed to send ping: emitterId={}", id);
                 sseEmitterRepository.deleteByEmitterId(id);
+                emitter.complete();
             }
         });
     }
