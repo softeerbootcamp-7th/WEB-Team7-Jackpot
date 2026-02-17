@@ -31,8 +31,8 @@ export const fetchCalendarDates = async (
   const queryParams = new URLSearchParams({
     startDate: params.startDate,
     endDate: params.endDate,
-    size: String(params.size ?? 7),
-    isShared: String(params.isShared ?? true),
+    size: String(params.size ?? 7), // [박소민] 기본값은 7로 설정
+    isShared: String(params.isShared ?? false), // [박소민] 기본값은 false로 설정
   });
 
   if (lastIdParam !== undefined) {

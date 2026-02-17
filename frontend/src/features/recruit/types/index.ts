@@ -1,15 +1,6 @@
-import type { ApiApplyHalf } from '@/shared/types/coverLetter';
+import type { CoverLetterBase } from '@/shared/types/coverLetter';
 
-// [박소민] TODO: 이거 CoverLetter랑 중복 해결
-export interface CoverLetterItem {
-  coverLetterId: number;
-  companyName: string;
-  jobPosition: string;
-  applyYear: number;
-  applyHalf: ApiApplyHalf;
-  deadline: string;
-
-  // [박소민] TODO: 이 부분만 포함 ts으로 하기
+export interface CoverLetterItem extends CoverLetterBase {
   questionCount: number;
 }
 

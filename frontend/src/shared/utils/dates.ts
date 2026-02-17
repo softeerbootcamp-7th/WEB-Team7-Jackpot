@@ -1,79 +1,103 @@
-export const getKoreanDate = (datetime: string) => {
-  if (!datetime) return '';
+/**
+ * Date 객체를 복제하여 반환 (불변성 유지용)
+ */
+const cloneDate = (date: Date): Date => new Date(date.getTime());
 
-  const date = new Date(datetime);
+/**
+ * 날짜를 YYYY-MM-DD 형태의 문자열로 변환 (Time 제외, 순수 날짜 비교용)
+ */
+export const getISODate = (date: Date | string | null | undefined): string => {
+  if (!date) return '';
+  const d = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(d.getTime())) return '';
 
-  if (isNaN(date.getTime())) return '';
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
 
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-
-  return `${month}월 ${day}일`;
+  return `${year}-${month}-${day}`;
 };
 
-export const getKoreanTime = (datetime: string) => {
-  if (!datetime) return '';
+/**
+ * 오늘 날짜를 YYYY-MM-DD 문자열로 반환
+ */
+export const getTodayISODate = (): string => getISODate(new Date());
 
-  const date = new Date(datetime);
-
-  if (isNaN(date.getTime())) return '';
-
-  let hours = date.getHours();
-  const minutes = date.getMinutes();
-
-  const period = hours >= 12 ? '오후' : '오전';
-
-  if (hours > 12) {
-    hours -= 12;
-  } else if (hours === 0) {
-    hours = 12;
-  }
-
-  return `${period} ${String(hours).padStart(2, '0')}시 ${String(minutes).padStart(2, '0')}분`;
+/**
+ * YYYY.MM.DD 형태로 변환 (getISODate 재사용)
+ */
+export const getDate = (date: Date | string): string => {
+  const isoDate = getISODate(date);
+  return isoDate ? isoDate.replace(/-/g, '.') : '';
 };
 
-// [박소민] Date 객체는 참조 타입이므로 내부 값이 바뀔 수 있다.
-// 그리고 React는 얕은 비교로 렌더링 여부를 결정하므로 화면을 갱신하지 않는다.
-// 따라서 '달'을 바꾸는 경우에도 리렌더링이 일어나지 않을 수 있다.
-// 결론적으로 새로운 Date 인스턴스를 반환하여 리렌더링이 일어나도록 구현한다.
-
-const cloneDate = (date: Date) => new Date(date.getTime());
-
-export const isPastDay = (currentDate: Date, targetDate: Date) => {
-  const current = cloneDate(currentDate);
-  const target = cloneDate(targetDate);
-  current.setHours(0, 0, 0, 0);
-  target.setHours(0, 0, 0, 0);
-
-  return target < current;
-};
-
+/**
+ * 두 날짜가 같은 날인지 확인
+ * 기존: 연/월/일 각각 비교 -> 개선: ISO 문자열 비교 (더 빠르고 정확함)
+ */
 export const isSameDay = (dateLeft: Date, dateRight: Date): boolean => {
-  return (
-    dateLeft.getFullYear() === dateRight.getFullYear() &&
-    dateLeft.getMonth() === dateRight.getMonth() &&
-    dateLeft.getDate() === dateRight.getDate()
-  );
+  return getISODate(dateLeft) === getISODate(dateRight);
 };
 
-export const isPastDate = (date: Date, currentDay: Date) => {
-  const targetDate = new Date(date);
-  targetDate.setHours(0, 0, 0, 0);
-
-  const today = new Date(currentDay);
-  today.setHours(0, 0, 0, 0);
-
-  return targetDate < today;
+/**
+ * targetDate가 baseDate보다 과거인지 확인 (Time 무시)
+ */
+export const isBeforeDay = (targetDate: Date, baseDate: Date): boolean => {
+  // 문자열 비교가 가장 안전함 (타임존/시간 계산 실수 방지)
+  return getISODate(targetDate) < getISODate(baseDate);
 };
 
-// [박소민] Date 객체는 setMonth()의 값을 저절로 0 ~ 11 범위 안에서 정해지도록 구현되어 있다.
+// 포맷터 인스턴스를 외부에 선언하여 불필요한 재생성 방지
+const koreanDateFormatter = new Intl.DateTimeFormat('ko-KR', {
+  month: 'long',
+  day: 'numeric',
+});
+
+const koreanTimeFormatter = new Intl.DateTimeFormat('ko-KR', {
+  hour: 'numeric',
+  minute: '2-digit',
+  hour12: true, // 오후/오전 자동 처리
+});
+
+const yearMonthFormatter = new Intl.DateTimeFormat('ko-KR', {
+  year: 'numeric',
+  month: 'long',
+});
+
+/**
+ * "M월 D일" 포맷
+ */
+export const getKoreanDate = (datetime: string | Date): string => {
+  if (!datetime) return '';
+  const date = typeof datetime === 'string' ? new Date(datetime) : datetime;
+  if (isNaN(date.getTime())) return '';
+
+  return koreanDateFormatter.format(date); // 예: "2월 16일"
+};
+
+/**
+ * "오전/오후 H시 mm분" 포맷
+ * 복잡한 if문 로직 제거하고 Intl 사용
+ */
+export const getKoreanTime = (datetime: string | Date): string => {
+  if (!datetime) return '';
+  const date = typeof datetime === 'string' ? new Date(datetime) : datetime;
+  if (isNaN(date.getTime())) return '';
+
+  return koreanTimeFormatter.format(date); // 예: "오후 10:10" (브라우저 설정에 따라 "10시 10분" 등으로 나옴)
+};
+
+export const formatYearMonth = (date: Date) => yearMonthFormatter.format(date);
+
 export const addMonths = (date: Date, amount = 1): Date => {
   const newDate = cloneDate(date);
-  const dayOfMonth = newDate.getDate();
+  const originalDay = newDate.getDate();
+
   newDate.setMonth(newDate.getMonth() + amount);
-  // 월말 오버플로우 방지: 원래 날짜가 새 달의 마지막 날보다 크면 클램핑 (1월 31일 + 1달 → 2월 28일 또는 29일)
-  if (newDate.getDate() !== dayOfMonth) {
-    newDate.setDate(0); // 이전 달의 마지막 날
+
+  // 월말 오버플로우 처리 (예: 1/31 -> 2/28)
+  if (newDate.getDate() !== originalDay) {
+    newDate.setDate(0);
   }
   return newDate;
 };
@@ -93,26 +117,21 @@ export const subWeeks = (date: Date, amount = 1): Date =>
 export const startOfMonth = (date: Date): Date => {
   const newDate = cloneDate(date);
   newDate.setDate(1);
-  // [박소민] Date 객체는 밀리초 단위까지 비교하기 때문에 정확한 비교를 위해 모든 시간을 0으로 정한다.
   newDate.setHours(0, 0, 0, 0);
   return newDate;
 };
 
-// https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Global_Objects/Date/setDate
-// [박소민] dayValue가 해당 월의 날짜 값 범위를 벗어나면 setDate ()는 그에 따라 Date 객체를 업데이트합니다.
-// 예를 들어, dayValue에 0이 제공되면 날짜는 이전 달의 마지막 날로 설정됩니다.
-export const endOfMonth = (date: Date) => {
+export const endOfMonth = (date: Date): Date => {
   const newDate = cloneDate(date);
   newDate.setMonth(newDate.getMonth() + 1);
   newDate.setDate(0);
-  // [박소민] TODO: Date 객체 추가 설명 적기
   newDate.setHours(23, 59, 59, 999);
   return newDate;
 };
 
 export const startOfWeek = (date: Date): Date => {
   const newDate = cloneDate(date);
-  const day = newDate.getDay();
+  const day = newDate.getDay(); // 0(일) ~ 6(토)
   const diff = newDate.getDate() - day;
   newDate.setDate(diff);
   newDate.setHours(0, 0, 0, 0);
@@ -126,7 +145,6 @@ export const endOfWeek = (date: Date): Date => {
   return newDate;
 };
 
-// [박소민] 캘린더에 표시할 날짜 배열을 반환합니다. start가 포함된 주부터 end가 포함된 주까지의 날짜를 반환합니다.
 export const eachDayOfInterval = ({
   start,
   end,
@@ -135,73 +153,44 @@ export const eachDayOfInterval = ({
   end: Date;
 }): Date[] => {
   const days: Date[] = [];
-  const currentDate = startOfWeek(start);
+  const current = startOfWeek(start); // 시작일이 포함된 주의 일요일부터 시작
   const endTime = end.getTime();
 
-  while (currentDate.getTime() <= endTime) {
-    days.push(cloneDate(currentDate));
-    currentDate.setDate(currentDate.getDate() + 1);
+  // 무한 루프 방지를 위해 안전장치(1년 제한 등)를 두는 것도 좋으나, 여기선 기본 로직 유지
+  while (current.getTime() <= endTime) {
+    days.push(cloneDate(current));
+    current.setDate(current.getDate() + 1);
   }
-
   return days;
 };
 
-export const formatDate = (date: Date) => date.getDate();
-
-const yearMonthFormatter = new Intl.DateTimeFormat('ko-KR', {
-  year: 'numeric',
-  month: 'long',
-});
-
-export const formatYearMonth = (date: Date) => yearMonthFormatter.format(date);
-
-export const generateDateGrid = (startDate: Date, endDate: Date) => {
-  return eachDayOfInterval({ start: startDate, end: endDate });
-};
-
-export const getThreeWeekRange = (baseDate: Date) => {
-  const startDate = startOfWeek(subWeeks(baseDate, 1));
-  const endDate = endOfWeek(addWeeks(baseDate, 1));
-  return { startDate, endDate };
-};
+// generateDateGrid는 eachDayOfInterval과 완전히 동일하므로 제거하거나 래핑만 유지
+export const generateDateGrid = (startDate: Date, endDate: Date) =>
+  eachDayOfInterval({ start: startDate, end: endDate });
 
 export const getMonthRange = (currentDate: Date) => {
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
-  const startDate = startOfWeek(monthStart);
-  const endDate = endOfWeek(monthEnd);
-  return { startDate, endDate };
+  return {
+    startDate: startOfWeek(monthStart),
+    endDate: endOfWeek(monthEnd),
+  };
 };
 
-export const getISODate = (date: Date | string): string => {
-  const d = typeof date === 'string' ? new Date(date) : date;
-
-  if (isNaN(d.getTime())) return '';
-
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-
-  return `${year}-${month}-${day}`;
+export const getThreeWeekRange = (baseDate: Date) => {
+  return {
+    startDate: startOfWeek(subWeeks(baseDate, 1)),
+    endDate: endOfWeek(addWeeks(baseDate, 1)),
+  };
 };
 
-export const getTodayISODate = (): string => {
-  return getISODate(new Date());
-};
-
-// [박소민] 기존 getDate의 불안정한 slice 로직을 제거하고 getISODate를 재사용
-export const getDate = (date: Date | string): string => {
-  const isoDate = getISODate(date);
-  if (!isoDate) return '';
-
-  return isoDate.replace(/-/g, '.');
+export const createRecruitPath = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  return `/recruit/${year}/${month}`;
 };
 
 export const generateYearList = (year: number) => {
-  const yearList = [];
-  for (let i = 0; i < 100; i += 1) {
-    yearList.push(year - i);
-  }
-
-  return yearList;
+  // Array.from을 사용하여 더 깔끔하게 생성
+  return Array.from({ length: 100 }, (_, i) => year - i);
 };

@@ -109,7 +109,7 @@ export const fetchDocumentList = async (
     params.append('companyName', folderName);
 
     const response = await apiClient.get({
-      endpoint: `/library/company/all?${params.toString()}`,
+      endpoint: `/library/company/all&${params.toString()}`,
     });
 
     return CoverLetterListResponseSchema.parse(response);
@@ -120,7 +120,7 @@ export const fetchDocumentList = async (
     params.append('questionCategoryType', folderName);
 
     const response = await apiClient.get({
-      endpoint: `/library/question/all?${params.toString()}`,
+      endpoint: `/library/question/all&${params.toString()}`,
     });
 
     return QuestionListResponseSchema.parse(response);

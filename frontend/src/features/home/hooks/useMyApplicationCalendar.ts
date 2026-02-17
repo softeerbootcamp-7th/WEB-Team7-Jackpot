@@ -1,5 +1,5 @@
 import { useDataGrid } from '@/shared/hooks/useDataGrid';
-import { getThreeWeekRange, isPastDay } from '@/shared/utils/dates';
+import { getThreeWeekRange, isBeforeDay } from '@/shared/utils/dates';
 
 export const useMyApplicationCalendar = () => {
   const today = new Date();
@@ -10,7 +10,7 @@ export const useMyApplicationCalendar = () => {
 
   return {
     days,
-    isPastDay: (date: Date) => isPastDay(today, date),
+    isBeforeDay: (date: Date) => isBeforeDay(date, today),
     hasApplication: () => false, // [박소민] TODO: 캘린더 로직 추가 후 수정
   };
 };

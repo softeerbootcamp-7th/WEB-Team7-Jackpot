@@ -18,6 +18,7 @@ const CalendarContainer = () => {
       startDate: startDateStr,
       endDate: endDateStr,
       size: 100,
+      isShared: false,
     });
 
   useEffect(() => {
