@@ -1,4 +1,4 @@
-package com.jackpot.narratix.presentation;
+package com.jackpot.narratix.global;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
