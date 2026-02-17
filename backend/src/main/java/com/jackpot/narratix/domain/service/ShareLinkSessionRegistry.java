@@ -19,6 +19,7 @@ import static com.jackpot.narratix.domain.service.ShareLinkLockManager.getLockKe
  * WebSocket 세션과 ShareLink 간의 연결 상태를 추적하는 레지스트리.
  * ShareLinkLockManager에서 락 획득/해제 시 호출되며,
  * 현재 웹소켓에 연결된 유저를 조회할 때 사용된다.
+ * TODO: 수평 확장 시 Redis 기반의 세션 레지스트리로 전환
  */
 @Slf4j
 @Component
