@@ -3,7 +3,7 @@ package com.jackpot.narratix.domain.service;
 import com.jackpot.narratix.domain.controller.request.CoverLetterFilterRequest;
 import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
 import com.jackpot.narratix.domain.controller.request.CreateQuestionRequest;
-import com.jackpot.narratix.domain.controller.request.EditCoverLetterRequest;
+import com.jackpot.narratix.domain.controller.request.CoverLetterAndQnAEditRequest;
 import com.jackpot.narratix.domain.controller.response.CoverLetterResponse;
 import com.jackpot.narratix.domain.controller.response.FilteredCoverLettersResponse;
 import com.jackpot.narratix.domain.controller.response.CreateCoverLetterResponse;
@@ -307,7 +307,7 @@ class CoverLetterServiceTest {
         String userId = "testUser123";
         Long coverLetterId = 1L;
 
-        EditCoverLetterRequest editRequest = new EditCoverLetterRequest(
+        CoverLetterAndQnAEditRequest editRequest = new CoverLetterAndQnAEditRequest(
                 coverLetterId,
                 "수정된 기업명",
                 2025,
@@ -351,7 +351,7 @@ class CoverLetterServiceTest {
         String userId = "testUser123";
         Long coverLetterId = 1L;
 
-        EditCoverLetterRequest editRequest = new EditCoverLetterRequest(
+        CoverLetterAndQnAEditRequest editRequest = new CoverLetterAndQnAEditRequest(
                 coverLetterId,
                 "수정된 기업명",
                 2025,
@@ -390,7 +390,7 @@ class CoverLetterServiceTest {
         String userId = "testUser123";
         Long coverLetterId = 999L;
 
-        EditCoverLetterRequest editRequest = new EditCoverLetterRequest(
+        CoverLetterAndQnAEditRequest editRequest = new CoverLetterAndQnAEditRequest(
                 coverLetterId,
                 "수정된 기업명",
                 2025,
@@ -418,7 +418,7 @@ class CoverLetterServiceTest {
         String otherUserId = "otherTestUser123";
         Long coverLetterId = 1L;
 
-        EditCoverLetterRequest editRequest = new EditCoverLetterRequest(
+        CoverLetterAndQnAEditRequest editRequest = new CoverLetterAndQnAEditRequest(
                 coverLetterId,
                 "수정된 기업명",
                 2025,

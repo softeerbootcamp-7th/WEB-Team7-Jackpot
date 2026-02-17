@@ -4,7 +4,7 @@ import com.jackpot.narratix.domain.controller.api.CoverLetterApi;
 import com.jackpot.narratix.domain.controller.request.CoverLetterFilterRequest;
 import com.jackpot.narratix.domain.controller.response.FilteredCoverLettersResponse;
 import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
-import com.jackpot.narratix.domain.controller.request.EditCoverLetterRequest;
+import com.jackpot.narratix.domain.controller.request.CoverLetterAndQnAEditRequest;
 import com.jackpot.narratix.domain.controller.response.CoverLetterResponse;
 import com.jackpot.narratix.domain.controller.response.CreateCoverLetterResponse;
 import com.jackpot.narratix.domain.controller.response.TotalCoverLetterCountResponse;
@@ -40,9 +40,9 @@ public class CoverLetterController implements CoverLetterApi {
     @PutMapping
     public ResponseEntity<Void> editCoverLetter(
             @UserId String userId,
-            @RequestBody @Valid EditCoverLetterRequest editCoverLetterRequest
+            @RequestBody @Valid CoverLetterAndQnAEditRequest coverLetterAndQnAEditRequest
     ) {
-        coverLetterService.editCoverLetter(userId, editCoverLetterRequest);
+        coverLetterService.editCoverLetter(userId, coverLetterAndQnAEditRequest);
         return ResponseEntity.noContent().build();
     }
 

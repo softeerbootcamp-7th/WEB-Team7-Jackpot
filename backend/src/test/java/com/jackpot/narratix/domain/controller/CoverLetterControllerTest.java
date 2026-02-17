@@ -2,7 +2,7 @@ package com.jackpot.narratix.domain.controller;
 
 import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
 import com.jackpot.narratix.domain.controller.request.CreateQuestionRequest;
-import com.jackpot.narratix.domain.controller.request.EditCoverLetterRequest;
+import com.jackpot.narratix.domain.controller.request.CoverLetterAndQnAEditRequest;
 import com.jackpot.narratix.domain.controller.response.CreateCoverLetterResponse;
 import com.jackpot.narratix.domain.controller.response.FilteredCoverLettersResponse;
 import com.jackpot.narratix.domain.controller.response.TotalCoverLetterCountResponse;
@@ -316,7 +316,7 @@ class CoverLetterControllerTest {
     @DisplayName("유효한 데이터로 자기소개서 수정 성공 (마감일 포함)")
     void editCoverLetter_WithDeadline_Success() throws Exception {
         // given
-        EditCoverLetterRequest request = new EditCoverLetterRequest(
+        CoverLetterAndQnAEditRequest request = new CoverLetterAndQnAEditRequest(
                 1L,
                 "현대자동차",
                 2024,
@@ -337,7 +337,7 @@ class CoverLetterControllerTest {
     @DisplayName("유효한 데이터로 자기소개서 수정 성공 (마감일 null)")
     void editCoverLetter_WithoutDeadline_Success() throws Exception {
         // given
-        EditCoverLetterRequest request = new EditCoverLetterRequest(
+        CoverLetterAndQnAEditRequest request = new CoverLetterAndQnAEditRequest(
                 1L,
                 "현대자동차",
                 2024,
@@ -357,7 +357,7 @@ class CoverLetterControllerTest {
     @ParameterizedTest
     @MethodSource("provideInvalidEditCoverLetterRequests")
     @DisplayName("자기소개서 수정 시 필수 필드가 null이면 400 Bad Request 반환")
-    void editCoverLetter_RequiredFieldNull_BadRequest(EditCoverLetterRequest request) throws Exception {
+    void editCoverLetter_RequiredFieldNull_BadRequest(CoverLetterAndQnAEditRequest request) throws Exception {
         // when & then
         mockMvc.perform(put("/api/v1/coverletter")
                         .header(AuthConstants.AUTHORIZATION, TEST_TOKEN)
@@ -369,11 +369,11 @@ class CoverLetterControllerTest {
     private static Stream<Arguments> provideInvalidEditCoverLetterRequests() {
         LocalDate validDate = LocalDate.of(2024, 12, 31);
         return Stream.of(
-                Arguments.of(new EditCoverLetterRequest(null, "현대자동차", 2024, ApplyHalfType.FIRST_HALF, "백엔드 개발자", validDate)),
-                Arguments.of(new EditCoverLetterRequest(1L, null, 2024, ApplyHalfType.FIRST_HALF, "백엔드 개발자", validDate)),
-                Arguments.of(new EditCoverLetterRequest(1L, "현대자동차", null, ApplyHalfType.FIRST_HALF, "백엔드 개발자", validDate)),
-                Arguments.of(new EditCoverLetterRequest(1L, "현대자동차", 2024, null, "백엔드 개발자", validDate)),
-                Arguments.of(new EditCoverLetterRequest(1L, "현대자동차", 2024, ApplyHalfType.FIRST_HALF, null, validDate))
+                Arguments.of(new CoverLetterAndQnAEditRequest(null, "현대자동차", 2024, ApplyHalfType.FIRST_HALF, "백엔드 개발자", validDate)),
+                Arguments.of(new CoverLetterAndQnAEditRequest(1L, null, 2024, ApplyHalfType.FIRST_HALF, "백엔드 개발자", validDate)),
+                Arguments.of(new CoverLetterAndQnAEditRequest(1L, "현대자동차", null, ApplyHalfType.FIRST_HALF, "백엔드 개발자", validDate)),
+                Arguments.of(new CoverLetterAndQnAEditRequest(1L, "현대자동차", 2024, null, "백엔드 개발자", validDate)),
+                Arguments.of(new CoverLetterAndQnAEditRequest(1L, "현대자동차", 2024, ApplyHalfType.FIRST_HALF, null, validDate))
         );
     }
 

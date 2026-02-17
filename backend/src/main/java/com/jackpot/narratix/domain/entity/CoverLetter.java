@@ -1,7 +1,7 @@
 package com.jackpot.narratix.domain.entity;
 
 import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
-import com.jackpot.narratix.domain.controller.request.EditCoverLetterRequest;
+import com.jackpot.narratix.domain.controller.request.CoverLetterAndQnAEditRequest;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import com.jackpot.narratix.global.exception.BaseException;
 import com.jackpot.narratix.global.exception.GlobalErrorCode;
@@ -77,7 +77,7 @@ public class CoverLetter extends BaseTimeEntity {
         return Objects.equals(this.userId, userId);
     }
 
-    public void edit(String userId, EditCoverLetterRequest request){
+    public void edit(String userId, CoverLetterAndQnAEditRequest request){
         if(!isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
 
         this.companyName = request.companyName();

@@ -2,7 +2,7 @@ package com.jackpot.narratix.domain.service;
 
 import com.jackpot.narratix.domain.controller.request.CoverLetterFilterRequest;
 import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
-import com.jackpot.narratix.domain.controller.request.EditCoverLetterRequest;
+import com.jackpot.narratix.domain.controller.request.CoverLetterAndQnAEditRequest;
 import com.jackpot.narratix.domain.controller.request.QnAEditRequest;
 import com.jackpot.narratix.domain.controller.response.*;
 import com.jackpot.narratix.domain.entity.CoverLetter;
@@ -75,9 +75,9 @@ public class CoverLetterService {
     }
 
     @Transactional
-    public void editCoverLetter(String userId, EditCoverLetterRequest editCoverLetterRequest) {
-        CoverLetter coverLetter = coverLetterRepository.findByIdOrElseThrow(editCoverLetterRequest.coverLetterId());
-        coverLetter.edit(userId, editCoverLetterRequest);
+    public void editCoverLetter(String userId, CoverLetterAndQnAEditRequest coverLetterAndQnAEditRequest) {
+        CoverLetter coverLetter = coverLetterRepository.findByIdOrElseThrow(coverLetterAndQnAEditRequest.coverLetterId());
+        coverLetter.edit(userId, coverLetterAndQnAEditRequest);
     }
 
     @Transactional(readOnly = true)
