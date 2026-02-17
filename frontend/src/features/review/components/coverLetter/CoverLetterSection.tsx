@@ -1,10 +1,14 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef } from 'react';
 
 import CoverLetterChipList from '@/features/review/components/coverLetter/CoverLetterChipList';
 import CoverLetterContent from '@/features/review/components/coverLetter/CoverLetterContent';
 import CoverLetterPagination from '@/features/review/components/coverLetter/CoverLetterPagination';
 import CoverLetterQuestion from '@/features/review/components/coverLetter/CoverLetterQuestion';
 import ReviewModal from '@/features/review/components/reviewModal/ReviewModal';
+import {
+  useCreateReview,
+  useUpdateReview,
+} from '@/features/review/hooks/useReviewQueries';
 import type { Review, ReviewBase } from '@/shared//types/review';
 import useOutsideClick from '@/shared/hooks/useOutsideClick';
 import type { SelectionInfo } from '@/shared/types/selectionInfo';
@@ -21,6 +25,9 @@ interface CoverLetterSectionProps {
   currentPage: number;
   totalPages: number;
   editingReview: Review | null;
+  selection: SelectionInfo | null;
+  onSelectionChange: (selection: SelectionInfo | null) => void;
+  qnaId: number;
   onAddReview: (review: ReviewBase) => void;
   onUpdateReview: (id: number, revision: string, comment: string) => void;
   onCancelEdit: () => void;
@@ -37,18 +44,26 @@ const CoverLetterSection = ({
   currentPage,
   totalPages,
   editingReview,
+  selection,
+  onSelectionChange,
+  qnaId,
   onAddReview,
   onUpdateReview,
   onCancelEdit,
   onPageChange,
 }: CoverLetterSectionProps) => {
-  const [selection, setSelection] = useState<SelectionInfo | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
+  // TODO: websocket 연결 시 API 호출 후 서버에서 websocket으로 확정 데이터를 전달하므로,
+  // onSuccess 콜백에서의 로컬 상태 업데이트(onAddReview, clearLocalReviews 등)를
+  // websocket 메시지 핸들러로 이동해야 함
+  const { mutate: createReview } = useCreateReview(qnaId);
+  const { mutate: updateReviewMutation } = useUpdateReview(qnaId);
+
   const handleOutsideClick = useCallback(() => {
-    setSelection(null);
+    onSelectionChange(null);
     if (editingReview) onCancelEdit();
-  }, [editingReview, onCancelEdit]);
+  }, [editingReview, onCancelEdit, onSelectionChange]);
 
   useOutsideClick(modalRef, handleOutsideClick, !!selection);
 
@@ -56,22 +71,48 @@ const CoverLetterSection = ({
     if (!selection) return;
 
     if (editingReview) {
-      onUpdateReview(editingReview.id, revision, comment);
-      // TODO: review 수정 API
+      updateReviewMutation(
+        {
+          reviewId: editingReview.id,
+          body: { suggest: revision, comment },
+        },
+        {
+          onSuccess: () => {
+            onUpdateReview(editingReview.id, revision, comment);
+            // TODO: websocket 연결 시 onSuccess에서 clearLocalReviews(qnaId)를 호출하여
+            // 서버 확정 데이터로 전환하는 방식으로 교체
+          },
+        },
+      );
     } else {
-      onAddReview({
-        selectedText: selection.selectedText,
-        revision,
-        comment,
-        range: selection.range,
-      });
-      // TODO: review 추가 API
+      // TODO: version은 OT 시스템 도입 시 서버와 동기화된 문서 버전으로 교체
+      createReview(
+        {
+          version: 0,
+          startIdx: selection.range.start,
+          endIdx: selection.range.end,
+          originText: selection.selectedText,
+          suggest: revision,
+          comment,
+        },
+        {
+          onSuccess: () => {
+            onAddReview({
+              selectedText: selection.selectedText,
+              revision,
+              comment,
+              range: selection.range,
+            });
+            // TODO: websocket 연결 시 clearLocalReviews(qnaId)로 서버 데이터 전환
+          },
+        },
+      );
     }
-    setSelection(null);
+    onSelectionChange(null);
   };
 
   const handleCancel = () => {
-    setSelection(null);
+    onSelectionChange(null);
     window.getSelection()?.removeAllRanges();
     if (editingReview) onCancelEdit();
   };
@@ -86,7 +127,7 @@ const CoverLetterSection = ({
           reviews={reviews}
           editingReview={editingReview}
           selection={selection}
-          onSelectionChange={setSelection}
+          onSelectionChange={onSelectionChange}
         />
       </div>
       <CoverLetterPagination
