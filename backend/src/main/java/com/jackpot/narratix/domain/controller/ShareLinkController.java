@@ -2,6 +2,8 @@ package com.jackpot.narratix.domain.controller;
 
 import com.jackpot.narratix.domain.controller.api.ShareLinkApi;
 import com.jackpot.narratix.domain.controller.request.ShareLinkActiveRequest;
+import com.jackpot.narratix.domain.controller.response.CoverLetterAndQnAIdsResponse;
+import com.jackpot.narratix.domain.controller.response.QnAVersionResponse;
 import com.jackpot.narratix.domain.controller.response.ShareLinkActiveResponse;
 import com.jackpot.narratix.domain.service.ShareLinkService;
 import com.jackpot.narratix.global.auth.UserId;
@@ -34,5 +36,15 @@ public class ShareLinkController implements ShareLinkApi {
             @PathVariable Long coverLetterId
     ) {
         return ResponseEntity.ok(shareLinkService.getShareLinkStatus(userId, coverLetterId));
+    }
+
+    @Override
+    @GetMapping("/share/{shareId}/qna/{qnAId}")
+    public ResponseEntity<QnAVersionResponse> getQnAWithVersion(
+            @UserId String userId,
+            @PathVariable String shareId,
+            @PathVariable Long qnAId
+    ) {
+        return ResponseEntity.ok(shareLinkService.getQnAWithVersion(userId, shareId, qnAId));
     }
 }
