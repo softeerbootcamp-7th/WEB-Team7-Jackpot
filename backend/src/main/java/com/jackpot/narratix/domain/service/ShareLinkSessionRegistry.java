@@ -1,8 +1,12 @@
 package com.jackpot.narratix.domain.service;
 
+import com.jackpot.narratix.domain.entity.ShareLink;
 import com.jackpot.narratix.domain.entity.enums.ReviewRoleType;
+import com.jackpot.narratix.domain.repository.ShareLinkRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -18,7 +22,10 @@ import static com.jackpot.narratix.domain.service.ShareLinkLockManager.getLockKe
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class ShareLinkSessionRegistry {
+
+    private final ShareLinkRepository shareLinkRepository;
 
     // key: sessionId, value: SessionEntry(lockKey, userId)
     private final Map<String, SessionEntry> sessionEntries = new ConcurrentHashMap<>();
@@ -41,14 +48,25 @@ public class ShareLinkSessionRegistry {
         return entry;
     }
 
-    /**
-     * 특정 ShareId와 역할로 현재 연결된 유저 ID를 반환한다.
-     */
-    public Optional<String> getConnectedUserId(String shareId, ReviewRoleType role) {
+    private Optional<String> findConnectedUserId(String shareId, ReviewRoleType role) {
         String lockKey = getLockKey(shareId, role);
         String ownerSessionId = lockOwners.get(lockKey);
         if (ownerSessionId == null) return Optional.empty();
         return Optional.ofNullable(sessionEntries.get(ownerSessionId)).map(SessionEntry::userId);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isConnectedUserInCoverLetter(String userId, Long coverLetterId, ReviewRoleType role) {
+        return findShareId(coverLetterId)
+                .flatMap(shareId -> findConnectedUserId(shareId, role))
+                .map(userId::equals)
+                .orElse(false);
+    }
+
+    private Optional<String> findShareId(Long coverLetterId) {
+        return shareLinkRepository.findByCoverLetterId(coverLetterId)
+                .filter(ShareLink::isValid)
+                .map(ShareLink::getShareId);
     }
 
     public List<Map.Entry<String, SessionEntry>> getAllEntries() {
