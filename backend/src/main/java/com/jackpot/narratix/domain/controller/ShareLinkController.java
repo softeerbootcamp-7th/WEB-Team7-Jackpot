@@ -47,4 +47,13 @@ public class ShareLinkController implements ShareLinkApi {
     ) {
         return ResponseEntity.ok(shareLinkService.getQnAWithVersion(userId, shareId, qnAId));
     }
+
+    @Override
+    @GetMapping("/share/{shareId}/qna/id/all")
+    public ResponseEntity<CoverLetterAndQnAIdsResponse> getCoverLetterAndQnAIds(
+            @UserId String userId,
+            @PathVariable String shareId
+    ) {
+        return ResponseEntity.ok(shareLinkService.getCoverLetterAndQnAIds(userId, shareId));
+    }
 }
