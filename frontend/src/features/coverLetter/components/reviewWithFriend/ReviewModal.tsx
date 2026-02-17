@@ -1,3 +1,4 @@
+import Avatar from '@/features/coverLetter/components/reviewWithFriend/Avatar';
 import InvalidReviewBanner from '@/shared/components/InvalidReviewBanner';
 import PaperChipIcon from '@/shared/icons/PaperChipIcon';
 import PenToolIcon from '@/shared/icons/PenToolIcon';
@@ -7,15 +8,21 @@ interface ReviewModalProps {
   review: Review | null;
   initialRevision?: string;
   initialComment?: string;
+  onDelete?: (reviewId: number) => void;
+  onApprove?: (reviewId: number) => void;
 }
 
-// TODO: 적용하기, 삭제하기 기능 추가
 const ReviewModal = ({
   review,
   initialRevision,
   initialComment,
+  onDelete,
+  onApprove,
 }: ReviewModalProps) => {
-  const isInvalid = review?.isValid === false;
+  const viewStatus = review?.viewStatus ?? 'PENDING';
+  const showBanner = viewStatus !== 'PENDING';
+  const canApprove = !!review?.suggest && !!onApprove;
+  const isAccepted = viewStatus === 'ACCEPTED';
 
   return (
     <div className='flex w-96 flex-col items-end gap-4 rounded-[32px] bg-white p-5 shadow-[0px_0px_30px_0px_rgba(41,41,41,0.06)]'>
@@ -23,18 +30,16 @@ const ReviewModal = ({
         <div className='inline-flex items-center justify-start gap-3 self-stretch'>
           <div className='flex flex-1 items-center justify-start gap-2'>
             <div className='flex flex-1 items-center justify-start gap-2'>
-              <div className='relative h-9 w-9 overflow-hidden rounded-[69.23px] bg-purple-50'>
-                <div className='absolute top-[22.85px] left-[2.08px] h-8 w-8 rounded-full bg-purple-200' />
-                <div className='absolute top-[8.31px] left-[11.77px] h-3 w-3 rounded-full bg-purple-200' />
-              </div>
+              <Avatar size='sm' />
               <div className='text-Semantic-text-headline line-clamp-1 justify-start text-base leading-6 font-bold'>
-                귀여운 캥거루
+                {review?.sender?.nickname}
               </div>
             </div>
           </div>
         </div>
-        {isInvalid && review && (
+        {showBanner && review && (
           <InvalidReviewBanner
+            viewStatus={viewStatus}
             isExpanded={true}
             originText={review.selectedText}
           />
@@ -81,19 +86,27 @@ const ReviewModal = ({
           <button
             type='button'
             className='flex cursor-pointer items-center justify-start gap-1 rounded-xl px-3 py-1.5'
+            onClick={() => review && onDelete?.(review.id)}
           >
             <span className='text-center text-sm leading-5 font-medium text-red-600'>
               삭제하기
             </span>
           </button>
-          <button
-            type='button'
-            className='flex cursor-pointer items-center justify-start gap-1 rounded-xl bg-gray-900 px-3 py-1.5'
-          >
-            <span className='text-center text-sm leading-5 font-bold text-white'>
-              적용하기
-            </span>
-          </button>
+          {canApprove && (
+            <button
+              type='button'
+              className={`flex cursor-pointer items-center justify-start gap-1 rounded-xl px-3 py-1.5 ${
+                isAccepted
+                  ? 'bg-yellow-500 text-white'
+                  : 'bg-gray-900 text-white'
+              }`}
+              onClick={() => review && onApprove(review.id)}
+            >
+              <span className='text-center text-sm leading-5 font-bold'>
+                {isAccepted ? '되돌리기' : '적용하기'}
+              </span>
+            </button>
+          )}
         </div>
       </div>
     </div>
