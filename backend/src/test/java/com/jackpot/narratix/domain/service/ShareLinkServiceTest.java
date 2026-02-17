@@ -360,19 +360,15 @@ class ShareLinkServiceTest {
 
         ShareLink mockShareLink = mock(ShareLink.class);
         CoverLetter mockCoverLetter = mock(CoverLetter.class);
-        QnA mockQnA1 = mock(QnA.class);
-        QnA mockQnA2 = mock(QnA.class);
 
         given(shareLinkRepository.findByShareId(shareId)).willReturn(Optional.of(mockShareLink));
         given(mockShareLink.isValid()).willReturn(true);
         given(mockShareLink.getCoverLetterId()).willReturn(coverLetterId);
         given(coverLetterRepository.findByIdOrElseThrow(coverLetterId)).willReturn(mockCoverLetter);
         given(mockCoverLetter.getId()).willReturn(coverLetterId);
+        given(qnARepository.findIdsByCoverLetterId(coverLetterId)).willReturn(List.of(1L, 2L));
         given(mockCoverLetter.getCompanyName()).willReturn("테스트 기업");
         given(mockCoverLetter.getJobPosition()).willReturn("백엔드 개발자");
-        given(mockCoverLetter.getQnAs()).willReturn(List.of(mockQnA1, mockQnA2));
-        given(mockQnA1.getId()).willReturn(1L);
-        given(mockQnA2.getId()).willReturn(2L);
 
         // when
         CoverLetterAndQnAIdsResponse response = shareLinkService.getCoverLetterAndQnAIds(userId, shareId);
