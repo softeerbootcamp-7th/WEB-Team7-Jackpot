@@ -35,15 +35,21 @@ export const useLogin = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (userData: LoginRequest) =>
-      apiClient.post({
+    mutationFn: async (userData: LoginRequest) => {
+      const data: AuthResponse = await apiClient.post({
         endpoint: '/auth/login',
         body: userData,
         options: {
           credentials: 'include',
         },
         skipAuth: true,
-      }),
+      });
+
+      if (data.accessToken) {
+        setAccessToken(data.accessToken);
+      }
+      return data;
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['userInfo'] }),
   });
 };
