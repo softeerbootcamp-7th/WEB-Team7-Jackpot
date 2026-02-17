@@ -156,7 +156,7 @@ public class CoverLetterService {
 
         if (!coverLetter.isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
 
-        return coverLetter.getQnAs().stream().map(QnA::getId).toList();
+        return qnARepository.findIdsByCoverLetterId(coverLetterId);
     }
 
     @Transactional(readOnly = true)

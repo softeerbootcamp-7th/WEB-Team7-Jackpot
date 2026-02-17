@@ -81,4 +81,7 @@ public interface QnAJpaRepository extends JpaRepository<QnA, Long> {
 
     @Query("SELECT qna.coverLetter.id FROM QnA qna WHERE qna.id = :qnAId")
     Optional<Long> getCoverLetterIdByQnAId(@Param("qnAId") Long qnAId);
+
+    @Query("SELECT q.id FROM QnA q WHERE q.coverLetter.id = :coverLetterId")
+    List<Long> findIdsByCoverLetterId(@Param("coverLetterId") Long coverLetterId);
 }

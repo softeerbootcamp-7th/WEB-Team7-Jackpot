@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -132,11 +133,9 @@ public class ShareLinkService {
 
         ShareLink shareLink = findValidShareLink(shareId);
         CoverLetter coverLetter = coverLetterRepository.findByIdOrElseThrow(shareLink.getCoverLetterId());
+        List<Long> qnAIds = qnARepository.findIdsByCoverLetterId(coverLetter.getId());
 
-        return CoverLetterAndQnAIdsResponse.of(
-                coverLetter,
-                coverLetter.getQnAs().stream().map(QnA::getId).toList()
-        );
+        return CoverLetterAndQnAIdsResponse.of(coverLetter, qnAIds);
     }
 
     private ShareLink findValidShareLink(String shareId) {
