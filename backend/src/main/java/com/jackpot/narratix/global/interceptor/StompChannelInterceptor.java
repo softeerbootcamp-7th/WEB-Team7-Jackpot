@@ -82,7 +82,8 @@ public class StompChannelInterceptor implements ChannelInterceptor {
         String shareId = getShareId(accessor);
         ReviewRoleType role = shareLinkService.validateShareLinkAndGetRole(userId, shareId);
 
-        if (!shareLinkService.accessShareLink(userId, role, shareId)) {
+        String sessionId = accessor.getSessionId();
+        if (!shareLinkService.accessShareLink(sessionId, userId, role, shareId)) {
             log.warn("Share link access denied: userId={}, shareId={}, role={}", userId, shareId, role);
             throw new BaseException(ShareLinkErrorCode.SHARE_LINK_ACCESS_LIMIT_EXCEEDED);
         }

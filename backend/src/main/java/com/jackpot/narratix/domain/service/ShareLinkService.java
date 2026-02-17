@@ -73,8 +73,8 @@ public class ShareLinkService {
                 .orElseGet(ShareLinkActiveResponse::deactivate);
     }
 
-    public boolean accessShareLink(String userId, ReviewRoleType role, String shareId) {
-        return shareLinkLockManager.tryLock(shareId, role, userId);
+    public boolean accessShareLink(String sessionId, String userId, ReviewRoleType role, String shareId) {
+        return shareLinkLockManager.tryLock(sessionId, shareId, role, userId);
     }
 
     @Transactional(readOnly = true)

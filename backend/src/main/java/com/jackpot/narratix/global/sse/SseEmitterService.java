@@ -3,7 +3,7 @@ package com.jackpot.narratix.global.sse;
 import com.jackpot.narratix.global.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.repository.query.Param;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -17,7 +17,8 @@ import java.util.UUID;
 public class SseEmitterService {
 
     private static final int MAX_CONNECTIONS_PER_USER = 5;
-    private static final Long DEFAULT_TIMEOUT = 60 * 60 * 1000L; // 1시간
+    private static final long DEFAULT_TIMEOUT = 60 * 60 * 1000L; // 1시간
+    private static final long SSE_HEART_BEAT_TIMEOUT = 25 * 1000L; // 25초
 
     private final SseEmitterRepository sseEmitterRepository;
 
@@ -88,5 +89,20 @@ public class SseEmitterService {
                 emitter.complete();
             }
         }
+    }
+
+    @Scheduled(fixedRate = SSE_HEART_BEAT_TIMEOUT)
+    private void schedulePing() {
+        Map<String, SseEmitter> emitters = sseEmitterRepository.getAllEmitters();
+
+        emitters.forEach((id, emitter) -> {
+            try {
+                emitter.send(SseEmitter.event().comment("ping"));
+            } catch (IOException e) {
+                log.warn("Failed to send ping: emitterId={}", id);
+                sseEmitterRepository.deleteByEmitterId(id);
+                emitter.complete();
+            }
+        });
     }
 }

@@ -27,6 +27,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -48,12 +49,15 @@ class StompChannelInterceptorTest {
     @Mock
     private MessageChannel messageChannel;
 
+    private static final String TEST_SESSION_ID = "test-session-id";
+
     private StompHeaderAccessor accessor;
     private Map<String, Object> sessionAttributes;
 
     @BeforeEach
     void setUp() {
         accessor = StompHeaderAccessor.create(StompCommand.CONNECT);
+        accessor.setSessionId(TEST_SESSION_ID);
         sessionAttributes = new HashMap<>();
         accessor.setSessionAttributes(sessionAttributes);
     }
@@ -123,7 +127,7 @@ class StompChannelInterceptorTest {
         given(jwtTokenParser.parseBearerToken(bearerToken)).willReturn(mockToken);
         given(mockToken.getSubject()).willReturn(userId);
         given(shareLinkService.validateShareLinkAndGetRole(userId, shareId)).willReturn(role);
-        given(shareLinkService.accessShareLink(userId, role, shareId)).willReturn(true);
+        given(shareLinkService.accessShareLink(anyString(), eq(userId), eq(role), eq(shareId))).willReturn(true);
 
         // when
         Message<?> result = stompChannelInterceptor.preSend(message, messageChannel);
@@ -152,7 +156,7 @@ class StompChannelInterceptorTest {
         given(jwtTokenParser.parseBearerToken(bearerToken)).willReturn(mockToken);
         given(mockToken.getSubject()).willReturn(userId);
         given(shareLinkService.validateShareLinkAndGetRole(userId, shareId)).willReturn(role);
-        given(shareLinkService.accessShareLink(userId, role, shareId)).willReturn(true);
+        given(shareLinkService.accessShareLink(anyString(), eq(userId), eq(role), eq(shareId))).willReturn(true);
 
         // when
         stompChannelInterceptor.preSend(message, messageChannel);
@@ -178,7 +182,7 @@ class StompChannelInterceptorTest {
         given(jwtTokenParser.parseBearerToken(bearerToken)).willReturn(mockToken);
         given(mockToken.getSubject()).willReturn(userId);
         given(shareLinkService.validateShareLinkAndGetRole(userId, shareId)).willReturn(role);
-        given(shareLinkService.accessShareLink(userId, role, shareId)).willReturn(true);
+        given(shareLinkService.accessShareLink(anyString(), eq(userId), eq(role), eq(shareId))).willReturn(true);
 
         // when
         stompChannelInterceptor.preSend(message, messageChannel);
@@ -204,7 +208,7 @@ class StompChannelInterceptorTest {
         given(jwtTokenParser.parseBearerToken(bearerToken)).willReturn(mockToken);
         given(mockToken.getSubject()).willReturn(userId);
         given(shareLinkService.validateShareLinkAndGetRole(userId, shareId)).willReturn(role);
-        given(shareLinkService.accessShareLink(userId, role, shareId)).willReturn(false);
+        given(shareLinkService.accessShareLink(anyString(), eq(userId), eq(role), eq(shareId))).willReturn(false);
 
         // when & then
         assertThatThrownBy(() -> stompChannelInterceptor.preSend(message, messageChannel))
@@ -213,7 +217,7 @@ class StompChannelInterceptorTest {
     }
 
     @Test
-    @DisplayName("ShareLinkService.accessShareLink를 userId, role, shareId와 함께 호출한다")
+    @DisplayName("ShareLinkService.accessShareLink를 sessionId, userId, role, shareId와 함께 호출한다")
     void preSend_CallsAccessShareLinkWithCorrectParameters() {
         // given
         String shareId = "test-share-id-123";
@@ -229,12 +233,12 @@ class StompChannelInterceptorTest {
         given(jwtTokenParser.parseBearerToken(bearerToken)).willReturn(mockToken);
         given(mockToken.getSubject()).willReturn(userId);
         given(shareLinkService.validateShareLinkAndGetRole(userId, shareId)).willReturn(role);
-        given(shareLinkService.accessShareLink(userId, role, shareId)).willReturn(true);
+        given(shareLinkService.accessShareLink(anyString(), eq(userId), eq(role), eq(shareId))).willReturn(true);
 
         // when
         stompChannelInterceptor.preSend(message, messageChannel);
 
         // then
-        verify(shareLinkService).accessShareLink(userId, role, shareId);
+        verify(shareLinkService).accessShareLink(TEST_SESSION_ID, userId, role, shareId);
     }
 }

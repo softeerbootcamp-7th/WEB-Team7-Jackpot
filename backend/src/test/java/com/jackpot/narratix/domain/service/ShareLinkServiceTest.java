@@ -35,6 +35,9 @@ class ShareLinkServiceTest {
     @Mock
     private ShareLinkRepository shareLinkRepository;
 
+    @Mock
+    private ShareLinkLockManager shareLinkLockManager;
+
     @Test
     @DisplayName("첨삭 링크 활성화 시 첨삭 링크가 없다면 새로운 링크 생성")
     void updateShareLinkStatus_WhenActivatingNewLink_ShouldCreateNewShareLink() {

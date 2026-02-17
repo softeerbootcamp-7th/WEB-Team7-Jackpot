@@ -3,6 +3,7 @@ package com.jackpot.narratix.global.sse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,21 +18,33 @@ public class SseEmitterRepository {
     private final Map<String, Set<String>> userEmitterIds = new ConcurrentHashMap<>();
 
     public void save(String userId, String emitterId, SseEmitter emitter) {
-        userEmitterIds.computeIfAbsent(userId, key -> ConcurrentHashMap.newKeySet())
-                .add(emitterId);
         emitters.put(emitterId, emitter);
+        userEmitterIds.computeIfAbsent(userId, key -> ConcurrentHashMap.newKeySet()).add(emitterId);
     }
 
     public void deleteByEmitterId(String userId, String emitterId) {
         emitters.remove(emitterId);
 
         userEmitterIds.compute(userId, (key, emitterIds) -> {
-            if(emitterIds == null){
+            if (emitterIds == null) {
                 return null;
             }
             emitterIds.remove(emitterId);
             return emitterIds.isEmpty() ? null : emitterIds;
         });
+    }
+
+    public void deleteByEmitterId(String emitterId) {
+        emitters.remove(emitterId);
+
+        userEmitterIds.forEach((userId, emitterIds) ->
+                userEmitterIds.compute(userId, (key, ids) -> {
+                    if (ids == null) {
+                        return null;
+                    }
+                    ids.remove(emitterId);
+                    return ids.isEmpty() ? null : ids;
+                }));
     }
 
     public int countByUserId(String userId) {
@@ -45,7 +58,7 @@ public class SseEmitterRepository {
             return Map.of();
         }
 
-        Map<String, SseEmitter> result = new ConcurrentHashMap<>();
+        Map<String, SseEmitter> result = new HashMap<>();
         for (String emitterId : emitterIds) {
             SseEmitter emitter = emitters.get(emitterId);
             if (emitter != null) {
@@ -53,5 +66,9 @@ public class SseEmitterRepository {
             }
         }
         return result;
+    }
+
+    public Map<String, SseEmitter> getAllEmitters() {
+        return Map.copyOf(emitters);
     }
 }
