@@ -3,6 +3,7 @@ package com.jackpot.narratix.global.sse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,9 +18,8 @@ public class SseEmitterRepository {
     private final Map<String, Set<String>> userEmitterIds = new ConcurrentHashMap<>();
 
     public void save(String userId, String emitterId, SseEmitter emitter) {
-        userEmitterIds.computeIfAbsent(userId, key -> ConcurrentHashMap.newKeySet())
-                .add(emitterId);
         emitters.put(emitterId, emitter);
+        userEmitterIds.computeIfAbsent(userId, key -> ConcurrentHashMap.newKeySet()).add(emitterId);
     }
 
     public void deleteByEmitterId(String userId, String emitterId) {
@@ -34,6 +34,15 @@ public class SseEmitterRepository {
         });
     }
 
+    public void deleteByEmitterId(String emitterId) {
+        emitters.remove(emitterId);
+
+        userEmitterIds.entrySet().removeIf(entry -> {
+            entry.getValue().remove(emitterId);
+            return entry.getValue().isEmpty();
+        });
+    }
+
     public int countByUserId(String userId) {
         Set<String> emitterIds = userEmitterIds.get(userId);
         return emitterIds != null ? emitterIds.size() : 0;
@@ -45,7 +54,7 @@ public class SseEmitterRepository {
             return Map.of();
         }
 
-        Map<String, SseEmitter> result = new ConcurrentHashMap<>();
+        Map<String, SseEmitter> result = new HashMap<>();
         for (String emitterId : emitterIds) {
             SseEmitter emitter = emitters.get(emitterId);
             if (emitter != null) {
@@ -56,6 +65,6 @@ public class SseEmitterRepository {
     }
 
     public Map<String, SseEmitter> getAllEmitters(){
-        return emitters;
+        return Map.copyOf(emitters);
     }
 }

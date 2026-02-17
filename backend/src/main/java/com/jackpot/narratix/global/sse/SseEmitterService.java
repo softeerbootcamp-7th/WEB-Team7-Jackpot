@@ -100,7 +100,7 @@ public class SseEmitterService {
                 emitter.send(SseEmitter.event().comment("ping"));
             } catch (IOException e) {
                 log.warn("Failed to send ping: emitterId={}", id);
-                emitters.remove(id);
+                sseEmitterRepository.deleteByEmitterId(id);
             }
         });
     }
