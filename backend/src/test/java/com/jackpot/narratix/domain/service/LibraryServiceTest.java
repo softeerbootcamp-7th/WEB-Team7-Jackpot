@@ -341,7 +341,7 @@ class LibraryServiceTest {
     }
 
     private CoverLetter createMockCoverLetter(Long id, String userId, String companyName, LocalDate deadline) {
-        CoverLetter coverLetter = CoverLetter.from(
+        CoverLetter coverLetter = CoverLetter.createNewCoverLetter(
                 userId,
                 new CreateCoverLetterRequest(
                         companyName,

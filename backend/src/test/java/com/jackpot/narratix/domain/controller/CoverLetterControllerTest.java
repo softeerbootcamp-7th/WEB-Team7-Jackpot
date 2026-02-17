@@ -317,12 +317,10 @@ class CoverLetterControllerTest {
     void editCoverLetter_WithDeadline_Success() throws Exception {
         // given
         CoverLetterAndQnAEditRequest request = new CoverLetterAndQnAEditRequest(
-                1L,
-                "현대자동차",
-                2024,
-                ApplyHalfType.FIRST_HALF,
-                "백엔드 개발자",
-                LocalDate.of(2024, 12, 31)
+                new CoverLetterAndQnAEditRequest.CoverLetterEditRequest(
+                        1L, "현대자동차", 2024, ApplyHalfType.FIRST_HALF, "백엔드 개발자", LocalDate.of(2024, 12, 31)
+                ),
+                List.of()
         );
 
         // when & then
@@ -338,12 +336,10 @@ class CoverLetterControllerTest {
     void editCoverLetter_WithoutDeadline_Success() throws Exception {
         // given
         CoverLetterAndQnAEditRequest request = new CoverLetterAndQnAEditRequest(
-                1L,
-                "현대자동차",
-                2024,
-                ApplyHalfType.SECOND_HALF,
-                "프론트엔드 개발자",
-                null
+                new CoverLetterAndQnAEditRequest.CoverLetterEditRequest(
+                        1L, "현대자동차", 2024, ApplyHalfType.SECOND_HALF, "프론트엔드 개발자", null
+                ),
+                List.of()
         );
 
         // when & then
@@ -369,11 +365,11 @@ class CoverLetterControllerTest {
     private static Stream<Arguments> provideInvalidEditCoverLetterRequests() {
         LocalDate validDate = LocalDate.of(2024, 12, 31);
         return Stream.of(
-                Arguments.of(new CoverLetterAndQnAEditRequest(null, "현대자동차", 2024, ApplyHalfType.FIRST_HALF, "백엔드 개발자", validDate)),
-                Arguments.of(new CoverLetterAndQnAEditRequest(1L, null, 2024, ApplyHalfType.FIRST_HALF, "백엔드 개발자", validDate)),
-                Arguments.of(new CoverLetterAndQnAEditRequest(1L, "현대자동차", null, ApplyHalfType.FIRST_HALF, "백엔드 개발자", validDate)),
-                Arguments.of(new CoverLetterAndQnAEditRequest(1L, "현대자동차", 2024, null, "백엔드 개발자", validDate)),
-                Arguments.of(new CoverLetterAndQnAEditRequest(1L, "현대자동차", 2024, ApplyHalfType.FIRST_HALF, null, validDate))
+                Arguments.of(new CoverLetterAndQnAEditRequest(new CoverLetterAndQnAEditRequest.CoverLetterEditRequest(null, "현대자동차", 2024, ApplyHalfType.FIRST_HALF, "백엔드 개발자", validDate), List.of())),
+                Arguments.of(new CoverLetterAndQnAEditRequest(new CoverLetterAndQnAEditRequest.CoverLetterEditRequest(1L, null, 2024, ApplyHalfType.FIRST_HALF, "백엔드 개발자", validDate), List.of())),
+                Arguments.of(new CoverLetterAndQnAEditRequest(new CoverLetterAndQnAEditRequest.CoverLetterEditRequest(1L, "현대자동차", null, ApplyHalfType.FIRST_HALF, "백엔드 개발자", validDate), List.of())),
+                Arguments.of(new CoverLetterAndQnAEditRequest(new CoverLetterAndQnAEditRequest.CoverLetterEditRequest(1L, "현대자동차", 2024, null, "백엔드 개발자", validDate), List.of())),
+                Arguments.of(new CoverLetterAndQnAEditRequest(new CoverLetterAndQnAEditRequest.CoverLetterEditRequest(1L, "현대자동차", 2024, ApplyHalfType.FIRST_HALF, null, validDate), List.of()))
         );
     }
 

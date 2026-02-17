@@ -137,7 +137,7 @@ class CoverLetterServiceTest {
         String userId = "testUser123";
         Long coverLetterId = 1L;
 
-        CoverLetter coverLetter = CoverLetter.from(
+        CoverLetter coverLetter = CoverLetter.createNewCoverLetter(
                 userId,
                 new CreateCoverLetterRequest(
                         "테스트기업",
@@ -308,15 +308,13 @@ class CoverLetterServiceTest {
         Long coverLetterId = 1L;
 
         CoverLetterAndQnAEditRequest editRequest = new CoverLetterAndQnAEditRequest(
-                coverLetterId,
-                "수정된 기업명",
-                2025,
-                ApplyHalfType.SECOND_HALF,
-                "프론트엔드 개발자",
-                LocalDate.of(2025, 6, 30)
+                new CoverLetterAndQnAEditRequest.CoverLetterEditRequest(
+                        coverLetterId, "수정된 기업명", 2025, ApplyHalfType.SECOND_HALF, "프론트엔드 개발자", LocalDate.of(2025, 6, 30)
+                ),
+                List.of()
         );
 
-        CoverLetter coverLetter = CoverLetter.from(
+        CoverLetter coverLetter = CoverLetter.createNewCoverLetter(
                 userId,
                 new CreateCoverLetterRequest(
                         "원래 기업명",
@@ -352,15 +350,13 @@ class CoverLetterServiceTest {
         Long coverLetterId = 1L;
 
         CoverLetterAndQnAEditRequest editRequest = new CoverLetterAndQnAEditRequest(
-                coverLetterId,
-                "수정된 기업명",
-                2025,
-                ApplyHalfType.SECOND_HALF,
-                "프론트엔드 개발자",
-                null  // 마감일을 null로 변경
+                new CoverLetterAndQnAEditRequest.CoverLetterEditRequest(
+                        coverLetterId, "수정된 기업명", 2025, ApplyHalfType.SECOND_HALF, "프론트엔드 개발자", null
+                ),
+                List.of()
         );
 
-        CoverLetter coverLetter = CoverLetter.from(
+        CoverLetter coverLetter = CoverLetter.createNewCoverLetter(
                 userId,
                 new CreateCoverLetterRequest(
                         "원래 기업명",
@@ -391,12 +387,10 @@ class CoverLetterServiceTest {
         Long coverLetterId = 999L;
 
         CoverLetterAndQnAEditRequest editRequest = new CoverLetterAndQnAEditRequest(
-                coverLetterId,
-                "수정된 기업명",
-                2025,
-                ApplyHalfType.SECOND_HALF,
-                "프론트엔드 개발자",
-                LocalDate.of(2025, 6, 30)
+                new CoverLetterAndQnAEditRequest.CoverLetterEditRequest(
+                        coverLetterId, "수정된 기업명", 2025, ApplyHalfType.SECOND_HALF, "프론트엔드 개발자", LocalDate.of(2025, 6, 30)
+                ),
+                List.of()
         );
 
         given(coverLetterRepository.findByIdOrElseThrow(coverLetterId))
@@ -419,15 +413,13 @@ class CoverLetterServiceTest {
         Long coverLetterId = 1L;
 
         CoverLetterAndQnAEditRequest editRequest = new CoverLetterAndQnAEditRequest(
-                coverLetterId,
-                "수정된 기업명",
-                2025,
-                ApplyHalfType.SECOND_HALF,
-                "프론트엔드 개발자",
-                LocalDate.of(2025, 6, 30)
+                new CoverLetterAndQnAEditRequest.CoverLetterEditRequest(
+                        coverLetterId, "수정된 기업명", 2025, ApplyHalfType.SECOND_HALF, "프론트엔드 개발자", LocalDate.of(2025, 6, 30)
+                ),
+                List.of()
         );
 
-        CoverLetter coverLetter = CoverLetter.from(
+        CoverLetter coverLetter = CoverLetter.createNewCoverLetter(
                 userId,
                 new CreateCoverLetterRequest(
                         "원래 기업명",
@@ -609,7 +601,7 @@ class CoverLetterServiceTest {
     }
 
     private CoverLetter createMockCoverLetter(Long id, String userId, String companyName, LocalDate deadline) {
-        CoverLetter coverLetter = CoverLetter.from(
+        CoverLetter coverLetter = CoverLetter.createNewCoverLetter(
                 userId,
                 new CreateCoverLetterRequest(
                         companyName,

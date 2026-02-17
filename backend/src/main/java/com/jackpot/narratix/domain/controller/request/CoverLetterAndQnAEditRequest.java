@@ -2,14 +2,15 @@ package com.jackpot.narratix.domain.controller.request;
 
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import jakarta.annotation.Nullable;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
 import java.util.List;
 
 public record CoverLetterAndQnAEditRequest(
-        CoverLetterEditRequest coverLetter,
-        List<QnAEditRequest> questions
+        @Valid CoverLetterEditRequest coverLetter,
+        @Valid List<QnAEditRequest> questions
 ) {
 
     public record CoverLetterEditRequest(
