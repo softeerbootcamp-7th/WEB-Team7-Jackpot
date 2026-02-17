@@ -47,7 +47,6 @@ const LoginForm = () => {
       });
 
       showToast('로그인 되었습니다.', true);
-      navigate('/home');
     } catch (error) {
       console.error('Login Failed:', error);
       if (error instanceof Error) {

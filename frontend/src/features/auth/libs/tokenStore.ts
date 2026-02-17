@@ -6,8 +6,6 @@ export const setAccessToken = (token: string) => {
   ACCESS_TOKEN = token;
 };
 
-export const isAuthenticated = () => !!ACCESS_TOKEN;
-
 export const removeAccessToken = () => {
   ACCESS_TOKEN = '';
 };
