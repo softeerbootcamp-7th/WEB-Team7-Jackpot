@@ -72,6 +72,7 @@ public class QnA extends BaseTimeEntity {
     public void editQuestion(String question, QuestionCategoryType category) {
         this.question = question;
         this.questionCategory = category;
+        updateModifiedAt(LocalDateTime.now());
     }
 
     public ReviewRoleType determineReviewRole(String userId) {
