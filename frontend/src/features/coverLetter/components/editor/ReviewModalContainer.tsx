@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 import ReviewModal from '@/features/coverLetter/components/reviewWithFriend/ReviewModal';
 import useOutsideClick from '@/shared/hooks/useOutsideClick';
@@ -24,6 +24,59 @@ const ReviewModalContainer = ({
 }: ReviewModalContainerProps) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    if (!selection) return;
+
+    const modal = modalRef.current;
+    if (!modal) return;
+
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+
+    const getFocusable = () =>
+      modal.querySelectorAll<HTMLElement>(
+        'button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])',
+      );
+
+    const focusable = getFocusable();
+    focusable[0]?.focus();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onDismiss();
+        return;
+      }
+
+      if (e.key !== 'Tab') return;
+
+      const focusableEls = getFocusable();
+      const first = focusableEls[0];
+      const last = focusableEls[focusableEls.length - 1];
+
+      if (!first || !last) return;
+
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    modal.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      modal.removeEventListener('keydown', handleKeyDown);
+
+      previouslyFocused?.focus();
+    };
+  }, [selection, onDismiss]);
+
   useOutsideClick(modalRef, onDismiss, !!selection);
 
   if (!selection) return null;
@@ -37,9 +90,6 @@ const ReviewModalContainer = ({
       style={{
         top: selection.modalTop + SPACER_HEIGHT,
         left: selection.modalLeft,
-      }}
-      onMouseDown={(e) => {
-        e.stopPropagation();
       }}
     >
       <ReviewModal

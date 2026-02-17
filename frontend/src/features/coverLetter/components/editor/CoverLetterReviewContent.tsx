@@ -4,13 +4,9 @@ import { useOutletContext, useParams } from 'react-router';
 
 import CoverLetterSection from '@/features/coverLetter/components/editor/CoverLetterSection';
 import { useSharedLink } from '@/features/coverLetter/hooks/useCoverLetterQueries';
+import type { OutletContext } from '@/features/coverLetter/types/outletContext';
 import ErrorBoundary from '@/shared/components/ErrorBoundary';
 import SectionError from '@/shared/components/SectionError';
-
-type OutletContext = {
-  isReviewActive: boolean;
-  setIsReviewActive: (v: boolean) => void;
-};
 
 const CoverLetterReviewContent = () => {
   const { isReviewActive, setIsReviewActive } =

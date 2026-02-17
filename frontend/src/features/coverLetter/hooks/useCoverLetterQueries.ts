@@ -86,9 +86,17 @@ export const useSharedLinkToggle = () => {
       queryClient.invalidateQueries({
         queryKey: ['coverletter', 'sharedLink', { coverLetterId }],
       });
+
       if (active) {
-        queryClient.invalidateQueries({ queryKey: ['reviews'] });
+        queryClient.invalidateQueries({
+          queryKey: ['reviews', { coverLetterId }],
+        });
+      } else {
+        queryClient.removeQueries({
+          queryKey: ['reviews', { coverLetterId }],
+        });
       }
+
       toast?.showToast('첨삭 링크 상태가 변경되었습니다.', true);
     },
     onError: (error: unknown) => {

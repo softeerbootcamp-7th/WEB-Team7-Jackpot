@@ -2,8 +2,8 @@ import { useEffect, useRef } from 'react';
 
 import type { RefObject } from 'react';
 
-const useOutsideClick = (
-  ref: RefObject<HTMLElement | null>,
+const useOutsideClick = <T extends HTMLElement>(
+  ref: RefObject<T | null>,
   onOutsideClick: () => void,
   enabled: boolean = true,
 ) => {
@@ -15,17 +15,24 @@ const useOutsideClick = (
 
   useEffect(() => {
     if (!enabled) return;
+    if (typeof document === 'undefined') return;
 
-    const handleMouseDown = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        savedHandler.current();
-      }
+    const handlePointerDown = (event: PointerEvent) => {
+      const el = ref.current;
+      if (!el) return;
+
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+
+      if (el.contains(target)) return;
+
+      savedHandler.current();
     };
 
-    document.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('pointerdown', handlePointerDown, true);
 
     return () => {
-      document.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('pointerdown', handlePointerDown, true);
     };
   }, [ref, enabled]);
 };

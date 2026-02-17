@@ -18,8 +18,12 @@ export const useShareCoverLetter = (shareId: string) => {
 export const useShareQnA = (shareId: string, qnAId: number | undefined) => {
   return useQuery({
     queryKey: ['share', shareId, 'qna', qnAId],
-    queryFn: () => getShareQnA(shareId, qnAId!),
-    enabled: qnAId !== undefined,
-    // staleTime → 항상 최신 데이터 요청
+    queryFn: () => {
+      if (qnAId == null) {
+        throw new Error('qnAId is required');
+      }
+      return getShareQnA(shareId, qnAId);
+    },
+    enabled: qnAId != null,
   });
 };

@@ -12,8 +12,11 @@ import {
 
 export const useReviewsByQnaId = (qnaId: number | undefined) => {
   return useQuery({
-    queryKey: ['reviews', { qnaId }],
-    queryFn: () => getReviewsByQnaId(qnaId!),
+    queryKey: ['reviews', qnaId],
+    queryFn: () => {
+      if (qnaId == null) throw new Error('qnaId is required');
+      return getReviewsByQnaId(qnaId);
+    },
     enabled: qnaId != null,
     staleTime: 5 * 60 * 1000,
   });
@@ -24,11 +27,17 @@ export const useDeleteReview = (qnaId: number | undefined) => {
 
   return useMutation({
     mutationFn: (reviewId: number) => {
-      if (qnaId == null) return Promise.reject(new Error('qnaId is required'));
+      if (qnaId == null) {
+        return Promise.reject(new Error('qnaId is required'));
+      }
       return deleteReview(qnaId, reviewId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['reviews', { qnaId }] });
+      if (qnaId == null) return;
+
+      queryClient.invalidateQueries({
+        queryKey: ['reviews', qnaId],
+      });
     },
   });
 };
@@ -38,12 +47,17 @@ export const useCreateReview = (qnaId: number | undefined) => {
 
   return useMutation({
     mutationFn: (body: CreateReviewRequest) => {
-      if (qnaId === undefined)
+      if (qnaId == null) {
         return Promise.reject(new Error('qnaId is required'));
+      }
       return createReview(qnaId, body);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['reviews', { qnaId }] });
+      if (qnaId == null) return;
+
+      queryClient.invalidateQueries({
+        queryKey: ['reviews', qnaId],
+      });
     },
   });
 };
@@ -59,12 +73,17 @@ export const useUpdateReview = (qnaId: number | undefined) => {
       reviewId: number;
       body: UpdateReviewRequest;
     }) => {
-      if (qnaId === undefined)
+      if (qnaId == null) {
         return Promise.reject(new Error('qnaId is required'));
-      return updateReview(qnaId!, reviewId, body);
+      }
+      return updateReview(qnaId, reviewId, body);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['reviews', { qnaId }] });
+      if (qnaId == null) return;
+
+      queryClient.invalidateQueries({
+        queryKey: ['reviews', qnaId],
+      });
     },
   });
 };
@@ -74,13 +93,17 @@ export const useApproveReview = (qnaId: number | undefined) => {
 
   return useMutation({
     mutationFn: (reviewId: number) => {
-      if (qnaId === undefined) {
-        return Promise.reject(new Error('qnaId is not available'));
+      if (qnaId == null) {
+        return Promise.reject(new Error('qnaId is required'));
       }
       return approveReview(qnaId, reviewId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['reviews', { qnaId }] });
+      if (qnaId == null) return;
+
+      queryClient.invalidateQueries({
+        queryKey: ['reviews', qnaId],
+      });
     },
   });
 };

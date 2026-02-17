@@ -145,9 +145,6 @@ const CoverLetterSection = ({
             top: selection.modalTop + SPACER_HEIGHT,
             left: selection.modalLeft,
           }}
-          onMouseDown={(e) => {
-            e.stopPropagation();
-          }}
         >
           <ReviewModal
             selectedText={selection.selectedText}

@@ -3,15 +3,14 @@ import { useEffect, useState } from 'react';
 import { Outlet, useOutletContext } from 'react-router';
 
 import WriteSidebar from '@/features/coverLetter/components/sidebar/WriteSidebar';
+import type { OutletContext } from '@/features/coverLetter/types/outletContext';
 
 const WriteSidebarLayout = () => {
   const [currentSidebarTab, setCurrentSidebarTab] = useState<
     'scrap' | 'library'
   >('scrap');
-  const { isReviewActive, setIsReviewActive } = useOutletContext<{
-    isReviewActive: boolean;
-    setIsReviewActive: (v: boolean) => void;
-  }>();
+  const { isReviewActive, setIsReviewActive } =
+    useOutletContext<OutletContext>();
 
   useEffect(() => {
     return () => setIsReviewActive(false);
