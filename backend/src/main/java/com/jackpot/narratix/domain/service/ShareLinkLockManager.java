@@ -48,15 +48,16 @@ public class ShareLinkLockManager {
             end
             """.getBytes(StandardCharsets.UTF_8);
 
-    private static final byte[] LOCK_TIMEOUT_BYTES =
-            String.valueOf(LOCK_TIMEOUT).getBytes(StandardCharsets.UTF_8);
+    private static final byte[] LOCK_TIMEOUT_BYTES = String.valueOf(LOCK_TIMEOUT).getBytes(StandardCharsets.UTF_8);
 
     private static final int NUM_KEYS = 1;
 
-    // key: sessionId, value: lockKey
-    private final Map<String, String> sessionLocks = new ConcurrentHashMap<>();
+    private record LockEntry(String lockKey, String userId) {}
 
-    // key: lockKey, value: userId  (lockKey로 현재 웹소켓 연결 중인 유저를 조회하기 위함)
+    // key: sessionId, value: LockEntry(lockKey, userId)
+    private final Map<String, LockEntry> sessionLocks = new ConcurrentHashMap<>();
+
+    // key: lockKey, value: sessionId (소유권 검증용)
     private final Map<String, String> lockOwners = new ConcurrentHashMap<>();
 
     public boolean tryLock(String sessionId, String shareId, ReviewRoleType role, String userId) {
@@ -66,8 +67,8 @@ public class ShareLinkLockManager {
                 .setIfAbsent(lockKey, sessionId, Duration.ofSeconds(LOCK_TIMEOUT));
 
         if (Boolean.TRUE.equals(success)) {
-            sessionLocks.put(sessionId, lockKey);
-            lockOwners.put(lockKey, userId);
+            sessionLocks.put(sessionId, new LockEntry(lockKey, userId));
+            lockOwners.put(lockKey, sessionId);
             log.info("Lock acquired: sessionId={}, shareId={}, role={}, userId={}", sessionId, shareId, role, userId);
         }
 
@@ -79,19 +80,21 @@ public class ShareLinkLockManager {
      * 락 값이 sessionId이므로 GET 없이 Lua Script 단일 호출로 원자적 해제
      */
     public void unlock(String sessionId) {
-        String lockKey = sessionLocks.remove(sessionId);
-        if (lockKey == null) {
+        LockEntry entry = sessionLocks.remove(sessionId);
+        if (entry == null) {
             log.warn("No lock found for session: sessionId={}", sessionId);
             return;
         }
 
-        lockOwners.remove(lockKey);
-        redisTemplate.execute(UNLOCK_REDIS_SCRIPT, List.of(lockKey), sessionId);
-        log.info("Lock released: sessionId={}, lockKey={}", sessionId, lockKey);
+        lockOwners.remove(entry.lockKey(), sessionId);
+        redisTemplate.execute(UNLOCK_REDIS_SCRIPT, List.of(entry.lockKey()), sessionId);
+        log.info("Lock released: sessionId={}, lockKey={}", sessionId, entry.lockKey());
     }
 
     public Optional<String> getConnectedUserId(String shareId, ReviewRoleType role) {
-        return Optional.ofNullable(lockOwners.get(getLockKey(shareId, role)));
+        String ownerSessionId = lockOwners.get(getLockKey(shareId, role));
+        if (ownerSessionId == null) return Optional.empty();
+        return Optional.ofNullable(sessionLocks.get(ownerSessionId)).map(LockEntry::userId);
     }
 
     /**
@@ -102,14 +105,14 @@ public class ShareLinkLockManager {
         if (sessionLocks.isEmpty()) return;
 
         redisTemplate.executePipelined((RedisCallback<Object>) connection -> {
-            for (Map.Entry<String, String> entry : sessionLocks.entrySet()) {
+            for (Map.Entry<String, LockEntry> entry : sessionLocks.entrySet()) {
                 connection.scriptingCommands().eval(
                         RENEW_SCRIPT_BYTES,
                         ReturnType.INTEGER,
                         NUM_KEYS, // Lua EVAL 명령에서 KEYS 배열의 크기, numKeys 이후 인자 중 앞 numKeys 개는 KEYS, 나머지는 ARGV로 분류
-                        entry.getValue().getBytes(StandardCharsets.UTF_8), // KEYS[1] = lockKey
-                        entry.getKey().getBytes(StandardCharsets.UTF_8),   // ARGV[1] = sessionId
-                        LOCK_TIMEOUT_BYTES                                  // ARGV[2] = timeout
+                        entry.getValue().lockKey().getBytes(StandardCharsets.UTF_8), // KEYS[1] = lockKey
+                        entry.getKey().getBytes(StandardCharsets.UTF_8),              // ARGV[1] = sessionId
+                        LOCK_TIMEOUT_BYTES                                             // ARGV[2] = timeout
                 );
             }
             return null;
