@@ -13,6 +13,7 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -40,6 +41,9 @@ public class ShareLinkLockManager {
     // key: sessionId, value: lockKey
     private final Map<String, String> sessionLocks = new ConcurrentHashMap<>();
 
+    // key: lockKey, value: userId  (lockKey로 현재 웹소켓 연결 중인 유저를 조회하기 위함)
+    private final Map<String, String> lockOwners = new ConcurrentHashMap<>();
+
     public boolean tryLock(String sessionId, String shareId, ReviewRoleType role, String userId) {
         String lockKey = getLockKey(shareId, role);
 
@@ -48,6 +52,7 @@ public class ShareLinkLockManager {
 
         if (Boolean.TRUE.equals(success)) {
             sessionLocks.put(sessionId, lockKey);
+            lockOwners.put(lockKey, userId);
             log.info("Lock acquired: sessionId={}, shareId={}, role={}, userId={}", sessionId, shareId, role, userId);
         }
 
@@ -65,8 +70,13 @@ public class ShareLinkLockManager {
             return;
         }
 
+        lockOwners.remove(lockKey);
         redisTemplate.execute(UNLOCK_REDIS_SCRIPT, List.of(lockKey), sessionId);
         log.info("Lock released: sessionId={}, lockKey={}", sessionId, lockKey);
+    }
+
+    public Optional<String> getConnectedUserId(String shareId, ReviewRoleType role) {
+        return Optional.ofNullable(lockOwners.get(getLockKey(shareId, role)));
     }
 
     /**
