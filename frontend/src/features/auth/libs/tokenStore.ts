@@ -8,4 +8,6 @@ export const setAccessToken = (token: string) => {
 
 export const isAuthenticated = () => !!ACCESS_TOKEN;
 
-// [윤종근] - TODO: 로그아웃을 위한 토큰 제거 메서드 필요
+export const removeAccessToken = () => {
+  ACCESS_TOKEN = '';
+};

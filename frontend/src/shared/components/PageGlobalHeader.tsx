@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useLogout } from '@/features/auth/hooks/useAuthClient';
 import NotificationDropdown from '@/features/notification/components/NotificationDropdown';
 import NavItem from '@/shared/components/NavItem';
 import { NAV_ITEMS } from '@/shared/constants/globalHeader';
@@ -10,10 +11,16 @@ import { CommonIcon as I } from '@/shared/icons';
 
 const PageGlobalHeader = () => {
   const navigate = useNavigate();
+  const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const { userInfo, isLoading } = useAuth();
+  const { mutate: logout } = useLogout();
 
   if (isLoading) return null;
+
+  const handleLogout = () => {
+    logout();
+  };
 
   return (
     <header className='mb-[1.875rem] flex h-[3.75rem] w-full items-center justify-between bg-white px-75'>
@@ -47,11 +54,34 @@ const PageGlobalHeader = () => {
           isOpen={isDropdownOpen}
           handleDropdown={setIsDropdownOpen}
         />
-        <div className='flex cursor-pointer items-center gap-2'>
-          <I.UserAvatarIcon />
-          <span className='text-base font-medium text-gray-600'>
-            {userInfo?.nickname || '사용자'}
-          </span>
+        <div className='relative'>
+          <button
+            type='button'
+            className='flex cursor-pointer items-center gap-2'
+            onClick={() => setIsProfileOpen(!isProfileOpen)}
+          >
+            <I.UserAvatarIcon />
+            <span className='text-base font-medium text-gray-600'>
+              {userInfo?.nickname || '사용자'}
+            </span>
+          </button>
+          {isProfileOpen && (
+            <>
+              <div
+                className='fixed inset-0 z-10 cursor-default'
+                onClick={() => setIsProfileOpen(false)}
+              />
+              <div className='absolute right-0 z-20 mt-2 flex w-24 flex-col overflow-y-scroll rounded-lg bg-white shadow-[0_0_20px_rgba(0,0,0,0.1)] select-none'>
+                <button
+                  type='button'
+                  className='w-full px-4 py-2 text-center text-sm text-red-600 hover:bg-red-50'
+                  onClick={handleLogout}
+                >
+                  로그아웃
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </header>

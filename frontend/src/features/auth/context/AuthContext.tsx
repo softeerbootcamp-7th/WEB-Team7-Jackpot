@@ -10,7 +10,6 @@ interface AuthContextType {
   isAuthenticated: boolean;
   userInfo: UserInfoType | undefined;
   isLoading: boolean;
-  // [윤종근] - TODO: 로그아웃 메서드 구현 필요
 }
 
 interface AuthProviderProps {

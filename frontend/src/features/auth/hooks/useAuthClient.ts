@@ -1,6 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router';
 
-import { setAccessToken } from '@/features/auth/libs/tokenStore';
+import {
+  removeAccessToken,
+  setAccessToken,
+} from '@/features/auth/libs/tokenStore';
 import type {
   AuthResponse,
   CheckIdRequest,
@@ -8,6 +12,7 @@ import type {
   LoginRequest,
 } from '@/features/auth/types/authApi';
 import { apiClient } from '@/shared/api/apiClient';
+import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
 
 // 아이디 중복확인을 위한 커스텀 훅
 export const useCheckId = () => {
@@ -56,7 +61,7 @@ export const useLogin = () => {
   });
 };
 
-// 액세스 토큰 리프레시를 위한 메서드
+// 액세스 토큰 리프레시를 위한 커스텀 훅
 export const useRefresh = () => {
   return useMutation({
     mutationFn: async () => {
@@ -77,4 +82,25 @@ export const useRefresh = () => {
   });
 };
 
-// [윤종근] - TODO: 추후에 로그아웃 구현 시 엑세스 토큰 비우는 커스텀 훅 추가 필요
+// 로그아웃을 위한 커스텀 훅
+export const useLogout = () => {
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const { showToast } = useToastMessageContext();
+
+  return useMutation({
+    mutationFn: () =>
+      apiClient.delete({
+        endpoint: '/auth/logout',
+        options: { credentials: 'include' },
+        skipAuth: true,
+      }),
+    onSuccess: () => {
+      removeAccessToken();
+      // 로그아웃 시 전체 캐시 날리기
+      queryClient.clear();
+      showToast('로그아웃 되었습니다', true);
+      navigate('/');
+    },
+  });
+};
