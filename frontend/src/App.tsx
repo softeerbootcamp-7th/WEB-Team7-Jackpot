@@ -11,6 +11,7 @@ import SignUpPage from '@/pages/SignUpPage';
 import UploadPage from '@/pages/UploadPage';
 
 import CoverLetterReviewContent from '@/features/coverLetter/components/editor/CoverLetterReviewContent';
+import NewCoverLetterContainer from '@/features/coverLetter/components/newCoverLetter/NewCoverLetterContainer';
 import CoverLetterLayout from '@/features/coverLetter/layouts/CoverLetterLayout';
 import WriteSidebarLayout from '@/features/coverLetter/layouts/WriteSidebarLayout';
 import CompanyDetailView from '@/features/library/components/company/CompanyDetailView';
@@ -26,7 +27,6 @@ import PrivateGuard from '@/shared/components/PrivateGuard';
 import PublicGuard from '@/shared/components/PublicGuard';
 import RootLayout from '@/shared/components/RootLayout';
 import { coverLetterEmptyCaseText } from '@/shared/constants/coverLetterEmptyCaseText';
-import NewCoverLetterContainer from './features/coverLetter/components/newCoverLetter/NewCoverLetterContainer';
 
 function App() {
   return (
