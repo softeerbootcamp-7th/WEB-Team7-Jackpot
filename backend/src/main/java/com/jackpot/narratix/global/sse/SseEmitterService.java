@@ -18,7 +18,7 @@ public class SseEmitterService {
 
     private static final int MAX_CONNECTIONS_PER_USER = 5;
     private static final long DEFAULT_TIMEOUT = 60 * 60 * 1000L; // 1시간
-    private static final long SSE_HEART_BEAT_TIMEOUT = 25 * 1000L; // 25분
+    private static final long SSE_HEART_BEAT_TIMEOUT = 25 * 1000L; // 25초
 
     private final SseEmitterRepository sseEmitterRepository;
 
