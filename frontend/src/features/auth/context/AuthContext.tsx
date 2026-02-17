@@ -8,7 +8,7 @@ interface UserInfoType {
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  userInfo: UserInfoType;
+  userInfo: UserInfoType | undefined;
   isLoading: boolean;
   // [윤종근] - TODO: 로그아웃 메서드 구현 필요
 }
