@@ -46,12 +46,17 @@ public class QnA extends BaseTimeEntity {
     @Column(name = "answer", nullable = true, columnDefinition = "TEXT")
     private String answer;
 
+    @NotNull
+    @Column(name = "version", nullable = false)
+    private Long version = 0L;
+
     public static QnA newQnA(CoverLetter coverLetter, CreateQuestionRequest request) {
         QnA qna = new QnA();
         qna.coverLetter = coverLetter;
         qna.questionCategory = request.category();
         qna.question = request.question();
         qna.userId = coverLetter.getUserId();
+        qna.version = 0L;
         return qna;
     }
 

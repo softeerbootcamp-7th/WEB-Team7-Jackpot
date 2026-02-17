@@ -1,5 +1,6 @@
 package com.jackpot.narratix.domain.service;
 
+import com.jackpot.narratix.domain.controller.response.CoverLetterAndQnAIdsResponse;
 import com.jackpot.narratix.domain.controller.response.QnAVersionResponse;
 import com.jackpot.narratix.domain.controller.response.ShareLinkActiveResponse;
 import com.jackpot.narratix.domain.entity.CoverLetter;
@@ -116,6 +117,11 @@ public class ShareLinkService {
 
         ShareLink shareLink = shareLinkRepository.findByShareId(shareId)
                 .orElseThrow(() -> new BaseException(ShareLinkErrorCode.SHARE_LINK_NOT_FOUND));
+        if (!shareLink.isValid()) {
+            log.warn("해당 첨삭 링크가 유효하지 않습니다. shareId={}", shareId);
+            throw new BaseException(GlobalErrorCode.FORBIDDEN);
+        }
+
         QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
 
         validateShareLinkAndQnA(shareLink, qnA);
@@ -124,10 +130,29 @@ public class ShareLinkService {
     }
 
     private void validateShareLinkAndQnA(ShareLink shareLink, QnA qnA) {
-        if(!Objects.equals(shareLink.getCoverLetterId(), qnA.getCoverLetter().getId())){
+        if (!Objects.equals(shareLink.getCoverLetterId(), qnA.getCoverLetter().getId())) {
             log.warn("해당 첨삭링크로 해당 QnA를 조회할 수 없습니다. shareId={}, QnAId={}", shareLink.getShareId(), qnA.getId());
             throw new BaseException(GlobalErrorCode.FORBIDDEN);
         }
     }
 
+    public CoverLetterAndQnAIdsResponse getCoverLetterAndQnAIds(String userId, String shareId) {
+        // TODO: userId로 Writer 또는 Reviewer인지 검증해야 함
+
+        ShareLink shareLink = shareLinkRepository.findByShareId(shareId)
+                .orElseThrow(() -> new BaseException(ShareLinkErrorCode.SHARE_LINK_NOT_FOUND));
+        if (!shareLink.isValid()) {
+            log.warn("해당 첨삭 링크가 유효하지 않습니다. shareId={}", shareId);
+            throw new BaseException(GlobalErrorCode.FORBIDDEN);
+        }
+
+        Long coverLetterId = shareLink.getCoverLetterId();
+
+        CoverLetter coverLetter = coverLetterRepository.findByIdOrElseThrow(coverLetterId);
+
+        return CoverLetterAndQnAIdsResponse.of(
+                coverLetter,
+                coverLetter.getQnAs().stream().map(QnA::getId).toList()
+        );
+    }
 }
