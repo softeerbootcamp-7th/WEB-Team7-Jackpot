@@ -4,9 +4,11 @@ import com.jackpot.narratix.global.interceptor.StompChannelInterceptor;
 import com.jackpot.narratix.global.websocket.GlobalStompErrorHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
@@ -33,7 +35,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         config.enableSimpleBroker(SUBSCRIBE_PREFIX)
-                .setHeartbeatValue(new long[]{OUTGOING_INTERVAL_HEARTBEAT_TIME, INGOING_INTERVAL_HEARTBEAT_TIME});
+                .setHeartbeatValue(new long[]{OUTGOING_INTERVAL_HEARTBEAT_TIME, INGOING_INTERVAL_HEARTBEAT_TIME})
+                .setTaskScheduler(heartbeatTaskScheduler());
         // TODO: 추후 redis pub/sub 구조의 Message Broker를 사용해야 함
         config.setApplicationDestinationPrefixes(PUBLISH_PREFIX); // 클라이언트가 보낼 경로 (클라이언트 -> 서버)
     }
@@ -58,5 +61,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registration.setMessageSizeLimit(128 * 1024); // 128KB
         registration.setSendTimeLimit(20 * 1000); // 20초
         registration.setSendBufferSizeLimit(512 * 1024); // 512KB
+    }
+
+    @Bean
+    public ThreadPoolTaskScheduler heartbeatTaskScheduler() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(1);
+        scheduler.setThreadNamePrefix("ws-heartbeat-");
+        scheduler.initialize();
+        return scheduler;
     }
 }
