@@ -9,6 +9,7 @@ import com.jackpot.narratix.domain.entity.Review;
 import com.jackpot.narratix.domain.entity.User;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
+import com.jackpot.narratix.domain.entity.enums.ReviewRoleType;
 import com.jackpot.narratix.domain.event.ReviewCreatedEvent;
 import com.jackpot.narratix.domain.event.ReviewDeleteEvent;
 import com.jackpot.narratix.domain.event.ReviewEditEvent;
@@ -60,6 +61,9 @@ class ReviewServiceTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
+    @Mock
+    private ShareLinkSessionRegistry shareLinkSessionRegistry;
+
     @Test
     @DisplayName("리뷰 생성 성공")
     void createReview_Success() {
@@ -67,6 +71,7 @@ class ReviewServiceTest {
         String reviewerId = "reviewer123";
         String writerId = "writer456";
         Long qnaId = 1L;
+        Long coverLetterId = 1L;
 
         ReviewCreateRequest request = new ReviewCreateRequest(
                 1L,
@@ -86,7 +91,7 @@ class ReviewServiceTest {
                 .build();
 
         CoverLetter coverLetter = CoverLetterFixture.builder()
-                .id(1L)
+                .id(coverLetterId)
                 .userId(writerId)
                 .companyName("테스트기업")
                 .applyYear(2024)
@@ -101,22 +106,48 @@ class ReviewServiceTest {
                 QuestionCategoryType.MOTIVATION
         );
 
-        given(reviewRepository.save(any(Review.class))).willReturn(savedReview);
+        given(qnARepository.getCoverLetterIdByQnAIdOrElseThrow(qnaId)).willReturn(coverLetterId);
+        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(reviewerId, coverLetterId, ReviewRoleType.REVIEWER)).willReturn(true);
         given(qnARepository.findByIdOrElseThrow(qnaId)).willReturn(qnA);
+        given(reviewRepository.save(any(Review.class))).willReturn(savedReview);
         doNothing().when(notificationService).sendFeedbackNotificationToWriter(any(), any(), any(), any());
-        given(qnARepository.getCoverLetterIdByQnAId(qnaId)).willReturn(Optional.of(1L));
-        // when
 
+        // when
         reviewService.createReview(reviewerId, qnaId, request);
 
         // then
+        verify(qnARepository, times(1)).getCoverLetterIdByQnAIdOrElseThrow(qnaId);
+        verify(shareLinkSessionRegistry, times(1)).isConnectedUserInCoverLetter(reviewerId, coverLetterId, ReviewRoleType.REVIEWER);
         verify(reviewRepository, times(1)).save(any(Review.class));
         verify(qnARepository, times(1)).findByIdOrElseThrow(qnaId);
         verify(eventPublisher, times(1)).publishEvent(any(ReviewCreatedEvent.class));
         verify(notificationService, times(1))
                 .sendFeedbackNotificationToWriter(reviewerId, coverLetter, qnaId, request.originText());
     }
-    
+
+    @Test
+    @DisplayName("리뷰 생성 실패 - REVIEWER로 웹소켓에 연결되어 있지 않으면 FORBIDDEN 에러 발생")
+    void createReview_Fail_NotConnectedAsReviewer() {
+        // given
+        String reviewerId = "reviewer123";
+        Long qnaId = 1L;
+        Long coverLetterId = 1L;
+
+        ReviewCreateRequest request = new ReviewCreateRequest(
+                1L, 0L, 100L, "원본 텍스트", "수정 제안 텍스트", "피드백 코멘트"
+        );
+
+        given(qnARepository.getCoverLetterIdByQnAIdOrElseThrow(qnaId)).willReturn(coverLetterId);
+        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(reviewerId, coverLetterId, ReviewRoleType.REVIEWER)).willReturn(false);
+
+        // when & then
+        assertThatThrownBy(() -> reviewService.createReview(reviewerId, qnaId, request))
+                .isInstanceOf(BaseException.class)
+                .hasFieldOrPropertyWithValue("errorCode", GlobalErrorCode.FORBIDDEN);
+
+        verify(reviewRepository, never()).save(any());
+    }
+
     @Test
     @DisplayName("리뷰 수정 성공")
     void editReview_Success() {
@@ -147,9 +178,10 @@ class ReviewServiceTest {
                 .comment(request.comment())
                 .build();
 
+        given(qnARepository.getCoverLetterIdByQnAIdOrElseThrow(qnAId)).willReturn(coverLetterId);
+        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(userId, coverLetterId, ReviewRoleType.REVIEWER)).willReturn(true);
         given(reviewRepository.findByIdOrElseThrow(reviewId)).willReturn(existingReview);
         given(reviewRepository.save(existingReview)).willReturn(updatedReview);
-        given(qnARepository.getCoverLetterIdByQnAId(qnAId)).willReturn(Optional.of(coverLetterId));
 
         // when
         reviewService.editReview(userId, qnAId, reviewId, request);
@@ -157,10 +189,33 @@ class ReviewServiceTest {
         // then
         assertThat(existingReview.getSuggest()).isEqualTo(request.suggest());
         assertThat(existingReview.getComment()).isEqualTo(request.comment());
+        verify(qnARepository, times(1)).getCoverLetterIdByQnAIdOrElseThrow(qnAId);
+        verify(shareLinkSessionRegistry, times(1)).isConnectedUserInCoverLetter(userId, coverLetterId, ReviewRoleType.REVIEWER);
         verify(reviewRepository, times(1)).findByIdOrElseThrow(reviewId);
         verify(reviewRepository, times(1)).save(existingReview);
-        verify(qnARepository, times(1)).getCoverLetterIdByQnAId(qnAId);
         verify(eventPublisher, times(1)).publishEvent(any(ReviewEditEvent.class));
+    }
+
+    @Test
+    @DisplayName("리뷰 수정 실패 - REVIEWER로 웹소켓에 연결되어 있지 않으면 FORBIDDEN 에러 발생")
+    void editReview_Fail_NotConnectedAsReviewer() {
+        // given
+        String userId = "reviewer123";
+        Long qnAId = 1L;
+        Long reviewId = 1L;
+        Long coverLetterId = 100L;
+
+        ReviewEditRequest request = new ReviewEditRequest("수정된 제안 텍스트", "수정된 코멘트");
+
+        given(qnARepository.getCoverLetterIdByQnAIdOrElseThrow(qnAId)).willReturn(coverLetterId);
+        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(userId, coverLetterId, ReviewRoleType.REVIEWER)).willReturn(false);
+
+        // when & then
+        assertThatThrownBy(() -> reviewService.editReview(userId, qnAId, reviewId, request))
+                .isInstanceOf(BaseException.class)
+                .hasFieldOrPropertyWithValue("errorCode", GlobalErrorCode.FORBIDDEN);
+
+        verify(reviewRepository, never()).save(any());
     }
 
     @Test
@@ -171,6 +226,7 @@ class ReviewServiceTest {
         String otherUserId = "otherUser456";
         Long qnAId = 1L;
         Long reviewId = 1L;
+        Long coverLetterId = 1L;
 
         ReviewEditRequest request = new ReviewEditRequest(
                 "수정된 제안 텍스트",
@@ -185,6 +241,8 @@ class ReviewServiceTest {
                 .comment("기존 코멘트")
                 .build();
 
+        given(qnARepository.getCoverLetterIdByQnAIdOrElseThrow(qnAId)).willReturn(coverLetterId);
+        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(otherUserId, coverLetterId, ReviewRoleType.REVIEWER)).willReturn(true);
         given(reviewRepository.findByIdOrElseThrow(reviewId)).willReturn(existingReview);
 
         // when & then
@@ -202,8 +260,9 @@ class ReviewServiceTest {
         // given
         String userId = "reviewer123";
         Long reviewQnAId = 1L;
-        Long requestQnAId = 2L;  // 다른 QnA ID
+        Long requestQnAId = 2L;
         Long reviewId = 1L;
+        Long coverLetterId = 1L;
 
         ReviewEditRequest request = new ReviewEditRequest(
                 "수정된 제안 텍스트",
@@ -213,11 +272,13 @@ class ReviewServiceTest {
         Review existingReview = ReviewFixture.builder()
                 .id(reviewId)
                 .reviewerId(userId)
-                .qnaId(reviewQnAId)  // 리뷰는 QnA 1L에 속함
+                .qnaId(reviewQnAId)
                 .suggest("기존 제안 텍스트")
                 .comment("기존 코멘트")
                 .build();
 
+        given(qnARepository.getCoverLetterIdByQnAIdOrElseThrow(requestQnAId)).willReturn(coverLetterId);
+        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(userId, coverLetterId, ReviewRoleType.REVIEWER)).willReturn(true);
         given(reviewRepository.findByIdOrElseThrow(reviewId)).willReturn(existingReview);
 
         // when & then
@@ -263,18 +324,19 @@ class ReviewServiceTest {
                 QuestionCategoryType.MOTIVATION
         );
 
-        given(reviewRepository.findById(reviewId)).willReturn(java.util.Optional.of(review));
         given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(qnA);
-        given(qnARepository.getCoverLetterIdByQnAId(qnAId)).willReturn(java.util.Optional.of(coverLetterId));
+        // reviewerId != writerId → REVIEWER 역할로 연결되어야 삭제 가능
+        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(reviewerId, coverLetterId, ReviewRoleType.REVIEWER)).willReturn(true);
+        given(reviewRepository.findById(reviewId)).willReturn(Optional.of(review));
 
         // when
         reviewService.deleteReview(reviewerId, qnAId, reviewId);
 
         // then
-        verify(reviewRepository, times(1)).findById(reviewId);
         verify(qnARepository, times(1)).findByIdOrElseThrow(qnAId);
+        verify(shareLinkSessionRegistry, times(1)).isConnectedUserInCoverLetter(reviewerId, coverLetterId, ReviewRoleType.REVIEWER);
+        verify(reviewRepository, times(1)).findById(reviewId);
         verify(reviewRepository, times(1)).delete(review);
-        verify(qnARepository, times(1)).getCoverLetterIdByQnAId(qnAId);
         verify(eventPublisher, times(1)).publishEvent(any(ReviewDeleteEvent.class));
     }
 
@@ -312,19 +374,51 @@ class ReviewServiceTest {
                 QuestionCategoryType.MOTIVATION
         );
 
-        given(reviewRepository.findById(reviewId)).willReturn(java.util.Optional.of(review));
         given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(qnA);
-        given(qnARepository.getCoverLetterIdByQnAId(qnAId)).willReturn(java.util.Optional.of(coverLetterId));
+        // writerId == qnA.userId → WRITER 역할로 연결되어야 삭제 가능
+        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(writerId, coverLetterId, ReviewRoleType.WRITER)).willReturn(true);
+        given(reviewRepository.findById(reviewId)).willReturn(Optional.of(review));
 
         // when
         reviewService.deleteReview(writerId, qnAId, reviewId);
 
         // then
-        verify(reviewRepository, times(1)).findById(reviewId);
         verify(qnARepository, times(1)).findByIdOrElseThrow(qnAId);
+        verify(shareLinkSessionRegistry, times(1)).isConnectedUserInCoverLetter(writerId, coverLetterId, ReviewRoleType.WRITER);
+        verify(reviewRepository, times(1)).findById(reviewId);
         verify(reviewRepository, times(1)).delete(review);
-        verify(qnARepository, times(1)).getCoverLetterIdByQnAId(qnAId);
         verify(eventPublisher, times(1)).publishEvent(any(ReviewDeleteEvent.class));
+    }
+
+    @Test
+    @DisplayName("리뷰 삭제 실패 - 웹소켓에 연결되어 있지 않으면 FORBIDDEN 에러 발생")
+    void deleteReview_Fail_NotConnectedViaWebSocket() {
+        // given
+        String reviewerId = "reviewer123";
+        String writerId = "writer456";
+        Long qnAId = 1L;
+        Long reviewId = 1L;
+        Long coverLetterId = 1L;
+
+        CoverLetter coverLetter = CoverLetterFixture.builder()
+                .id(coverLetterId)
+                .userId(writerId)
+                .build();
+
+        QnA qnA = QnAFixture.createQnAWithId(
+                qnAId, coverLetter, writerId, "지원동기는 무엇인가요?", QuestionCategoryType.MOTIVATION
+        );
+
+        given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(qnA);
+        // reviewerId != writerId → REVIEWER 역할이지만 연결되어 있지 않음
+        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(reviewerId, coverLetterId, ReviewRoleType.REVIEWER)).willReturn(false);
+
+        // when & then
+        assertThatThrownBy(() -> reviewService.deleteReview(reviewerId, qnAId, reviewId))
+                .isInstanceOf(BaseException.class)
+                .hasFieldOrPropertyWithValue("errorCode", GlobalErrorCode.FORBIDDEN);
+
+        verify(reviewRepository, never()).delete(any());
     }
 
     @Test
@@ -336,6 +430,7 @@ class ReviewServiceTest {
         String otherUserId = "otherUser789";
         Long qnAId = 1L;
         Long reviewId = 1L;
+        Long coverLetterId = 1L;
 
         Review review = ReviewFixture.builder()
                 .id(reviewId)
@@ -346,7 +441,7 @@ class ReviewServiceTest {
                 .build();
 
         CoverLetter coverLetter = CoverLetterFixture.builder()
-                .id(1L)
+                .id(coverLetterId)
                 .userId(writerId)
                 .companyName("네이버")
                 .applyYear(2025)
@@ -361,16 +456,18 @@ class ReviewServiceTest {
                 QuestionCategoryType.MOTIVATION
         );
 
-        given(reviewRepository.findById(reviewId)).willReturn(java.util.Optional.of(review));
         given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(qnA);
+        // otherUserId != writerId → REVIEWER 역할
+        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(otherUserId, coverLetterId, ReviewRoleType.REVIEWER)).willReturn(true);
+        given(reviewRepository.findById(reviewId)).willReturn(Optional.of(review));
 
         // when & then
         assertThatThrownBy(() -> reviewService.deleteReview(otherUserId, qnAId, reviewId))
                 .isInstanceOf(BaseException.class)
                 .hasFieldOrPropertyWithValue("errorCode", GlobalErrorCode.FORBIDDEN);
 
-        verify(reviewRepository, times(1)).findById(reviewId);
         verify(qnARepository, times(1)).findByIdOrElseThrow(qnAId);
+        verify(reviewRepository, times(1)).findById(reviewId);
         verify(reviewRepository, never()).delete(any());
     }
 
@@ -382,6 +479,7 @@ class ReviewServiceTest {
         Long reviewQnAId = 1L;
         Long requestQnAId = 2L;
         Long reviewId = 1L;
+        Long coverLetterId = 1L;
 
         Review review = ReviewFixture.builder()
                 .id(reviewId)
@@ -390,7 +488,7 @@ class ReviewServiceTest {
                 .build();
 
         CoverLetter coverLetter = CoverLetterFixture.builder()
-                .id(1L)
+                .id(coverLetterId)
                 .userId(userId)
                 .build();
 
@@ -402,8 +500,10 @@ class ReviewServiceTest {
                 QuestionCategoryType.MOTIVATION
         );
 
-        given(reviewRepository.findById(reviewId)).willReturn(java.util.Optional.of(review));
         given(qnARepository.findByIdOrElseThrow(requestQnAId)).willReturn(qnA);
+        // userId == qnA.userId → WRITER 역할
+        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(userId, coverLetterId, ReviewRoleType.WRITER)).willReturn(true);
+        given(reviewRepository.findById(reviewId)).willReturn(Optional.of(review));
 
         // when & then
         assertThatThrownBy(() -> reviewService.deleteReview(userId, requestQnAId, reviewId))
@@ -448,9 +548,9 @@ class ReviewServiceTest {
                 QuestionCategoryType.MOTIVATION
         );
 
-        given(reviewRepository.findByIdOrElseThrow(reviewId)).willReturn(review);
         given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(qnA);
-        given(qnARepository.getCoverLetterIdByQnAId(qnAId)).willReturn(java.util.Optional.of(coverLetterId));
+        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(writerId, coverLetterId, ReviewRoleType.WRITER)).willReturn(true);
+        given(reviewRepository.findByIdOrElseThrow(reviewId)).willReturn(review);
         given(reviewRepository.save(review)).willReturn(review);
 
         // when
@@ -460,10 +560,39 @@ class ReviewServiceTest {
         assertThat(review.isApproved()).isTrue();
         assertThat(review.getOriginText()).isEqualTo(suggestedText);
         assertThat(review.getSuggest()).isEqualTo(originalText);
-        verify(reviewRepository, times(1)).findByIdOrElseThrow(reviewId);
         verify(qnARepository, times(1)).findByIdOrElseThrow(qnAId);
-        verify(qnARepository, times(1)).getCoverLetterIdByQnAId(qnAId);
+        verify(shareLinkSessionRegistry, times(1)).isConnectedUserInCoverLetter(writerId, coverLetterId, ReviewRoleType.WRITER);
+        verify(reviewRepository, times(1)).findByIdOrElseThrow(reviewId);
         verify(eventPublisher, times(1)).publishEvent(any(ReviewEditEvent.class));
+    }
+
+    @Test
+    @DisplayName("첨삭 댓글 적용 실패 - WRITER로 웹소켓에 연결되어 있지 않으면 FORBIDDEN 에러 발생")
+    void approveReview_Fail_NotConnectedAsWriter() {
+        // given
+        String writerId = "writer123";
+        Long qnAId = 1L;
+        Long reviewId = 1L;
+        Long coverLetterId = 1L;
+
+        CoverLetter coverLetter = CoverLetterFixture.builder()
+                .id(coverLetterId)
+                .userId(writerId)
+                .build();
+
+        QnA qnA = QnAFixture.createQnAWithId(
+                qnAId, coverLetter, writerId, "지원동기는 무엇인가요?", QuestionCategoryType.MOTIVATION
+        );
+
+        given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(qnA);
+        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(writerId, coverLetterId, ReviewRoleType.WRITER)).willReturn(false);
+
+        // when & then
+        assertThatThrownBy(() -> reviewService.approveReview(writerId, qnAId, reviewId))
+                .isInstanceOf(BaseException.class)
+                .hasFieldOrPropertyWithValue("errorCode", GlobalErrorCode.FORBIDDEN);
+
+        verify(reviewRepository, never()).save(any());
     }
 
     @Test
@@ -475,6 +604,7 @@ class ReviewServiceTest {
         String otherUserId = "other789";
         Long qnAId = 1L;
         Long reviewId = 1L;
+        Long coverLetterId = 1L;
 
         Review review = ReviewFixture.builder()
                 .id(reviewId)
@@ -483,7 +613,7 @@ class ReviewServiceTest {
                 .build();
 
         CoverLetter coverLetter = CoverLetterFixture.builder()
-                .id(1L)
+                .id(coverLetterId)
                 .userId(writerId)
                 .build();
 
@@ -495,8 +625,10 @@ class ReviewServiceTest {
                 QuestionCategoryType.MOTIVATION
         );
 
-        given(reviewRepository.findByIdOrElseThrow(reviewId)).willReturn(review);
         given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(qnA);
+        // otherUserId != writerId → REVIEWER 역할이지만 approve는 WRITER 전용
+        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(otherUserId, coverLetterId, ReviewRoleType.WRITER)).willReturn(true);
+        given(reviewRepository.findByIdOrElseThrow(reviewId)).willReturn(review);
 
         // when & then
         assertThatThrownBy(() -> reviewService.approveReview(otherUserId, qnAId, reviewId))
@@ -514,6 +646,7 @@ class ReviewServiceTest {
         Long reviewQnAId = 1L;
         Long requestQnAId = 2L;
         Long reviewId = 1L;
+        Long coverLetterId = 1L;
 
         Review review = ReviewFixture.builder()
                 .id(reviewId)
@@ -522,7 +655,7 @@ class ReviewServiceTest {
                 .build();
 
         CoverLetter coverLetter = CoverLetterFixture.builder()
-                .id(1L)
+                .id(coverLetterId)
                 .userId(writerId)
                 .build();
 
@@ -534,8 +667,9 @@ class ReviewServiceTest {
                 QuestionCategoryType.MOTIVATION
         );
 
-        given(reviewRepository.findByIdOrElseThrow(reviewId)).willReturn(review);
         given(qnARepository.findByIdOrElseThrow(requestQnAId)).willReturn(qnA);
+        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(writerId, coverLetterId, ReviewRoleType.WRITER)).willReturn(true);
+        given(reviewRepository.findByIdOrElseThrow(reviewId)).willReturn(review);
 
         // when & then
         assertThatThrownBy(() -> reviewService.approveReview(writerId, requestQnAId, reviewId))
@@ -553,8 +687,8 @@ class ReviewServiceTest {
         Long reviewId = 1L;
         Long coverLetterId = 1L;
 
-        String currentOriginText = "수정된 텍스트"; // 이미 승인되어 suggest와 swap된 상태
-        String currentSuggestText = "기존 텍스트"; // 이미 승인되어 originText와 swap된 상태
+        String currentOriginText = "수정된 텍스트";
+        String currentSuggestText = "기존 텍스트";
 
         Review review = ReviewFixture.builder()
                 .id(reviewId)
@@ -562,7 +696,7 @@ class ReviewServiceTest {
                 .qnaId(qnAId)
                 .originText(currentOriginText)
                 .suggest(currentSuggestText)
-                .isApproved(true)  // 이미 승인된 상태
+                .isApproved(true)
                 .build();
 
         CoverLetter coverLetter = CoverLetterFixture.builder()
@@ -578,21 +712,21 @@ class ReviewServiceTest {
                 QuestionCategoryType.MOTIVATION
         );
 
-        given(reviewRepository.findByIdOrElseThrow(reviewId)).willReturn(review);
         given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(qnA);
-        given(qnARepository.getCoverLetterIdByQnAId(qnAId)).willReturn(java.util.Optional.of(coverLetterId));
+        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(writerId, coverLetterId, ReviewRoleType.WRITER)).willReturn(true);
+        given(reviewRepository.findByIdOrElseThrow(reviewId)).willReturn(review);
         given(reviewRepository.save(review)).willReturn(review);
 
         // when
         reviewService.approveReview(writerId, qnAId, reviewId);
 
         // then
-        assertThat(review.isApproved()).isFalse(); // 원복되어 승인 상태가 해제됨
-        assertThat(review.getOriginText()).isEqualTo(currentSuggestText); // swap되어 원복됨
-        assertThat(review.getSuggest()).isEqualTo(currentOriginText); // swap되어 원복됨
-        verify(reviewRepository, times(1)).findByIdOrElseThrow(reviewId);
+        assertThat(review.isApproved()).isFalse();
+        assertThat(review.getOriginText()).isEqualTo(currentSuggestText);
+        assertThat(review.getSuggest()).isEqualTo(currentOriginText);
         verify(qnARepository, times(1)).findByIdOrElseThrow(qnAId);
-        verify(qnARepository, times(1)).getCoverLetterIdByQnAId(qnAId);
+        verify(shareLinkSessionRegistry, times(1)).isConnectedUserInCoverLetter(writerId, coverLetterId, ReviewRoleType.WRITER);
+        verify(reviewRepository, times(1)).findByIdOrElseThrow(reviewId);
         verify(eventPublisher, times(1)).publishEvent(any(ReviewEditEvent.class));
     }
 
@@ -604,9 +738,10 @@ class ReviewServiceTest {
         String reviewer1Id = "reviewer1";
         String reviewer2Id = "reviewer2";
         Long qnAId = 1L;
+        Long coverLetterId = 1L;
 
         CoverLetter coverLetter = CoverLetterFixture.builder()
-                .id(1L)
+                .id(coverLetterId)
                 .userId(writerId)
                 .companyName("테스트기업")
                 .applyYear(2024)
@@ -650,6 +785,8 @@ class ReviewServiceTest {
                 .build();
 
         given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(qnA);
+        // writerId == qnA.userId → WRITER 역할
+        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(writerId, coverLetterId, ReviewRoleType.WRITER)).willReturn(true);
         given(reviewRepository.findAllByQnaId(qnAId)).willReturn(List.of(review1, review2));
         given(userRepository.findAllByIdIn(any())).willReturn(List.of(reviewer1, reviewer2));
 
@@ -673,9 +810,10 @@ class ReviewServiceTest {
         String writerId = "writer123";
         String reviewerId = "reviewer1";
         Long qnAId = 1L;
+        Long coverLetterId = 1L;
 
         CoverLetter coverLetter = CoverLetterFixture.builder()
-                .id(1L)
+                .id(coverLetterId)
                 .userId(writerId)
                 .companyName("테스트기업")
                 .applyYear(2024)
@@ -714,6 +852,8 @@ class ReviewServiceTest {
                 .build();
 
         given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(qnA);
+        // reviewerId != writerId → REVIEWER 역할
+        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(reviewerId, coverLetterId, ReviewRoleType.REVIEWER)).willReturn(true);
         given(userRepository.findByIdOrElseThrow(reviewerId)).willReturn(reviewer);
         given(reviewRepository.findAllByQnaIdAndReviewerId(qnAId, reviewerId))
                 .willReturn(List.of(review1, review2));
@@ -731,6 +871,34 @@ class ReviewServiceTest {
     }
 
     @Test
+    @DisplayName("전체 첨삭 댓글 조회 실패 - 웹소켓에 연결되어 있지 않으면 FORBIDDEN 에러 발생")
+    void getAllReviews_Fail_NotConnectedViaWebSocket() {
+        // given
+        String writerId = "writer123";
+        Long qnAId = 1L;
+        Long coverLetterId = 1L;
+
+        CoverLetter coverLetter = CoverLetterFixture.builder()
+                .id(coverLetterId)
+                .userId(writerId)
+                .build();
+
+        QnA qnA = QnAFixture.createQnAWithId(
+                qnAId, coverLetter, writerId, "질문", QuestionCategoryType.MOTIVATION
+        );
+
+        given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(qnA);
+        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(writerId, coverLetterId, ReviewRoleType.WRITER)).willReturn(false);
+
+        // when & then
+        assertThatThrownBy(() -> reviewService.getAllReviews(writerId, qnAId))
+                .isInstanceOf(BaseException.class)
+                .hasFieldOrPropertyWithValue("errorCode", GlobalErrorCode.FORBIDDEN);
+
+        verify(reviewRepository, never()).findAllByQnaId(any());
+    }
+
+    @Test
     @DisplayName("전체 첨삭 댓글 조회 - 탈퇴한 유저의 리뷰는 제외된다 (WRITER)")
     void getAllReviews_FiltersDeletedUserReviews() {
         // given
@@ -738,9 +906,10 @@ class ReviewServiceTest {
         String activeReviewerId = "reviewer1";
         String deletedReviewerId = "deletedReviewer";
         Long qnAId = 1L;
+        Long coverLetterId = 1L;
 
         CoverLetter coverLetter = CoverLetterFixture.builder()
-                .id(1L)
+                .id(coverLetterId)
                 .userId(writerId)
                 .build();
 
@@ -770,9 +939,10 @@ class ReviewServiceTest {
                 .build();
 
         given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(qnA);
+        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(writerId, coverLetterId, ReviewRoleType.WRITER)).willReturn(true);
         given(reviewRepository.findAllByQnaId(qnAId)).willReturn(List.of(activeReview, deletedUserReview));
         given(userRepository.findAllByIdIn(any()))
-                .willReturn(List.of(activeReviewer)); // deletedReviewer는 조회되지 않음
+                .willReturn(List.of(activeReviewer));
 
         // when
         ReviewsGetResponse response = reviewService.getAllReviews(writerId, qnAId);
@@ -789,9 +959,10 @@ class ReviewServiceTest {
         // given
         String writerId = "writer123";
         Long qnAId = 1L;
+        Long coverLetterId = 1L;
 
         CoverLetter coverLetter = CoverLetterFixture.builder()
-                .id(1L)
+                .id(coverLetterId)
                 .userId(writerId)
                 .build();
 
@@ -804,6 +975,7 @@ class ReviewServiceTest {
         );
 
         given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(qnA);
+        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(writerId, coverLetterId, ReviewRoleType.WRITER)).willReturn(true);
         given(reviewRepository.findAllByQnaId(qnAId)).willReturn(List.of());
         given(userRepository.findAllByIdIn(any())).willReturn(List.of());
 
