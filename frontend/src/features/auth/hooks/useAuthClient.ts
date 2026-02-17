@@ -16,6 +16,7 @@ export const useCheckId = () => {
       apiClient.post({
         endpoint: '/auth/checkid',
         body: userData,
+        skipAuth: true,
       }),
   });
 };
@@ -26,6 +27,7 @@ export const useSignUp = () => {
       apiClient.post({
         endpoint: '/auth/join',
         body: userData,
+        skipAuth: true,
       }),
   });
 };
