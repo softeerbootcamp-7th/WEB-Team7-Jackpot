@@ -39,6 +39,8 @@ export const useInitAuth = () => {
         return;
       }
 
+      const isLoggedIn = localStorage.getItem('isLoggedIn');
+      if (!isLoggedIn) {
         setIsInitialized(true);
         return;
       }
@@ -48,6 +50,7 @@ export const useInitAuth = () => {
           setAccessToken(result.accessToken);
         }
       } catch (error) {
+        localStorage.removeItem('isLoggedIn');
         console.error('자동 로그인 실패 (세션 만료):', error);
       } finally {
         setIsInitialized(true);

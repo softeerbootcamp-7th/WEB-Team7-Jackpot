@@ -56,6 +56,7 @@ export const useLogin = () => {
       return data;
     },
     onSuccess: async () => {
+      localStorage.setItem('isLoggedIn', 'true');
       await queryClient.invalidateQueries({
         queryKey: ['userInfo', 'nickname'],
       });
@@ -99,6 +100,7 @@ export const useLogout = () => {
       }),
     onSuccess: () => {
       logout();
+      localStorage.removeItem('isLoggedIn');
       // 로그아웃 시 전체 캐시 날리기
       queryClient.clear();
       showToast('로그아웃 되었습니다', true);
