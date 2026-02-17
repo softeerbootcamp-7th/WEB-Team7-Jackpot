@@ -1,6 +1,7 @@
 package com.jackpot.narratix.domain.controller;
 
 import com.jackpot.narratix.domain.controller.api.QnAApi;
+import com.jackpot.narratix.domain.controller.response.QnAListResponse;
 import com.jackpot.narratix.domain.controller.response.QnAResponse;
 import com.jackpot.narratix.domain.controller.request.QnAEditRequest;
 import com.jackpot.narratix.domain.controller.response.QnAEditResponse;
@@ -48,5 +49,14 @@ public class QnAController implements QnAApi {
             @RequestParam Long coverLetterId
     ) {
         return ResponseEntity.ok(coverLetterService.getQnAIdsByCoverLetterId(userId, coverLetterId));
+    }
+
+    @Override
+    @GetMapping("/all")
+    public ResponseEntity<QnAListResponse> getQnAsByQnAIds(
+            @UserId String userId,
+            @RequestParam List<Long> qnAIds
+    ) {
+        return ResponseEntity.ok(coverLetterService.getQnAsByQnAIds(userId, qnAIds));
     }
 }
