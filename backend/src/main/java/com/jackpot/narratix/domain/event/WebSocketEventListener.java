@@ -105,6 +105,21 @@ public class WebSocketEventListener {
         log.info("웹소켓 연결 종료. sessionId={}", sessionId);
 
         try {
+            StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
+            Map<String, Object> attributes = headerAccessor.getSessionAttributes();
+            if (attributes != null) {
+                ReviewRoleType role = WebSocketSessionAttributes.getRole(attributes);
+                String shareId = WebSocketSessionAttributes.getShareId(attributes);
+                // Writer 연결 종료 시 pending 델타를 DB에 flush해 TTL 만료로 인한 데이터 유실 방지
+                if (role == ReviewRoleType.WRITER && shareId != null) {
+                    shareLinkService.flushPendingDeltasByShareId(shareId);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Writer disconnect flush 실패: sessionId={}", sessionId, e);
+        }
+
+        try {
             shareLinkLockManager.unlock(sessionId);
         } catch (Exception e) {
             log.error("Failed to release lock on disconnect: sessionId={}", sessionId, e);

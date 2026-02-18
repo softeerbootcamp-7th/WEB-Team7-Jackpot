@@ -70,7 +70,23 @@ public class ShareLinkService {
 
     private ShareLinkActiveResponse deactivateShareLink(Long coverLetterId) {
         shareLinkRepository.findById(coverLetterId).ifPresent(ShareLink::deactivate);
+        List<Long> qnAIds = qnARepository.findIdsByCoverLetterId(coverLetterId);
+        qnAIds.forEach(textDeltaService::flushToDb);     // pending 델타를 DB에 저장 후
+        qnAIds.forEach(textDeltaService::cleanupDeltaKeys); // Redis 키 정리
         return ShareLinkActiveResponse.deactivate();
+    }
+
+    /**
+     * Writer 연결 종료 시 해당 공유 링크의 모든 QnA pending 델타를 DB에 flush한다.
+     * 세션 종료 후 TTL 만료로 pending 데이터가 유실되지 않도록 보장한다.
+     */
+    @Transactional
+    public void flushPendingDeltasByShareId(String shareId) {
+        shareLinkRepository.findByShareId(shareId).ifPresent(shareLink -> {
+            List<Long> qnAIds = qnARepository.findIdsByCoverLetterId(shareLink.getCoverLetterId());
+            qnAIds.forEach(textDeltaService::flushToDb);
+            log.info("Writer disconnect: pending 델타 flush 완료. shareId={}, qnACount={}", shareId, qnAIds.size());
+        });
     }
 
     @Transactional(readOnly = true)

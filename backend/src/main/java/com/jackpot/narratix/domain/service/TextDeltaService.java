@@ -28,11 +28,25 @@ public class TextDeltaService {
     private final WebSocketMessageSender webSocketMessageSender;
 
     /**
-     * 버전 카운터를 초기화한다
-     * {@code ShareLinkService.getQnAWithVersion()} 에서 세션 시작 시 1회 호출
+     * 버전 카운터를 초기화하고 pending 키 TTL을 설정한다.
+     * {@code ShareLinkService.getQnAWithVersion()} 에서 세션 시작 시 1회 호출된다.
+     *
+     * <p>pending 키가 이미 존재하면 TTL이 갱신되고,
+     * 존재하지 않으면 EXPIRE는 no-op이다. 세션 중 flush로 pending 키가 삭제된 후
+     * 생성되는 새 pending 키의 TTL은 disconnect/deactivation flush로 데이터 유실을 방지한다.</p>
      */
     public void initDeltaVersion(Long qnAId, Long dbVersion) {
         textDeltaRedisRepository.initVersionIfAbsent(qnAId, dbVersion);
+        textDeltaRedisRepository.refreshPendingTtl(qnAId);
+    }
+
+    /**
+     * 해당 QnA의 Redis 델타 키(pending, committed, version)를 모두 삭제한다.
+     * 공유 링크 비활성화 시 호출해 메모리를 회수한다.
+     */
+    public void cleanupDeltaKeys(Long qnAId) {
+        textDeltaRedisRepository.cleanupKeys(qnAId);
+        log.info("Redis 델타 키 정리 완료: qnAId={}", qnAId);
     }
 
     /**
