@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Positive;
 public record PresignedUrlRequest(
 
         @NotNull(message = "파일 아이디는 필수입니다.")
-        Long fileId,
+        Long clientFileId,
 
         @NotBlank(message = "파일명은 필수입니다.")
         String fileName,
