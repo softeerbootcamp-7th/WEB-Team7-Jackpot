@@ -2,7 +2,7 @@ import { useParams } from 'react-router';
 
 import CoverLetterSection from '@/features/review/components/coverLetter/CoverLetterSection';
 import ReviewListSection from '@/features/review/components/review/ReviewListSection';
-import useCoverLetterPage from '@/shared/hooks/useCoverLetterPage';
+import useCoverLetterPagination from '@/shared/hooks/useCoverLetterPagination';
 import { useReviewsByQnaId } from '@/shared/hooks/useReviewQueries';
 import useReviewState from '@/shared/hooks/useReviewState';
 import {
@@ -22,7 +22,7 @@ const ReviewLayout = () => {
   const { coverLetter, qnAIds } = shareData;
 
   // 2. 현재 페이지 인덱스 → 해당 QnA ID 결정
-  const { safePageIndex, setCurrentPageIndex } = useCoverLetterPage(
+  const { safePageIndex, setCurrentPageIndex } = useCoverLetterPagination(
     qnAIds.length,
   );
   const currentQnAId = qnAIds.length > 0 ? qnAIds[safePageIndex] : undefined;

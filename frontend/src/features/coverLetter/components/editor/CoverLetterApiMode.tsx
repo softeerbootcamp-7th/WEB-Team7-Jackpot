@@ -1,7 +1,7 @@
 import CoverLetterEditor from '@/features/coverLetter/components/editor/CoverLetterEditor';
 import CoverLetterToolbar from '@/features/coverLetter/components/editor/CoverLetterToolbar';
 import useCoverLetterActions from '@/features/coverLetter/hooks/useCoverLetterActions';
-import useCoverLetterPage from '@/shared/hooks/useCoverLetterPage';
+import useCoverLetterPagination from '@/shared/hooks/useCoverLetterPagination';
 import { useQnAList } from '@/shared/hooks/useQnAQueries';
 import { useReviewsByQnaId } from '@/shared/hooks/useReviewQueries';
 import useReviewState from '@/shared/hooks/useReviewState';
@@ -22,7 +22,7 @@ const CoverLetterApiMode = ({
 }: CoverLetterApiModeProps) => {
   const { data: qnas } = useQnAList(qnaIds);
 
-  const { safePageIndex, setCurrentPageIndex } = useCoverLetterPage(
+  const { safePageIndex, setCurrentPageIndex } = useCoverLetterPagination(
     qnas.length,
   );
   const currentQna = qnas.length > 0 ? qnas[safePageIndex] : undefined;

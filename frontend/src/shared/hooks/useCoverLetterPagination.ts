@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-const useCoverLetterPage = (totalPages: number) => {
+const useCoverLetterPagination = (totalPages: number) => {
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const safePageIndex =
     totalPages > 0
@@ -10,4 +10,4 @@ const useCoverLetterPage = (totalPages: number) => {
   return { safePageIndex, setCurrentPageIndex };
 };
 
-export default useCoverLetterPage;
+export default useCoverLetterPagination;
