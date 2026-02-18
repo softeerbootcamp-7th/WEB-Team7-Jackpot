@@ -1,6 +1,7 @@
 package com.jackpot.narratix.domain.service;
 
 import com.jackpot.narratix.domain.controller.response.CoverLetterAndQnAIdsResponse;
+import com.jackpot.narratix.domain.service.TextDeltaService;
 import com.jackpot.narratix.domain.controller.response.QnAVersionResponse;
 import com.jackpot.narratix.domain.controller.response.ShareLinkActiveResponse;
 import com.jackpot.narratix.domain.entity.CoverLetter;
@@ -31,6 +32,7 @@ public class ShareLinkService {
     private final QnARepository qnARepository;
     private final ShareLinkRepository shareLinkRepository;
     private final ShareLinkLockManager shareLinkLockManager;
+    private final TextDeltaService textDeltaService;
 
     @Transactional
     public ShareLinkActiveResponse updateShareLinkStatus(String userId, Long coverLetterId, boolean active) {
@@ -116,6 +118,10 @@ public class ShareLinkService {
         QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
 
         validateShareLinkAndQnA(shareLink, qnA);
+
+        // 세션 시작 시 1회: Redis 버전 카운터를 QnA.version으로 초기화
+        // 이후 delta push마다 DB 조회 없이 Redis INCR만으로 절대 버전 획득
+        textDeltaService.initDeltaVersion(qnA.getId(), qnA.getVersion());
 
         return QnAVersionResponse.of(qnA);
     }
