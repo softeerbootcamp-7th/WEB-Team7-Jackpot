@@ -1,6 +1,7 @@
 package com.jackpot.narratix.domain.entity;
 
 import com.jackpot.narratix.domain.controller.request.CreateQuestionRequest;
+import com.jackpot.narratix.domain.controller.request.TextUpdateRequest;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
 import com.jackpot.narratix.domain.entity.enums.ReviewRoleType;
 import jakarta.annotation.Nullable;
@@ -11,6 +12,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -75,8 +77,9 @@ public class QnA extends BaseTimeEntity {
         updateModifiedAt(LocalDateTime.now());
     }
 
-    public void incrementVersionBy(int count) {
-        this.version += count;
+    public long incrementVersionBy(List<TextUpdateRequest> deltas) {
+        this.version += deltas.size();
+        return this.version;
     }
 
     public ReviewRoleType determineReviewRole(String userId) {

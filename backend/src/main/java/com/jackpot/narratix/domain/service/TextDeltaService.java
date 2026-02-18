@@ -1,14 +1,18 @@
 package com.jackpot.narratix.domain.service;
 
 import com.jackpot.narratix.domain.controller.request.TextUpdateRequest;
+import com.jackpot.narratix.domain.controller.response.WebSocketMessageResponse;
 import com.jackpot.narratix.domain.entity.QnA;
+import com.jackpot.narratix.domain.entity.enums.WebSocketMessageType;
 import com.jackpot.narratix.domain.repository.QnARepository;
 import com.jackpot.narratix.domain.repository.TextDeltaRedisRepository;
+import com.jackpot.narratix.domain.service.dto.WebSocketTextReplaceAllMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -21,6 +25,7 @@ public class TextDeltaService {
     private final TextDeltaRedisRepository textDeltaRedisRepository;
     private final QnARepository qnARepository;
     private final TextMerger textMerger;
+    private final WebSocketMessageSender webSocketMessageSender;
 
     /**
      * 버전 카운터를 초기화한다
@@ -72,9 +77,59 @@ public class TextDeltaService {
         QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
         String newAnswer = textMerger.merge(qnA.getAnswer(), deltas);
         qnA.editAnswer(newAnswer);
-        qnA.incrementVersionBy(deltas.size());
+        qnA.incrementVersionBy(deltas);
 
         long committedDeltaCount = textDeltaRedisRepository.commit(qnAId);
         log.info("DB flush 완료: qnAId={}, newVersion={}, committed 수={}", qnAId, qnA.getVersion(), committedDeltaCount);
+    }
+
+    /**
+     * saveAndMaybeFlush에서 버전 충돌 발생 시 Writer와 Reviewer의 텍스트 상태를 동기화한다.
+     *
+     * <p>버전 충돌은 Lua 스크립트에서 push가 발생하기 전에 감지되므로 Redis 롤백이 필요 없다.
+     * DB 텍스트와 현재 pending 델타를 병합한 결과를 TEXT_REPLACE_ALL로 양측에 전송한다.</p>
+     */
+    @Transactional(readOnly = true)
+    public void recoverTextReplaceAll(String shareId, Long qnAId) {
+        sendTextReplaceAll(shareId, qnAId);
+    }
+
+    /**
+     * saveAndMaybeFlush에서 push 이후 실제 오류(예: flushToDb 실패) 발생 시 텍스트 상태를 동기화한다.
+     *
+     * <p>push가 완료된 마지막 델타를 Redis에서 롤백한 뒤
+     * DB 텍스트와 나머지 pending 델타를 병합한 결과를 TEXT_REPLACE_ALL로 양측에 전송한다.</p>
+     */
+    @Transactional(readOnly = true)
+    public void recoverTextReplaceAllWithRollback(String shareId, Long qnAId) {
+        try {
+            textDeltaRedisRepository.rollbackLastPush(qnAId);
+        } catch (Exception e) {
+            log.error("rollbackLastPush 실패: qnAId={}", qnAId, e);
+        }
+        sendTextReplaceAll(shareId, qnAId);
+    }
+
+    private void sendTextReplaceAll(String shareId, Long qnAId) {
+        QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
+
+        List<TextUpdateRequest> deltas;
+        try {
+            deltas = textDeltaRedisRepository.getPending(qnAId);
+        } catch (Exception e) {
+            log.error("pending 델타 조회 실패, DB 텍스트로 대체: qnAId={}", qnAId, e);
+            deltas = Collections.emptyList();
+        }
+
+        String newAnswer = textMerger.merge(qnA.getAnswer(), deltas);
+        qnA.editAnswer(newAnswer);
+        long version = qnA.incrementVersionBy(deltas);
+
+        WebSocketTextReplaceAllMessage message = new WebSocketTextReplaceAllMessage(version, newAnswer);
+        WebSocketMessageResponse response = new WebSocketMessageResponse(
+                WebSocketMessageType.TEXT_REPLACE_ALL, qnAId, message);
+
+        log.info("TEXT_REPLACE_ALL 전송: shareId={}, qnAId={}, version={}", shareId, qnAId, version);
+        webSocketMessageSender.sendMessageToShare(shareId, response);
     }
 }
