@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -37,6 +36,7 @@ public class ReviewService {
 
     private final NotificationService notificationService;
     private final ApplicationEventPublisher eventPublisher;
+    private final ShareLinkSessionRegistry shareLinkSessionRegistry;
 
     private final ReviewRepository reviewRepository;
     private final UserRepository userRepository;
@@ -44,22 +44,24 @@ public class ReviewService {
 
     @Transactional
     public void createReview(String reviewerId, Long qnAId, ReviewCreateRequest request) {
+        QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
+        Long coverLetterId = qnA.getCoverLetter().getId();
+        validateWebSocketConnected(reviewerId, coverLetterId, ReviewRoleType.REVIEWER);
 
         // TODO: 버전과 비교해서 리뷰를 달 수 있는지 확인
 
         Review review = reviewRepository.save(request.toEntity(reviewerId, qnAId));
-        QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
 
         // TODO: 본문 텍스트 전체 변경 이벤트 발행
 
-        publishEventWithCoverLetter(qnAId,
-                coverLetterId -> eventPublisher.publishEvent(ReviewCreatedEvent.of(coverLetterId, qnAId, review))
-        );
+        eventPublisher.publishEvent(ReviewCreatedEvent.of(coverLetterId, qnAId, review));
         notificationService.sendFeedbackNotificationToWriter(reviewerId, qnA.getCoverLetter(), qnAId, request.originText());
     }
 
     @Transactional
     public void editReview(String userId, Long qnAId, Long reviewId, ReviewEditRequest request) {
+        Long coverLetterId = qnARepository.getCoverLetterIdByQnAIdOrElseThrow(qnAId);
+        validateWebSocketConnected(userId, coverLetterId, ReviewRoleType.REVIEWER);
         Review review = reviewRepository.findByIdOrElseThrow(reviewId);
 
         validateReviewBelongsToQnA(review, qnAId);
@@ -69,9 +71,7 @@ public class ReviewService {
         review.editComment(request.comment());
         Review updatedReview = reviewRepository.save(review);
 
-        publishEventWithCoverLetter(qnAId,
-            coverLetterId -> eventPublisher.publishEvent(ReviewEditEvent.of(coverLetterId, qnAId, updatedReview))
-        );
+        eventPublisher.publishEvent(ReviewEditEvent.of(coverLetterId, qnAId, updatedReview));
     }
 
     private void validateReviewBelongsToQnA(Review review, Long qnAId) {
@@ -86,12 +86,14 @@ public class ReviewService {
 
     @Transactional
     public void deleteReview(String userId, Long qnAId, Long reviewId) {
+        QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
+        Long coverLetterId = qnA.getCoverLetter().getId();
+        ReviewRoleType role = qnA.determineReviewRole(userId);
+        validateWebSocketConnected(userId, coverLetterId, role);
 
         Optional<Review> reviewOptional = reviewRepository.findById(reviewId);
         if (reviewOptional.isEmpty()) return;
         Review review = reviewOptional.get();
-
-        QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
 
         validateReviewBelongsToQnA(review, qnAId);
         validateIsReviewOwnerOrQnAOwner(userId, review, qnA);
@@ -100,9 +102,7 @@ public class ReviewService {
 
         // TODO: Writer, Reviewer 본문 텍스트 전체 변경 이벤트 발송
 
-        publishEventWithCoverLetter(qnAId,
-            coverLetterId -> eventPublisher.publishEvent(new ReviewDeleteEvent(coverLetterId, qnAId, reviewId))
-        );
+        eventPublisher.publishEvent(new ReviewDeleteEvent(coverLetterId, qnAId, reviewId));
     }
 
     private void validateIsReviewOwnerOrQnAOwner(String userId, Review review, QnA qnA) {
@@ -113,8 +113,11 @@ public class ReviewService {
 
     @Transactional
     public void approveReview(String userId, Long qnAId, Long reviewId) {
-        Review review = reviewRepository.findByIdOrElseThrow(reviewId);
         QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
+        Long coverLetterId = qnA.getCoverLetter().getId();
+        validateWebSocketConnected(userId, coverLetterId, ReviewRoleType.WRITER);
+
+        Review review = reviewRepository.findByIdOrElseThrow(reviewId);
 
         validateReviewBelongsToQnA(review, qnAId);
         validateIsQnAOwner(userId, qnA);
@@ -131,9 +134,13 @@ public class ReviewService {
 
         // TODO: 웹소켓 본문 텍스트 변경 이벤트 발송
 
-        publishEventWithCoverLetter(qnAId,
-            coverLetterId -> eventPublisher.publishEvent(ReviewEditEvent.of(coverLetterId, qnAId, updatedReview))
-        );
+        eventPublisher.publishEvent(ReviewEditEvent.of(coverLetterId, qnAId, updatedReview));
+    }
+
+    private void validateWebSocketConnected(String userId, Long coverLetterId, ReviewRoleType role) {
+        if (!shareLinkSessionRegistry.isConnectedUserInCoverLetter(userId, coverLetterId, role)) {
+            throw new BaseException(GlobalErrorCode.FORBIDDEN);
+        }
     }
 
     private void validateIsQnAOwner(String userId, QnA qnA) {
@@ -142,17 +149,12 @@ public class ReviewService {
         }
     }
 
-    private void publishEventWithCoverLetter(Long qnAId, Consumer<Long> action) {
-        qnARepository.getCoverLetterIdByQnAId(qnAId).ifPresentOrElse(
-            action,
-            () -> log.warn("coverLetterId is empty for qnAId: {}", qnAId)
-        );
-    }
-
     @Transactional(readOnly = true)
     public ReviewsGetResponse getAllReviews(String userId, Long qnAId) {
         QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
+        Long coverLetterId = qnA.getCoverLetter().getId();
         ReviewRoleType role = qnA.determineReviewRole(userId);
+        validateWebSocketConnected(userId, coverLetterId, role);
 
         if (role == ReviewRoleType.WRITER) {
             return getReviewsForWriter(qnAId);

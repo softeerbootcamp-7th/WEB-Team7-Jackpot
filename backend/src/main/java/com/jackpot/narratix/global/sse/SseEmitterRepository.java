@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Component
 public class SseEmitterRepository {
@@ -20,6 +21,23 @@ public class SseEmitterRepository {
     public void save(String userId, String emitterId, SseEmitter emitter) {
         emitters.put(emitterId, emitter);
         userEmitterIds.computeIfAbsent(userId, key -> ConcurrentHashMap.newKeySet()).add(emitterId);
+    }
+
+    public boolean saveIfNotExceedLimit(String userId, String emitterId, SseEmitter emitter, int maxConnections) {
+        AtomicBoolean saved = new AtomicBoolean(false);
+        userEmitterIds.compute(userId, (key, emitterIds) -> {
+            if (emitterIds == null) {
+                emitterIds = ConcurrentHashMap.newKeySet();
+            }
+            if (emitterIds.size() >= maxConnections) {
+                return emitterIds;
+            }
+            emitterIds.add(emitterId);
+            emitters.put(emitterId, emitter);
+            saved.set(true);
+            return emitterIds;
+        });
+        return saved.get();
     }
 
     public void deleteByEmitterId(String userId, String emitterId) {

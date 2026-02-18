@@ -23,31 +23,30 @@ public class SseEmitterService {
     private final SseEmitterRepository sseEmitterRepository;
 
     public SseEmitter init(String userId) {
-        int connectionCount = sseEmitterRepository.countByUserId(userId);
-        if(connectionCount >= MAX_CONNECTIONS_PER_USER) {
+        String emitterId = generateRandomEmitterId();
+        SseEmitter sseEmitter = new SseEmitter(DEFAULT_TIMEOUT);
+
+        // count 확인과 저장을 원자적으로 처리
+        boolean saved = sseEmitterRepository.saveIfNotExceedLimit(userId, emitterId, sseEmitter, MAX_CONNECTIONS_PER_USER);
+        if (!saved) {
             log.warn("Max SSE connections exceeded for user: {}", userId);
             throw new BaseException(SseErrorCode.SSE_CONNECTION_LIMIT_EXCEEDED);
         }
 
-        String emitterId = generateRandomEmitterId();
-        SseEmitter sseEmitter = new SseEmitter(DEFAULT_TIMEOUT);
-        sseEmitterRepository.save(userId, emitterId, sseEmitter);
+        log.info("SSE connected: userId={}, emitterId={}", userId, emitterId);
 
-        log.info("SSE connected: userId={}, emitterId={}, totalConnections={}", userId, emitterId, connectionCount);
-
+        // cleanup은 onCompletion 단일 경로에서만 처리
         sseEmitter.onCompletion(() -> {
             sseEmitterRepository.deleteByEmitterId(userId, emitterId);
             log.info("SSE connection completed: userId={}, emitterId={}", userId, emitterId);
         });
         sseEmitter.onTimeout(() -> {
-            sseEmitterRepository.deleteByEmitterId(userId, emitterId);
-            sseEmitter.complete();
             log.warn("SSE connection timeout: userId={}, emitterId={}", userId, emitterId);
+            sseEmitter.complete();
         });
         sseEmitter.onError(e -> {
-            sseEmitterRepository.deleteByEmitterId(userId, emitterId);
-            sseEmitter.complete();
             log.error("SSE connection error: userId={}, emitterId={}, error={}", userId, emitterId, e.getMessage());
+            sseEmitter.complete();
         });
 
         sendInitialMessage(userId, emitterId, sseEmitter);
@@ -68,7 +67,6 @@ public class SseEmitterService {
             );
         } catch (IOException e) {
             log.warn("SSE send initial event failed: userId={}, emitterId={}, reason={}", userId, emitterId, e.getMessage());
-            sseEmitterRepository.deleteByEmitterId(userId, emitterId);
             sseEmitter.complete();
         }
     }
@@ -85,7 +83,6 @@ public class SseEmitterService {
                 log.info("SSE sent: userId={}, emitterId={}", userId, emitterId);
             } catch (IOException e) {
                 log.warn("Failed to send SSE: userId={}, emitterId={}, error={}", userId, emitterId, e.getMessage());
-                sseEmitterRepository.deleteByEmitterId(userId, emitterId);
                 emitter.complete();
             }
         }
@@ -98,10 +95,11 @@ public class SseEmitterService {
         emitters.forEach((id, emitter) -> {
             try {
                 emitter.send(SseEmitter.event().comment("ping"));
-            } catch (IOException e) {
+            } catch (IOException | IllegalStateException e) {
+                // IOException: 연결이 끊어진 경우
+                // IllegalStateException: emitter가 이미 완료된 경우
                 log.warn("Failed to send ping: emitterId={}", id);
                 sseEmitterRepository.deleteByEmitterId(id);
-                emitter.complete();
             }
         });
     }

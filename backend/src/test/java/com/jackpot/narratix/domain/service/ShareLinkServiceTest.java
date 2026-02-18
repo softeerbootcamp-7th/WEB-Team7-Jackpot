@@ -6,6 +6,7 @@ import com.jackpot.narratix.domain.controller.response.ShareLinkActiveResponse;
 import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.ShareLink;
+import com.jackpot.narratix.domain.entity.enums.ReviewRoleType;
 import com.jackpot.narratix.domain.exception.CoverLetterErrorCode;
 import com.jackpot.narratix.domain.exception.ShareLinkErrorCode;
 import com.jackpot.narratix.domain.repository.CoverLetterRepository;
@@ -46,6 +47,9 @@ class ShareLinkServiceTest {
 
     @Mock
     private TextDeltaService textDeltaService;
+
+    @Mock
+    private ShareLinkSessionRegistry shareLinkSessionRegistry;
 
     @Test
     @DisplayName("첨삭 링크 활성화 시 첨삭 링크가 없다면 새로운 링크 생성")
@@ -266,10 +270,12 @@ class ShareLinkServiceTest {
         QnA mockQnA = mock(QnA.class);
         CoverLetter mockCoverLetter = mock(CoverLetter.class);
 
+        given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(mockQnA);
+        given(mockQnA.determineReviewRole(userId)).willReturn(ReviewRoleType.REVIEWER);
+        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(userId, shareId, ReviewRoleType.REVIEWER)).willReturn(true);
         given(shareLinkRepository.findByShareId(shareId)).willReturn(Optional.of(mockShareLink));
         given(mockShareLink.isValid()).willReturn(true);
         given(mockShareLink.getCoverLetterId()).willReturn(coverLetterId);
-        given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(mockQnA);
         given(mockQnA.getCoverLetter()).willReturn(mockCoverLetter);
         given(mockCoverLetter.getId()).willReturn(coverLetterId);
         given(mockQnA.getId()).willReturn(qnAId);
@@ -296,6 +302,12 @@ class ShareLinkServiceTest {
         String shareId = "invalid-share-id";
         Long qnAId = 1L;
 
+        QnA mockQnA = mock(QnA.class);
+
+        // getQnAWithVersion은 qnA 조회 → WebSocket 검증 → shareLink 검증 순서로 실행된다
+        given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(mockQnA);
+        given(mockQnA.determineReviewRole(userId)).willReturn(ReviewRoleType.REVIEWER);
+        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(userId, shareId, ReviewRoleType.REVIEWER)).willReturn(true);
         given(shareLinkRepository.findByShareId(shareId)).willReturn(Optional.empty());
 
         // when & then
@@ -313,8 +325,12 @@ class ShareLinkServiceTest {
         String shareId = "expired-share-id";
         Long qnAId = 1L;
 
+        QnA mockQnA = mock(QnA.class);
         ShareLink mockShareLink = mock(ShareLink.class);
 
+        given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(mockQnA);
+        given(mockQnA.determineReviewRole(userId)).willReturn(ReviewRoleType.REVIEWER);
+        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(userId, shareId, ReviewRoleType.REVIEWER)).willReturn(true);
         given(shareLinkRepository.findByShareId(shareId)).willReturn(Optional.of(mockShareLink));
         given(mockShareLink.isValid()).willReturn(false);
 
@@ -339,10 +355,12 @@ class ShareLinkServiceTest {
         QnA mockQnA = mock(QnA.class);
         CoverLetter mockCoverLetter = mock(CoverLetter.class);
 
+        given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(mockQnA);
+        given(mockQnA.determineReviewRole(userId)).willReturn(ReviewRoleType.REVIEWER);
+        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(userId, shareId, ReviewRoleType.REVIEWER)).willReturn(true);
         given(shareLinkRepository.findByShareId(shareId)).willReturn(Optional.of(mockShareLink));
         given(mockShareLink.isValid()).willReturn(true);
         given(mockShareLink.getCoverLetterId()).willReturn(shareLinkCoverLetterId);
-        given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(mockQnA);
         given(mockQnA.getCoverLetter()).willReturn(mockCoverLetter);
         given(mockCoverLetter.getId()).willReturn(differentCoverLetterId);
 
@@ -368,6 +386,8 @@ class ShareLinkServiceTest {
         given(mockShareLink.isValid()).willReturn(true);
         given(mockShareLink.getCoverLetterId()).willReturn(coverLetterId);
         given(coverLetterRepository.findByIdOrElseThrow(coverLetterId)).willReturn(mockCoverLetter);
+        given(mockCoverLetter.determineReviewRole(userId)).willReturn(ReviewRoleType.REVIEWER);
+        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(userId, shareId, ReviewRoleType.REVIEWER)).willReturn(true);
         given(mockCoverLetter.getId()).willReturn(coverLetterId);
         given(qnARepository.findIdsByCoverLetterId(coverLetterId)).willReturn(List.of(1L, 2L));
         given(mockCoverLetter.getCompanyName()).willReturn("테스트 기업");
@@ -417,6 +437,56 @@ class ShareLinkServiceTest {
                 .isInstanceOf(BaseException.class)
                 .extracting("errorCode")
                 .isEqualTo(ShareLinkErrorCode.SHARE_LINK_EXPIRED);
+    }
+
+    @Test
+    @DisplayName("getQnAWithVersion: 웹소켓에 연결되어 있지 않으면 FORBIDDEN 에러 발생")
+    void getQnAWithVersion_WhenNotConnectedViaWebSocket_ShouldThrowForbiddenException() {
+        // given
+        String userId = "testUser";
+        String shareId = "valid-share-id";
+        Long qnAId = 1L;
+
+        QnA mockQnA = mock(QnA.class);
+
+        given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(mockQnA);
+        given(mockQnA.determineReviewRole(userId)).willReturn(ReviewRoleType.REVIEWER);
+        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(userId, shareId, ReviewRoleType.REVIEWER)).willReturn(false);
+
+        // when & then
+        assertThatThrownBy(() -> shareLinkService.getQnAWithVersion(userId, shareId, qnAId))
+                .isInstanceOf(BaseException.class)
+                .extracting("errorCode")
+                .isEqualTo(GlobalErrorCode.FORBIDDEN);
+
+        verify(shareLinkRepository, never()).findByShareId(any());
+    }
+
+    @Test
+    @DisplayName("getCoverLetterAndQnAIds: 웹소켓에 연결되어 있지 않으면 FORBIDDEN 에러 발생")
+    void getCoverLetterAndQnAIds_WhenNotConnectedViaWebSocket_ShouldThrowForbiddenException() {
+        // given
+        String userId = "testUser";
+        String shareId = "valid-share-id";
+        Long coverLetterId = 10L;
+
+        ShareLink mockShareLink = mock(ShareLink.class);
+        CoverLetter mockCoverLetter = mock(CoverLetter.class);
+
+        given(shareLinkRepository.findByShareId(shareId)).willReturn(Optional.of(mockShareLink));
+        given(mockShareLink.isValid()).willReturn(true);
+        given(mockShareLink.getCoverLetterId()).willReturn(coverLetterId);
+        given(coverLetterRepository.findByIdOrElseThrow(coverLetterId)).willReturn(mockCoverLetter);
+        given(mockCoverLetter.determineReviewRole(userId)).willReturn(ReviewRoleType.REVIEWER);
+        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(userId, shareId, ReviewRoleType.REVIEWER)).willReturn(false);
+
+        // when & then
+        assertThatThrownBy(() -> shareLinkService.getCoverLetterAndQnAIds(userId, shareId))
+                .isInstanceOf(BaseException.class)
+                .extracting("errorCode")
+                .isEqualTo(GlobalErrorCode.FORBIDDEN);
+
+        verify(qnARepository, never()).findIdsByCoverLetterId(any());
     }
 
     @Test

@@ -13,8 +13,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Component
@@ -22,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ShareLinkLockManager {
 
     private final StringRedisTemplate redisTemplate;
+    private final ShareLinkSessionRegistry sessionRegistry;
 
     private static final long LOCK_TIMEOUT = 10L; // 10초
     private static final String LOCK_FORMAT = "share-link:lock:%s:%s";
@@ -52,14 +51,6 @@ public class ShareLinkLockManager {
 
     private static final int NUM_KEYS = 1;
 
-    private record LockEntry(String lockKey, String userId) {}
-
-    // key: sessionId, value: LockEntry(lockKey, userId)
-    private final Map<String, LockEntry> sessionLocks = new ConcurrentHashMap<>();
-
-    // key: lockKey, value: sessionId (소유권 검증용)
-    private final Map<String, String> lockOwners = new ConcurrentHashMap<>();
-
     public boolean tryLock(String sessionId, String shareId, ReviewRoleType role, String userId) {
         String lockKey = getLockKey(shareId, role);
 
@@ -67,8 +58,7 @@ public class ShareLinkLockManager {
                 .setIfAbsent(lockKey, sessionId, Duration.ofSeconds(LOCK_TIMEOUT));
 
         if (Boolean.TRUE.equals(success)) {
-            sessionLocks.put(sessionId, new LockEntry(lockKey, userId));
-            lockOwners.put(lockKey, sessionId);
+            sessionRegistry.register(sessionId, lockKey, userId);
             log.info("Lock acquired: sessionId={}, shareId={}, role={}, userId={}", sessionId, shareId, role, userId);
         }
 
@@ -80,21 +70,14 @@ public class ShareLinkLockManager {
      * 락 값이 sessionId이므로 GET 없이 Lua Script 단일 호출로 원자적 해제
      */
     public void unlock(String sessionId) {
-        LockEntry entry = sessionLocks.remove(sessionId);
+        ShareLinkSessionRegistry.SessionEntry entry = sessionRegistry.unregister(sessionId);
         if (entry == null) {
             log.warn("No lock found for session: sessionId={}", sessionId);
             return;
         }
 
-        lockOwners.remove(entry.lockKey(), sessionId);
         redisTemplate.execute(UNLOCK_REDIS_SCRIPT, List.of(entry.lockKey()), sessionId);
         log.info("Lock released: sessionId={}, lockKey={}", sessionId, entry.lockKey());
-    }
-
-    public Optional<String> getConnectedUserId(String shareId, ReviewRoleType role) {
-        String ownerSessionId = lockOwners.get(getLockKey(shareId, role));
-        if (ownerSessionId == null) return Optional.empty();
-        return Optional.ofNullable(sessionLocks.get(ownerSessionId)).map(LockEntry::userId);
     }
 
     /**
@@ -102,13 +85,13 @@ public class ShareLinkLockManager {
      * Pipeline + Lua Script로 단일 네트워크 IO에 소유권 검증 후 TTL 갱신
      */
     public void renewAllLocks() {
-        if (sessionLocks.isEmpty()) return;
+        if (sessionRegistry.isEmpty()) return;
 
         // 순서 보존을 위해 엔트리 스냅샷 생성
-        List<Map.Entry<String, LockEntry>> entries = List.copyOf(sessionLocks.entrySet());
+        List<Map.Entry<String, ShareLinkSessionRegistry.SessionEntry>> entries = sessionRegistry.getAllEntries();
 
         List<Object> results = redisTemplate.executePipelined((RedisCallback<Object>) connection -> {
-            for (Map.Entry<String, LockEntry> entry : entries) {
+            for (Map.Entry<String, ShareLinkSessionRegistry.SessionEntry> entry : entries) {
                 connection.scriptingCommands().eval(
                         RENEW_SCRIPT_BYTES,
                         ReturnType.INTEGER,
@@ -125,18 +108,15 @@ public class ShareLinkLockManager {
         for (int i = 0; i < entries.size(); i++) {
             Long result = (Long) results.get(i);
             if (result == null || result == 0L) {
-                Map.Entry<String, LockEntry> entry = entries.get(i);
-                String sessionId = entry.getKey();
-                LockEntry lockEntry = entry.getValue();
-                sessionLocks.remove(sessionId, lockEntry);
-                lockOwners.remove(lockEntry.lockKey(), sessionId);
-                log.warn("Lock renewal failed, cleaned up: sessionId={}, lockKey={}", sessionId, lockEntry.lockKey());
+                Map.Entry<String, ShareLinkSessionRegistry.SessionEntry> entry = entries.get(i);
+                sessionRegistry.cleanUp(entry.getKey(), entry.getValue());
+                log.warn("Lock renewal failed, cleaned up: sessionId={}, lockKey={}", entry.getKey(), entry.getValue().lockKey());
             }
         }
-        log.debug("Lock TTLs renewed for {} sessions via pipeline", sessionLocks.size());
+        log.debug("Lock TTLs renewed for {} sessions via pipeline", entries.size());
     }
 
-    private String getLockKey(String shareId, ReviewRoleType role) {
+    static String getLockKey(String shareId, ReviewRoleType role) {
         return LOCK_FORMAT.formatted(shareId, role);
     }
 }

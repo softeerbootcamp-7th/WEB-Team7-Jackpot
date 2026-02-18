@@ -1,7 +1,6 @@
 package com.jackpot.narratix.domain.service;
 
 import com.jackpot.narratix.domain.controller.response.CoverLetterAndQnAIdsResponse;
-import com.jackpot.narratix.domain.service.TextDeltaService;
 import com.jackpot.narratix.domain.controller.response.QnAVersionResponse;
 import com.jackpot.narratix.domain.controller.response.ShareLinkActiveResponse;
 import com.jackpot.narratix.domain.entity.CoverLetter;
@@ -32,6 +31,7 @@ public class ShareLinkService {
     private final QnARepository qnARepository;
     private final ShareLinkRepository shareLinkRepository;
     private final ShareLinkLockManager shareLinkLockManager;
+    private final ShareLinkSessionRegistry shareLinkSessionRegistry;
     private final TextDeltaService textDeltaService;
 
     @Transactional
@@ -76,9 +76,8 @@ public class ShareLinkService {
     @Transactional(readOnly = true)
     public ShareLinkActiveResponse getShareLinkStatus(String userId, Long coverLetterId) {
         validateCoverLetterOwnership(userId, coverLetterId);
-        Optional<ShareLink> shareLinkOptional = shareLinkRepository.findById(coverLetterId);
-
-        return shareLinkOptional.map(ShareLinkActiveResponse::of)
+        return shareLinkRepository.findById(coverLetterId)
+                .map(ShareLinkActiveResponse::of)
                 .orElseGet(ShareLinkActiveResponse::deactivate);
     }
 
@@ -112,11 +111,11 @@ public class ShareLinkService {
 
     @Transactional(readOnly = true)
     public QnAVersionResponse getQnAWithVersion(String userId, String shareId, Long qnAId) {
-        // TODO: userId로 Writer 또는 Reviewer인지 검증해야 함
+        QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
+        ReviewRoleType role = qnA.determineReviewRole(userId);
+        validateWebSocketConnected(userId, shareId, role);
 
         ShareLink shareLink = findValidShareLink(shareId);
-        QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
-
         validateShareLinkAndQnA(shareLink, qnA);
 
         // 세션 시작 시 1회: Redis 버전 카운터를 QnA.version으로 초기화
@@ -135,14 +134,23 @@ public class ShareLinkService {
 
     @Transactional(readOnly = true)
     public CoverLetterAndQnAIdsResponse getCoverLetterAndQnAIds(String userId, String shareId) {
-        // TODO: userId로 Writer 또는 Reviewer인지 검증해야 함
-
         ShareLink shareLink = findValidShareLink(shareId);
         CoverLetter coverLetter = coverLetterRepository.findByIdOrElseThrow(shareLink.getCoverLetterId());
+        ReviewRoleType role = coverLetter.determineReviewRole(userId);
+
+        validateWebSocketConnected(userId, shareId, role);
+
         List<Long> qnAIds = qnARepository.findIdsByCoverLetterId(coverLetter.getId());
 
         return CoverLetterAndQnAIdsResponse.of(coverLetter, qnAIds);
     }
+
+    private void validateWebSocketConnected(String userId, String shareId, ReviewRoleType role) {
+        if (!shareLinkSessionRegistry.isConnectedUserInCoverLetter(userId, shareId, role)) {
+            throw new BaseException(GlobalErrorCode.FORBIDDEN);
+        }
+    }
+
 
     private ShareLink findValidShareLink(String shareId) {
         ShareLink shareLink = shareLinkRepository.findByShareId(shareId)

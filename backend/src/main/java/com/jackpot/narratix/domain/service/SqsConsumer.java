@@ -14,19 +14,19 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SqsConsumer {
 
-    private final FileProcessService fileProcessService;
+    private final FileProcessFacade fileProcessFacade;
 
     @SqsListener(value = "${sqs.queue.name}", factory = "sqsMessageListenerContainerFactory")
     public void consume(FileProcessResult message) {
-        log.info("SQS Message Received. FileID: {}, Status: {}", message.fileId(), message.status());
+        log.info("SQS Message Received. FileID: {}", message.fileId());
 
         try {
             if (message.status() == UploadStatus.FAILED) {
-                fileProcessService.processFailedFile(message.fileId(), message.errorMessage());
+                fileProcessFacade.processFailedFile(message.fileId(), message.errorMessage());
                 return;
             }
 
-            fileProcessService.processUploadedFile(message.fileId(), message.extractedText());
+            fileProcessFacade.processUploadedFile(message.fileId(), message.extractedText());
 
         } catch (Exception e) {
             log.error("Error processing SQS message for fileId: {}", message.fileId(), e);
