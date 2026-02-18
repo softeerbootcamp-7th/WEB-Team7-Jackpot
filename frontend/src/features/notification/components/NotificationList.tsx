@@ -16,6 +16,7 @@ const NotificationList = ({ handleDropdown }: NotificationListProps) => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isLoading,
   } = useGetAllNotification();
   const { mutateAsync: readEachNotification } = useReadEachNotification();
   const { targetRef } = useScrollTouchEndObserver({
@@ -23,7 +24,32 @@ const NotificationList = ({ handleDropdown }: NotificationListProps) => {
     onIntersect: () => fetchNextPage(),
   });
 
+  if (isLoading) {
+    return (
+      <div className='flex h-40 items-center justify-center text-gray-400'>
+        로딩 중...
+      </div>
+    );
+  }
+
   if (!notificationListData) return null;
+
+  const isEmpty = notificationListData.pages[0]?.notifications.length === 0;
+
+  if (isEmpty) {
+    return (
+      <div className='flex h-60 w-full flex-col items-center justify-center gap-4 text-center'>
+        <div className='flex flex-col gap-1'>
+          <span className='text-body-m font-medium text-gray-600'>
+            새로운 알림이 없습니다.
+          </span>
+          <span className='text-caption-m text-gray-400'>
+            새 소식이 도착하면 알려드릴게요!
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
