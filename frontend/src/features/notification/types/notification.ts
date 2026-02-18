@@ -37,3 +37,7 @@ export interface NotificationResponse {
   notifications: NotificationType[];
   hasNext: boolean;
 }
+
+export interface NotificationCountResponse {
+  unreadNotificationCount: number;
+}

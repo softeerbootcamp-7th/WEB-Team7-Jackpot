@@ -8,6 +8,7 @@ import {
 
 import { getAccessToken } from '@/features/auth/libs/tokenStore';
 import type {
+  NotificationCountResponse,
   NotificationResponse,
   NotificationType,
 } from '@/features/notification/types/notification';
@@ -45,6 +46,7 @@ export const useGetNotificationCount = () => {
     queryFn: () => apiClient.get({ endpoint: '/notification/count' }),
     staleTime: 0,
     enabled: !!getAccessToken(),
+    select: (data: NotificationCountResponse) => data.unreadNotificationCount,
   });
 };
 
