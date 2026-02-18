@@ -4,8 +4,7 @@ import PageGlobalHeader from '@/shared/components/PageGlobalHeader';
 import { useSSE } from '@/shared/hooks/useSSE';
 
 const RootLayout = () => {
-  useSSE();
-
+  useSSE()
   return (
     <div>
       <PageGlobalHeader />
