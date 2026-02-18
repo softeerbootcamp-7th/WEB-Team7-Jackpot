@@ -17,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
 import java.util.Objects;
@@ -72,7 +74,15 @@ public class ShareLinkService {
         shareLinkRepository.findById(coverLetterId).ifPresent(ShareLink::deactivate);
         List<Long> qnAIds = qnARepository.findIdsByCoverLetterId(coverLetterId);
         qnAIds.forEach(textDeltaService::flushToDb);     // pending 델타를 DB에 저장 후
-        qnAIds.forEach(textDeltaService::cleanupDeltaKeys); // Redis 키 정리
+
+        // Redis 델타 키를 트랜잭션 커밋 후에 삭제해 세션 중 데이터 유실 방지
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                qnAIds.forEach(textDeltaService::cleanupDeltaKeys);
+            }
+        });
+
         return ShareLinkActiveResponse.deactivate();
     }
 
