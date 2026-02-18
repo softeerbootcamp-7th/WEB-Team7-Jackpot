@@ -5,10 +5,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 
 public record TextUpdateRequest(
-        @NotNull(message = "버전 정보는 필수입니다.")
-        @PositiveOrZero(message = "버전은 0 이상이어야 합니다.")
-        Long version,
-
         @NotNull(message = "시작 인덱스는 필수입니다.")
         @PositiveOrZero(message = "시작 인덱스는 0 이상이어야 합니다.")
         Integer startIdx,
