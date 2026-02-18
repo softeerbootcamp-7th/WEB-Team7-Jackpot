@@ -168,7 +168,7 @@ public class TextDeltaService {
      * <p>버전 충돌은 Lua 스크립트에서 push가 발생하기 전에 감지되므로 Redis 롤백이 필요 없다.
      * DB 텍스트와 현재 pending 델타를 병합한 결과를 TEXT_REPLACE_ALL로 양측에 전송한다.</p>
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public void recoverTextReplaceAll(String shareId, Long qnAId) {
         sendTextReplaceAll(shareId, qnAId);
     }
@@ -179,7 +179,7 @@ public class TextDeltaService {
      * <p>push가 완료된 마지막 델타를 Redis에서 롤백한 뒤
      * DB 텍스트와 나머지 pending 델타를 병합한 결과를 TEXT_REPLACE_ALL로 양측에 전송한다.</p>
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public void recoverTextReplaceAllWithRollback(String shareId, Long qnAId) {
         try {
             textDeltaRedisRepository.rollbackLastPush(qnAId);
