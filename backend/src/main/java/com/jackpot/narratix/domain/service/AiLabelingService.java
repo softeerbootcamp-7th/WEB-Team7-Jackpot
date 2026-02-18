@@ -81,9 +81,9 @@ public class AiLabelingService {
             return restClient.post()
                     .uri(uriBuilder -> uriBuilder
                             .path(modelPath)
-                            .queryParam("key", apiKey)
                             .build())
                     .contentType(MediaType.APPLICATION_JSON)
+                    .header("x-goog-api-key", apiKey)
                     .body(requestBody)
                     .retrieve()
                     .onStatus(HttpStatusCode::is4xxClientError, (req, res) -> {
@@ -106,7 +106,7 @@ public class AiLabelingService {
         String rawText = response.extractText();
 
         if (rawText == null || rawText.isBlank()) {
-            throw new AiLabelingException("AI labeling response is null.");
+            throw new AiLabelingException("AI labeling response is null or blank.");
         }
 
         return rawText.trim();
@@ -125,7 +125,7 @@ public class AiLabelingService {
         int end = text.lastIndexOf(']');
 
         if (start == -1 || end == -1 || start >= end) {
-            throw new AiLabelingException("AI labeling response text is empty.");
+            throw new AiLabelingException("AI labeling response does not contain a valid JSON array.");
         }
 
         return text.substring(start, end + 1).trim();

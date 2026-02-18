@@ -18,9 +18,9 @@ public class FileProcessService {
     }
 
     @Transactional
-    public void saveExtractFail(UploadFile file, String errorMassage) {
+    public void saveExtractFail(UploadFile file, String errorMessage) {
         file.failExtract();
-        log.info("Extract fail saved. FileId = {} , error : {}", file.getId(), errorMassage);
+        log.warn("Extract fail saved. FileId = {} , error : {}", file.getId(), errorMessage);
     }
 
     @Transactional
@@ -32,6 +32,6 @@ public class FileProcessService {
     @Transactional
     public void saveLabelingFail(UploadFile file) {
         file.failLabeling();
-        log.error("AI Labeling Fail saved. FileID: {}", file.getId());
+        log.warn("AI Labeling Fail saved. FileID: {}", file.getId());
     }
 }

@@ -40,7 +40,7 @@ class FileProcessServiceTest {
     }
 
     @Test
-    @DisplayName("파일 ai 라벨링 성공 : ploadFile.successLabeling() 호출")
+    @DisplayName("파일 ai 라벨링 성공 : UploadFile.successLabeling() 호출")
     void saveLabelingSuccess_callsSuccessLabeling() {
 
         UploadFile file = mock(UploadFile.class);

@@ -29,6 +29,7 @@ public class FileProcessFacade {
             String labelingJsonResult = aiLabelingService.generateLabelingJson(extractedText);
             fileProcessService.saveLabelingSuccess(file, labelingJsonResult);
         } catch (Exception e) {
+            log.warn("AI labeling failed. fileId={}, error={}", fileId, e.getMessage(), e);
             fileProcessService.saveLabelingFail(file);
         }
     }

@@ -7,7 +7,7 @@
       "question": "질문 내용",
       "answer": "답변 내용 전체",
       "questionCategory": "카테고리_ENUM_KEY"
-    },
+    }
 ]
 
 

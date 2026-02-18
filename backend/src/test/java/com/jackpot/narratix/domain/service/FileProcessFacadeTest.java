@@ -34,7 +34,7 @@ class FileProcessFacadeTest {
         // given
         String fileId = "file-1";
         String extractedText = "자기소개서 내용입니다.";
-        String labelingJson = "{}";
+        String labelingJson = "[]";
 
         UploadFile file = mock(UploadFile.class);
 
