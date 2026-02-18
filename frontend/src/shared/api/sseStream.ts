@@ -2,7 +2,7 @@ import { apiClient } from '@/shared/api/apiClient';
 
 export const sseStream = {
   connect: async (signal: AbortSignal): Promise<Response> => {
-    return (await apiClient.get({
+    return (await apiClient.get<Response>({
       endpoint: '/sse/connect',
       // 원본 Response 객체 반환
       isStream: true,

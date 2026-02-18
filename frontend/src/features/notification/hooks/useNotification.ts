@@ -19,7 +19,7 @@ export const useGetAllNotification = () => {
   return useInfiniteQuery({
     queryKey: ['notificationList'],
     queryFn: ({ pageParam }) =>
-      apiClient.get({
+      apiClient.get<NotificationResponse>({
         endpoint: '/notification/all',
         params: {
           size: 10,
@@ -43,7 +43,7 @@ export const useGetAllNotification = () => {
 export const useGetNotificationCount = () => {
   return useQuery({
     queryKey: ['notificationCount'],
-    queryFn: () => apiClient.get({ endpoint: '/notification/count' }),
+    queryFn: () => apiClient.get<NotificationCountResponse>({ endpoint: '/notification/count' }),
     staleTime: 0,
     enabled: !!getAccessToken(),
     select: (data: NotificationCountResponse) => data.unreadNotificationCount,

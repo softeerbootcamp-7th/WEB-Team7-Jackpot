@@ -6,7 +6,7 @@ import { apiClient } from '@/shared/api/apiClient';
 export const useGetNickname = (enabled: boolean) => {
   return useQuery<UserInfoType>({
     queryKey: ['userInfo', 'nickname'],
-    queryFn: () => apiClient.get({ endpoint: '/user/nickname' }),
+    queryFn: () => apiClient.get<UserInfoType>({ endpoint: '/user/nickname' }),
     staleTime: Infinity,
     gcTime: Infinity,
     enabled: enabled,

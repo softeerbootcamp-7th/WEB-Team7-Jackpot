@@ -41,7 +41,7 @@ export const useLogin = () => {
 
   return useMutation({
     mutationFn: async (userData: LoginRequest) => {
-      const data: AuthResponse = await apiClient.post({
+      const data = await apiClient.post<AuthResponse>({
         endpoint: '/auth/login',
         body: userData,
         options: {
@@ -70,7 +70,7 @@ export const useLogin = () => {
 export const useRefresh = () => {
   return useMutation({
     mutationFn: async () => {
-      const data: AuthResponse = await apiClient.post({
+      const data = await apiClient.post<AuthResponse>({
         endpoint: '/auth/refresh',
         options: {
           credentials: 'include',
