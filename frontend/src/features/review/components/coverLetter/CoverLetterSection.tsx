@@ -105,7 +105,6 @@ const CoverLetterSection = ({
         },
       );
     }
-    onSelectionChange(null);
   };
 
   const handleCancel = () => {

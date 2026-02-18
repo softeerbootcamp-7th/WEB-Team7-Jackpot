@@ -57,6 +57,7 @@ const ReviewLayout = () => {
     );
   }
 
+  // !currentQna: 실제로는 위 qnAIds.length === 0 가드에서 걸리지만, TypeScript 타입 좁힘을 위해 필요
   if (isQnALoading || !currentQna) {
     return (
       <div className='flex flex-1 items-center justify-center'>
