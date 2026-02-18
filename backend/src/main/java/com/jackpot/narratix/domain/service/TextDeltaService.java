@@ -99,34 +99,29 @@ public class TextDeltaService {
                 .filter(d -> d.version() >= dbVersion)
                 .toList();
 
-        if (applicableDeltas.isEmpty()) {
-            log.warn("모든 pending 델타가 이미 DB에 반영된 dirty 데이터: qnAId={}, dbVersion={}", qnAId, dbVersion);
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    clearPendingSilently(qnAId);
-                }
-            });
-            return;
-        }
+        // getPending()으로 읽은 항목 수를 commit()에 전달해 그 이후 유입된 델타를 보존한다.
+        long readCount = deltas.size();
 
         String newAnswer = textMerger.merge(qnA.getAnswer(), applicableDeltas);
         qnA.editAnswer(newAnswer);
         qnA.incrementVersionBy(applicableDeltas);
-        long newVersion = qnA.getVersion();
 
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                try {
-                    long committedDeltaCount = textDeltaRedisRepository.commit(qnAId);
-                    log.info("DB flush 완료: qnAId={}, newVersion={}, committed 수={}", qnAId, newVersion, committedDeltaCount);
-                } catch (Exception e) {
-                    log.error("Redis commit 실패 (DB는 이미 커밋됨), pending 강제 삭제 시도: qnAId={}", qnAId, e);
-                    clearPendingSilently(qnAId);
-                }
+                commitSilently(qnAId, readCount);
             }
         });
+    }
+
+    private void commitSilently(Long qnAId, long readCount) {
+        try {
+            long committedDeltaCount = textDeltaRedisRepository.commit(qnAId, readCount);
+            log.info("DB flush 완료: qnAId={}, committed 수={}", qnAId, committedDeltaCount);
+        } catch (Exception e) {
+            log.error("Redis commit 실패 (DB는 이미 커밋됨), pending 강제 삭제 시도: qnAId={}", qnAId, e);
+            clearPendingSilently(qnAId);
+        }
     }
 
     private void clearPendingSilently(Long qnAId) {
