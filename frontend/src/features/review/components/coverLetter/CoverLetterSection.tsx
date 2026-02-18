@@ -86,11 +86,10 @@ const CoverLetterSection = ({
         },
       );
     } else {
-      // TODO: WebSocket REVIEW_CREATED 이벤트로 서버 데이터(실제 reviewId 포함)가 수신되면 화면에 표시됨.
       // 로컬 상태를 직접 추가하지 않고 API 호출만 수행.
       createReview(
         {
-          version: 0,
+          version: 0, // TODO: WebSocket TEXT_UPDATE 이벤트의 version 필드로 실제 문서 버전 추적 후 교체
           startIdx: selection.range.start,
           endIdx: selection.range.end,
           originText: selection.selectedText,
