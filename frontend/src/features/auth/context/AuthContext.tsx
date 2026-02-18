@@ -29,8 +29,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         isAuthenticated,
         userInfo,
         isLoading,
-        login: login,
-        logout: logout,
+        login,
+        logout,
       }}
     >
       {children}
