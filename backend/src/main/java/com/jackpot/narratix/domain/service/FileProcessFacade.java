@@ -23,17 +23,22 @@ public class FileProcessFacade {
             return;
         }
 
-        fileProcessService.saveExtractSuccess(fileId, extractedText);
+        fileProcessService.saveExtractSuccess(file, extractedText);
 
         try {
             String labelingJsonResult = aiLabelingService.generateLabelingJson(extractedText);
-            fileProcessService.saveLabelingSuccess(fileId, labelingJsonResult);
+            fileProcessService.saveLabelingSuccess(file, labelingJsonResult);
         } catch (Exception e) {
-            fileProcessService.saveLabelingFail(fileId);
+            fileProcessService.saveLabelingFail(file);
         }
     }
 
     public void processFailedFile(String fileId, String errorMessage) {
-        fileProcessService.saveExtractFail(fileId, errorMessage);
+        UploadFile file = uploadFileRepository.findById(fileId).orElse(null);
+        if (file == null) {
+            log.warn("File not found. skip. fileId={}", fileId);
+            return;
+        }
+        fileProcessService.saveExtractFail(file, errorMessage);
     }
 }

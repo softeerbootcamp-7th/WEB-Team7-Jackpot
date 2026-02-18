@@ -1,7 +1,6 @@
 package com.jackpot.narratix.domain.service;
 
 import com.jackpot.narratix.domain.entity.UploadFile;
-import com.jackpot.narratix.domain.repository.UploadFileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -12,45 +11,27 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class FileProcessService {
 
-    private final UploadFileRepository uploadFileRepository;
-
     @Transactional
-    public void saveExtractSuccess(String fileId, String extractedText) {
-        UploadFile file = uploadFileRepository.findById(fileId).orElse(null);
-
-        if (file == null) return;
-
+    public void saveExtractSuccess(UploadFile file, String extractedText) {
         file.successExtract(extractedText);
-        log.info("Extract success saved. FileId = {}", fileId);
+        log.info("Extract success saved. FileId = {}", file.getId());
     }
 
     @Transactional
-    public void saveExtractFail(String fileId, String errorMassage) {
-        UploadFile file = uploadFileRepository.findById(fileId).orElse(null);
-
-        if (file == null) return;
-
+    public void saveExtractFail(UploadFile file, String errorMassage) {
         file.failExtract();
-        log.info("Extract fail saved. FileId = {} , error : {}", fileId, errorMassage);
+        log.info("Extract fail saved. FileId = {} , error : {}", file.getId(), errorMassage);
     }
 
     @Transactional
-    public void saveLabelingSuccess(String fileId, String labelingJson) {
-        UploadFile file = uploadFileRepository.findById(fileId).orElse(null);
-
-        if (file == null) return;
-
+    public void saveLabelingSuccess(UploadFile file, String labelingJson) {
         file.successLabeling(labelingJson);
-        log.info("AI Labeling success saved. FileID: {}", fileId);
+        log.info("AI Labeling success saved. FileID: {}", file.getId());
     }
 
     @Transactional
-    public void saveLabelingFail(String fileId) {
-        UploadFile file = uploadFileRepository.findById(fileId).orElse(null);
-
-        if (file == null) return;
-
+    public void saveLabelingFail(UploadFile file) {
         file.failLabeling();
-        log.error("AI Labeling Fail saved. FileID: {}", fileId);
+        log.error("AI Labeling Fail saved. FileID: {}", file.getId());
     }
 }
