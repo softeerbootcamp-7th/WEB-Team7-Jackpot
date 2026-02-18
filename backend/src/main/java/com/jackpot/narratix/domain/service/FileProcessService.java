@@ -1,6 +1,6 @@
 package com.jackpot.narratix.domain.service;
 
-import com.jackpot.narratix.domain.repository.UploadFileRepository;
+import com.jackpot.narratix.domain.entity.UploadFile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -11,28 +11,27 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class FileProcessService {
 
-    private final UploadFileRepository uploadFileRepository;
-
     @Transactional
-    public void processUploadedFile(String fileId, String extractedText) {
-
-        uploadFileRepository.findById(fileId).ifPresentOrElse(
-                file -> {
-                    file.successExtract(extractedText);
-                    log.info("File processing completed. FileID: {}", fileId);
-                },
-                () -> log.error("Error: File not found for ID: {}. Skipping process.", fileId)
-        );
+    public void saveExtractSuccess(UploadFile file, String extractedText) {
+        file.successExtract(extractedText);
+        log.info("Extract success saved. FileId = {}", file.getId());
     }
 
     @Transactional
-    public void processFailedFile(String fileId, String errorMessage) {
-        uploadFileRepository.findById(fileId).ifPresentOrElse(
-                file -> {
-                    file.failExtract();
-                    log.info("File processing failed. FileID: {}, Reason: {}", fileId, errorMessage);
-                },
-                () -> log.error("Error: File not found for ID: {}. Skipping process.", fileId)
-        );
+    public void saveExtractFail(UploadFile file, String errorMessage) {
+        file.failExtract();
+        log.warn("Extract fail saved. FileId = {} , error : {}", file.getId(), errorMessage);
+    }
+
+    @Transactional
+    public void saveLabelingSuccess(UploadFile file, String labelingJson) {
+        file.successLabeling(labelingJson);
+        log.info("AI Labeling success saved. FileID: {}", file.getId());
+    }
+
+    @Transactional
+    public void saveLabelingFail(UploadFile file) {
+        file.failLabeling();
+        log.warn("AI Labeling Fail saved. FileID: {}", file.getId());
     }
 }
