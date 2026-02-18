@@ -60,7 +60,7 @@ public class QnA extends BaseTimeEntity {
         return qna;
     }
 
-    public boolean isOwner(String userId){
+    public boolean isOwner(String userId) {
         return Objects.equals(this.userId, userId);
     }
 
@@ -76,6 +76,9 @@ public class QnA extends BaseTimeEntity {
     }
 
     public long incrementVersionBy(int deltaCount) {
+        if (deltaCount <= 0) {
+            throw new IllegalArgumentException("deltaCount는 양수여야 합니다: " + deltaCount);
+        }
         this.version += deltaCount;
         return this.version;
     }
