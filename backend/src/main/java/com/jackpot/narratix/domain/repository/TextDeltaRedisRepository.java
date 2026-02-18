@@ -12,6 +12,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Repository;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 
@@ -37,11 +38,18 @@ public class TextDeltaRedisRepository {
 
     static final int MAX_COMMITTED_SIZE = 100;
 
+    /** 세션 비정상 종료 등으로 cleanup이 실행되지 않을 경우를 대비한 키 만료 시간 */
+    static final Duration KEY_TTL = Duration.ofDays(14);
+    private static final long KEY_TTL_SECONDS = KEY_TTL.getSeconds();
+
     /**
      * 버전 검증 + RPUSH(pending) + INCR(version) 원자적 실행 Lua 스크립트.
      *
      * <p>ARGV[2](클라이언트 예상 버전)가 현재 카운터와 일치할 때만 push를 수행한다.
      * 불일치 시 RPUSH/INCR 없이 -1을 반환해 버전 충돌을 알린다.</p>
+     *
+     * pending 키 TTL은 각 배치의 첫 push 시 {@link #refreshPendingTtl}로 1회 설정되고,
+     * flush(pending 삭제) 후 다음 첫 push 때 재설정된다.</p>
      *
      * KEYS: [pendingKey, versionKey]
      * ARGV: [deltaJson, expectedVersion]
@@ -61,9 +69,12 @@ public class TextDeltaRedisRepository {
 
     /**
      * pending → committed 원자적 이동 Lua 스크립트.
-     * LRANGE pending → RPUSH committed → LTRIM(>MAX) → DEL pending
+     * LRANGE pending → RPUSH committed → LTRIM(>MAX) → EXPIRE committed → DEL pending
      * 반환값: 이동한 델타 수
      * 자세한 설명은 <a href="https://www.notion.so/jackpot-narratix/Server-OT-Flow-30b14885339b8096a06dcf3a9805ad4e#30b14885339b80ac96fff934e91160c2">COMMIT_SCRIPT Description</a> 참조
+     *
+     * KEYS: [pendingKey, committedKey]
+     * ARGV: [maxCommittedSize, ttlSeconds]
      */
     private static final String COMMIT_SCRIPT = """
             local items = redis.call('lrange', KEYS[1], 0, -1)
@@ -75,6 +86,7 @@ public class TextDeltaRedisRepository {
             if committed_size > max then
                 redis.call('ltrim', KEYS[2], committed_size - max, -1)
             end
+            redis.call('expire', KEYS[2], ARGV[2])
             redis.call('del', KEYS[1])
             return #items
             """;
@@ -109,10 +121,10 @@ public class TextDeltaRedisRepository {
     
     /**
      * 버전 카운터를 {@code dbVersion}으로 초기화한다 (키가 없을 때만 설정).
-     * 세션 시작 시 {@code QnA.version}을 전달해 1회 초기화하며, 이후 push마다 INCR만 수행한다.
+     * 세션 시작 시 {@code QnA.version}을 전달해 1회 초기화하며, 이후 push마다 INCR + TTL 갱신이 수행된다.
      */
     public void initVersionIfAbsent(Long qnAId, Long dbVersion) {
-        redisTemplate.opsForValue().setIfAbsent(versionKey(qnAId), String.valueOf(dbVersion));
+        redisTemplate.opsForValue().setIfAbsent(versionKey(qnAId), String.valueOf(dbVersion), KEY_TTL);
         log.debug("버전 카운터 초기화(SETNX): qnAId={}, dbVersion={}", qnAId, dbVersion);
     }
 
@@ -128,11 +140,12 @@ public class TextDeltaRedisRepository {
     /**
      * 버전 검증 후 델타를 pending List에 RPUSH하고 버전 카운터를 INCR한다 (Lua 스크립트로 원자적 실행).
      *
-     * <p>{@code expectedVersion}이 현재 Redis 버전 카운터와 일치해야 push가 수행된다.
-     * 불일치 시 push 없이 {@link WebSocketErrorCode#VERSION_CONFLICT} 예외를 던진다.</p>
+     * <p>{@code delta.version()}이 현재 Redis 버전 카운터와 일치해야 push가 수행된다.
+     * 불일치 시 push 없이 {@link VersionConflictException}을 던진다.
+     * 성공 시 pending/version 키의 TTL이 {@link #KEY_TTL}으로 갱신된다.</p>
      *
      * @return 이 델타의 절대 버전 번호
-     * @throws BaseException VERSION_CONFLICT — 버전 불일치 (push 미발생)
+     * @throws VersionConflictException 버전 불일치 (push 미발생)
      */
     public long pushAndIncrVersion(Long qnAId, TextUpdateRequest delta) {
         long expectedVersion = delta.version();
@@ -154,6 +167,14 @@ public class TextDeltaRedisRepository {
         }
     }
 
+
+    /**
+     * pending 키의 TTL을 {@link #KEY_TTL}으로 설정한다.
+     * flush 후 첫 번째 push 시 1회 호출해 배치당 1회만 TTL을 설정한다.
+     */
+    public void refreshPendingTtl(Long qnAId) {
+        redisTemplate.expire(pendingKey(qnAId), KEY_TTL);
+    }
 
     /**
      * pushAndIncrVersion으로 추가된 마지막 델타를 원자적으로 되돌린다 (RPOP + DECR).
@@ -195,6 +216,7 @@ public class TextDeltaRedisRepository {
     /**
      * pending 델타를 committed로 원자적으로 이동하고 pending을 클리어한다.
      * committed는 {@value MAX_COMMITTED_SIZE}개를 초과하면 오래된 것부터 제거된다.
+     * committed 키의 TTL은 {@link #KEY_TTL}으로 갱신된다.
      *
      * @return 이동된 델타 수
      */
@@ -202,11 +224,20 @@ public class TextDeltaRedisRepository {
         Long moved = redisTemplate.execute(
                 COMMIT_REDIS_SCRIPT,
                 List.of(pendingKey(qnAId), committedKey(qnAId)),
-                String.valueOf(MAX_COMMITTED_SIZE)
+                String.valueOf(MAX_COMMITTED_SIZE), String.valueOf(KEY_TTL_SECONDS)
         );
         long count = moved != null ? moved : 0L;
         log.debug("commit 완료: qnAId={}, 이동된 델타 수={}", qnAId, count);
         return count;
+    }
+
+    /**
+     * 세 Redis 키(pending, committed, version)를 모두 삭제한다.
+     * 공유 링크 비활성화 등 세션 종료 시 명시적으로 호출해 메모리를 회수한다.
+     */
+    public void cleanupKeys(Long qnAId) {
+        redisTemplate.delete(List.of(pendingKey(qnAId), committedKey(qnAId), versionKey(qnAId)));
+        log.debug("Redis 델타 키 삭제 완료: qnAId={}", qnAId);
     }
 
 
