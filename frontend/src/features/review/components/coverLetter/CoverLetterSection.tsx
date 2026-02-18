@@ -11,7 +11,7 @@ import {
   useCreateReview,
   useUpdateReview,
 } from '@/shared/hooks/useReviewQueries';
-import type { Review, ReviewBase } from '@/shared/types/review';
+import type { Review } from '@/shared/types/review';
 import type { SelectionInfo } from '@/shared/types/selectionInfo';
 
 const SPACER_HEIGHT = 10;
@@ -29,7 +29,6 @@ interface CoverLetterSectionProps {
   selection: SelectionInfo | null;
   onSelectionChange: (selection: SelectionInfo | null) => void;
   qnaId: number;
-  onAddReview: (review: ReviewBase) => void;
   onUpdateReview: (id: number, revision: string, comment: string) => void;
   onCancelEdit: () => void;
   onPageChange: (index: number) => void;
@@ -48,7 +47,6 @@ const CoverLetterSection = ({
   selection,
   onSelectionChange,
   qnaId,
-  onAddReview,
   onUpdateReview,
   onCancelEdit,
   onPageChange,
@@ -56,9 +54,6 @@ const CoverLetterSection = ({
   const modalRef = useRef<HTMLDivElement>(null);
   const { showToast } = useToastMessageContext();
 
-  // TODO: websocket 연결 시 API 호출 후 서버에서 websocket으로 확정 데이터를 전달하므로,
-  // onSuccess 콜백에서의 로컬 상태 업데이트(onAddReview, clearLocalReviews 등)를
-  // websocket 메시지 핸들러로 이동해야 함
   const { mutate: createReview } = useCreateReview(qnaId);
   const { mutate: updateReviewMutation } = useUpdateReview(qnaId);
 
@@ -91,6 +86,8 @@ const CoverLetterSection = ({
         },
       );
     } else {
+      // TODO: WebSocket REVIEW_CREATED 이벤트로 서버 데이터(실제 reviewId 포함)가 수신되면 화면에 표시됨.
+      // 로컬 상태를 직접 추가하지 않고 API 호출만 수행.
       createReview(
         {
           version: 0,
@@ -101,14 +98,6 @@ const CoverLetterSection = ({
           comment,
         },
         {
-          onSuccess: () => {
-            onAddReview({
-              selectedText: selection.selectedText,
-              revision,
-              comment,
-              range: selection.range,
-            });
-          },
           onError: () => {
             showToast('리뷰 생성에 실패했습니다. 다시 시도해주세요.');
           },

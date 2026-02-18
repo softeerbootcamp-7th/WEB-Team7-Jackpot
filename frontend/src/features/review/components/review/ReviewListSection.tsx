@@ -9,7 +9,6 @@ interface ReviewListSectionProps {
   editingReview: Review | null;
   qnaId: number;
   onEditReview: (id: number) => void;
-  onDeleteReview: (id: number) => void;
 }
 
 const ReviewListSection = ({
@@ -17,15 +16,13 @@ const ReviewListSection = ({
   editingReview,
   qnaId,
   onEditReview,
-  onDeleteReview,
 }: ReviewListSectionProps) => {
-  // TODO: websocket 연결 시 delete 결과를 websocket 이벤트로 수신하여 반영
+  // API 호출만 수행하고, 삭제 결과는 WebSocket 이벤트로 수신하여 반영
   const { mutate: deleteReviewApi } = useDeleteReview(qnaId);
   const { showToast } = useToastMessageContext();
 
   const handleDelete = (reviewId: number) => {
     deleteReviewApi(reviewId, {
-      onSuccess: () => onDeleteReview(reviewId),
       onError: () => {
         showToast('리뷰 삭제에 실패했습니다.');
       },

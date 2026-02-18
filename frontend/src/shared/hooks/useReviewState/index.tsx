@@ -2,27 +2,33 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { ApiReview } from '@/shared/api/reviewApi';
 import {
-  applyViewStatus,
   buildReviewsFromApi,
   calculateTextChange,
-  generateInternalReviewId,
   parseTaggedText,
   updateReviewRanges,
   updateSelectionForTextChange,
 } from '@/shared/hooks/useReviewState/helpers';
-import type { Review, ReviewBase } from '@/shared/types/review';
+import type { MinimalQnA } from '@/shared/types/qna';
+import type { Review } from '@/shared/types/review';
 import type { SelectionInfo } from '@/shared/types/selectionInfo';
-
-interface MinimalQnA {
-  qnAId: number;
-  answer: string;
-}
 
 interface UseReviewStateParams {
   qna: MinimalQnA | undefined;
   apiReviews: ApiReview[] | undefined;
 }
 
+/**
+ * TODO: WebSocket 통합 시 상태 반영 정책
+ *
+ * 즉시 반영 (낙관적 업데이트):
+ *   - Writer 텍스트 수정: handleTextChange로 로컬 즉시 반영, WebSocket으로 상대방에게 발송
+ *   - 리뷰 수정: handleUpdateReview로 수정자 로컬 즉시 반영, 상대방은 WebSocket 수신
+ *
+ * WebSocket 이벤트 수신으로만 반영 (낙관적 업데이트 X):
+ *   - 리뷰 생성: API 호출 → REVIEW_CREATED 이벤트 수신 시 반영
+ *   - 리뷰 삭제: API 호출 → REVIEW_DELETED 이벤트 수신 시 반영
+ *   - 리뷰 적용(approve): API 호출 → WebSocket 이벤트 수신 시 반영
+ */
 export const useReviewState = ({ qna, apiReviews }: UseReviewStateParams) => {
   const qnaId = qna?.qnAId;
 
@@ -88,34 +94,6 @@ export const useReviewState = ({ qna, apiReviews }: UseReviewStateParams) => {
     [editingId, currentReviews],
   );
 
-  const handleAddReview = useCallback(
-    (review: ReviewBase) => {
-      if (qnaId === undefined) return;
-      setReviewsByQnaId((prev) => ({
-        ...prev,
-        [qnaId]: [
-          ...getLatestReviews(prev, qnaId),
-          {
-            ...review,
-            id: generateInternalReviewId(),
-            sender: { id: 'me', nickname: '나' },
-            createdAt: new Date().toISOString(),
-            isValid: true,
-            isApproved: false,
-            viewStatus: 'PENDING' as const,
-          },
-        ],
-      }));
-    },
-    [qnaId, getLatestReviews],
-  );
-
-  const editedAnswersRef = useRef(editedAnswers);
-
-  useEffect(() => {
-    editedAnswersRef.current = editedAnswers;
-  }, [editedAnswers]);
-
   const handleTextChange = useCallback(
     (newText: string) => {
       if (qnaId === undefined) return;
@@ -138,8 +116,6 @@ export const useReviewState = ({ qna, apiReviews }: UseReviewStateParams) => {
         };
       });
 
-      // 텍스트 변경에 따라 selection 범위도 함께 조정
-      // TODO: websocket 연결 시 서버에서 전달하는 OT operation 기반으로 교체 가능
       setSelection((prev) => {
         if (!prev) return null;
         return updateSelectionForTextChange(
@@ -168,50 +144,8 @@ export const useReviewState = ({ qna, apiReviews }: UseReviewStateParams) => {
     [qnaId, getLatestReviews],
   );
 
-  const handleDeleteReview = useCallback(
-    (id: number) => {
-      if (qnaId === undefined) return;
-      setReviewsByQnaId((prev) => ({
-        ...prev,
-        [qnaId]: getLatestReviews(prev, qnaId).filter((r) => r.id !== id),
-      }));
-    },
-    [qnaId, getLatestReviews],
-  );
-
-  const currentTextRef = useRef(currentText);
-  useEffect(() => {
-    currentTextRef.current = currentText;
-  }, [currentText]);
-
-  // TODO: websocket 연결 시 approve 결과를 websocket 이벤트로 수신하여 반영
-  const handleApproveReview = useCallback(
-    (id: number) => {
-      if (qnaId === undefined) return;
-      setReviewsByQnaId((prev) => {
-        const reviews = getLatestReviews(prev, qnaId).map((r) =>
-          r.id === id ? { ...r, isApproved: true } : r,
-        );
-        return {
-          ...prev,
-          [qnaId]: applyViewStatus(reviews, currentTextRef.current),
-        };
-      });
-    },
-    [qnaId, getLatestReviews],
-  );
-
   const handleEditReview = useCallback((id: number) => setEditingId(id), []);
   const handleCancelEdit = useCallback(() => setEditingId(null), []);
-
-  // TODO: websocket 연결 시 서버에서 확정 데이터를 수신하면 로컬 오버라이드를 제거하고 서버 데이터로 전환
-  const clearLocalReviews = useCallback((id: number) => {
-    setReviewsByQnaId((prev) => {
-      const next = { ...prev };
-      delete next[id];
-      return next;
-    });
-  }, []);
 
   return {
     currentText,
@@ -219,14 +153,10 @@ export const useReviewState = ({ qna, apiReviews }: UseReviewStateParams) => {
     editingReview,
     selection,
     setSelection,
-    handleAddReview,
     handleTextChange,
     handleUpdateReview,
-    handleDeleteReview,
-    handleApproveReview,
     handleEditReview,
     handleCancelEdit,
-    clearLocalReviews,
     editedAnswers,
   };
 };

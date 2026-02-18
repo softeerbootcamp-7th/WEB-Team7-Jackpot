@@ -162,9 +162,6 @@ export const buildReviewsFromApi = (
   return applyViewStatus(reviews, cleanedText);
 };
 
-let internalReviewAutoId = 1000;
-export const generateInternalReviewId = () => ++internalReviewAutoId;
-
 // 두 문자열을 비교하여 변경된 위치와 길이를 계산
 export const calculateTextChange = (
   oldText: string,

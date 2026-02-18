@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 import {
   approveReview,
@@ -23,8 +23,6 @@ export const useReviewsByQnaId = (qnaId: number | undefined) => {
 };
 
 export const useDeleteReview = (qnaId: number | undefined) => {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: (reviewId: number) => {
       if (qnaId == null) {
@@ -32,19 +30,10 @@ export const useDeleteReview = (qnaId: number | undefined) => {
       }
       return deleteReview(qnaId, reviewId);
     },
-    onSuccess: () => {
-      if (qnaId == null) return;
-
-      queryClient.invalidateQueries({
-        queryKey: ['reviews', qnaId],
-      });
-    },
   });
 };
 
 export const useCreateReview = (qnaId: number | undefined) => {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: (body: CreateReviewRequest) => {
       if (qnaId == null) {
@@ -52,19 +41,10 @@ export const useCreateReview = (qnaId: number | undefined) => {
       }
       return createReview(qnaId, body);
     },
-    onSuccess: () => {
-      if (qnaId == null) return;
-
-      queryClient.invalidateQueries({
-        queryKey: ['reviews', qnaId],
-      });
-    },
   });
 };
 
 export const useUpdateReview = (qnaId: number | undefined) => {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: ({
       reviewId,
@@ -78,32 +58,16 @@ export const useUpdateReview = (qnaId: number | undefined) => {
       }
       return updateReview(qnaId, reviewId, body);
     },
-    onSuccess: () => {
-      if (qnaId == null) return;
-
-      queryClient.invalidateQueries({
-        queryKey: ['reviews', qnaId],
-      });
-    },
   });
 };
 
 export const useApproveReview = (qnaId: number | undefined) => {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: (reviewId: number) => {
       if (qnaId == null) {
         return Promise.reject(new Error('qnaId is required'));
       }
       return approveReview(qnaId, reviewId);
-    },
-    onSuccess: () => {
-      if (qnaId == null) return;
-
-      queryClient.invalidateQueries({
-        queryKey: ['reviews', qnaId],
-      });
     },
   });
 };

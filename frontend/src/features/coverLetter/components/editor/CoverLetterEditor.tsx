@@ -13,20 +13,15 @@ import CoverLetterFooter from '@/features/coverLetter/components/editor/CoverLet
 import CoverLetterHeader from '@/features/coverLetter/components/editor/CoverLetterHeader';
 import ReviewModalContainer from '@/features/coverLetter/components/editor/ReviewModalContainer';
 import ReviewCardList from '@/features/coverLetter/components/reviewWithFriend/ReviewCardList';
+import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
 import {
   useApproveReview,
   useDeleteReview,
 } from '@/shared/hooks/useReviewQueries';
 import type { CoverLetter as CoverLetterType } from '@/shared/types/coverLetter';
+import type { MinimalQnA } from '@/shared/types/qna';
 import type { Review } from '@/shared/types/review';
 import type { SelectionInfo } from '@/shared/types/selectionInfo';
-
-interface MinimalQnA {
-  qnAId: number;
-  question: string;
-  answer: string;
-  modifiedAt?: string;
-}
 
 interface CoverLetterEditorProps {
   coverLetter: CoverLetterType;
@@ -60,25 +55,37 @@ const CoverLetterEditor = ({
 
   const { mutate: deleteReviewApi } = useDeleteReview(currentQna?.qnAId);
   const { mutate: updateReviewMutation } = useApproveReview(currentQna?.qnAId);
+  const { showToast } = useToastMessageContext();
+
+  const clearUIState = useCallback(() => {
+    setSelectedReviewId(null);
+    setSelection(null);
+  }, []);
 
   const onDeleteReview = useCallback(
     (reviewId: number) => {
       if (!currentQna?.qnAId) return;
-      deleteReviewApi(reviewId);
-      setSelectedReviewId(null);
-      setSelection(null);
+      deleteReviewApi(reviewId, {
+        onSuccess: clearUIState,
+        onError: () => {
+          showToast('리뷰 삭제에 실패했습니다.');
+        },
+      });
     },
-    [currentQna?.qnAId, deleteReviewApi],
+    [currentQna?.qnAId, deleteReviewApi, clearUIState, showToast],
   );
 
   const onToggleApproval = useCallback(
     (reviewId: number) => {
       if (!currentQna?.qnAId) return;
-      updateReviewMutation(reviewId);
-      setSelectedReviewId(null);
-      setSelection(null);
+      updateReviewMutation(reviewId, {
+        onSuccess: clearUIState,
+        onError: () => {
+          showToast('리뷰 승인에 실패했습니다.');
+        },
+      });
     },
-    [currentQna?.qnAId, updateReviewMutation],
+    [currentQna?.qnAId, updateReviewMutation, clearUIState, showToast],
   );
 
   const editingReview = useMemo(

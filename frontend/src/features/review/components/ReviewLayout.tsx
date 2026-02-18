@@ -41,11 +41,9 @@ const ReviewLayout = () => {
     editingReview,
     selection,
     setSelection,
-    handleAddReview,
     handleUpdateReview,
     handleEditReview,
     handleCancelEdit,
-    handleDeleteReview,
   } = useReviewState({
     qna: currentQna,
     apiReviews: reviewData?.reviews,
@@ -83,7 +81,6 @@ const ReviewLayout = () => {
           selection={selection}
           onSelectionChange={setSelection}
           qnaId={currentQna.qnAId}
-          onAddReview={handleAddReview}
           onUpdateReview={handleUpdateReview}
           onCancelEdit={handleCancelEdit}
           onPageChange={setCurrentPageIndex}
@@ -95,7 +92,6 @@ const ReviewLayout = () => {
           editingReview={editingReview}
           qnaId={currentQna.qnAId}
           onEditReview={handleEditReview}
-          onDeleteReview={handleDeleteReview}
         />
       </aside>
     </div>
