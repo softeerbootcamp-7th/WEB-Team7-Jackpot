@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import React from 'react';
 
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 
 import InputBar from '@/features/auth/components/InputBar';
 import SubmitButton from '@/features/auth/components/SubmitButton';
@@ -16,6 +16,7 @@ const LoginForm = () => {
   const { mutateAsync: login } = useLogin();
   const { showToast } = useToastMessageContext();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   // 로그인 실패 시를 위한 상태
   const [isLoginFailed, setIsLoginFailed] = useState<boolean>(false);
   // SoC(관심사 분리)를 위해 커스텀 훅 내부가 아닌 외부에서 핸들러 고도화 (구조 분해 할당 alias 활용)
@@ -91,7 +92,10 @@ const LoginForm = () => {
       </form>
       <button
         type='button'
-        onClick={() => navigate('/signup')}
+        onClick={() => {
+          const redirect = searchParams.get('redirect');
+          navigate(redirect ? `/signup?redirect=${encodeURIComponent(redirect)}` : '/signup');
+        }}
         className='text-body-m cursor-pointer font-medium text-gray-600'
       >
         회원가입
