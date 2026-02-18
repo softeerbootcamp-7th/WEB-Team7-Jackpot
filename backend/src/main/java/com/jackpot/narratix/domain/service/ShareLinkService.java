@@ -31,6 +31,7 @@ public class ShareLinkService {
     private final QnARepository qnARepository;
     private final ShareLinkRepository shareLinkRepository;
     private final ShareLinkLockManager shareLinkLockManager;
+    private final ShareLinkSessionRegistry shareLinkSessionRegistry;
 
     @Transactional
     public ShareLinkActiveResponse updateShareLinkStatus(String userId, Long coverLetterId, boolean active) {
@@ -74,9 +75,8 @@ public class ShareLinkService {
     @Transactional(readOnly = true)
     public ShareLinkActiveResponse getShareLinkStatus(String userId, Long coverLetterId) {
         validateCoverLetterOwnership(userId, coverLetterId);
-        Optional<ShareLink> shareLinkOptional = shareLinkRepository.findById(coverLetterId);
-
-        return shareLinkOptional.map(ShareLinkActiveResponse::of)
+        return shareLinkRepository.findById(coverLetterId)
+                .map(ShareLinkActiveResponse::of)
                 .orElseGet(ShareLinkActiveResponse::deactivate);
     }
 
@@ -110,11 +110,11 @@ public class ShareLinkService {
 
     @Transactional(readOnly = true)
     public QnAVersionResponse getQnAWithVersion(String userId, String shareId, Long qnAId) {
-        // TODO: userId로 Writer 또는 Reviewer인지 검증해야 함
+        QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
+        ReviewRoleType role = qnA.determineReviewRole(userId);
+        validateWebSocketConnected(userId, shareId, role);
 
         ShareLink shareLink = findValidShareLink(shareId);
-        QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
-
         validateShareLinkAndQnA(shareLink, qnA);
 
         return QnAVersionResponse.of(qnA);
@@ -129,14 +129,23 @@ public class ShareLinkService {
 
     @Transactional(readOnly = true)
     public CoverLetterAndQnAIdsResponse getCoverLetterAndQnAIds(String userId, String shareId) {
-        // TODO: userId로 Writer 또는 Reviewer인지 검증해야 함
-
         ShareLink shareLink = findValidShareLink(shareId);
         CoverLetter coverLetter = coverLetterRepository.findByIdOrElseThrow(shareLink.getCoverLetterId());
+        ReviewRoleType role = coverLetter.determineReviewRole(userId);
+
+        validateWebSocketConnected(userId, shareId, role);
+
         List<Long> qnAIds = qnARepository.findIdsByCoverLetterId(coverLetter.getId());
 
         return CoverLetterAndQnAIdsResponse.of(coverLetter, qnAIds);
     }
+
+    private void validateWebSocketConnected(String userId, String shareId, ReviewRoleType role) {
+        if (!shareLinkSessionRegistry.isConnectedUserInCoverLetter(userId, shareId, role)) {
+            throw new BaseException(GlobalErrorCode.FORBIDDEN);
+        }
+    }
+
 
     private ShareLink findValidShareLink(String shareId) {
         ShareLink shareLink = shareLinkRepository.findByShareId(shareId)

@@ -8,4 +8,6 @@ import java.util.Optional;
 public interface ShareLinkRepository extends JpaRepository<ShareLink, Long> {
 
     Optional<ShareLink> findByShareId(String shareId);
+
+    Optional<ShareLink> findByCoverLetterId(Long coverLetterId);
 }
