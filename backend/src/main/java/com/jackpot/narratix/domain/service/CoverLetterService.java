@@ -2,13 +2,14 @@ package com.jackpot.narratix.domain.service;
 
 import com.jackpot.narratix.domain.controller.request.CoverLetterFilterRequest;
 import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
-import com.jackpot.narratix.domain.controller.request.EditCoverLetterRequest;
+import com.jackpot.narratix.domain.controller.request.CoverLetterAndQnAEditRequest;
 import com.jackpot.narratix.domain.controller.request.QnAEditRequest;
 import com.jackpot.narratix.domain.controller.response.*;
 import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import com.jackpot.narratix.domain.exception.CoverLetterErrorCode;
+import com.jackpot.narratix.domain.exception.QnAErrorCode;
 import com.jackpot.narratix.domain.repository.CoverLetterRepository;
 import com.jackpot.narratix.domain.repository.QnARepository;
 import com.jackpot.narratix.domain.repository.ScrapRepository;
@@ -21,9 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,7 +35,7 @@ public class CoverLetterService {
 
     @Transactional
     public CreateCoverLetterResponse createNewCoverLetter(String userId, CreateCoverLetterRequest createCoverLetterRequest) {
-        CoverLetter coverLetter = CoverLetter.from(userId, createCoverLetterRequest);
+        CoverLetter coverLetter = CoverLetter.createNewCoverLetter(userId, createCoverLetterRequest);
         CoverLetter newCoverLetter = coverLetterRepository.save(coverLetter);
 
         return new CreateCoverLetterResponse(newCoverLetter.getId());
@@ -76,9 +75,28 @@ public class CoverLetterService {
     }
 
     @Transactional
-    public void editCoverLetter(String userId, EditCoverLetterRequest editCoverLetterRequest) {
-        CoverLetter coverLetter = coverLetterRepository.findByIdOrElseThrow(editCoverLetterRequest.coverLetterId());
-        coverLetter.edit(userId, editCoverLetterRequest);
+    public void editCoverLetterAndQnA(String userId, CoverLetterAndQnAEditRequest request) {
+        Long coverLetterId = request.coverLetter().coverLetterId();
+        CoverLetter coverLetter = coverLetterRepository.findByIdOrElseThrow(coverLetterId);
+
+        if (!coverLetter.isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
+        coverLetter.edit(request.coverLetter());
+
+        List<Long> qnAIds = request.questions().stream()
+                .map(CoverLetterAndQnAEditRequest.QnAEditRequest::qnAId)
+                .toList();
+
+        Map<Long, QnA> qnAMap = qnARepository.findByIds(qnAIds).stream()
+                .collect(Collectors.toMap(QnA::getId, qnA -> qnA));
+
+        for (CoverLetterAndQnAEditRequest.QnAEditRequest qnAEditRequest : request.questions()) {
+            QnA qnA = Optional.ofNullable(qnAMap.get(qnAEditRequest.qnAId()))
+                    .orElseThrow(() -> new BaseException(QnAErrorCode.QNA_NOT_FOUND));
+            if (!qnA.getCoverLetter().getId().equals(coverLetterId)) {
+                throw new BaseException(QnAErrorCode.NOT_SAME_COVERLETTER);
+            }
+            qnA.editQuestion(qnAEditRequest.question(), qnAEditRequest.category());
+        }
     }
 
     @Transactional(readOnly = true)
@@ -196,5 +214,28 @@ public class CoverLetterService {
         qnA.editAnswer(request.answer());
 
         return new QnAEditResponse(qnA.getId(), qnA.getModifiedAt());
+    }
+
+    @Transactional(readOnly = true)
+    public QnAListResponse getQnAsByQnAIds(String userId, List<Long> qnAIds) {
+
+        List<QnA> qnAs = qnARepository.findByIds(qnAIds);
+        if (qnAs.isEmpty()) return new QnAListResponse(Collections.emptyList());
+
+        // qnAIds가 모두 하나의 coverLetter와 연관관계를 갖는지 확인
+        boolean isSameCoverLetter = qnAs.stream()
+                .map(qnA -> qnA.getCoverLetter().getId())
+                .distinct()
+                .count() == 1;
+
+        if (!isSameCoverLetter) throw new BaseException(QnAErrorCode.NOT_SAME_COVERLETTER);
+        if (!qnAs.get(0).isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
+
+
+        return new QnAListResponse(
+                qnAs.stream()
+                        .map(QnAListResponse.QnAResponse::of)
+                        .toList()
+        );
     }
 }

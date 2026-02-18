@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.jackpot.narratix.global.exception.BaseException;
 import com.jackpot.narratix.global.exception.GlobalErrorCode;
@@ -36,6 +37,7 @@ public enum QuestionCategoryType {
             Arrays.stream(values())
                     .collect(Collectors.toUnmodifiableMap(QuestionCategoryType::getDescription, Function.identity()));
 
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public static QuestionCategoryType fromDescription(String description) {
         QuestionCategoryType type = CATEGORY_TYPE_MAP.get(description);
         if (type == null) {

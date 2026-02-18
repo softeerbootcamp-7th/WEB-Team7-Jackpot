@@ -1,10 +1,8 @@
 package com.jackpot.narratix.domain.entity;
 
 import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
-import com.jackpot.narratix.domain.controller.request.EditCoverLetterRequest;
+import com.jackpot.narratix.domain.controller.request.CoverLetterAndQnAEditRequest;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
-import com.jackpot.narratix.global.exception.BaseException;
-import com.jackpot.narratix.global.exception.GlobalErrorCode;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
@@ -59,7 +57,7 @@ public class CoverLetter extends BaseTimeEntity {
         return qnAs != null ? qnAs.size() : 0;
     }
 
-    public static CoverLetter from(String userId, CreateCoverLetterRequest request) {
+    public static CoverLetter createNewCoverLetter(String userId, CreateCoverLetterRequest request) {
         CoverLetter coverLetter = new CoverLetter();
         coverLetter.userId = userId;
         coverLetter.companyName = request.companyName();
@@ -77,9 +75,7 @@ public class CoverLetter extends BaseTimeEntity {
         return Objects.equals(this.userId, userId);
     }
 
-    public void edit(String userId, EditCoverLetterRequest request){
-        if(!isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
-
+    public void edit(CoverLetterAndQnAEditRequest.CoverLetterEditRequest request){
         this.companyName = request.companyName();
         this.applyYear = request.applyYear();
         this.applyHalf = request.applyHalf();

@@ -2,6 +2,7 @@ package com.jackpot.narratix.domain.controller.api;
 
 import com.jackpot.narratix.domain.controller.request.QnAEditRequest;
 import com.jackpot.narratix.domain.controller.response.QnAEditResponse;
+import com.jackpot.narratix.domain.controller.response.QnAListResponse;
 import com.jackpot.narratix.domain.controller.response.QnAResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -66,5 +67,21 @@ public interface QnAApi {
     ResponseEntity<List<Long>> getQnAIdsByCoverLetterId(
             @Parameter(hidden = true) String userId,
             @Parameter(description = "자기소개서 ID") Long coverLetterId
+    );
+
+    @Operation(summary = "QnA ID 목록으로 QnA 목록 조회", description = "QnA ID 목록으로 QnA 목록을 조회합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(schema = @Schema(implementation = QnAListResponse.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "401", description = "인증 실패"),
+            @ApiResponse(responseCode = "403", description = "권한 없음")
+    })
+    ResponseEntity<QnAListResponse> getQnAsByQnAIds(
+            @Parameter(hidden = true) String userId,
+            @Parameter(description = "QnA ID 목록") List<Long> qnAIds
     );
 }

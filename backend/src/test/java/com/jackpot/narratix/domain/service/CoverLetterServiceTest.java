@@ -3,7 +3,7 @@ package com.jackpot.narratix.domain.service;
 import com.jackpot.narratix.domain.controller.request.CoverLetterFilterRequest;
 import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
 import com.jackpot.narratix.domain.controller.request.CreateQuestionRequest;
-import com.jackpot.narratix.domain.controller.request.EditCoverLetterRequest;
+import com.jackpot.narratix.domain.controller.request.CoverLetterAndQnAEditRequest;
 import com.jackpot.narratix.domain.controller.response.CoverLetterResponse;
 import com.jackpot.narratix.domain.controller.response.FilteredCoverLettersResponse;
 import com.jackpot.narratix.domain.controller.response.CreateCoverLetterResponse;
@@ -137,7 +137,7 @@ class CoverLetterServiceTest {
         String userId = "testUser123";
         Long coverLetterId = 1L;
 
-        CoverLetter coverLetter = CoverLetter.from(
+        CoverLetter coverLetter = CoverLetter.createNewCoverLetter(
                 userId,
                 new CreateCoverLetterRequest(
                         "테스트기업",
@@ -302,21 +302,19 @@ class CoverLetterServiceTest {
 
     @Test
     @DisplayName("자기소개서 수정 성공")
-    void editCoverLetter_Success() {
+    void editCoverLetter_AndQnA_Success() {
         // given
         String userId = "testUser123";
         Long coverLetterId = 1L;
 
-        EditCoverLetterRequest editRequest = new EditCoverLetterRequest(
-                coverLetterId,
-                "수정된 기업명",
-                2025,
-                ApplyHalfType.SECOND_HALF,
-                "프론트엔드 개발자",
-                LocalDate.of(2025, 6, 30)
+        CoverLetterAndQnAEditRequest editRequest = new CoverLetterAndQnAEditRequest(
+                new CoverLetterAndQnAEditRequest.CoverLetterEditRequest(
+                        coverLetterId, "수정된 기업명", 2025, ApplyHalfType.SECOND_HALF, "프론트엔드 개발자", LocalDate.of(2025, 6, 30)
+                ),
+                List.of()
         );
 
-        CoverLetter coverLetter = CoverLetter.from(
+        CoverLetter coverLetter = CoverLetter.createNewCoverLetter(
                 userId,
                 new CreateCoverLetterRequest(
                         "원래 기업명",
@@ -332,7 +330,7 @@ class CoverLetterServiceTest {
         given(coverLetterRepository.findByIdOrElseThrow(coverLetterId)).willReturn(coverLetter);
 
         // when
-        coverLetterService.editCoverLetter(userId, editRequest);
+        coverLetterService.editCoverLetterAndQnA(userId, editRequest);
 
         // then
         assertThat(coverLetter.getCompanyName()).isEqualTo("수정된 기업명");
@@ -346,21 +344,19 @@ class CoverLetterServiceTest {
 
     @Test
     @DisplayName("자기소개서 수정 시 마감일을 null로 변경 가능")
-    void editCoverLetter_DeadlineToNull() {
+    void editCoverLetter_AndQnA_DeadlineToNull() {
         // given
         String userId = "testUser123";
         Long coverLetterId = 1L;
 
-        EditCoverLetterRequest editRequest = new EditCoverLetterRequest(
-                coverLetterId,
-                "수정된 기업명",
-                2025,
-                ApplyHalfType.SECOND_HALF,
-                "프론트엔드 개발자",
-                null  // 마감일을 null로 변경
+        CoverLetterAndQnAEditRequest editRequest = new CoverLetterAndQnAEditRequest(
+                new CoverLetterAndQnAEditRequest.CoverLetterEditRequest(
+                        coverLetterId, "수정된 기업명", 2025, ApplyHalfType.SECOND_HALF, "프론트엔드 개발자", null
+                ),
+                List.of()
         );
 
-        CoverLetter coverLetter = CoverLetter.from(
+        CoverLetter coverLetter = CoverLetter.createNewCoverLetter(
                 userId,
                 new CreateCoverLetterRequest(
                         "원래 기업명",
@@ -376,7 +372,7 @@ class CoverLetterServiceTest {
         given(coverLetterRepository.findByIdOrElseThrow(coverLetterId)).willReturn(coverLetter);
 
         // when
-        coverLetterService.editCoverLetter(userId, editRequest);
+        coverLetterService.editCoverLetterAndQnA(userId, editRequest);
 
         // then
         assertThat(coverLetter.getDeadline()).isNull();
@@ -385,25 +381,23 @@ class CoverLetterServiceTest {
 
     @Test
     @DisplayName("존재하지 않는 자기소개서 수정 시 예외 발생")
-    void editCoverLetter_NotFound() {
+    void editCoverLetter_AndQnA_NotFound() {
         // given
         String userId = "testUser123";
         Long coverLetterId = 999L;
 
-        EditCoverLetterRequest editRequest = new EditCoverLetterRequest(
-                coverLetterId,
-                "수정된 기업명",
-                2025,
-                ApplyHalfType.SECOND_HALF,
-                "프론트엔드 개발자",
-                LocalDate.of(2025, 6, 30)
+        CoverLetterAndQnAEditRequest editRequest = new CoverLetterAndQnAEditRequest(
+                new CoverLetterAndQnAEditRequest.CoverLetterEditRequest(
+                        coverLetterId, "수정된 기업명", 2025, ApplyHalfType.SECOND_HALF, "프론트엔드 개발자", LocalDate.of(2025, 6, 30)
+                ),
+                List.of()
         );
 
         given(coverLetterRepository.findByIdOrElseThrow(coverLetterId))
                 .willThrow(new BaseException(CoverLetterErrorCode.COVER_LETTER_NOT_FOUND));
 
         // when & then
-        assertThatThrownBy(() -> coverLetterService.editCoverLetter(userId, editRequest))
+        assertThatThrownBy(() -> coverLetterService.editCoverLetterAndQnA(userId, editRequest))
                 .isInstanceOf(BaseException.class)
                 .hasFieldOrPropertyWithValue("errorCode", CoverLetterErrorCode.COVER_LETTER_NOT_FOUND);
 
@@ -412,22 +406,20 @@ class CoverLetterServiceTest {
 
     @Test
     @DisplayName("자기소개서 소유자가 아닌 유저가 수정을 시도하면 권한 예외 발생")
-    void editCoverLetter_OwnerForbidden() {
+    void editCoverLetter_AndQnA_OwnerForbidden() {
         // given
         String userId = "testUser123";
         String otherUserId = "otherTestUser123";
         Long coverLetterId = 1L;
 
-        EditCoverLetterRequest editRequest = new EditCoverLetterRequest(
-                coverLetterId,
-                "수정된 기업명",
-                2025,
-                ApplyHalfType.SECOND_HALF,
-                "프론트엔드 개발자",
-                LocalDate.of(2025, 6, 30)
+        CoverLetterAndQnAEditRequest editRequest = new CoverLetterAndQnAEditRequest(
+                new CoverLetterAndQnAEditRequest.CoverLetterEditRequest(
+                        coverLetterId, "수정된 기업명", 2025, ApplyHalfType.SECOND_HALF, "프론트엔드 개발자", LocalDate.of(2025, 6, 30)
+                ),
+                List.of()
         );
 
-        CoverLetter coverLetter = CoverLetter.from(
+        CoverLetter coverLetter = CoverLetter.createNewCoverLetter(
                 userId,
                 new CreateCoverLetterRequest(
                         "원래 기업명",
@@ -443,7 +435,7 @@ class CoverLetterServiceTest {
         given(coverLetterRepository.findByIdOrElseThrow(coverLetterId)).willReturn(coverLetter);
 
         // when & then
-        assertThatThrownBy(() -> coverLetterService.editCoverLetter(otherUserId, editRequest))
+        assertThatThrownBy(() -> coverLetterService.editCoverLetterAndQnA(otherUserId, editRequest))
                 .isInstanceOf(BaseException.class)
                 .hasFieldOrPropertyWithValue("errorCode", GlobalErrorCode.FORBIDDEN);
 
@@ -609,7 +601,7 @@ class CoverLetterServiceTest {
     }
 
     private CoverLetter createMockCoverLetter(Long id, String userId, String companyName, LocalDate deadline) {
-        CoverLetter coverLetter = CoverLetter.from(
+        CoverLetter coverLetter = CoverLetter.createNewCoverLetter(
                 userId,
                 new CreateCoverLetterRequest(
                         companyName,

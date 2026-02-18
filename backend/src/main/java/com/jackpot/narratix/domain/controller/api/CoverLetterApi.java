@@ -2,7 +2,7 @@ package com.jackpot.narratix.domain.controller.api;
 
 import com.jackpot.narratix.domain.controller.request.CoverLetterFilterRequest;
 import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
-import com.jackpot.narratix.domain.controller.request.EditCoverLetterRequest;
+import com.jackpot.narratix.domain.controller.request.CoverLetterAndQnAEditRequest;
 import com.jackpot.narratix.domain.controller.response.CoverLetterResponse;
 import com.jackpot.narratix.domain.controller.response.FilteredCoverLettersResponse;
 import com.jackpot.narratix.domain.controller.response.CreateCoverLetterResponse;
@@ -50,7 +50,7 @@ public interface CoverLetterApi {
     })
     ResponseEntity<Void> editCoverLetter(
             @Parameter(hidden = true) String userId,
-            EditCoverLetterRequest editCoverLetterRequest
+            CoverLetterAndQnAEditRequest coverLetterAndQnAEditRequest
     );
 
     @Operation(summary = "자기소개서 단건 조회", description = "ID로 자기소개서를 조회합니다.")
