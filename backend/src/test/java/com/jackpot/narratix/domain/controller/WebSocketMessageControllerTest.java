@@ -189,6 +189,7 @@ class WebSocketMessageControllerTest {
         WebSocketSessionAttributes.setRole(sessionAttributes, role);
 
         TextUpdateRequest request = new TextUpdateRequest(
+                version,
                 0,       // startIdx
                 10,      // endIdx
                 "Updated text"
@@ -208,7 +209,7 @@ class WebSocketMessageControllerTest {
         headerAccessor.setSessionAttributes(null);
         String shareId = "test-share-123";
         Long qnAId = 1L;
-        TextUpdateRequest request = new TextUpdateRequest(0, 10, "text");
+        TextUpdateRequest request = new TextUpdateRequest(1L, 0, 10, "text");
 
         // when & then
         assertThatThrownBy(() ->
@@ -233,7 +234,7 @@ class WebSocketMessageControllerTest {
         WebSocketSessionAttributes.setShareId(sessionAttributes, sessionShareId);
         WebSocketSessionAttributes.setRole(sessionAttributes, role);
 
-        TextUpdateRequest request = new TextUpdateRequest(0, 10, "text");
+        TextUpdateRequest request = new TextUpdateRequest(1L, 0, 10, "text");
 
         // when & then
         assertThatThrownBy(() ->
@@ -257,7 +258,7 @@ class WebSocketMessageControllerTest {
         WebSocketSessionAttributes.setShareId(sessionAttributes, shareId);
         WebSocketSessionAttributes.setRole(sessionAttributes, role);
 
-        TextUpdateRequest request = new TextUpdateRequest(0, 10, "text");
+        TextUpdateRequest request = new TextUpdateRequest(1L, 0, 10, "text");
 
         // when & then
         assertThatThrownBy(() ->
