@@ -1,12 +1,14 @@
 package com.jackpot.narratix.domain.service;
 
 import com.jackpot.narratix.domain.controller.request.TextUpdateRequest;
+import com.jackpot.narratix.global.exception.BaseException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 @DisplayName("OTTransformer 테스트")
 class OTTransformerTest {
@@ -90,6 +92,16 @@ class OTTransformerTest {
         int[] result = otTransformer.transformRange(2, 7, deltas);
 
         assertThat(result).containsExactly(2, 6);
+    }
+
+    @Test
+    @DisplayName("초기 start > end이면 REVIEW_TEXT_MISMATCH 예외를 던진다")
+    void transformRange_WhenStartExceedsEnd_ThrowsException() {
+        // transformIndex는 단조 비감소 함수이므로 start <= end인 초기 입력에서는
+        // 변환 후에도 s > e가 수학적으로 불가능하다.
+        // s > e 가드는 초기 입력 자체가 start > end인 잘못된 입력을 방어한다.
+        assertThatThrownBy(() -> otTransformer.transformRange(5, 3, List.of()))
+                .isInstanceOf(BaseException.class);
     }
 
     @Test
