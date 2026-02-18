@@ -88,7 +88,7 @@ export const useReviewState = ({ qna, apiReviews }: UseReviewStateParams) => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const editingReview = useMemo(
     () =>
-      editingId != null
+      editingId !== null
         ? (currentReviews.find((r) => r.id === editingId) ?? null)
         : null,
     [editingId, currentReviews],

@@ -17,7 +17,7 @@ export const useReviewsByQnaId = (qnaId: number | undefined) => {
       if (qnaId == null) throw new Error('qnaId is required');
       return getReviewsByQnaId(qnaId);
     },
-    enabled: qnaId != null,
+    enabled: qnaId !== null,
     staleTime: 5 * 60 * 1000,
   });
 };

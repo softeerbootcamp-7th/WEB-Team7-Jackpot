@@ -90,7 +90,7 @@ const CoverLetterEditor = ({
 
   const editingReview = useMemo(
     () =>
-      selectedReviewId != null
+      selectedReviewId !== null
         ? (currentReviews.find((r) => r.id === selectedReviewId) ?? null)
         : null,
     [selectedReviewId, currentReviews],

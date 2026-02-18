@@ -25,6 +25,6 @@ export const useShareQnA = (shareId: string, qnAId: number | undefined) => {
       }
       return getShareQnA(shareId, qnAId);
     },
-    enabled: qnAId != null,
+    enabled: qnAId !== null,
   });
 };
