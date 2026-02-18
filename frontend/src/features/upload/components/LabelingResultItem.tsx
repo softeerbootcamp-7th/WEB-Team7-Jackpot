@@ -83,10 +83,10 @@ const LabelingResultItem = ({
               yearValue={currentData.recruitPeriod.year}
               seasonValue={currentData.recruitPeriod.season}
               constantData={yearList}
-              handleYearChange={(value) =>
+              onChangeYear={(value) =>
                 updateContents(tabState, 'year', value)
               }
-              handleSeasonChange={(value) =>
+              onChangeSeason={(value) =>
                 updateContents(tabState, 'season', value)
               }
               handleDropdown={(isOpen) => {
