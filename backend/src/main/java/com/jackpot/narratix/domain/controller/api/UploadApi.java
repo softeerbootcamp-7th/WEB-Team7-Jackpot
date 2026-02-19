@@ -35,7 +35,7 @@ public interface UploadApi {
     })
     ResponseEntity<Void> createJob(
             @Parameter(hidden = true) String userId,
-            @Valid @RequestBody JobCreateRequest request
+            JobCreateRequest request
     );
 
 
