@@ -101,7 +101,8 @@ public class WebSocketMessageController {
             // delta push 미발생 — rollback 없이 현재 상태를 TEXT_REPLACE_ALL로 전송
             log.warn("버전 충돌, TEXT_REPLACE_ALL 전송: shareId={}, qnAId={}", shareId, qnAId);
             try {
-                textDeltaService.recoverTextReplaceAll(shareId, qnAId);
+                WebSocketMessageResponse response = textDeltaService.recoverTextReplaceAll(qnAId);
+                webSocketMessageSender.sendMessageToShare(shareId, response);
             } catch (Exception re) {
                 log.error("recoverTextReplaceAll 실패: shareId={}, qnAId={}", shareId, qnAId, re);
             }
@@ -110,7 +111,8 @@ public class WebSocketMessageController {
             // delta push 이후 실패 — 마지막 push 롤백 후 TEXT_REPLACE_ALL 전송
             log.error("텍스트 업데이트 실패, rollback 후 TEXT_REPLACE_ALL 전송: shareId={}, qnAId={}", shareId, qnAId, e);
             try {
-                textDeltaService.recoverTextReplaceAllWithRollback(shareId, qnAId);
+                WebSocketMessageResponse response = textDeltaService.recoverTextReplaceAllWithRollback(qnAId);
+                webSocketMessageSender.sendMessageToShare(shareId, response);
             } catch (Exception re) {
                 log.error("recoverTextReplaceAllWithRollback 실패: shareId={}, qnAId={}", shareId, qnAId, re);
             }
