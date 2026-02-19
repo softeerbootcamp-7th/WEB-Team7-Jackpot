@@ -4,6 +4,7 @@ import CoverLetterLandingPage from '@/pages/CoverLetterLandingPage';
 import HomePage from '@/pages/HomePage';
 import LandingPage from '@/pages/LandingPage';
 import LoginPage from '@/pages/LoginPage';
+import NotFoundPage from '@/pages/NotFoundPage';
 import RecruitPage from '@/pages/RecruitPage';
 import ReviewPage from '@/pages/ReviewPage';
 import SignUpCompletePage from '@/pages/SignUpCompletePage';
@@ -118,8 +119,8 @@ function App() {
               element={<RecruitPage />}
             />
           </Route>
-          {/* <Route path="/recruit" element={<RecruitPage />}/> */}
         </Route>
+        <Route path='*' element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   );
