@@ -46,6 +46,7 @@ public class QnA extends BaseTimeEntity {
     private String answer;
 
     @NotNull
+    @Builder.Default
     @Column(name = "version", nullable = false)
     private Long version = 0L;
 
