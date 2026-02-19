@@ -36,7 +36,6 @@ public class UploadService {
     private final S3Presigner s3Presigner;
 
     private final UploadJobRepository uploadJobRepository;
-    private final UploadFileRepository uploadFileRepository;
     private final LabeledQnARepository labeledQnARepository;
 
     @Value("${cloud.aws.s3.bucket}")
