@@ -34,7 +34,7 @@ export interface CoverLetterType extends CoverLetterBase {
   questions?: CoverLetterQuestion[];
 }
 
-export interface RecentCoverLetterType extends CoverLetterType {
+export interface RecentCoverLetter extends CoverLetterType {
   questionCount: number;
 }
 
