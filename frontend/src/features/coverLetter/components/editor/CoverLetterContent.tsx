@@ -68,7 +68,13 @@ const CoverLetterContent = ({
     onSelectionChange,
   });
 
+  const versionRef = useRef(initialVersion);
   const latestTextRef = useRef(text);
+
+  // qnAId가 바뀌거나 처음 로드될 때 API 초기 버전으로 ref 동기화
+  useEffect(() => {
+    versionRef.current = initialVersion;
+  }, [initialVersion, qnAId]);
   useEffect(() => {
     latestTextRef.current = text;
   }, [text]);
@@ -151,10 +157,12 @@ const CoverLetterContent = ({
           isInputtingRef.current = true;
           latestTextRef.current = newText; // 즉시 동기 업데이트 — re-render 전 다음 입력에서도 최신 값 사용
           onTextChangeRef.current(newText);
+          console.log('나는야 버전', versionRef.current);
 
           if (isConnected && shareId && qnAId) {
+            versionRef.current += 1;
             const payload = {
-              version: 
+              version: versionRef.current,
               startIdx,
               endIdx,
               replacedText,

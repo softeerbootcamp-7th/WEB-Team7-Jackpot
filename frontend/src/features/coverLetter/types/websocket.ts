@@ -9,19 +9,28 @@ export interface WriterMessageType {
   replacedText: string;
 }
 
-export interface TextUpdateResponseType {
-  eventType: 'TEXT_UPDATE';
+export interface TextReplaceAllResponseType {
+  type: 'TEXT_REPLACE_ALL';
   qnAId: number;
   data: {
-    // content의 버전
     version: number;
-    // 자기소개서 전체 글
     content: string;
   };
 }
 
+export interface TextUpdateResponseType {
+  type: 'TEXT_UPDATE';
+  qnAId: number;
+  data: {
+    version: number;
+    startIdx: number;
+    endIdx: number;
+    replacedText: string;
+  };
+}
+
 export interface ReviewUpdatedResponseType {
-  eventType: 'REVIEW_UPDATED';
+  type: 'REVIEW_UPDATED';
   qnAId: number;
   data: {
     reviewId: number;
@@ -33,7 +42,7 @@ export interface ReviewUpdatedResponseType {
 }
 
 export interface ReviewDeletedResponseType {
-  eventType: 'REVIEW_DELETED';
+  type: 'REVIEW_DELETED';
   qnAId: number;
   data: {
     reviewId: number;
@@ -41,7 +50,7 @@ export interface ReviewDeletedResponseType {
 }
 
 export interface ReviewCreatedResponseType {
-  eventType: 'REVIEW_CREATED';
+  type: 'REVIEW_CREATED';
   qnAId: number;
   data: {
     sender: {
@@ -53,21 +62,6 @@ export interface ReviewCreatedResponseType {
     suggest: string;
     comment: string;
     createdAt: string;
-  };
-}
-
-export interface TextReplaceAllResponseType {
-  eventType: 'TEXT_UPDATE';
-  qnAId: number;
-  data: {
-    // 이 변경의 버전
-    version: number;
-    // 변경이 시작된 인덱스
-    startIdx: number;
-    // 변경이 끝난 인덱스 (기존 텍스트 기준)
-    endIdx: number;
-    // 해당 범위가 이 텍스트로 대체됨
-    replacedText: string;
   };
 }
 
