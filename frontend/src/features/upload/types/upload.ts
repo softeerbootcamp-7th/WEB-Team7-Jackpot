@@ -43,3 +43,36 @@ export interface UploadTabDataType {
 }
 
 export type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
+
+// 1단계: 타입 정의 & API 함수 구성
+// 1-1. 타입 정의
+
+export interface PresignedUrlRequest {
+  clientFileId: bigint;
+  fileName: string;
+  contentType: string;
+  fileSize: number;
+}
+
+export interface PresignedUrlResponse {
+  clientFileId: bigint;
+  fileName: string;
+  presignedUrl: string;
+  fileKey: string;
+  requiredHeaders: Record<string, string>;
+}
+
+export interface FileState {
+  clientFileId: bigint;
+  file: File | null;
+  status: UploadStatus;
+  presignedUrl?: string;
+  fileKey?: string;
+}
+
+export interface StartLabelingRequest {
+  files: Array<{
+    presignedUrl: string;
+    fileKey: string;
+  }>;
+}
