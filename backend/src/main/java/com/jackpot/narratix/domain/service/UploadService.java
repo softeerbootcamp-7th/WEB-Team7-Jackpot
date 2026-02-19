@@ -6,12 +6,14 @@ import com.jackpot.narratix.domain.controller.request.PresignedUrlRequest;
 import com.jackpot.narratix.domain.controller.response.PresignedUrlResponse;
 import com.jackpot.narratix.domain.entity.UploadFile;
 import com.jackpot.narratix.domain.entity.UploadJob;
+import com.jackpot.narratix.domain.event.JobCreatedEvent;
 import com.jackpot.narratix.domain.exception.UploadErrorCode;
 import com.jackpot.narratix.domain.repository.UploadJobRepository;
 import com.jackpot.narratix.global.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -20,6 +22,8 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequ
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -30,6 +34,8 @@ public class UploadService {
     private final S3Presigner s3Presigner;
 
     private final UploadJobRepository uploadJobRepository;
+    private final ApplicationEventPublisher eventPublisher;
+
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
@@ -103,19 +109,20 @@ public class UploadService {
                 .userId(userId)
                 .build();
 
+        List<String> fileKeys = new ArrayList<>();
         for (JobCreateRequest.FileRequest fileRequest : request.files()) {
             String fileId = extractFileId(fileRequest.fileKey());
             UploadFile uploadFile = UploadFile.builder()
                     .id(fileId)
                     .s3Key(fileRequest.fileKey())
                     .build();
-
             job.addFile(uploadFile);
+            fileKeys.add(fileRequest.fileKey());
         }
 
         uploadJobRepository.save(job);
 
-        //TODO : 람다 호출 이벤트 발행
+        eventPublisher.publishEvent(new JobCreatedEvent(jobId, userId, fileKeys));
     }
 
     private String extractFileId(String fileKey) {
