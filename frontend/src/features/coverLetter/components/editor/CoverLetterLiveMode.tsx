@@ -1,6 +1,10 @@
 import CoverLetterEditor from '@/features/coverLetter/components/editor/CoverLetterEditor';
 import CoverLetterToolbar from '@/features/coverLetter/components/editor/CoverLetterToolbar';
 import useCoverLetterActions from '@/features/coverLetter/hooks/useCoverLetterActions';
+import { useSocketMessage } from '@/features/coverLetter/hooks/websocket/useSocketMessage';
+import { useSocketSubscribe } from '@/features/coverLetter/hooks/websocket/useSocketSubscribe';
+import { useStompClient } from '@/features/coverLetter/hooks/websocket/useStompClient';
+import type { WebSocketResponse } from '@/features/coverLetter/types/websocket';
 import useCoverLetterPagination from '@/shared/hooks/useCoverLetterPagination';
 import { useReviewsByQnaId } from '@/shared/hooks/useReviewQueries';
 import useReviewState from '@/shared/hooks/useReviewState';
@@ -31,6 +35,21 @@ const CoverLetterLiveMode = ({
     shareId,
     currentQnAId,
   );
+  const { handleMessage } = useSocketMessage({
+    shareId: shareId,
+  });
+  const { isConnected, sendMessage, clientRef } = useStompClient({
+    shareId: shareId,
+  });
+
+  useSocketSubscribe({
+    isConnected,
+    shareId: shareId,
+    qnaId: currentQnAId?.toString(),
+    onMessage: (message: unknown) =>
+      handleMessage(message as WebSocketResponse),
+    clientRef,
+  });
 
   const { data: reviewData } = useReviewsByQnaId(currentQnAId);
 
@@ -96,6 +115,9 @@ const CoverLetterLiveMode = ({
       toolbar={toolbar}
       onPageChange={setCurrentPageIndex}
       onTextChange={reviewState.handleTextChange}
+      isConnected={isConnected}
+      sendMessage={sendMessage}
+      shareId={shareId}
     />
   );
 };

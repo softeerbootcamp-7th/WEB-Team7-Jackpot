@@ -10,3 +10,14 @@ export interface QnA {
 export type MinimalQnA = Omit<QnA, 'answerSize' | 'modifiedAt'> & {
   modifiedAt?: string;
 };
+
+export interface ShareQnA {
+  qnAId: number;
+  question: string;
+  answer: string;
+  version: number;
+}
+
+export type ExtraShareQnA = ShareQnA & {
+  modifiedAt?: string;
+};

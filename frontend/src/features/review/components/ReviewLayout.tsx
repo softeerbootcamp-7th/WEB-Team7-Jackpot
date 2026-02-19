@@ -1,5 +1,9 @@
 import { useParams } from 'react-router';
 
+import { useSocketMessage } from '@/features/coverLetter/hooks/websocket/useSocketMessage';
+import { useSocketSubscribe } from '@/features/coverLetter/hooks/websocket/useSocketSubscribe';
+import { useStompClient } from '@/features/coverLetter/hooks/websocket/useStompClient';
+import type { WebSocketResponse } from '@/features/coverLetter/types/websocket';
 import CoverLetterSection from '@/features/review/components/coverLetter/CoverLetterSection';
 import ReviewListSection from '@/features/review/components/review/ReviewListSection';
 import useCoverLetterPagination from '@/shared/hooks/useCoverLetterPagination';
@@ -9,6 +13,7 @@ import {
   useShareCoverLetter,
   useShareQnA,
 } from '@/shared/hooks/useShareQueries';
+import type { RecentCoverLetterType } from '@/shared/types/coverLetter';
 
 const ReviewLayout = () => {
   const { sharedId } = useParams();
@@ -17,22 +22,37 @@ const ReviewLayout = () => {
     throw new Error('유효하지 않은 공유 링크입니다.');
   }
 
-  // 1. ShareId로 CoverLetter 정보 + QnA ID 목록 조회 (Suspense)
-  const { data: shareData } = useShareCoverLetter(sharedId);
-  const { coverLetter, qnAIds } = shareData;
+  const { handleMessage } = useSocketMessage({ shareId: sharedId });
 
-  // 2. 현재 페이지 인덱스 → 해당 QnA ID 결정
+  const { isConnected, clientRef } = useStompClient({
+    shareId: sharedId,
+  });
+
+  const { data: shareData, isLoading: isShareDataLoading } =
+    useShareCoverLetter(sharedId, isConnected);
+
+  const qnAIds = shareData?.qnAIds || [];
+  const coverLetter: RecentCoverLetterType | null =
+    shareData?.coverLetter ?? null;
+
   const { safePageIndex, setCurrentPageIndex } = useCoverLetterPagination(
     qnAIds.length,
   );
+
   const currentQnAId = qnAIds.length > 0 ? qnAIds[safePageIndex] : undefined;
 
-  // 3. 현재 QnA만 단건 조회
+  useSocketSubscribe({
+    isConnected,
+    shareId: sharedId,
+    qnaId: currentQnAId?.toString(),
+    clientRef,
+    onMessage: (message: unknown) =>
+      handleMessage(message as WebSocketResponse),
+  });
   const { data: currentQna, isLoading: isQnALoading } = useShareQnA(
     sharedId,
     currentQnAId,
   );
-
   const { data: reviewData } = useReviewsByQnaId(currentQnAId);
 
   const {
@@ -48,6 +68,13 @@ const ReviewLayout = () => {
     qna: currentQna,
     apiReviews: reviewData?.reviews,
   });
+  if (!isConnected) {
+    return <div>웹소켓 연결 중...</div>;
+  }
+
+  if (isShareDataLoading || !shareData) {
+    return <div>데이터를 불러오는 중...</div>;
+  }
 
   if (qnAIds.length === 0) {
     return (
@@ -62,6 +89,14 @@ const ReviewLayout = () => {
     return (
       <div className='flex flex-1 items-center justify-center'>
         <span className='text-gray-400'>질문을 불러오는 중...</span>
+      </div>
+    );
+  }
+
+  if (!coverLetter) {
+    return (
+      <div className='p-8 text-center text-gray-500'>
+        커버레터 정보를 불러올 수 없습니다.
       </div>
     );
   }

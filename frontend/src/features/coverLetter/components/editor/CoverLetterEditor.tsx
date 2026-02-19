@@ -19,13 +19,13 @@ import {
   useDeleteReview,
 } from '@/shared/hooks/useReviewQueries';
 import type { CoverLetterType } from '@/shared/types/coverLetter';
-import type { MinimalQnA } from '@/shared/types/qna';
+import type { ExtraShareQnA, MinimalQnA } from '@/shared/types/qna';
 import type { Review } from '@/shared/types/review';
 import type { SelectionInfo } from '@/shared/types/selectionInfo';
 
 interface CoverLetterEditorProps {
   coverLetter: CoverLetterType;
-  currentQna: MinimalQnA | undefined;
+  currentQna: ExtraShareQnA | MinimalQnA | undefined;
   currentText: string;
   currentReviews: Review[];
   currentPageIndex: number;
@@ -34,6 +34,9 @@ interface CoverLetterEditorProps {
   toolbar: ReactNode;
   onPageChange: (index: number) => void;
   onTextChange: (newText: string) => void;
+  isConnected?: boolean;
+  sendMessage?: (destination: string, body: unknown) => void;
+  shareId?: string;
 }
 
 const CoverLetterEditor = ({
@@ -47,6 +50,9 @@ const CoverLetterEditor = ({
   toolbar,
   onPageChange,
   onTextChange,
+  isConnected = false,
+  sendMessage = () => {},
+  shareId = '',
 }: CoverLetterEditorProps) => {
   const [, setSearchParams] = useSearchParams();
   const [selectedReviewId, setSelectedReviewId] = useState<number | null>(null);
@@ -156,6 +162,11 @@ const CoverLetterEditor = ({
               onReviewClick={handleReviewClick}
               onTextChange={onTextChange}
               onComposingLengthChange={setComposingLength}
+              isConnected={isConnected}
+              sendMessage={sendMessage}
+              shareId={shareId}
+              qnAId={currentQna.qnAId.toString()}
+              initialVersion={'version' in currentQna ? currentQna.version : 0}
             />
           </div>
 

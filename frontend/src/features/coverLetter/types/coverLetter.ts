@@ -15,3 +15,9 @@ export interface GetScrapsResponse {
 export interface ErrorResponse {
   message: string;
 }
+
+export interface TextChangeResult {
+  changeStart: number;
+  oldLength: number;
+  newLength: number;
+}

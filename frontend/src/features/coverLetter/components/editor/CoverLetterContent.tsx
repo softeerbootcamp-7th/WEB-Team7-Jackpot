@@ -13,6 +13,8 @@ import {
   getCaretPosition,
   restoreCaret,
 } from '@/features/coverLetter/libs/caret';
+import type { TextChangeResult } from '@/features/coverLetter/types/coverLetter';
+import type { WriterMessageType } from '@/features/coverLetter/types/websocket';
 import { useTextSelection } from '@/shared/hooks/useTextSelection';
 import type { Review } from '@/shared/types/review';
 import type { SelectionInfo } from '@/shared/types/selectionInfo';
@@ -26,8 +28,13 @@ interface CoverLetterContentProps {
   selectedReviewId: number | null;
   onSelectionChange: (selection: SelectionInfo | null) => void;
   onReviewClick: (reviewId: number) => void;
-  onTextChange?: (newText: string) => void;
+  onTextChange?: (newText: string) => TextChangeResult | void;
   onComposingLengthChange?: (length: number | null) => void;
+  isConnected: boolean;
+  sendMessage: (destination: string, body: unknown) => void;
+  shareId: string;
+  qnAId: string;
+  initialVersion: number;
 }
 
 const CoverLetterContent = ({
@@ -41,6 +48,11 @@ const CoverLetterContent = ({
   onReviewClick,
   onTextChange,
   onComposingLengthChange,
+  isConnected,
+  sendMessage,
+  shareId,
+  qnAId,
+  initialVersion,
 }: CoverLetterContentProps) => {
   const [spacerHeight, setSpacerHeight] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -48,11 +60,24 @@ const CoverLetterContent = ({
   const caretOffsetRef = useRef(0);
   const isComposingRef = useRef(false);
 
+  const { containerRef, before, after } = useTextSelection({
+    text,
+    reviews,
+    editingReview,
+    selection,
+    onSelectionChange,
+  });
+
+  const versionRef = useRef(initialVersion);
   const latestTextRef = useRef(text);
+
+  // qnAId가 바뀌거나 처음 로드될 때 API 초기 버전으로 ref 동기화
+  useEffect(() => {
+    versionRef.current = initialVersion;
+  }, [initialVersion, qnAId]);
   useEffect(() => {
     latestTextRef.current = text;
   }, [text]);
-
   const onTextChangeRef = useRef(onTextChange);
   useEffect(() => {
     onTextChangeRef.current = onTextChange;
@@ -65,14 +90,6 @@ const CoverLetterContent = ({
 
   const undoStack = useRef<{ text: string; caret: number }[]>([]);
   const redoStack = useRef<{ text: string; caret: number }[]>([]);
-
-  const { containerRef, before, after } = useTextSelection({
-    text,
-    reviews,
-    editingReview,
-    selection,
-    onSelectionChange,
-  });
 
   // 컨테이너 높이에 따라 스페이서 설정
   useEffect(() => {
@@ -117,22 +134,60 @@ const CoverLetterContent = ({
   );
 
   // 텍스트 변경 + Undo 스택 관리 (ref 기반 — 항상 최신 값 사용)
-  const updateText = useCallback((newText: string) => {
-    if (!onTextChangeRef.current) return;
+  const updateText = useCallback(
+    (newText: string) => {
+      if (!onTextChangeRef.current) return;
 
-    const currentText = latestTextRef.current;
-    if (newText !== currentText) {
-      undoStack.current.push({
-        text: currentText,
-        caret: caretOffsetRef.current,
-      });
-      if (undoStack.current.length > 100) undoStack.current.shift();
-      redoStack.current = [];
-      isInputtingRef.current = true;
-      latestTextRef.current = newText; // 즉시 동기 업데이트 — re-render 전 다음 입력에서도 최신 값 사용
-      onTextChangeRef.current(newText);
-    }
-  }, []);
+      const currentText = latestTextRef.current;
+      if (newText !== currentText) {
+        const change = onTextChangeRef.current(newText);
+        if (change && typeof change === 'object') {
+          const startIdx = change.changeStart;
+          const oldLen = currentText.length;
+          const newLen = newText.length;
+
+          let suffixLen = 0;
+          while (
+            suffixLen < oldLen - startIdx &&
+            suffixLen < newLen - startIdx &&
+            currentText[oldLen - 1 - suffixLen] ===
+              newText[newLen - 1 - suffixLen]
+          ) {
+            suffixLen++;
+          }
+
+          const endIdx = oldLen - suffixLen;
+          const replacedText = newText.slice(startIdx, newLen - suffixLen);
+
+          undoStack.current.push({
+            text: currentText,
+            caret: caretOffsetRef.current,
+          });
+
+          if (undoStack.current.length > 100) undoStack.current.shift();
+          redoStack.current = [];
+          isInputtingRef.current = true;
+          latestTextRef.current = newText; // 즉시 동기 업데이트 — re-render 전 다음 입력에서도 최신 값 사용
+
+          if (isConnected && shareId && qnAId) {
+            versionRef.current += 1;
+            const payload = {
+              version: versionRef.current,
+              startIdx,
+              endIdx,
+              replacedText,
+            };
+            console.log('Sending message to', payload);
+            sendMessage(
+              `/pub/share/${shareId}/qna/${qnAId}/text-update`,
+              payload as WriterMessageType,
+            );
+          }
+        }
+      }
+    },
+    [isConnected, shareId, qnAId, sendMessage],
+  );
 
   // 일반 입력 처리
   const processInput = () => {

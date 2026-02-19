@@ -1,16 +1,17 @@
-import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
 import {
   getShareCoverLetterWithQnAIds,
   getShareQnA,
 } from '@/shared/api/shareApi';
 
-// ShareId로 CoverLetter 정보 + QnA ID 목록 조회 (초기 로딩용 Suspense)
-export const useShareCoverLetter = (shareId: string) => {
-  return useSuspenseQuery({
+// ShareId로 CoverLetter 정보 + QnA ID 목록 조회 
+export const useShareCoverLetter = (shareId: string, isConnected: boolean) => {
+  return useQuery({
     queryKey: ['share', shareId, 'coverLetter'],
     queryFn: () => getShareCoverLetterWithQnAIds(shareId),
     staleTime: 5 * 60 * 1000,
+    enabled: isConnected,
   });
 };
 

@@ -70,7 +70,12 @@ const useCoverLetterActions = ({
     }
 
     const shareLinkId = sharedLink.shareLinkId;
-    const url = `${import.meta.env.VITE_SERVICE_BASE_URL || window.location.origin}/review/${shareLinkId}`;
+    const baseUrl =
+      window.location.origin === import.meta.env.VITE_DEV_BASE_URL
+        ? import.meta.env.VITE_DEV_BASE_URL
+        : import.meta.env.VITE_SERVICE_BASE_URL;
+
+    const url = `${baseUrl || window.location.origin}/review/${shareLinkId}`;
 
     navigator.clipboard
       .writeText(url)

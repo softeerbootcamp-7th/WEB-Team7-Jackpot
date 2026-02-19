@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import type { TextChangeResult } from '@/features/coverLetter/types/coverLetter';
 import type { ApiReview } from '@/shared/api/reviewApi';
 import {
   buildReviewsFromApi,
@@ -95,7 +96,7 @@ export const useReviewState = ({ qna, apiReviews }: UseReviewStateParams) => {
   );
 
   const handleTextChange = useCallback(
-    (newText: string) => {
+    (newText: string): TextChangeResult | void => {
       if (qnaId === undefined) return;
 
       const oldText = editedAnswers[qnaId] ?? originalText;
@@ -126,6 +127,7 @@ export const useReviewState = ({ qna, apiReviews }: UseReviewStateParams) => {
           newText,
         );
       });
+      return change;
     },
     [qnaId, originalText, editedAnswers, getLatestReviews],
   );
