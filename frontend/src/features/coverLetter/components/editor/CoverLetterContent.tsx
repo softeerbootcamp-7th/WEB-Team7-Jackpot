@@ -34,6 +34,7 @@ interface CoverLetterContentProps {
   sendMessage: (destination: string, body: unknown) => void;
   shareId: string;
   qnAId: string;
+  initialVersion: number;
 }
 
 const CoverLetterContent = ({
@@ -51,6 +52,7 @@ const CoverLetterContent = ({
   sendMessage,
   shareId,
   qnAId,
+  initialVersion,
 }: CoverLetterContentProps) => {
   const [spacerHeight, setSpacerHeight] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);

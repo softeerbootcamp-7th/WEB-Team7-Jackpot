@@ -1,17 +1,13 @@
 import { apiClient } from '@/shared/api/apiClient';
 import type { RecentCoverLetterType } from '@/shared/types/coverLetter';
+import type { ShareQnA } from '@/shared/types/qna';
 
 interface ShareCoverLetterInfo {
   coverLetter: RecentCoverLetterType;
   qnAIds: number[];
 }
 
-interface ShareQnA {
-  qnAId: number;
-  question: string;
-  answer: string;
-  version: number;
-}
+
 
 // ShareId로 CoverLetter와 QnAId 목록 조회
 export const getShareCoverLetterWithQnAIds = async (
