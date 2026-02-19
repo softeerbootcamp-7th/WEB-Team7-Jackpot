@@ -3,8 +3,10 @@ import { z } from 'zod';
 import type {
   CalendarRequest,
   CalendarResponse,
+  QnAListResponse,
 } from '@/features/recruit/types';
 import { apiClient } from '@/shared/api/apiClient';
+import type { Category } from '@/shared/types/coverLetter';
 
 const ApiApplyHalfSchema = z.enum(['FIRST_HALF', 'SECOND_HALF']);
 
@@ -22,6 +24,16 @@ const CalendarResponseSchema = z.object({
   totalCount: z.number(),
   coverLetters: z.array(CoverLetterItemSchema),
   hasNext: z.boolean(),
+});
+
+const QnAListResponseSchema = z.object({
+  qnAs: z.array(
+    z.object({
+      qnAId: z.number(),
+      question: z.string(),
+      category: z.string().transform((val) => val as Category),
+    }),
+  ),
 });
 
 export const fetchCalendarDates = async (
@@ -44,4 +56,17 @@ export const fetchCalendarDates = async (
   });
 
   return CalendarResponseSchema.parse(response);
+};
+
+export const fetchQnAList = async (
+  qnAIds: number[],
+): Promise<QnAListResponse> => {
+  const queryParams = new URLSearchParams();
+  qnAIds.forEach((id) => queryParams.append('qnAIds', String(id)));
+
+  const response = await apiClient.get({
+    endpoint: `/qna/all?${queryParams.toString()}`,
+  });
+
+  return QnAListResponseSchema.parse(response);
 };

@@ -1,12 +1,16 @@
-import type { CoverLetterBase } from '@/shared/types/coverLetter';
+import type {
+  CoverLetterBase,
+  CoverLetterQuestion,
+  CoverLetterType,
+} from '@/shared/types/coverLetter';
 
-export interface CoverLetterItem extends CoverLetterBase {
+export interface CalendarCoverLetterItem extends CoverLetterBase {
   questionCount: number;
 }
 
 export interface CalendarResponse {
   totalCount: number;
-  coverLetters: CoverLetterItem[];
+  coverLetters: CalendarCoverLetterItem[];
   hasNext: boolean;
 }
 
@@ -17,4 +21,13 @@ export interface CalendarRequest {
   isShared?: boolean;
 }
 
-export type CoverLetterInfo = Omit<CoverLetterItem, 'questionCount'>;
+export type CoverLetterInfo = Omit<CalendarCoverLetterItem, 'questionCount'>;
+
+export interface QnAListResponse {
+  qnAs: CoverLetterQuestion[];
+}
+
+export interface UpdateCoverLetter {
+  coverLetter: CoverLetterType;
+  questions: CoverLetterQuestion[];
+}

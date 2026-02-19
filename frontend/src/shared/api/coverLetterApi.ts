@@ -1,8 +1,9 @@
 import { z } from 'zod';
 
+import type { UpdateCoverLetter } from '@/features/recruit/types';
 import { apiClient } from '@/shared/api/apiClient';
 import type {
-  CoverLetter,
+  CoverLetterType,
   CreateCoverLetterRequest,
   CreateCoverLetterResponse,
   RecentCoverLetter,
@@ -50,12 +51,12 @@ export const searchCoverLetters = async ({
 
 export const getCoverLetter = async (
   coverLetterId: number,
-): Promise<CoverLetter> => {
+): Promise<CoverLetterType> => {
   if (!coverLetterId || Number.isNaN(coverLetterId) || coverLetterId <= 0) {
     throw new Error(`Invalid coverLetterId: ${coverLetterId}`);
   }
 
-  return apiClient.get<CoverLetter>({
+  return apiClient.get<CoverLetterType>({
     endpoint: `/coverletter/${coverLetterId}`,
   });
 };
@@ -73,7 +74,7 @@ export const createCoverLetter = async (
 };
 
 export const updateCoverLetter = async (
-  payload: CoverLetter,
+  payload: UpdateCoverLetter,
 ): Promise<void> => {
   await apiClient.put({
     endpoint: '/coverletter',

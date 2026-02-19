@@ -1,11 +1,21 @@
 import {
   useMutation,
+  useQuery,
   useQueryClient,
   useSuspenseQueries,
 } from '@tanstack/react-query';
 
-import { getQnA, updateQnA } from '@/shared/api/qnaApi';
+import { getQnA, getQnAIdList, updateQnA } from '@/shared/api/qnaApi';
 import type { QnA } from '@/shared/types/qna';
+
+// CoverLetterId로 문항 ID 리스트 가져오기
+export const useQnAIdListQuery = (coverLetterId: number | null) => {
+  return useQuery<number[]>({
+    queryKey: ['qnaIdList', coverLetterId],
+    queryFn: () => getQnAIdList({ coverLetterId: coverLetterId! }),
+    enabled: !!coverLetterId,
+  });
+};
 
 export const useQnAList = (qnaIds: number[]) => {
   return useSuspenseQueries({

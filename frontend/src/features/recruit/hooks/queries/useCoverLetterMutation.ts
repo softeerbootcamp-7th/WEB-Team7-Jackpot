@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
+import type { UpdateCoverLetter } from '@/features/recruit/types';
 import {
   createCoverLetter,
   deleteCoverLetter,
@@ -7,7 +8,6 @@ import {
 } from '@/shared/api/coverLetterApi';
 import { coverLetterQueryKeys } from '@/shared/hooks/queries/coverLetterQueryKeys';
 import type {
-  CoverLetter,
   CreateCoverLetterRequest,
   CreateCoverLetterResponse,
 } from '@/shared/types/coverLetter';
@@ -39,7 +39,7 @@ export const useCreateCoverLetter = () => {
 export const useUpdateCoverLetter = () => {
   const invalidate = useInvalidateCoverLetters();
 
-  return useMutation<void, Error, CoverLetter>({
+  return useMutation<void, Error, UpdateCoverLetter>({
     mutationFn: updateCoverLetter,
     onSuccess: () => invalidate(), // ['coverLetters'] 전체 무효화
     onError: (error) => console.error('수정 실패:', error.message),
