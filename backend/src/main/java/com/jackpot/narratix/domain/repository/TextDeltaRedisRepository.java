@@ -199,14 +199,6 @@ public class TextDeltaRedisRepository {
     }
 
     /**
-     * DB에 반영된 committed 델타를 순서대로 반환한다 (최대 {@value MAX_COMMITTED_SIZE}개).
-     * Reviewer가 오래된 버전에서 OT를 수행할 때 사용한다.
-     */
-    public List<TextUpdateRequest> getCommitted(Long qnAId) {
-        return deserializeList(qnAId, redisTemplate.opsForList().range(committedKey(qnAId), 0, -1));
-    }
-
-    /**
      * 현재 pending 델타 수를 반환한다.
      */
     public long pendingSize(Long qnAId) {
