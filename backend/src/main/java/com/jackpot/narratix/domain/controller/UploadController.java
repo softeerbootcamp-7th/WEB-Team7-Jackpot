@@ -3,16 +3,14 @@ package com.jackpot.narratix.domain.controller;
 import com.jackpot.narratix.domain.controller.api.UploadApi;
 import com.jackpot.narratix.domain.controller.request.JobCreateRequest;
 import com.jackpot.narratix.domain.controller.request.PresignedUrlRequest;
+import com.jackpot.narratix.domain.controller.response.LabeledQnAListResponse;
 import com.jackpot.narratix.domain.controller.response.PresignedUrlResponse;
 import com.jackpot.narratix.domain.service.UploadService;
 import com.jackpot.narratix.global.auth.UserId;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -41,4 +39,12 @@ public class UploadController implements UploadApi {
         return ResponseEntity.noContent().build();
     }
 
+    @Override
+    @GetMapping("/uploaded/{uploadJobId}/qnas")
+    public ResponseEntity<LabeledQnAListResponse> findLabeledCoverLetterByUploadJobId(
+            @UserId String userId,
+            @PathVariable String uploadJobId
+    ) {
+        return ResponseEntity.ok(uploadService.findLabeledCoverLetterByUploadJobId(userId, uploadJobId));
+    }
 }
