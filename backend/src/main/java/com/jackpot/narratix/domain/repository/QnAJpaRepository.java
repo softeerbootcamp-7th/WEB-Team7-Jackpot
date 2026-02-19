@@ -88,6 +88,9 @@ public interface QnAJpaRepository extends JpaRepository<QnA, Long> {
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE QnA q SET q.version = q.version + :delta WHERE q.id = :id")
-    int incrementVersion(@Param("id") Long id, @Param("delta") int delta);
+    void incrementVersion(@Param("id") Long id, @Param("delta") int delta);
+
+    @Query("SELECT q.version FROM QnA q WHERE q.id = :id")
+    Optional<Long> findVersionById(@Param("id") Long id);
 
 }
