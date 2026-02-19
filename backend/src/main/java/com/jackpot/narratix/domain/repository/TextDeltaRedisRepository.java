@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 텍스트 변경 델타를 Redis에 관리한다.
@@ -262,9 +263,10 @@ public class TextDeltaRedisRepository {
                         return objectMapper.readValue((String) raw, TextUpdateRequest.class);
                     } catch (JsonProcessingException e) {
                         log.error("TextUpdateRequest 역직렬화 실패: qnAId={}, raw={}", qnAId, raw, e);
-                        throw new BaseException(GlobalErrorCode.INTERNAL_SERVER_ERROR);
+                        return null;
                     }
-                })
+                }).filter(Objects::nonNull)
                 .toList();
     }
+
 }
