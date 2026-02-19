@@ -48,7 +48,7 @@ export const UPLOAD_TAB_DATA: UploadTabDataType[] = [
   },
 ] as const;
 
-export const MAX_BYTES = 10 * 1024 * 1024;
+export const MAX_BYTES = 5 * 1024 * 1024;
 
 export const QUESTION_TYPE_LIST: string[] = [
   '지원동기',

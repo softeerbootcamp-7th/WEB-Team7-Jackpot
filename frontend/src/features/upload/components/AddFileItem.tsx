@@ -84,7 +84,7 @@ const AddFileItem = ({
               <div className='text-body-l flex h-12 flex-col gap-1'>
                 <span
                   className={
-                    uploadStatus === 'error' ? 'text-gray-300' : 'text-gray-400'
+                    uploadStatus === 'error' ? 'text-red-600' : 'text-gray-400'
                   }
                 >
                   {formatFileSize(file.size)}

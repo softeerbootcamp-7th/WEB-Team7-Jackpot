@@ -13,15 +13,13 @@ const UploadInputSection = () => {
   };
 
   const [isContent, setIsContent] = useState<boolean>(false);
-  const [totalSize, setTotalSize] = useState<number>(0);
   return (
     <div className='flex flex-col gap-6'>
       <UploadInputHeader
         isContent={isContent}
-        totalSize={totalSize}
         nextStep={handleNextStep}
       />
-      <UploadFileArea setIsContent={setIsContent} setTotalSize={setTotalSize} />
+      <UploadFileArea setIsContent={setIsContent} />
     </div>
   );
 };

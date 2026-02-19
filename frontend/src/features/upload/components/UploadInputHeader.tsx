@@ -1,22 +1,14 @@
 import TabButton from '@/features/upload/components/TabButton';
 import { UPLOAD_TAB_DATA } from '@/features/upload/constants/uploadPage';
-import { MAX_BYTES } from '@/features/upload/constants/uploadPage';
 import { UploadPageIcons as I } from '@/features/upload/icons';
-import { formatFileSize } from '@/features/upload/utils/formatFileSize';
 
 interface UploadInputHeaderProps {
-  totalSize: number;
   isContent: boolean;
   nextStep: () => void;
 }
 
-const UploadInputHeader = ({
-  isContent,
-  totalSize,
-  nextStep,
-}: UploadInputHeaderProps) => {
-  const isOverSize = !!totalSize && totalSize > MAX_BYTES;
-  const canLabeling = isContent && !isOverSize;
+const UploadInputHeader = ({ isContent, nextStep }: UploadInputHeaderProps) => {
+  const canLabeling = isContent;
 
   return (
     <div className='flex items-center justify-between'>
@@ -27,14 +19,6 @@ const UploadInputHeader = ({
         />
       </div>
       <div className='flex items-center gap-6'>
-        <div className='flex items-center gap-1 text-gray-400 select-none'>
-          <span className={isOverSize ? 'text-red-600' : ''}>
-            {formatFileSize(totalSize ?? 0)}
-          </span>
-          <span>/</span>
-          <span>10MB</span>
-        </div>
-
         <button
           className='text-title-s flex cursor-pointer gap-[0.375rem] rounded-lg bg-gray-900 px-[1.125rem] py-3 font-bold text-white disabled:cursor-default disabled:bg-gray-50 disabled:text-gray-400'
           onClick={nextStep}

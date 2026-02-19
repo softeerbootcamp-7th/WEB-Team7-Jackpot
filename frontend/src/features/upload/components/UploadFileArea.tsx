@@ -11,12 +11,10 @@ interface FileStateType {
 
 interface UploadFileAreaProps {
   setIsContent: (state: boolean) => void;
-  setTotalSize: (state: number) => void;
 }
 
 const UploadFileArea = ({
   setIsContent,
-  setTotalSize,
 }: UploadFileAreaProps) => {
   const [files, setFiles] = useState<FileStateType[]>([
     { file: null, status: 'idle' },
@@ -61,16 +59,11 @@ const UploadFileArea = ({
   };
 
   useEffect(() => {
-    const currentTotalSize = files.reduce(
-      (acc, curr) => (acc += curr.file?.size ?? 0),
-      0,
-    );
-    setTotalSize(currentTotalSize);
     const hasContent = files.some(
       (file) => file.file !== null && file.status === 'success',
     );
     setIsContent(hasContent);
-  }, [files, setIsContent, setTotalSize]);
+  }, [files, setIsContent]);
 
   return (
     <div className='flex justify-between gap-3'>
