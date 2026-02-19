@@ -1,6 +1,5 @@
 package com.jackpot.narratix.domain.service;
 
-import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.User;
 import com.jackpot.narratix.domain.entity.enums.NotificationType;
 import com.jackpot.narratix.domain.entity.notification_meta.FeedbackNotificationMeta;
@@ -62,9 +61,8 @@ public class NotificationService {
     }
 
     @Transactional
-    public void sendFeedbackNotificationToWriter(String reviewerId, CoverLetter coverLetter, Long qnAId, String originText){
+    public void sendFeedbackNotificationToWriter(String reviewerId, String writerId, String notificationTitle, Long qnAId, String originText){
         User reviewer = userRepository.findByIdOrElseThrow(reviewerId);
-        String writerId = coverLetter.getUserId();
 
         FeedbackNotificationMeta feedbackNotificationMeta = FeedbackNotificationMeta.of(
                 reviewer.getId(), reviewer.getNickname(), qnAId
@@ -73,7 +71,7 @@ public class NotificationService {
         NotificationSendRequest request = NotificationSendRequest.builder()
                 .type(NotificationType.FEEDBACK)
                 .meta(feedbackNotificationMeta)
-                .title(coverLetter.getCompanyName() + " " + coverLetter.getApplyYear() + " " + coverLetter.getApplyHalf().getDescription())
+                .title(notificationTitle)
                 .content(originText)
                 .build();
 

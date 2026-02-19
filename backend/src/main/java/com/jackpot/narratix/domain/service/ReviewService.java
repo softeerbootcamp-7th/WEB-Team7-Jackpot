@@ -4,6 +4,7 @@ import com.jackpot.narratix.domain.controller.request.ReviewCreateRequest;
 import com.jackpot.narratix.domain.controller.request.ReviewEditRequest;
 import com.jackpot.narratix.domain.controller.request.TextUpdateRequest;
 import com.jackpot.narratix.domain.controller.response.ReviewsGetResponse;
+import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.Review;
 import com.jackpot.narratix.domain.entity.User;
@@ -50,7 +51,10 @@ public class ReviewService {
     @Transactional
     public void createReview(String reviewerId, Long qnAId, ReviewCreateRequest request) {
         QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
-        Long coverLetterId = qnA.getCoverLetter().getId();
+        CoverLetter coverLetter = qnA.getCoverLetter();
+        Long coverLetterId = coverLetter.getId();
+        String writerId = coverLetter.getUserId();
+        String notificationTitle = coverLetter.getCompanyName() + " " + coverLetter.getApplyYear() + " " + coverLetter.getApplyHalf().getDescription();
         validateWebSocketConnected(reviewerId, coverLetterId, ReviewRoleType.REVIEWER);
 
         // flush: JPA 컨텍스트의 qnA가 최신 answer·version으로 갱신됨
@@ -92,7 +96,8 @@ public class ReviewService {
 
         eventPublisher.publishEvent(new TextReplaceAllEvent(coverLetterId, qnAId, reviewVersion, wrappedAnswer));
         eventPublisher.publishEvent(ReviewCreatedEvent.of(coverLetterId, qnAId, review));
-        notificationService.sendFeedbackNotificationToWriter(reviewerId, qnA.getCoverLetter(), qnAId, request.originText());
+
+        notificationService.sendFeedbackNotificationToWriter(reviewerId, writerId, notificationTitle, qnAId, request.originText());
     }
 
     private String addTagToReviewedSection(String currentAnswer, int transformedStart, int transformedEnd, Long tagId, String originText) {
