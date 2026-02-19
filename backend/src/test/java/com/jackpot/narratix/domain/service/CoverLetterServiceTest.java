@@ -15,7 +15,10 @@ import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.UploadJob;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
+import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.exception.CoverLetterErrorCode;
+import com.jackpot.narratix.domain.exception.QnAErrorCode;
+import com.jackpot.narratix.domain.fixture.QnAFixture;
 import com.jackpot.narratix.domain.repository.CoverLetterRepository;
 import com.jackpot.narratix.domain.repository.QnARepository;
 import com.jackpot.narratix.domain.repository.UploadJobRepository;
@@ -38,6 +41,7 @@ import org.springframework.data.domain.SliceImpl;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -328,7 +332,7 @@ class CoverLetterServiceTest {
                 .build();
         ReflectionTestUtils.setField(coverLetter, "id", coverLetterId);
 
-        given(coverLetterRepository.findByIdOrElseThrow(coverLetterId)).willReturn(coverLetter);
+        given(coverLetterRepository.findByIdWithQnAsOrElseThrow(coverLetterId)).willReturn(coverLetter);
 
         // when
         coverLetterService.editCoverLetterAndQnA(userId, editRequest);
@@ -340,7 +344,7 @@ class CoverLetterServiceTest {
         assertThat(coverLetter.getJobPosition()).isEqualTo("프론트엔드 개발자");
         assertThat(coverLetter.getDeadline()).isEqualTo(LocalDate.of(2025, 6, 30));
 
-        verify(coverLetterRepository, times(1)).findByIdOrElseThrow(coverLetterId);
+        verify(coverLetterRepository, times(1)).findByIdWithQnAsOrElseThrow(coverLetterId);
     }
 
     @Test
@@ -367,14 +371,14 @@ class CoverLetterServiceTest {
                 .build();
         ReflectionTestUtils.setField(coverLetter, "id", coverLetterId);
 
-        given(coverLetterRepository.findByIdOrElseThrow(coverLetterId)).willReturn(coverLetter);
+        given(coverLetterRepository.findByIdWithQnAsOrElseThrow(coverLetterId)).willReturn(coverLetter);
 
         // when
         coverLetterService.editCoverLetterAndQnA(userId, editRequest);
 
         // then
         assertThat(coverLetter.getDeadline()).isNull();
-        verify(coverLetterRepository, times(1)).findByIdOrElseThrow(coverLetterId);
+        verify(coverLetterRepository, times(1)).findByIdWithQnAsOrElseThrow(coverLetterId);
     }
 
     @Test
@@ -391,7 +395,7 @@ class CoverLetterServiceTest {
                 List.of()
         );
 
-        given(coverLetterRepository.findByIdOrElseThrow(coverLetterId))
+        given(coverLetterRepository.findByIdWithQnAsOrElseThrow(coverLetterId))
                 .willThrow(new BaseException(CoverLetterErrorCode.COVER_LETTER_NOT_FOUND));
 
         // when & then
@@ -399,7 +403,7 @@ class CoverLetterServiceTest {
                 .isInstanceOf(BaseException.class)
                 .hasFieldOrPropertyWithValue("errorCode", CoverLetterErrorCode.COVER_LETTER_NOT_FOUND);
 
-        verify(coverLetterRepository, times(1)).findByIdOrElseThrow(coverLetterId);
+        verify(coverLetterRepository, times(1)).findByIdWithQnAsOrElseThrow(coverLetterId);
     }
 
     @Test
@@ -427,14 +431,216 @@ class CoverLetterServiceTest {
                 .build();
         ReflectionTestUtils.setField(coverLetter, "id", coverLetterId);
 
-        given(coverLetterRepository.findByIdOrElseThrow(coverLetterId)).willReturn(coverLetter);
+        given(coverLetterRepository.findByIdWithQnAsOrElseThrow(coverLetterId)).willReturn(coverLetter);
 
         // when & then
         assertThatThrownBy(() -> coverLetterService.editCoverLetterAndQnA(otherUserId, editRequest))
                 .isInstanceOf(BaseException.class)
                 .hasFieldOrPropertyWithValue("errorCode", GlobalErrorCode.FORBIDDEN);
 
-        verify(coverLetterRepository, times(1)).findByIdOrElseThrow(coverLetterId);
+        verify(coverLetterRepository, times(1)).findByIdWithQnAsOrElseThrow(coverLetterId);
+    }
+
+    @Test
+    @DisplayName("자기소개서 수정 - 기존 QnA 수정 성공")
+    void editCoverLetterAndQnA_기존QnA수정_성공() {
+        // given
+        String userId = "testUser123";
+        Long coverLetterId = 1L;
+        Long qnAId = 10L;
+
+        CoverLetter coverLetter = CoverLetter.builder()
+                .userId(userId)
+                .companyName("기업명")
+                .applyYear(2024)
+                .applyHalf(ApplyHalfType.FIRST_HALF)
+                .jobPosition("백엔드 개발자")
+                .deadline(LocalDate.of(2024, 12, 31))
+                .build();
+        ReflectionTestUtils.setField(coverLetter, "id", coverLetterId);
+
+        QnA existingQnA = QnAFixture.createQnAWithId(qnAId, coverLetter, userId, "기존 질문", QuestionCategoryType.MOTIVATION);
+        ReflectionTestUtils.setField(coverLetter, "qnAs", new ArrayList<>(List.of(existingQnA)));
+
+        CoverLetterAndQnAEditRequest editRequest = new CoverLetterAndQnAEditRequest(
+                new CoverLetterAndQnAEditRequest.CoverLetterEditRequest(
+                        coverLetterId, "기업명", 2024, ApplyHalfType.FIRST_HALF, "백엔드 개발자", null
+                ),
+                List.of(new CoverLetterAndQnAEditRequest.QnAEditRequest(qnAId, "수정된 질문", QuestionCategoryType.TEAMWORK_EXPERIENCE))
+        );
+
+        given(coverLetterRepository.findByIdWithQnAsOrElseThrow(coverLetterId)).willReturn(coverLetter);
+
+        // when
+        coverLetterService.editCoverLetterAndQnA(userId, editRequest);
+
+        // then
+        assertThat(coverLetter.getQnAs()).hasSize(1);
+        assertThat(existingQnA.getQuestion()).isEqualTo("수정된 질문");
+        assertThat(existingQnA.getQuestionCategory()).isEqualTo(QuestionCategoryType.TEAMWORK_EXPERIENCE);
+    }
+
+    @Test
+    @DisplayName("자기소개서 수정 - qnAId null인 새 QnA 추가 성공")
+    void editCoverLetterAndQnA_새QnA추가_성공() {
+        // given
+        String userId = "testUser123";
+        Long coverLetterId = 1L;
+        Long existingQnAId = 10L;
+
+        CoverLetter coverLetter = CoverLetter.builder()
+                .userId(userId)
+                .companyName("기업명")
+                .applyYear(2024)
+                .applyHalf(ApplyHalfType.FIRST_HALF)
+                .jobPosition("백엔드 개발자")
+                .deadline(LocalDate.of(2024, 12, 31))
+                .build();
+        ReflectionTestUtils.setField(coverLetter, "id", coverLetterId);
+
+        QnA existingQnA = QnAFixture.createQnAWithId(existingQnAId, coverLetter, userId, "기존 질문", QuestionCategoryType.MOTIVATION);
+        ReflectionTestUtils.setField(coverLetter, "qnAs", new ArrayList<>(List.of(existingQnA)));
+
+        CoverLetterAndQnAEditRequest editRequest = new CoverLetterAndQnAEditRequest(
+                new CoverLetterAndQnAEditRequest.CoverLetterEditRequest(
+                        coverLetterId, "기업명", 2024, ApplyHalfType.FIRST_HALF, "백엔드 개발자", null
+                ),
+                List.of(
+                        new CoverLetterAndQnAEditRequest.QnAEditRequest(existingQnAId, "기존 질문", QuestionCategoryType.MOTIVATION),
+                        new CoverLetterAndQnAEditRequest.QnAEditRequest(null, "새로운 질문", QuestionCategoryType.VALUES)
+                )
+        );
+
+        given(coverLetterRepository.findByIdWithQnAsOrElseThrow(coverLetterId)).willReturn(coverLetter);
+
+        // when
+        coverLetterService.editCoverLetterAndQnA(userId, editRequest);
+
+        // then
+        assertThat(coverLetter.getQnAs()).hasSize(2);
+        assertThat(coverLetter.getQnAs().stream().anyMatch(q -> "새로운 질문".equals(q.getQuestion()))).isTrue();
+        assertThat(coverLetter.getQnAs().stream()
+                .anyMatch(q -> QuestionCategoryType.VALUES.equals(q.getQuestionCategory()))).isTrue();
+    }
+
+    @Test
+    @DisplayName("자기소개서 수정 - 요청에 없는 기존 QnA 삭제 성공")
+    void editCoverLetterAndQnA_기존QnA삭제_성공() {
+        // given
+        String userId = "testUser123";
+        Long coverLetterId = 1L;
+
+        CoverLetter coverLetter = CoverLetter.builder()
+                .userId(userId)
+                .companyName("기업명")
+                .applyYear(2024)
+                .applyHalf(ApplyHalfType.FIRST_HALF)
+                .jobPosition("백엔드 개발자")
+                .deadline(LocalDate.of(2024, 12, 31))
+                .build();
+        ReflectionTestUtils.setField(coverLetter, "id", coverLetterId);
+
+        QnA qnAToKeep = QnAFixture.createQnAWithId(10L, coverLetter, userId, "유지할 질문", QuestionCategoryType.MOTIVATION);
+        QnA qnAToDelete = QnAFixture.createQnAWithId(11L, coverLetter, userId, "삭제될 질문", QuestionCategoryType.VALUES);
+        ReflectionTestUtils.setField(coverLetter, "qnAs", new ArrayList<>(List.of(qnAToKeep, qnAToDelete)));
+
+        // 11L은 요청에서 제외 → 삭제 대상
+        CoverLetterAndQnAEditRequest editRequest = new CoverLetterAndQnAEditRequest(
+                new CoverLetterAndQnAEditRequest.CoverLetterEditRequest(
+                        coverLetterId, "기업명", 2024, ApplyHalfType.FIRST_HALF, "백엔드 개발자", null
+                ),
+                List.of(new CoverLetterAndQnAEditRequest.QnAEditRequest(10L, "유지할 질문", QuestionCategoryType.MOTIVATION))
+        );
+
+        given(coverLetterRepository.findByIdWithQnAsOrElseThrow(coverLetterId)).willReturn(coverLetter);
+
+        // when
+        coverLetterService.editCoverLetterAndQnA(userId, editRequest);
+
+        // then
+        assertThat(coverLetter.getQnAs()).hasSize(1);
+        assertThat(coverLetter.getQnAs().get(0).getQuestion()).isEqualTo("유지할 질문");
+    }
+
+    @Test
+    @DisplayName("자기소개서 수정 - 추가/수정/삭제 혼합 처리 성공")
+    void editCoverLetterAndQnA_혼합처리_성공() {
+        // given
+        String userId = "testUser123";
+        Long coverLetterId = 1L;
+
+        CoverLetter coverLetter = CoverLetter.builder()
+                .userId(userId)
+                .companyName("기업명")
+                .applyYear(2024)
+                .applyHalf(ApplyHalfType.FIRST_HALF)
+                .jobPosition("백엔드 개발자")
+                .deadline(LocalDate.of(2024, 12, 31))
+                .build();
+        ReflectionTestUtils.setField(coverLetter, "id", coverLetterId);
+
+        QnA qnAToUpdate = QnAFixture.createQnAWithId(10L, coverLetter, userId, "수정 전 질문", QuestionCategoryType.MOTIVATION);
+        QnA qnAToDelete = QnAFixture.createQnAWithId(11L, coverLetter, userId, "삭제될 질문", QuestionCategoryType.VALUES);
+        ReflectionTestUtils.setField(coverLetter, "qnAs", new ArrayList<>(List.of(qnAToUpdate, qnAToDelete)));
+
+        // 10L 수정, 11L 삭제, null 새 문항 추가
+        CoverLetterAndQnAEditRequest editRequest = new CoverLetterAndQnAEditRequest(
+                new CoverLetterAndQnAEditRequest.CoverLetterEditRequest(
+                        coverLetterId, "기업명", 2024, ApplyHalfType.FIRST_HALF, "백엔드 개발자", null
+                ),
+                List.of(
+                        new CoverLetterAndQnAEditRequest.QnAEditRequest(10L, "수정 후 질문", QuestionCategoryType.JOB_SKILL),
+                        new CoverLetterAndQnAEditRequest.QnAEditRequest(null, "새로운 질문", QuestionCategoryType.FUTURE_PLAN)
+                )
+        );
+
+        given(coverLetterRepository.findByIdWithQnAsOrElseThrow(coverLetterId)).willReturn(coverLetter);
+
+        // when
+        coverLetterService.editCoverLetterAndQnA(userId, editRequest);
+
+        // then: 10L 수정됨, 11L 삭제됨, 새 QnA 추가됨 → 총 2개
+        assertThat(coverLetter.getQnAs()).hasSize(2);
+        assertThat(qnAToUpdate.getQuestion()).isEqualTo("수정 후 질문");
+        assertThat(qnAToUpdate.getQuestionCategory()).isEqualTo(QuestionCategoryType.JOB_SKILL);
+        assertThat(coverLetter.getQnAs().stream().noneMatch(q -> q == qnAToDelete)).isTrue();
+        assertThat(coverLetter.getQnAs().stream().anyMatch(q -> "새로운 질문".equals(q.getQuestion()))).isTrue();
+    }
+
+    @Test
+    @DisplayName("자기소개서 수정 - 자기소개서에 없는 qnAId 수정 시도 시 QNA_NOT_FOUND 예외 발생")
+    void editCoverLetterAndQnA_존재하지않는QnAId_예외발생() {
+        // given
+        String userId = "testUser123";
+        Long coverLetterId = 1L;
+
+        CoverLetter coverLetter = CoverLetter.builder()
+                .userId(userId)
+                .companyName("기업명")
+                .applyYear(2024)
+                .applyHalf(ApplyHalfType.FIRST_HALF)
+                .jobPosition("백엔드 개발자")
+                .deadline(LocalDate.of(2024, 12, 31))
+                .build();
+        ReflectionTestUtils.setField(coverLetter, "id", coverLetterId);
+
+        QnA existingQnA = QnAFixture.createQnAWithId(10L, coverLetter, userId, "기존 질문", QuestionCategoryType.MOTIVATION);
+        ReflectionTestUtils.setField(coverLetter, "qnAs", new ArrayList<>(List.of(existingQnA)));
+
+        // 99L은 이 자기소개서에 속하지 않는 qnAId
+        CoverLetterAndQnAEditRequest editRequest = new CoverLetterAndQnAEditRequest(
+                new CoverLetterAndQnAEditRequest.CoverLetterEditRequest(
+                        coverLetterId, "기업명", 2024, ApplyHalfType.FIRST_HALF, "백엔드 개발자", null
+                ),
+                List.of(new CoverLetterAndQnAEditRequest.QnAEditRequest(99L, "수정 질문", QuestionCategoryType.VALUES))
+        );
+
+        given(coverLetterRepository.findByIdWithQnAsOrElseThrow(coverLetterId)).willReturn(coverLetter);
+
+        // when & then
+        assertThatThrownBy(() -> coverLetterService.editCoverLetterAndQnA(userId, editRequest))
+                .isInstanceOf(BaseException.class)
+                .hasFieldOrPropertyWithValue("errorCode", QnAErrorCode.QNA_NOT_FOUND);
     }
 
     @Test
