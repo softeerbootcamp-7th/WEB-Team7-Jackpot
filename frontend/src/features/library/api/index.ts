@@ -6,39 +6,17 @@ import type {
   CreateScrapResponse,
   LibraryResponse,
   LibraryView,
-<<<<<<< HEAD
   QnASearchResponse,
-=======
->>>>>>> c63c2e8 ([refactor] type, interface 중복되는 타입 shared로 이동 후 정리)
   QuestionListResponse,
   ScrapCount,
 } from '@/features/library/types';
 import { apiClient } from '@/shared/api/apiClient';
 
-<<<<<<< HEAD
-=======
-// 1. Zod Schemas Definition
-
-// QnA Schema
-const QnASchema = z.object({
-  qnAId: z.number(),
-  question: z.string(),
-  answer: z.string(),
-  answerSize: z.number(),
-  modifiedAt: z.string(), // 필요 시 .datetime() 추가 가능
-});
-
-// Library Response Schema
->>>>>>> c63c2e8 ([refactor] type, interface 중복되는 타입 shared로 이동 후 정리)
 const LibraryResponseSchema = z.object({
   libraries: z.array(z.string()),
 });
 
-<<<<<<< HEAD
 // 자소서(CoverLetter) 관련 스키마
-=======
-// CoverLetter Schema
->>>>>>> c63c2e8 ([refactor] type, interface 중복되는 타입 shared로 이동 후 정리)
 const CoverLetterSchema = z.object({
   id: z.number(),
   applySeason: z.string(),
@@ -46,32 +24,20 @@ const CoverLetterSchema = z.object({
   jobPosition: z.string(),
   questionCount: z.number(),
   modifiedAt: z.string(),
-<<<<<<< HEAD
 });
 
-=======
-  question: z.array(QnASchema), // 인터페이스에 따라 배열로 설정
-});
-
-// CoverLetter List Response Schema
->>>>>>> c63c2e8 ([refactor] type, interface 중복되는 타입 shared로 이동 후 정리)
 const CoverLetterListResponseSchema = z.object({
   coverLetters: z.array(CoverLetterSchema),
   hasNext: z.boolean(),
 });
 
-<<<<<<< HEAD
 // 질문(Question) 아이템 스키마
-=======
-// Question Item Schema
->>>>>>> c63c2e8 ([refactor] type, interface 중복되는 타입 shared로 이동 후 정리)
 const QuestionItemSchema = z.object({
   id: z.number(),
   companyName: z.string(),
   jobPosition: z.string(),
   applySeason: z.string(),
   question: z.string(),
-<<<<<<< HEAD
   answer: z.string().nullable(),
   coverLetterId: z.number(),
 });
@@ -83,23 +49,10 @@ const QuestionListResponseSchema = z.object({
   hasNext: z.boolean(),
 });
 
-=======
-  answer: z.string(),
-});
-
-// Question List Response Schema
-const QuestionListResponseSchema = z.object({
-  questions: z.array(QuestionItemSchema),
-  hasNext: z.boolean(),
-});
-
-// Scrap Count Schema
->>>>>>> c63c2e8 ([refactor] type, interface 중복되는 타입 shared로 이동 후 정리)
 const ScrapCountSchema = z.object({
   scrapCount: z.number(),
 });
 
-<<<<<<< HEAD
 const CreateScrapRequestSchema = z.object({
   qnAId: z.number(),
 });
@@ -132,16 +85,6 @@ export const SearchLibraryResponseSchema = z.object({
 /**
  * 라이브러리(폴더) 목록 조회
  */
-=======
-// Create Scrap Response Schema
-const CreateScrapResponseSchema = z.object({
-  scrapId: z.number(),
-  createdAt: z.string(),
-});
-
-// 2. API Functions
-
->>>>>>> c63c2e8 ([refactor] type, interface 중복되는 타입 shared로 이동 후 정리)
 export const fetchFolderList = async (
   libraryType: LibraryView,
 ): Promise<LibraryResponse> => {
@@ -154,12 +97,9 @@ export const fetchFolderList = async (
   return LibraryResponseSchema.parse(response);
 };
 
-<<<<<<< HEAD
 /**
  * 특정 폴더 내 문서(자소서/질문) 목록 조회
  */
-=======
->>>>>>> c63c2e8 ([refactor] type, interface 중복되는 타입 shared로 이동 후 정리)
 export const fetchDocumentList = async (
   libraryType: LibraryView,
   folderName: string,

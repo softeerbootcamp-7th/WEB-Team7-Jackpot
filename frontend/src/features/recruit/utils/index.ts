@@ -1,5 +1,5 @@
 import type { QnAListResponse } from '@/features/recruit/types';
-import { type CoverLetterType } from '@/shared/types/coverLetter';
+import type { CoverLetterType } from '@/shared/types/coverLetter';
 
 // 타입을 먼저 정의합니다 (기존 타입을 재활용하거나 새로 정의)
 interface CombinedCoverLetter {

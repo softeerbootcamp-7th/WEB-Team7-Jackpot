@@ -17,7 +17,7 @@ export const useSearch = <T>({
 }: UseSearchProps<T>) => {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // ✅ [중요] 객체 대신 실제 문자열 값을 변수로 추출
+  // 객체 대신 실제 문자열 값을 변수로 추출
   const currentQueryParam = searchParams.get(queryKey) || '';
 
   // 1. 초기값 설정
@@ -34,7 +34,7 @@ export const useSearch = <T>({
       setKeyword('');
       return;
     }
-    // ✅ 의존성에 searchParams 객체가 아닌 문자열 값(currentQueryParam)을 사용
+    //  의존성에 searchParams 객체가 아닌 문자열 값(currentQueryParam)을 사용
     if (keyword !== currentQueryParam) {
       setKeyword(currentQueryParam);
     }
@@ -68,7 +68,7 @@ export const useSearch = <T>({
         return;
       }
 
-      // ✅ 현재 URL 값과 다를 때만 업데이트 (중복 호출 방지)
+      //  현재 URL 값과 다를 때만 업데이트 (중복 호출 방지)
       if (currentQueryParam !== keyword) {
         const nextParams = new URLSearchParams(searchParams);
         nextParams.set(queryKey, keyword);
@@ -87,7 +87,7 @@ export const useSearch = <T>({
       return;
     }
 
-    // ✅ 여기서도 문자열 값인 currentQueryParam을 감시
+    //  여기서도 문자열 값인 currentQueryParam을 감시
     if (!currentQueryParam) {
       setData(null);
       return;
