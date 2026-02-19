@@ -200,9 +200,15 @@ public class TextDeltaService {
             deltas = Collections.emptyList();
         }
 
-        String newAnswer = textMerger.merge(qnA.getAnswer(), deltas);
+        // flushToDb와 동일한 패턴: DB version 기준으로 이미 반영된 stale 델타 제거
+        long dbVersion = qnA.getVersion();
+        List<TextUpdateRequest> applicableDeltas = deltas.stream()
+                .filter(d -> d.version() >= dbVersion)
+                .toList();
+
+        String newAnswer = textMerger.merge(qnA.getAnswer(), applicableDeltas);
         qnA.editAnswer(newAnswer);
-        long version = qnARepository.incrementVersion(qnAId, deltas.size());
+        long version = qnARepository.incrementVersion(qnAId, applicableDeltas.size());
 
         WebSocketTextReplaceAllMessage message = new WebSocketTextReplaceAllMessage(version, newAnswer);
         WebSocketMessageResponse response = new WebSocketMessageResponse(
