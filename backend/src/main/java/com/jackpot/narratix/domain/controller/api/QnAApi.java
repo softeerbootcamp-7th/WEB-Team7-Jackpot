@@ -12,6 +12,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
@@ -34,7 +37,7 @@ public interface QnAApi {
     })
     ResponseEntity<QnAEditResponse> editQnA(
             @Parameter(hidden = true) String userId,
-            QnAEditRequest request
+            @Valid QnAEditRequest request
     );
 
     @Operation(summary = "QnA 단건 조회", description = "ID로 질문 및 답변을 조회합니다.")
@@ -82,6 +85,6 @@ public interface QnAApi {
     })
     ResponseEntity<QnAListResponse> getQnAsByQnAIds(
             @Parameter(hidden = true) String userId,
-            @Parameter(description = "QnA ID 목록") List<Long> qnAIds
+            @Parameter(description = "QnA ID 목록") @NotEmpty @Size(max = 20) List<Long> qnAIds
     );
 }
