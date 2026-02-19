@@ -41,7 +41,11 @@ public enum QuestionCategoryType {
     public static QuestionCategoryType fromDescription(String description) {
         QuestionCategoryType type = CATEGORY_TYPE_MAP.get(description);
         if (type == null) {
-            throw new BaseException(GlobalErrorCode.INVALID_INPUT_VALUE);
+            try {
+                type = QuestionCategoryType.valueOf(description);
+            } catch (IllegalArgumentException e) {
+                throw new BaseException(GlobalErrorCode.INVALID_INPUT_VALUE);
+            }
         }
         return type;
     }
