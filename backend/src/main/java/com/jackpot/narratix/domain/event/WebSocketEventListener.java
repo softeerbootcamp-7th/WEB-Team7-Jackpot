@@ -13,7 +13,6 @@ import com.jackpot.narratix.domain.service.dto.WebSocketCreateReviewMessage;
 import com.jackpot.narratix.domain.service.dto.WebSocketDeleteReviewMessage;
 import com.jackpot.narratix.domain.service.dto.WebSocketEditReviewMessage;
 
-import com.jackpot.narratix.domain.service.dto.WebSocketTextReplaceAllMessage;
 import com.jackpot.narratix.global.websocket.WebSocketSessionAttributes;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -84,40 +83,10 @@ public class WebSocketEventListener {
         );
     }
 
-    @Async
-    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleTextReplaceAllEvent(TextReplaceAllEvent event) {
-        Optional<ShareLink> shareLink = shareLinkService.getActiveShareLinkByCoverLetterId(event.coverLetterId());
-        if (shareLink.isEmpty()) return;
-
-        WebSocketTextReplaceAllMessage message = WebSocketTextReplaceAllMessage.of(event);
-
-        webSocketMessageSender.sendMessageToShare(
-                shareLink.get().getShareId(),
-                new WebSocketMessageResponse(WebSocketMessageType.TEXT_REPLACE_ALL, event.qnAId(), message)
-        );
-    }
-
     @EventListener
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
         String sessionId = event.getSessionId();
         log.info("웹소켓 연결 종료. sessionId={}", sessionId);
-
-        try {
-            StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-            Map<String, Object> attributes = headerAccessor.getSessionAttributes();
-            if (attributes != null) {
-                ReviewRoleType role = WebSocketSessionAttributes.getRole(attributes);
-                String shareId = WebSocketSessionAttributes.getShareId(attributes);
-                // Writer 연결 종료 시 pending 델타를 DB에 flush해 TTL 만료로 인한 데이터 유실 방지
-                if (role == ReviewRoleType.WRITER && shareId != null) {
-                    shareLinkService.flushPendingDeltasByShareId(shareId);
-                }
-            }
-        } catch (Exception e) {
-            log.error("Writer disconnect flush 실패: sessionId={}", sessionId, e);
-        }
 
         try {
             shareLinkLockManager.unlock(sessionId);

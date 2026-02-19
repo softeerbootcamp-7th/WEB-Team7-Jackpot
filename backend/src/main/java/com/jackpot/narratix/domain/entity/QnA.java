@@ -69,11 +69,6 @@ public class QnA extends BaseTimeEntity {
         updateModifiedAt(LocalDateTime.now());
     }
 
-    public long incrementVersionBy(int deltaCount) {
-        this.version += deltaCount;
-        return this.version;
-    }
-
     public ReviewRoleType determineReviewRole(String userId) {
         if (isOwner(userId)) {
             return ReviewRoleType.WRITER;

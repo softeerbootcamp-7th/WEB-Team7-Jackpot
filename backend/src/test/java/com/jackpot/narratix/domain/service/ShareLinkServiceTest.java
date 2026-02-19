@@ -24,9 +24,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.Optional;
 
-import org.mockito.MockedStatic;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -49,7 +46,7 @@ class ShareLinkServiceTest {
     private ShareLinkRepository shareLinkRepository;
 
     @Mock
-    private TextDeltaService textDeltaService;
+    private ShareLinkLockManager shareLinkLockManager;
 
     @Mock
     private ShareLinkSessionRegistry shareLinkSessionRegistry;
@@ -100,20 +97,17 @@ class ShareLinkServiceTest {
         given(mockCoverLetter.isOwner(userId)).willReturn(true);
         given(shareLinkRepository.findById(coverLetterId)).willReturn(Optional.of(mockShareLink));
 
-        try (MockedStatic<TransactionSynchronizationManager> mockedTxManager =
-                     mockStatic(TransactionSynchronizationManager.class)) {
-            // when
-            ShareLinkActiveResponse response = shareLinkService.updateShareLinkStatus(userId, coverLetterId, active);
+        // when
+        ShareLinkActiveResponse response = shareLinkService.updateShareLinkStatus(userId, coverLetterId, active);
 
-            // then
-            assertThat(response).isNotNull();
-            assertThat(response.active()).isFalse();
-            assertThat(response.shareLinkId()).isNull();
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.active()).isFalse();
+        assertThat(response.shareLinkId()).isNull();
 
-            verify(coverLetterRepository, times(1)).findByIdOrElseThrow(coverLetterId);
-            verify(shareLinkRepository, times(1)).findById(coverLetterId);
-            verify(mockShareLink, times(1)).deactivate();
-        }
+        verify(coverLetterRepository, times(1)).findByIdOrElseThrow(coverLetterId);
+        verify(shareLinkRepository, times(1)).findById(coverLetterId);
+        verify(mockShareLink, times(1)).deactivate();
     }
 
     @Test
@@ -130,20 +124,17 @@ class ShareLinkServiceTest {
         given(mockCoverLetter.isOwner(userId)).willReturn(true);
         given(shareLinkRepository.findById(coverLetterId)).willReturn(Optional.empty());
 
-        try (MockedStatic<TransactionSynchronizationManager> mockedTxManager =
-                     mockStatic(TransactionSynchronizationManager.class)) {
-            // when
-            ShareLinkActiveResponse response = shareLinkService.updateShareLinkStatus(userId, coverLetterId, active);
+        // when
+        ShareLinkActiveResponse response = shareLinkService.updateShareLinkStatus(userId, coverLetterId, active);
 
-            // then
-            assertThat(response).isNotNull();
-            assertThat(response.active()).isFalse();
-            assertThat(response.shareLinkId()).isNull();
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.active()).isFalse();
+        assertThat(response.shareLinkId()).isNull();
 
-            verify(coverLetterRepository, times(1)).findByIdOrElseThrow(coverLetterId);
-            verify(shareLinkRepository, times(1)).findById(coverLetterId);
-            verify(shareLinkRepository, never()).save(any(ShareLink.class));
-        }
+        verify(coverLetterRepository, times(1)).findByIdOrElseThrow(coverLetterId);
+        verify(shareLinkRepository, times(1)).findById(coverLetterId);
+        verify(shareLinkRepository, never()).save(any(ShareLink.class));
     }
 
     @Test

@@ -4,7 +4,6 @@ import com.jackpot.narratix.domain.controller.request.TextUpdateRequest;
 import com.jackpot.narratix.domain.controller.response.WebSocketMessageResponse;
 import com.jackpot.narratix.domain.entity.enums.ReviewRoleType;
 import com.jackpot.narratix.domain.exception.WebSocketErrorCode;
-import com.jackpot.narratix.domain.service.TextDeltaService;
 import com.jackpot.narratix.domain.service.WebSocketMessageSender;
 import com.jackpot.narratix.global.exception.BaseException;
 import com.jackpot.narratix.global.websocket.WebSocketSessionAttributes;
@@ -25,7 +24,6 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,9 +34,6 @@ class WebSocketMessageControllerTest {
 
     @Mock
     private WebSocketMessageSender webSocketMessageSender;
-
-    @Mock
-    private TextDeltaService textDeltaService;
 
     private SimpMessageHeaderAccessor headerAccessor;
     private Map<String, Object> sessionAttributes;
@@ -180,16 +175,13 @@ class WebSocketMessageControllerTest {
         Long qnAId = 1L;
         String userId = "user123";
         ReviewRoleType role = ReviewRoleType.WRITER;
-        Long version = 2L;
-
-        given(textDeltaService.saveAndMaybeFlush(eq(qnAId), any(TextUpdateRequest.class))).willReturn(version);
 
         WebSocketSessionAttributes.setUserId(sessionAttributes, userId);
         WebSocketSessionAttributes.setShareId(sessionAttributes, shareId);
         WebSocketSessionAttributes.setRole(sessionAttributes, role);
 
         TextUpdateRequest request = new TextUpdateRequest(
-                version,
+                1L,      // version
                 0,       // startIdx
                 10,      // endIdx
                 "Updated text"

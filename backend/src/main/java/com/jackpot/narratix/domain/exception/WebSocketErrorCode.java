@@ -13,8 +13,7 @@ public enum WebSocketErrorCode implements ErrorCode {
     ROLE_MISMATCH(HttpStatus.BAD_REQUEST, "세션에 저장된 role과 구독한 role이 일치하지 않습니다."),
     ROLE_NOT_FOUND(HttpStatus.BAD_REQUEST, "Role이 존재하지 않습니다."),
     INVALID_SESSION(HttpStatus.BAD_REQUEST, "유효하지 않은 세션입니다."),
-    UNAUTHORIZED_TEXT_UPDATE(HttpStatus.FORBIDDEN, "텍스트 수정 권한이 없습니다. Writer만 수정할 수 있습니다."),
-    VERSION_CONFLICT(HttpStatus.CONFLICT, "클라이언트 버전이 서버 버전과 일치하지 않습니다.");
+    UNAUTHORIZED_TEXT_UPDATE(HttpStatus.FORBIDDEN, "텍스트 수정 권한이 없습니다. Writer만 수정할 수 있습니다.");
 
     private final HttpStatus status;
     private final String message;
