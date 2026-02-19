@@ -9,22 +9,21 @@ import {
 
 // 1. Props 정의
 // 부모 컴포넌트(상세 페이지)에서 초기 스크랩 여부를 받아와야 가장 정확해.
-interface ScrapButtonProps {
+interface Props {
   initialIsScrapped?: boolean; // 서버에서 받은 초기 상태 (없으면 false 처리)
 }
 
-const ScrapButton = ({ initialIsScrapped = false }: ScrapButtonProps) => {
+const ScrapButton = ({ initialIsScrapped = false }: Props) => {
   const { qnAId } = useParams<{ qnAId: string }>();
 
   // 2. Local State로 UI 즉각 반응 (Optimistic UI 흉내)
-  // 서버 응답을 기다리지 않고 색상을 바로 바꾸기 위해 state를 사용해.
   const [isScrapped, setIsScrapped] = useState(initialIsScrapped);
 
   // 3. 커스텀 훅 가져오기
   const { mutate: createScrap } = useCreateScrapMutation();
   const { mutate: deleteScrap } = useDeleteScrapMutation();
 
-  // props가 변경되면 state도 동기화 (예: 다른 글을 클릭했을 때)
+  // props가 변경되면 state도 동기화
   useEffect(() => {
     setIsScrapped(initialIsScrapped);
   }, [initialIsScrapped]);
