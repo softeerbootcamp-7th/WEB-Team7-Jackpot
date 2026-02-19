@@ -1,10 +1,17 @@
 import { useParams, useSearchParams } from 'react-router';
 
-import { useCompanyListQueries } from '@/features/library/hooks/queries/useLibraryListQueries';
-import type { CoverLetter } from '@/features/library/types';
+import DetailButtons from '@/features/library/components/DetailButtons';
+import DetailView from '@/features/library/components/DetailView';
+import {
+  useCompanyListQueries,
+  useQnAQuery,
+} from '@/features/library/hooks/queries/useLibraryListQueries';
+import type { CoverLetterItem } from '@/features/library/types';
 import Pagination from '@/shared/components/Pagination';
+import { useQnAIdListQuery } from '@/shared/hooks/useQnAQueries';
 import { getDate } from '@/shared/utils/dates';
 
+// [박소민] 기업 자기소개서 API 최적화하기 (지금은 자기소개서 리스트 + 문항 ID 단건 조회 사용)
 const CompanyDetailView = () => {
   const { companyName, coverLetterId } = useParams<{
     companyName: string;
@@ -12,103 +19,92 @@ const CompanyDetailView = () => {
   }>();
 
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // 1. 메타데이터 조회 (기업명, 직무, 지원시기 등)
   const companyQuery = useCompanyListQueries(companyName ?? null);
+
+  // 2. 문항 ID 리스트 조회 (총 문항 수 및 ID 매핑용)
+  const qnaIdListQuery = useQnAIdListQuery(
+    coverLetterId ? Number(coverLetterId) : null,
+  );
 
   // URL 쿼리 파라미터에서 페이지 읽기 (기본값: 1)
   const currentPage = Number(searchParams.get('page')) || 1;
   const currentQuestionIndex = currentPage - 1; // 0-based index
 
-  const currentDocument: CoverLetter | undefined = companyQuery.data?.pages
+  // 리스트 쿼리에서 문서 정보 찾기 (헤더 표시용)
+  const currentDocument: CoverLetterItem | undefined = companyQuery.data?.pages
     .flatMap((page) => page.coverLetters)
     .find((doc) => doc.id === Number(coverLetterId));
 
+  // ID 리스트에서 현재 페이지에 해당하는 문항 ID 추출
+  const qnaIds = qnaIdListQuery.data ?? [];
+  const targetQnAId = qnaIds[currentQuestionIndex];
+
+  // 3. 현재 문항 단건 조회 (본문 내용용)
+  // targetQnAId가 있을 때만 실행됨
+  const qnaDetailQuery = useQnAQuery(targetQnAId ?? null);
+  const currentQnA = qnaDetailQuery.data;
+
+  // 로딩 상태 처리 (필수 데이터가 로딩 중일 때)
+  if (companyQuery.isLoading || qnaIdListQuery.isLoading) {
+    return <div className='p-8'>Loading...</div>;
+  }
+
+  // 문서 메타데이터가 없을 때
   if (!currentDocument) {
-    return <div>문서를 찾을 수 없습니다.</div>;
+    return <div className='p-8'>문서를 찾을 수 없습니다.</div>;
   }
 
-  const currentQuestion = currentDocument.question[currentQuestionIndex];
-
-  if (!currentQuestion) {
-    return <div>해당 페이지의 문항을 찾을 수 없습니다.</div>;
+  // 문항 데이터 로딩 중이거나 없을 때 처리
+  // (ID 리스트는 왔는데 상세 내용이 아직 안 온 경우 포함)
+  if (qnaDetailQuery.isLoading) {
+    return <div className='p-8'>문항 내용을 불러오는 중...</div>;
   }
 
-  const modifiedDate = getDate(currentDocument.modifiedAt);
+  // ID 리스트 범위 밖이거나 데이터가 없을 때
+  if (!currentQnA) {
+    return <div className='p-8'>해당 페이지의 문항을 찾을 수 없습니다.</div>;
+  }
+
+  // 수정일: 단건 조회 데이터 우선, 없으면 문서 전체 수정일
+  const modifiedAt = getDate(
+    currentQnA.modifiedAt ?? currentDocument.modifiedAt,
+  );
 
   // 페이지 변경 핸들러
   const handlePageChange = (newIndex: number) => {
+    // Pagination이 0-based index를 준다면 +1 해서 page 파라미터로 설정
     setSearchParams({ page: String(newIndex + 1) });
   };
 
   return (
-    <div className='flex h-full w-full min-w-0 flex-col items-start justify-start gap-5 border-t-0 border-r-0 border-b-0 border-l border-gray-100 px-8 py-7'>
-      <div className='relative flex items-start justify-between self-stretch'>
-        <div className='flex items-start justify-end gap-1'>
-          <div className='relative flex items-center justify-center gap-1 rounded-xl bg-blue-50 px-3 py-1.5'>
-            <p className='text-left text-xs font-medium text-blue-600'>
-              {currentDocument.companyName}
-            </p>
-          </div>
-          <div className='relative flex items-center justify-center gap-1 rounded-xl bg-gray-50 px-3 py-1.5'>
-            <p className='text-left text-xs font-medium text-gray-600'>
-              {currentDocument.jobPosition}
-            </p>
-          </div>
-        </div>
-        {/* <div>버튼이 들어갈 예정입니다.</div> */}
-      </div>
-      <div className='flex flex-col items-start justify-start gap-3 self-stretch'>
-        <div className='relative flex flex-col items-start justify-start gap-0.5 self-stretch'>
-          <p className='w-[810px] self-stretch text-left text-[22px] font-bold text-gray-950'>
-            {currentDocument.applySeason}
-          </p>
-          <div className='relative flex items-start justify-start gap-1'>
-            <p className='text-body-s text-gray-400'>
-              총 {currentDocument.questionCount}문항
-            </p>
-            <p className='text-body-s text-gray-400'>·</p>
-            <p className='text-body-s text-gray-400'>{modifiedDate}</p>
-          </div>
-        </div>
-      </div>
-      <div className='flex flex-col items-start justify-start gap-3.5 self-stretch'>
-        <div className='flex items-center justify-start gap-2.5 self-stretch'>
-          <div className='flex flex-grow items-start justify-center gap-3'>
-            <div className='relative flex w-[35px] items-center justify-center gap-1 rounded-xl bg-gray-50 px-3 py-1.5'>
-              <p className='text-body-m text-center font-bold text-gray-600'>
-                {currentQuestionIndex + 1}
-              </p>
-            </div>
-            <div className='relative flex flex-grow items-center justify-center gap-2.5 pt-[3.5px]'>
-              <p className='text-title-s w-full flex-grow font-bold text-gray-950'>
-                {currentQuestion.question}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className='flex flex-col items-start justify-start gap-6 self-stretch pr-[34px] pl-[47px]'>
-          <div className='flex flex-col items-start justify-start gap-2 self-stretch'>
-            <div className='relative flex flex-col items-start justify-start gap-2 self-stretch py-2'>
-              <p className='text-body-m w-full self-stretch text-left text-gray-800'>
-                {currentQuestion.answer}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className='flex h-8 w-full items-center justify-between py-0.5'>
-        <div className='flex flex-shrink-0 flex-grow items-center justify-start gap-0.5 pl-[47px]'>
-          <p className='text-body-m text-left font-medium text-gray-400'>
-            {currentQuestion.answerSize}자
-          </p>
-        </div>
+    <DetailView
+      companyName={currentDocument.companyName}
+      jobPosition={currentDocument.jobPosition}
+      applySeason={currentDocument.applySeason ?? ''}
+      modifiedAt={modifiedAt}
+      question={currentQnA.question}
+      answer={currentQnA.answer}
+      answerSize={currentQnA.answerSize}
+      button={
+        <DetailButtons
+          coverLetterId={currentDocument.id}
+          qnAId={targetQnAId ?? 0}
+          initialScrapState={currentQnA.isScraped ?? false}
+        />
+      }
+      currentQuestionIndex={currentQuestionIndex}
+      qnaIds={qnaIds}
+      pagination={
         <Pagination
           current={currentQuestionIndex}
-          total={currentDocument.questionCount}
+          total={qnaIds.length} // 전체 ID 개수 전달
           onChange={handlePageChange}
           align='end'
         />
-      </div>
-    </div>
+      }
+    />
   );
 };
 export default CompanyDetailView;

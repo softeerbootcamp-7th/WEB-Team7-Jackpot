@@ -1,6 +1,10 @@
 import { useParams } from 'react-router';
 
+import DetailButtons from '@/features/library/components/DetailButtons';
+import DetailView from '@/features/library/components/DetailView';
 import { useQnAListQueries } from '@/features/library/hooks/queries/useLibraryListQueries';
+import { useQnAQuery } from '@/features/library/hooks/queries/useLibraryListQueries';
+import { getDate } from '@/shared/utils/dates';
 
 const QnADetailView = () => {
   const { qnAName, qnAId } = useParams<{
@@ -8,92 +12,53 @@ const QnADetailView = () => {
     qnAId: string;
   }>();
 
-  const qnaQuery = useQnAListQueries(qnAName ?? null);
+  // 1. 기존 리스트 쿼리 (기업명, 직무, 지원시기 정보 가져오기용)
+  const listQuery = useQnAListQueries(qnAName ?? null);
 
-  if (qnaQuery.isLoading) {
+  // 2. 신규 단건 쿼리 (답변 상세 내용 가져오기용)
+  const detailQuery = useQnAQuery(qnAId ? Number(qnAId) : null);
+
+  // 로딩 상태 처리 (둘 중 하나라도 로딩 중이면 로딩 표시)
+  if (listQuery.isLoading || detailQuery.isLoading) {
     return <div>Loading...</div>;
   }
 
-  if (qnaQuery.isError) {
+  // 에러 상태 처리
+  if (listQuery.isError || detailQuery.isError) {
     return <div>문서를 불러오는 중 오류가 발생했습니다.</div>;
   }
 
-  // [박소민] TODO: 문항 라이브러리 API 연결해서 넣기
-
-  const currentDocument = qnaQuery.data?.pages
-    .flatMap((page) => page.questions)
+  // [기존 로직 유지] 리스트에서 메타데이터(기업명 등) 찾기
+  const listDocument = listQuery.data?.pages
+    .flatMap((page) => page.qnAs)
     .find((doc) => doc.id === Number(qnAId));
 
-  if (!currentDocument) {
+  // 단건 API에서 상세 데이터 가져오기
+  const detailDocument = detailQuery.data;
+
+  // 두 데이터 중 하나라도 없으면 문서를 찾을 수 없음 처리
+  if (!listDocument || !detailDocument) {
     console.log('Document not found!');
     return <div>문서를 찾을 수 없습니다.</div>;
   }
 
   return (
-    <div className='flex h-full w-full min-w-0 flex-col items-start justify-start gap-5 border-t-0 border-r-0 border-b-0 border-l border-gray-100 px-8 py-7'>
-      <div className='relative flex items-start justify-between self-stretch'>
-        <div className='flex items-start justify-end gap-1'>
-          <div className='relative flex items-center justify-center gap-1 rounded-xl bg-blue-50 px-3 py-1.5'>
-            <p className='text-left text-xs font-medium text-blue-600'>
-              {currentDocument.companyName}
-            </p>
-          </div>
-          <div className='relative flex items-center justify-center gap-1 rounded-xl bg-gray-50 px-3 py-1.5'>
-            <p className='text-left text-xs font-medium text-gray-600'>
-              {currentDocument.jobPosition}
-            </p>
-          </div>
-        </div>
-        {/* <div>버튼이 들어갈 예정입니다.</div> */}
-      </div>
-      <div className='flex flex-col items-start justify-start gap-3 self-stretch'>
-        <div className='relative flex flex-col items-start justify-start gap-0.5 self-stretch'>
-          <p className='w-full self-stretch text-left text-[22px] font-bold text-gray-950'>
-            {currentDocument.applySeason}
-          </p>
-          <div className='relative flex items-start justify-start gap-1'>
-            <p className='text-body-s text-gray-400'>총 {1}문항 · </p>
-            <div className='relative flex items-center justify-start'>
-              {/* [박소민] TODO: 최종 수정일 넣기 */}
-              <p className='text-body-s text-gray-400'>2026 . 01. 23</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className='flex flex-col items-start justify-start gap-3.5 self-stretch'>
-        <div className='flex items-center justify-start gap-2.5 self-stretch'>
-          <div className='flex flex-grow items-start justify-center gap-3'>
-            <div className='relative flex w-[35px] items-center justify-center gap-1 rounded-xl bg-gray-50 px-3 py-1.5'>
-              <p className='text-body-m text-center font-bold text-gray-600'>
-                1
-              </p>
-            </div>
-            <div className='relative flex flex-grow items-center justify-center gap-2.5 pt-[3.5px]'>
-              <p className='text-title-s w-full flex-grow font-bold text-gray-950'>
-                {currentDocument.question}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className='flex flex-col items-start justify-start gap-6 self-stretch pr-[34px] pl-[47px]'>
-          <div className='flex flex-col items-start justify-start gap-2 self-stretch'>
-            <div className='relative flex flex-col items-start justify-start gap-2 self-stretch py-2'>
-              <p className='text-body-m w-full self-stretch text-left text-gray-800'>
-                {currentDocument.answer}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className='flex h-8 w-[810px] items-center justify-end gap-5 py-0.5'>
-        <div className='relative flex flex-grow items-center justify-start gap-0.5 pl-[47px]'>
-          <p className='text-body-m text-left font-medium text-gray-400'>
-            {/* {currentDocument.answerSize} */}
-          </p>
-          {/* <p className='text-body-m text-left font-medium text-gray-400'>자</p> */}
-        </div>
-      </div>
-    </div>
+    <DetailView
+      companyName={listDocument.companyName}
+      jobPosition={listDocument.jobPosition}
+      applySeason={listDocument.applySeason}
+      modifiedAt={getDate(detailDocument.modifiedAt)}
+      question={detailDocument.question}
+      answer={detailDocument.answer}
+      answerSize={detailDocument.answerSize}
+      button={
+        <DetailButtons
+          coverLetterId={listDocument.coverLetterId}
+          qnAId={qnAId ? Number(qnAId) : 0}
+          initialScrapState={detailDocument.isScraped ?? false}
+        />
+      }
+    />
   );
 };
 
