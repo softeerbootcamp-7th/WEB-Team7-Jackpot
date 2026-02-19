@@ -3,15 +3,15 @@ import { memo } from 'react';
 
 import { Link } from 'react-router';
 
-import type { CoverLetterItem } from '@/features/recruit/types';
-import { formatDate, isPastDate } from '@/shared/utils/dates';
+import type { CalendarCoverLetterItem } from '@/features/recruit/types';
+import { isBeforeDay } from '@/shared/utils/dates';
 
 interface Props {
   date: Date;
   today: Date;
   isSelected: boolean;
   isCurrentMonth: boolean;
-  items?: CoverLetterItem[];
+  items?: CalendarCoverLetterItem[];
 }
 
 const CalendarDay = ({
@@ -21,7 +21,7 @@ const CalendarDay = ({
   isCurrentMonth,
   items = [],
 }: Props) => {
-  const isPast = isPastDate(date, today);
+  const isPast = isBeforeDay(date, today);
 
   const getTextColor = () => {
     if (isSelected) return 'text-blue-600';
@@ -48,7 +48,7 @@ const CalendarDay = ({
             <div
               className={`${getTextColor()} text-title-s h-7 w-6 justify-start text-center font-bold`}
             >
-              {formatDate(date)}
+              {date.getDate()}
             </div>
           </div>
           {/* 공고 개수 표시 */}

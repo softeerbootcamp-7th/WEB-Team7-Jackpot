@@ -34,7 +34,7 @@ const RecruitFormView = ({
     if (step === 1) {
       const company = formData.companyName?.trim() || '';
       const job = formData.jobPosition?.trim() || '';
-      const deadline = formData.deadline;
+      const deadline = formData.deadline ? formData.deadline.trim() : '';
       return company.length > 0 && job.length > 0 && deadline.length > 0;
     } else {
       const questions = formData.questions ?? [];

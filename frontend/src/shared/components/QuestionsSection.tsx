@@ -2,6 +2,7 @@ import Question from '@/shared/components/Question';
 import { PlusIcon } from '@/shared/icons/Plus';
 import type { CoverLetterQuestion } from '@/shared/types/coverLetter';
 
+// [박소민] TODO: 자기소개서 질문이 1개일 경우 삭제 버튼 숨김, 2개 이상일 때 삭제 버튼 보이도록 변경 예정
 interface Props {
   questions: CoverLetterQuestion[];
   onQuestionsChange: (newQuestions: CoverLetterQuestion[]) => void;
@@ -33,7 +34,7 @@ const QuestionsSection = ({ questions, onQuestionsChange }: Props) => {
   };
 
   return (
-    <div className='flex flex-col items-start justify-start gap-4 self-stretch'>
+    <div className='flex w-full flex-col items-start justify-start gap-4 self-stretch'>
       <div className='flex flex-col items-start justify-start gap-3 self-stretch'>
         <div className='inline-flex items-start justify-start gap-3 self-stretch'>
           <div className='flex flex-1 items-center justify-start gap-0.5'>

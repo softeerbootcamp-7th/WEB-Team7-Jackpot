@@ -4,4 +4,5 @@ export interface QnA {
   answer: string;
   answerSize: number;
   modifiedAt: string;
+  isScraped?: boolean; // 스크랩 여부 추가
 }

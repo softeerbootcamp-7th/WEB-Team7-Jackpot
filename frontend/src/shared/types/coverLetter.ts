@@ -19,21 +19,22 @@ export interface CoverLetterBase {
   coverLetterId: number;
   companyName: string;
   jobPosition: string;
-  applyYear: number;
-  applyHalf: ApiApplyHalf;
-  deadline: ISODateString;
+  applyYear?: number; // [박소민] 방어 로직 추가로 인해 optional 처리
+  applyHalf?: ApiApplyHalf;
+  deadline?: ISODateString; // [박소민] 마감일 달라고 하기 (라이브러리) (API에서 아직 안 줌) - ISODateString 형식으로 가정
 }
 
 export interface CoverLetterQuestion {
+  qnAId?: number | null; // [박소민] 질문 수정 시 필요 (신규 추가 시 null 허용)
   question: string;
   category: Category | '';
 }
 
-export interface CoverLetter extends CoverLetterBase {
+export interface CoverLetterType extends CoverLetterBase {
   questions?: CoverLetterQuestion[];
 }
 
-export interface RecentCoverLetter extends CoverLetter {
+export interface RecentCoverLetter extends CoverLetterType {
   questionCount: number;
 }
 
