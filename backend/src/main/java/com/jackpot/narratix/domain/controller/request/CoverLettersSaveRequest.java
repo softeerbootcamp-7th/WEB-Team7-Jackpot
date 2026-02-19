@@ -21,7 +21,7 @@ public record CoverLettersSaveRequest(
         public record CoverLetterSaveRequest(
                 @NotNull String companyName,
                 @NotNull String jobPosition,
-                int applyYear,
+                @NotNull Integer applyYear,
                 @NotNull ApplyHalfType applyHalf,
                 @NotNull LocalDate deadline
         ) {
