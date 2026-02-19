@@ -6,7 +6,6 @@ import com.jackpot.narratix.domain.entity.UploadJob;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
 import com.jackpot.narratix.domain.exception.UploadErrorCode;
 import com.jackpot.narratix.domain.repository.LabeledQnARepository;
-import com.jackpot.narratix.domain.repository.UploadFileRepository;
 import com.jackpot.narratix.domain.repository.UploadJobRepository;
 import com.jackpot.narratix.global.exception.BaseException;
 import com.jackpot.narratix.global.exception.GlobalErrorCode;
@@ -16,7 +15,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 import java.util.List;
 
@@ -28,13 +26,7 @@ import static org.mockito.Mockito.*;
 class UploadServiceTest {
 
     @Mock
-    private S3Presigner s3Presigner;
-
-    @Mock
     private UploadJobRepository uploadJobRepository;
-
-    @Mock
-    private UploadFileRepository uploadFileRepository;
 
     @Mock
     private LabeledQnARepository labeledQnARepository;
