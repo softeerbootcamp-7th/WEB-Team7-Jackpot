@@ -207,7 +207,8 @@ public class TextDeltaService {
 
         String newAnswer = textMerger.merge(qnA.getAnswer(), applicableDeltas);
         qnA.editAnswer(newAnswer);
-        long version = qnARepository.incrementVersion(qnAId, applicableDeltas.size());
+        qnARepository.incrementVersion(qnAId, applicableDeltas.size());
+        long version = dbVersion + applicableDeltas.size();
 
         log.info("TEXT_REPLACE_ALL 메시지 생성: qnAId={}, version={}", qnAId, version);
         WebSocketTextReplaceAllMessage message = new WebSocketTextReplaceAllMessage(version, newAnswer);
