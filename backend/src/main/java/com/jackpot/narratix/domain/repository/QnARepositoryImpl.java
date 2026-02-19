@@ -101,8 +101,10 @@ public class QnARepositoryImpl implements QnARepository {
     }
 
     @Override
-    public int incrementVersion(Long qnAId, int size) {
-        return qnAJpaRepository.incrementVersion(qnAId, size);
+    public long incrementVersion(Long qnAId, int size) {
+        qnAJpaRepository.incrementVersion(qnAId, size);
+        return qnAJpaRepository.findVersionById(qnAId)
+                .orElseThrow(() -> new BaseException(QnAErrorCode.QNA_NOT_FOUND));
     }
 
 }

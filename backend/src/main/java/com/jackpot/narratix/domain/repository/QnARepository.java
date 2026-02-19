@@ -42,5 +42,5 @@ public interface QnARepository {
 
     List<QnA> findByIds(List<Long> qnAIds);
 
-    int incrementVersion(Long qnAId, int size);
+    long incrementVersion(Long qnAId, int size);
 }
