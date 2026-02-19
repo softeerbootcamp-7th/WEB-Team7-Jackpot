@@ -3,12 +3,17 @@ package com.jackpot.narratix.domain.service;
 import com.github.f4b6a3.ulid.UlidCreator;
 import com.jackpot.narratix.domain.controller.request.JobCreateRequest;
 import com.jackpot.narratix.domain.controller.request.PresignedUrlRequest;
+import com.jackpot.narratix.domain.controller.response.LabeledQnAListResponse;
 import com.jackpot.narratix.domain.controller.response.PresignedUrlResponse;
+import com.jackpot.narratix.domain.entity.LabeledQnA;
 import com.jackpot.narratix.domain.entity.UploadFile;
 import com.jackpot.narratix.domain.entity.UploadJob;
 import com.jackpot.narratix.domain.exception.UploadErrorCode;
+import com.jackpot.narratix.domain.repository.LabeledQnARepository;
+import com.jackpot.narratix.domain.repository.UploadFileRepository;
 import com.jackpot.narratix.domain.repository.UploadJobRepository;
 import com.jackpot.narratix.global.exception.BaseException;
+import com.jackpot.narratix.global.exception.GlobalErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +25,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequ
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -30,6 +36,8 @@ public class UploadService {
     private final S3Presigner s3Presigner;
 
     private final UploadJobRepository uploadJobRepository;
+    private final UploadFileRepository uploadFileRepository;
+    private final LabeledQnARepository labeledQnARepository;
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
@@ -125,5 +133,18 @@ public class UploadService {
             return fileKey.substring(lastSlashIndex + 1);
         }
         throw new BaseException(UploadErrorCode.INVALID_FILE_KEY);
+    }
+
+    @Transactional(readOnly = true)
+    public LabeledQnAListResponse findLabeledCoverLetterByUploadJobId(String userId, String uploadJobId) {
+        UploadJob uploadJob = uploadJobRepository.findByIdOrElseThrow(uploadJobId);
+
+        if (!uploadJob.isOwner(userId)) {
+            throw new BaseException(GlobalErrorCode.FORBIDDEN);
+        }
+
+        List<LabeledQnA> labeledQnAs = labeledQnARepository.findAllByUploadJobId(uploadJobId);
+
+        return LabeledQnAListResponse.of(labeledQnAs);
     }
 }

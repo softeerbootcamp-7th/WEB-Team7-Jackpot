@@ -16,7 +16,7 @@ public enum UploadErrorCode implements ErrorCode {
     TOO_MANY_FILES(HttpStatus.BAD_REQUEST, "파일 개수가 너무 많습니다."),
     INVALID_FILE_KEY(HttpStatus.BAD_REQUEST, "유효하지 않는 파일 키 형식입니다."),
     FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "파일을 찾을 수 없습니다."),
-    ;
+    UPLOAD_JOB_NOT_FOUND(HttpStatus.NOT_FOUND, "Upload Job을 찾을 수 없습니다.");
 
     private final HttpStatus status;
     private final String message;

@@ -39,4 +39,8 @@ public class UploadJob extends BaseTimeEntity {
         file.assignToJob(this);
     }
 
+    public boolean isOwner(String userId) {
+        return this.userId.equals(userId);
+    }
+
 }
