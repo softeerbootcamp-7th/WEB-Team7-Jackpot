@@ -16,6 +16,7 @@ import com.jackpot.narratix.global.exception.GlobalErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -26,6 +27,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignReques
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+
 
 @Slf4j
 @Service
@@ -51,18 +53,13 @@ public class UploadService {
         String fileId = UlidCreator.getUlid().toString();
         String s3Key = generateS3Key(userId, fileId);
 
-        Map<String, String> metadata = Map.of(
-                "fileId", fileId
-        );
-
         try {
             PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
                     .signatureDuration(PRESIGNED_URL_EXPIRE)
                     .putObjectRequest(p -> p
                             .bucket(bucket)
                             .key(s3Key)
-                            .contentType(request.contentType())
-                            .metadata(metadata))
+                            .contentType(request.contentType()))
                     .build();
 
             PresignedPutObjectRequest presigned = s3Presigner.presignPutObject(presignRequest);
@@ -72,9 +69,7 @@ public class UploadService {
                     request.fileName(),
                     presigned.url().toString(),
                     s3Key,
-                    Map.of(
-                            "Content-Type", request.contentType(),
-                            "x-amz-meta-fileId", fileId)
+                    Map.of(HttpHeaders.CONTENT_TYPE, request.contentType())
             );
         } catch (SdkException e) {
             log.error("AWS S3 Error occurred while generating URL. key: {}, Error: {}", s3Key, e.getMessage());
