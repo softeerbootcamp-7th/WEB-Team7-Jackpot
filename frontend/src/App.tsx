@@ -28,6 +28,14 @@ import RootLayout from '@/shared/components/RootLayout';
 import { coverLetterEmptyCaseText } from '@/shared/constants/coverLetterEmptyCaseText';
 import NewCoverLetterContainer from './features/coverLetter/components/newCoverLetter/NewCoverLetterContainer';
 
+/**
+ * 애플리케이션의 최상위 라우터와 라우트 트리를 구성하여 각 페이지와 권한 가드를 연결한다.
+ *
+ * PublicGuard로 공개 접근 가능한 엔드포인트(예: 랜딩, 로그인, 회원가입)와
+ * PrivateGuard 아래의 인증 필요 라우트(홈, 업로드, 라이브러리, 커버레터, 리크루트 등)를 설정한다.
+ *
+ * @returns 루트 브라우저 라우터를 포함하는 애플리케이션의 라우트 트리를 렌더링하는 JSX 요소
+ */
 function App() {
   return (
     <BrowserRouter>
