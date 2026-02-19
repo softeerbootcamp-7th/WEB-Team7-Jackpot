@@ -7,9 +7,6 @@ import com.jackpot.narratix.domain.controller.request.QnAEditRequest;
 import com.jackpot.narratix.domain.controller.response.QnAEditResponse;
 import com.jackpot.narratix.domain.service.CoverLetterService;
 import com.jackpot.narratix.global.auth.UserId;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,7 +27,7 @@ public class QnAController implements QnAApi {
     @PutMapping
     public ResponseEntity<QnAEditResponse> editQnA(
             @UserId String userId,
-            @RequestBody @Valid QnAEditRequest request
+            @RequestBody QnAEditRequest request
             ) {
         return ResponseEntity.ok(coverLetterService.editQnA(userId, request));
     }
@@ -57,7 +54,7 @@ public class QnAController implements QnAApi {
     @GetMapping("/all")
     public ResponseEntity<QnAListResponse> getQnAsByQnAIds(
             @UserId String userId,
-            @RequestParam @NotEmpty @Size(max = 20) List<Long> qnAIds
+            @RequestParam List<Long> qnAIds
     ) {
         return ResponseEntity.ok(coverLetterService.getQnAsByQnAIds(userId, qnAIds));
     }

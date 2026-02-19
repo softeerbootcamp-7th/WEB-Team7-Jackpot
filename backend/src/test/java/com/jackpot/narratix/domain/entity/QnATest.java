@@ -1,6 +1,5 @@
 package com.jackpot.narratix.domain.entity;
 
-import com.jackpot.narratix.domain.controller.request.CreateQuestionRequest;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
 import com.jackpot.narratix.domain.fixture.CoverLetterFixture.CoverLetterFixtureBuilder;
 import org.junit.jupiter.api.DisplayName;
@@ -19,11 +18,12 @@ class QnATest {
         // given
         CoverLetter coverLetter = new CoverLetterFixtureBuilder().build();
 
-        CreateQuestionRequest questionRequest = new CreateQuestionRequest(
-                "지원 동기는 무엇인가요?",
-                QuestionCategoryType.MOTIVATION
-        );
-        QnA qnA = QnA.newQnA(coverLetter, questionRequest);
+        QnA qnA = QnA.builder()
+                .coverLetter(coverLetter)
+                .userId(coverLetter.getUserId())
+                .question("지원 동기는 무엇인가요?")
+                .questionCategory(QuestionCategoryType.MOTIVATION)
+                .build();
 
         // 초기 답변 설정
         String initialAnswer = "저는 귀사의 비전에 공감합니다.";
@@ -46,11 +46,13 @@ class QnATest {
     void editAnswer_DifferentValue_UpdatesModifiedAt() {
         // given
         CoverLetter coverLetter = new CoverLetterFixtureBuilder().build();
-        CreateQuestionRequest questionRequest = new CreateQuestionRequest(
-                "지원 동기는 무엇인가요?",
-                QuestionCategoryType.MOTIVATION
-        );
-        QnA qnA = QnA.newQnA(coverLetter, questionRequest);
+
+        QnA qnA = QnA.builder()
+                .coverLetter(coverLetter)
+                .userId(coverLetter.getUserId())
+                .question("지원 동기는 무엇인가요?")
+                .questionCategory(QuestionCategoryType.MOTIVATION)
+                .build();
 
         String initialAnswer = "저는 귀사의 비전에 공감합니다.";
         qnA.editAnswer(initialAnswer);

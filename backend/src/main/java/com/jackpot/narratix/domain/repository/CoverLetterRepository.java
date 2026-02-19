@@ -63,4 +63,6 @@ public interface CoverLetterRepository {
             LocalDate endDate,
             Boolean isShared
     );
+
+    List<CoverLetter> saveAll(List<CoverLetter> coverLetters);
 }

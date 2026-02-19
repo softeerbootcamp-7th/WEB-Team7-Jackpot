@@ -182,6 +182,11 @@ public class CoverLetterRepositoryImpl implements CoverLetterRepository {
         return count != null ? count : 0L;
     }
 
+    @Override
+    public List<CoverLetter> saveAll(List<CoverLetter> coverLetters) {
+        return coverLetterJpaRepository.saveAll(coverLetters);
+    }
+
     private BooleanBuilder createFilterConditions(
             String userId,
             LocalDate startDate,
