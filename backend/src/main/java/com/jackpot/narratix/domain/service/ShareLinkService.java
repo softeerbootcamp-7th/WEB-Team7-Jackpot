@@ -17,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
 import java.util.Objects;
@@ -32,6 +34,7 @@ public class ShareLinkService {
     private final ShareLinkRepository shareLinkRepository;
     private final ShareLinkLockManager shareLinkLockManager;
     private final ShareLinkSessionRegistry shareLinkSessionRegistry;
+    private final TextDeltaService textDeltaService;
 
     @Transactional
     public ShareLinkActiveResponse updateShareLinkStatus(String userId, Long coverLetterId, boolean active) {
@@ -69,7 +72,31 @@ public class ShareLinkService {
 
     private ShareLinkActiveResponse deactivateShareLink(Long coverLetterId) {
         shareLinkRepository.findById(coverLetterId).ifPresent(ShareLink::deactivate);
+        List<Long> qnAIds = qnARepository.findIdsByCoverLetterId(coverLetterId);
+        qnAIds.forEach(textDeltaService::flushToDb);     // pending 델타를 DB에 저장 후
+
+        // Redis 델타 키를 트랜잭션 커밋 후에 삭제해 세션 중 데이터 유실 방지
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                qnAIds.forEach(textDeltaService::cleanupDeltaKeys);
+            }
+        });
+
         return ShareLinkActiveResponse.deactivate();
+    }
+
+    /**
+     * Writer 연결 종료 시 해당 공유 링크의 모든 QnA pending 델타를 DB에 flush한다.
+     * 세션 종료 후 TTL 만료로 pending 데이터가 유실되지 않도록 보장한다.
+     */
+    @Transactional
+    public void flushPendingDeltasByShareId(String shareId) {
+        shareLinkRepository.findByShareId(shareId).ifPresent(shareLink -> {
+            List<Long> qnAIds = qnARepository.findIdsByCoverLetterId(shareLink.getCoverLetterId());
+            qnAIds.forEach(textDeltaService::flushToDb);
+            log.info("Writer disconnect: pending 델타 flush 완료. shareId={}, qnACount={}", shareId, qnAIds.size());
+        });
     }
 
     @Transactional(readOnly = true)
@@ -116,6 +143,10 @@ public class ShareLinkService {
 
         ShareLink shareLink = findValidShareLink(shareId);
         validateShareLinkAndQnA(shareLink, qnA);
+
+        // 세션 시작 시 1회: Redis 버전 카운터를 QnA.version으로 초기화
+        // 이후 delta push마다 DB 조회 없이 Redis INCR만으로 절대 버전 획득
+        textDeltaService.initDeltaVersion(qnA.getId(), qnA.getVersion());
 
         return QnAVersionResponse.of(qnA);
     }
