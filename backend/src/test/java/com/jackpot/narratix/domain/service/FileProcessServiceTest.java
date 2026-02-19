@@ -1,6 +1,7 @@
 package com.jackpot.narratix.domain.service;
 
 import com.jackpot.narratix.domain.entity.UploadFile;
+import com.jackpot.narratix.domain.repository.LabeledQnARepository;
 import com.jackpot.narratix.domain.repository.UploadFileRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -8,6 +9,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 
@@ -20,6 +23,9 @@ class FileProcessServiceTest {
 
     @InjectMocks
     private FileProcessService fileProcessService;
+
+    @Mock
+    private LabeledQnARepository labeledQnARepository;
 
     @Test
     @DisplayName("파일 추출 성공 : UploadFile.successExtract() 호출")
@@ -40,20 +46,30 @@ class FileProcessServiceTest {
     }
 
     @Test
-    @DisplayName("파일 ai 라벨링 성공 : UploadFile.successLabeling() 호출")
-    void saveLabelingSuccess_callsSuccessLabeling() {
-
-        UploadFile file = mock(UploadFile.class);
-        fileProcessService.saveLabelingSuccess(file, "[{\"label\":\"A\"}]");
-        verify(file, times(1)).successLabeling("[{\"label\":\"A\"}]");
-    }
-
-    @Test
     @DisplayName("파일 ai 라벨링 실패 : UploadFile.failLabeling() 호출 ")
     void saveLabelingFail_callsFailLabeling() {
 
         UploadFile file = mock(UploadFile.class);
         fileProcessService.saveLabelingFail(file);
         verify(file, times(1)).failLabeling();
+    }
+
+    @Test
+    @DisplayName("파일 ai 라벨링 성공 : DB 저장 및 상태 완료 변경")
+    void saveLabelingResult_success() {
+        // given
+        String fileId = "test-id";
+        String jsonResult = "[{\"question\":\"Q\",\"answer\":\"A\",\"questionCategory\":\"MOTIVATION\"}]";
+
+        UploadFile file = spy(UploadFile.builder().id(fileId).build());
+
+        when(uploadFileRepository.findById(fileId)).thenReturn(Optional.of(file));
+
+        // when
+        fileProcessService.saveLabelingResult(fileId, jsonResult);
+
+        // then
+        verify(file, times(1)).successLabeling();
+        verify(labeledQnARepository, atLeastOnce()).save(any());
     }
 }

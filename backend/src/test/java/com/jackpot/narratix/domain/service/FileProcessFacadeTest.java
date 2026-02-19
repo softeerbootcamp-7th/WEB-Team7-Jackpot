@@ -49,7 +49,7 @@ class FileProcessFacadeTest {
 
         verify(fileProcessService, times(1)).saveExtractSuccess(file, extractedText);
         verify(aiLabelingService, times(1)).generateLabelingJson(extractedText);
-        verify(fileProcessService, times(1)).saveLabelingSuccess(file, labelingJson);
+        verify(fileProcessService, times(1)).saveLabelingResult(fileId, labelingJson);
 
         verify(fileProcessService, never()).saveLabelingFail(any());
         verify(fileProcessService, never()).saveExtractFail(any(), any());
@@ -78,7 +78,7 @@ class FileProcessFacadeTest {
         verify(aiLabelingService, times(1)).generateLabelingJson(extractedText);
 
         verify(fileProcessService, times(1)).saveLabelingFail(file);
-        verify(fileProcessService, never()).saveLabelingSuccess(any(), any());
+        verify(fileProcessService, never()).saveLabelingResult(any(), any());
 
         verify(fileProcessService, never()).saveExtractFail(any(), any());
     }
