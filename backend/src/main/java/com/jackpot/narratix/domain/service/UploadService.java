@@ -1,8 +1,11 @@
 package com.jackpot.narratix.domain.service;
 
 import com.github.f4b6a3.ulid.UlidCreator;
+import com.jackpot.narratix.domain.controller.request.JobCreateRequest;
 import com.jackpot.narratix.domain.controller.request.PresignedUrlRequest;
 import com.jackpot.narratix.domain.controller.response.PresignedUrlResponse;
+import com.jackpot.narratix.domain.entity.UploadFile;
+import com.jackpot.narratix.domain.entity.UploadJob;
 import com.jackpot.narratix.domain.exception.UploadErrorCode;
 import com.jackpot.narratix.domain.repository.UploadJobRepository;
 import com.jackpot.narratix.global.exception.BaseException;
@@ -32,6 +35,7 @@ public class UploadService {
 
     private static final Duration PRESIGNED_URL_EXPIRE = Duration.ofMinutes(10);   // 10분
     private static final long MAX_FILE_SIZE = 5L * 1024 * 1024;                    // 5MB
+    private static final int MAX_FILE_COUNT = 3;
     private static final String FOLDER_NAME = "coverletter";
 
     public PresignedUrlResponse createPresignedUrl(String userId, PresignedUrlRequest request) {
@@ -88,5 +92,41 @@ public class UploadService {
 
     private String generateS3Key(String userId, String fileId) {
         return "%s/%s/%s".formatted(FOLDER_NAME, userId, fileId);
+    }
+
+    public void createJob(String userId, JobCreateRequest request) {
+        if (request.files().size() > MAX_FILE_COUNT) {
+            throw new BaseException(UploadErrorCode.TOO_MANY_FILES);
+        }
+
+        String jobId = UlidCreator.getUlid().toString();
+        UploadJob job = UploadJob.builder()
+                .id(jobId)
+                .userId(userId)
+                .build();
+
+        for (JobCreateRequest.FileRequest fileRequest : request.files()) {
+            String fileId = extractFileId(fileRequest.fileKey());
+            UploadFile uploadFile = UploadFile.builder()
+                    .id(fileId)
+                    .s3Key(fileRequest.fileKey())
+                    .build();
+
+            job.addFile(uploadFile);
+        }
+
+        uploadJobRepository.save(job);
+
+        //TODO : 람다 호출 이벤트 발행
+    }
+
+    public String extractFileId(String fileKey) {
+        int lastSlashIndex = fileKey.lastIndexOf("/");
+        int lastDotIndex = fileKey.lastIndexOf(".");
+
+        if (lastSlashIndex != -1 && lastDotIndex != -1 && lastSlashIndex < lastDotIndex) {
+            return fileKey.substring(lastSlashIndex + 1, lastDotIndex);
+        }
+        throw new BaseException(UploadErrorCode.INVALID_FILE_KEY);
     }
 }
