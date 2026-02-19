@@ -14,7 +14,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SqsConsumer {
 
-    private final FileProcessFacade fileProcessFacade;
+    private final AiLabelingService aiLabelingService;
+    private final FileProcessService fileProcessService;
 
     @SqsListener(value = "${sqs.queue.name}", factory = "sqsMessageListenerContainerFactory")
     public void consume(FileProcessResult message) {
@@ -22,12 +23,13 @@ public class SqsConsumer {
 
         try {
             if (message.status() == UploadStatus.FAILED) {
-                fileProcessFacade.processFailedFile(message.fileId(), message.errorMessage());
+                fileProcessService.processFailedFile(message.fileId(), message.errorMessage());
                 return;
             }
 
-            fileProcessFacade.processUploadedFile(message.fileId(), message.extractedText());
+            String labelingJson = aiLabelingService.generateLabelingJson(message.extractedText());
 
+            fileProcessService.processUploadedFile(message.fileId(), message.extractedText(), labelingJson);
         } catch (Exception e) {
             log.error("Error processing SQS message for fileId: {}", message.fileId(), e);
             throw e;

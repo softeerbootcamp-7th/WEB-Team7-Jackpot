@@ -5,9 +5,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jackpot.narratix.domain.entity.LabeledQnA;
 import com.jackpot.narratix.domain.entity.UploadFile;
+import com.jackpot.narratix.domain.exception.UploadErrorCode;
 import com.jackpot.narratix.domain.repository.LabeledQnARepository;
 import com.jackpot.narratix.domain.repository.UploadFileRepository;
 import com.jackpot.narratix.domain.service.dto.LabeledQnARequest;
+import com.jackpot.narratix.global.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,57 +29,56 @@ public class FileProcessService {
     private static final int MAX_QNA_SIZE = 10;
 
     @Transactional
-    public void saveExtractSuccess(UploadFile file, String extractedText) {
-        file.successExtract(extractedText);
-        log.info("Extract success saved. FileId = {}", file.getId());
-    }
-
-    @Transactional
-    public void saveExtractFail(UploadFile file, String errorMessage) {
-        file.failExtract();
-        log.warn("Extract fail saved. FileId = {} , error : {}", file.getId(), errorMessage);
-    }
-
-    @Transactional
-    public void saveLabelingFail(UploadFile file) {
-        file.failLabeling();
-        log.warn("AI Labeling Fail saved. FileID: {}", file.getId());
-    }
-
-    @Transactional
-    public void saveLabelingResult(String fileId, String labelingJsonResult) {
-        UploadFile uploadFile = uploadFileRepository.findById(fileId)
-                .orElseGet(() -> {
-                    log.error("File not found for labeling result: {}", fileId);
-                    return null;
+    public void processUploadedFile(String fileId, String extractedText, String labelingJson) {
+        UploadFile file = uploadFileRepository.findById(fileId)
+                .orElseThrow(() -> {
+                    log.error("File not found. skip. fileId={}", fileId);
+                    return new BaseException(UploadErrorCode.FILE_NOT_FOUND);
                 });
-        try {
-            List<LabeledQnARequest> qnAs = objectMapper.readValue(labelingJsonResult, new TypeReference<>() {
-            });
 
-            for (int i = 0; i < qnAs.size(); i++) {
-                if (i >= MAX_QNA_SIZE) break;
-                LabeledQnARequest dto = qnAs.get(i);
-                LabeledQnA qna = LabeledQnA.builder()
-                        .uploadFile(uploadFile)
+        file.successExtract(extractedText);
+        log.info("Extract success saved. FileId = {}", fileId);
+
+        if (labelingJson == null) {
+            file.failLabeling();
+            log.warn("AI Labeling Fail saved. FileID: {}", fileId);
+            return;
+        }
+
+        List<LabeledQnARequest> qnARequests = List.of();
+
+        try {
+            qnARequests = objectMapper.readValue(labelingJson, new TypeReference<>() {});
+        } catch (JsonProcessingException e) {
+            log.error("Failed to parse labeling result. fileId: {}, error: {}", fileId, e.getMessage());
+            file.failLabeling();
+            return;
+        }
+
+        List<LabeledQnA> qnAs = qnARequests.stream()
+                .limit(MAX_QNA_SIZE)
+                .map(dto -> LabeledQnA.builder()
+                        .uploadFile(file)
                         .question(dto.question())
                         .answer(dto.answer())
                         .questionCategory(dto.questionCategory())
-                        .build();
+                        .build())
+                .toList();
+        labeledQnARepository.saveAll(qnAs);
 
-                labeledQnARepository.save(qna);
-            }
+        file.successLabeling();
 
-            uploadFile.successLabeling();
-            log.info("Successfully saved {} labeling items for file: {}", qnAs.size(), fileId);
-
-        } catch (JsonProcessingException e) {
-            log.error("Failed to parse labeling result. fileId: {}, error: {}", fileId, e.getMessage());
-            uploadFile.failLabeling();
-        } catch (Exception e) {
-            log.error("Unexpected error during saving labeling result. fileId: {}, error: {}", fileId, e.getMessage());
-            uploadFile.failLabeling();
-        }
+        log.info("Successfully saved {} labeling items for file: {}", qnAs.size(), fileId);
     }
 
+    @Transactional
+    public void processFailedFile(String fileId, String errorMessage) {
+        UploadFile file = uploadFileRepository.findById(fileId).orElse(null);
+        if (file == null) {
+            log.warn("File not found. skip. fileId={}", fileId);
+            return;
+        }
+        file.failExtract();
+        log.warn("Extract fail saved. FileId={}, error: {}", fileId, errorMessage);
+    }
 }
