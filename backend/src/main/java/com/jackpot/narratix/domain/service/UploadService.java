@@ -1,8 +1,11 @@
 package com.jackpot.narratix.domain.service;
 
 import com.github.f4b6a3.ulid.UlidCreator;
+import com.jackpot.narratix.domain.controller.request.JobCreateRequest;
 import com.jackpot.narratix.domain.controller.request.PresignedUrlRequest;
 import com.jackpot.narratix.domain.controller.response.PresignedUrlResponse;
+import com.jackpot.narratix.domain.entity.UploadFile;
+import com.jackpot.narratix.domain.entity.UploadJob;
 import com.jackpot.narratix.domain.exception.UploadErrorCode;
 import com.jackpot.narratix.domain.repository.UploadJobRepository;
 import com.jackpot.narratix.global.exception.BaseException;
@@ -10,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
@@ -88,5 +92,38 @@ public class UploadService {
 
     private String generateS3Key(String userId, String fileId) {
         return "%s/%s/%s".formatted(FOLDER_NAME, userId, fileId);
+    }
+
+    @Transactional
+    public void createJob(String userId, JobCreateRequest request) {
+
+        String jobId = UlidCreator.getUlid().toString();
+        UploadJob job = UploadJob.builder()
+                .id(jobId)
+                .userId(userId)
+                .build();
+
+        for (JobCreateRequest.FileRequest fileRequest : request.files()) {
+            String fileId = extractFileId(fileRequest.fileKey());
+            UploadFile uploadFile = UploadFile.builder()
+                    .id(fileId)
+                    .s3Key(fileRequest.fileKey())
+                    .build();
+
+            job.addFile(uploadFile);
+        }
+
+        uploadJobRepository.save(job);
+
+        //TODO : 람다 호출 이벤트 발행
+    }
+
+    private String extractFileId(String fileKey) {
+        int lastSlashIndex = fileKey.lastIndexOf("/");
+
+        if (lastSlashIndex != -1 && lastSlashIndex < fileKey.length() - 1) {
+            return fileKey.substring(lastSlashIndex + 1);
+        }
+        throw new BaseException(UploadErrorCode.INVALID_FILE_KEY);
     }
 }
