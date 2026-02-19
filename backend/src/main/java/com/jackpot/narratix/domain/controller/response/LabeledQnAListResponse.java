@@ -12,7 +12,7 @@ public record LabeledQnAListResponse(
             String question,
             String answer,
             QuestionCategoryType questionCategory,
-            Integer totalAnswerCount
+            Integer answerSize
     ) {
         private static LabeledQnAResponse of(LabeledQnA qna) {
             String answer = qna.getAnswer();
