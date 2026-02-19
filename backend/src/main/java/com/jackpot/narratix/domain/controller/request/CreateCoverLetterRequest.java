@@ -1,6 +1,7 @@
 package com.jackpot.narratix.domain.controller.request;
 
 import com.jackpot.narratix.domain.entity.CoverLetter;
+import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
@@ -22,7 +23,7 @@ public record CreateCoverLetterRequest(
 ) {
     public CoverLetter toEntity(String userId) {
 
-        return CoverLetter.builder()
+        CoverLetter coverLetter = CoverLetter.builder()
                 .userId(userId)
                 .companyName(companyName)
                 .applyYear(applyYear)
@@ -30,5 +31,13 @@ public record CreateCoverLetterRequest(
                 .jobPosition(jobPosition)
                 .deadline(deadline)
                 .build();
+
+        List<QnA> qnAs = questions.stream()
+                .map(question -> question.toEntity(userId))
+                .toList();
+
+        coverLetter.addQnAs(qnAs);
+
+        return coverLetter;
     }
 }
