@@ -24,6 +24,8 @@ public class FileProcessService {
     private final UploadFileRepository uploadFileRepository;
     private final LabeledQnARepository labeledQnARepository;
 
+    private static final int MAX_QNA_SIZE = 10;
+
     @Transactional
     public void saveExtractSuccess(UploadFile file, String extractedText) {
         file.successExtract(extractedText);
@@ -55,13 +57,13 @@ public class FileProcessService {
                     });
 
             for (int i = 0; i < qnAs.size(); i++) {
-                if (i >= 10) break;
+                if (i >= MAX_QNA_SIZE) break;
                 LabeledQnARequest dto = qnAs.get(i);
                 LabeledQnA qna = LabeledQnA.builder()
                         .uploadFile(uploadFile)
                         .question(dto.question())
                         .answer(dto.answer())
-                        .category(dto.questionCategory())
+                        .questionCategory(dto.questionCategory())
                         .build();
 
                 labeledQnARepository.save(qna);
