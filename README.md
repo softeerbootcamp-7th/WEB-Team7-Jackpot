@@ -10,19 +10,18 @@
 
 <p>
 <a href="https://www.notion.so/2ea14885339b80f6b2d0fe64b05460ed?pvs=21"><img src="https://img.shields.io/badge/팀_노션-000000?style=for-the-badge&logo=notion&logoColor=white" alt="Notion" /></a>
-<a href="https://github.com/softeerbootcamp-7th/Team7-Jackpot/wiki"><img src="https://img.shields.io/badge/팀_위키-181717?style=for-the-badge&logo=github&logoColor=white" alt="Wiki" /></a>
-<a href="https://github.com/softeerbootcamp-7th/Team7-Jackpot/issues"><img src="https://img.shields.io/badge/이슈_트래커-181717?style=for-the-badge&logo=github&logoColor=white" alt="Issue" /></a>
+<a href="https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki"><img src="https://img.shields.io/badge/팀_위키-181717?style=for-the-badge&logo=github&logoColor=white" alt="Wiki" /></a>
+<a href="https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/issues"><img src="https://img.shields.io/badge/이슈_트래커-181717?style=for-the-badge&logo=github&logoColor=white" alt="Issue" /></a>
 </p>
 
 </div>
-
 
 ---
 
 ## 🏠 랜딩 페이지
 
 <img 
-  src="https://i.imgur.com/lX3Cxmz.gif"
+  src="https://github.com/user-attachments/assets/1c7ebf79-c4d1-4145-9328-1e58e5c5bfe8"
   alt="Landing Page" 
   width="100%" 
 />
@@ -238,10 +237,10 @@
 
 ## 📚 문서 허브
 
-- [프로젝트 Wiki](https://github.com/softeerbootcamp-7th/Team7-Jackpot/wiki)
+- [프로젝트 Wiki](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki)
 - [Notion](https://www.notion.so/2ea14885339b80f6b2d0fe64b05460ed?pvs=21)
 - [Github Project](https://github.com/orgs/softeerbootcamp-7th/projects/10)
-- [GitHub Issues](https://github.com/softeerbootcamp-7th/Team7-Jackpot/issues)
+- [GitHub Issues](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/issues)
 - [Figma](https://www.figma.com/design/tmnkAiYrglgXoB241iWfU0/-%EC%9E%AD%ED%8C%9F-Handoff_%EC%86%8C%ED%94%84%ED%8B%B0%EC%96%B4-7%EA%B8%B0--Copy-?node-id=11741-36906&t=qCoco8TWfcQwOBbl-1)
 
 ---
