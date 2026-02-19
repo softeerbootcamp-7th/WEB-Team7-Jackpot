@@ -125,7 +125,7 @@ class ReviewServiceTest {
         given(qnARepository.findByIdOrElseThrow(qnaId)).willReturn(qnA);
         given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(reviewerId, coverLetterId, ReviewRoleType.REVIEWER)).willReturn(true);
         given(reviewRepository.save(any(Review.class))).willReturn(savedReview);
-        doNothing().when(notificationService).sendFeedbackNotificationToWriter(any(), any(), any(), any());
+        doNothing().when(notificationService).sendFeedbackNotificationToWriter(any(), any(), any(), any(), any());
 
         // when
         reviewService.createReview(reviewerId, qnaId, request);
@@ -137,7 +137,7 @@ class ReviewServiceTest {
         verify(eventPublisher, times(1)).publishEvent(any(ReviewCreatedEvent.class));
         verify(eventPublisher, times(1)).publishEvent(any(TextReplaceAllEvent.class));
         verify(notificationService, times(1))
-                .sendFeedbackNotificationToWriter(reviewerId, coverLetter, qnaId, originText);
+                .sendFeedbackNotificationToWriter(reviewerId, writerId, "테스트기업 2024 상반기", qnaId, originText);
     }
 
     @Test
@@ -189,7 +189,7 @@ class ReviewServiceTest {
         given(textDeltaService.getOtDeltasSince(qnaId, 5L)).willReturn(otDeltas);
         given(otTransformer.transformRange(10, 12, otDeltas)).willReturn(new int[]{2, 4});
         given(reviewRepository.save(any(Review.class))).willReturn(savedReview);
-        doNothing().when(notificationService).sendFeedbackNotificationToWriter(any(), any(), any(), any());
+        doNothing().when(notificationService).sendFeedbackNotificationToWriter(any(), any(), any(), any(), any());
 
         // when
         reviewService.createReview(reviewerId, qnaId, request);
@@ -233,7 +233,7 @@ class ReviewServiceTest {
         given(qnARepository.findByIdOrElseThrow(qnaId)).willReturn(qnA);
         given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(reviewerId, coverLetterId, ReviewRoleType.REVIEWER)).willReturn(true);
         given(reviewRepository.save(any(Review.class))).willReturn(savedReview);
-        doNothing().when(notificationService).sendFeedbackNotificationToWriter(any(), any(), any(), any());
+        doNothing().when(notificationService).sendFeedbackNotificationToWriter(any(), any(), any(), any(), any());
 
         // when
         reviewService.createReview(reviewerId, qnaId, request);

@@ -1,18 +1,12 @@
 package com.jackpot.narratix.domain.service;
 
 import com.jackpot.narratix.domain.controller.response.UnreadNotificationCountResponse;
-import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.Notification;
-import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.User;
-import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import com.jackpot.narratix.domain.entity.enums.NotificationType;
-import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
 import com.jackpot.narratix.domain.entity.notification_meta.FeedbackNotificationMeta;
 import com.jackpot.narratix.domain.event.NotificationSendEvent;
-import com.jackpot.narratix.domain.fixture.CoverLetterFixture;
 import com.jackpot.narratix.domain.fixture.NotificationFixture;
-import com.jackpot.narratix.domain.fixture.QnAFixture;
 import com.jackpot.narratix.domain.fixture.UserFixture;
 import com.jackpot.narratix.domain.repository.NotificationRepository;
 import com.jackpot.narratix.domain.repository.UserRepository;
@@ -185,20 +179,14 @@ class NotificationServiceTest {
                 .nickname("리뷰어닉네임")
                 .build();
 
-        CoverLetter coverLetter = CoverLetterFixture.builder()
-                .id(1L)
-                .userId(writerId)
-                .companyName("카카오")
-                .applyYear(2024)
-                .applyHalf(ApplyHalfType.SECOND_HALF)
-                .build();
+        String notificationTitle = "카카오 2024 하반기";
 
         given(userRepository.findByIdOrElseThrow(reviewerId)).willReturn(reviewer);
 
         ArgumentCaptor<Notification> notificationCaptor = ArgumentCaptor.forClass(Notification.class);
 
         // when
-        notificationService.sendFeedbackNotificationToWriter(reviewerId, coverLetter, qnaId, originText);
+        notificationService.sendFeedbackNotificationToWriter(reviewerId, writerId, notificationTitle, qnaId, originText);
 
         // then
         verify(userRepository).findByIdOrElseThrow(reviewerId);
@@ -231,20 +219,14 @@ class NotificationServiceTest {
                 .nickname("리뷰어닉네임")
                 .build();
 
-        CoverLetter coverLetter = CoverLetterFixture.builder()
-                .id(1L)
-                .userId(writerId)
-                .companyName("토스")
-                .applyYear(2024)
-                .applyHalf(ApplyHalfType.FIRST_HALF)
-                .build();
+        String notificationTitle = "토스 2024 상반기";
 
         given(userRepository.findByIdOrElseThrow(reviewerId)).willReturn(reviewer);
 
         ArgumentCaptor<Notification> notificationCaptor = ArgumentCaptor.forClass(Notification.class);
 
         // when
-        notificationService.sendFeedbackNotificationToWriter(reviewerId, coverLetter, qnaId, "원본 텍스트");
+        notificationService.sendFeedbackNotificationToWriter(reviewerId, writerId, notificationTitle, qnaId, "원본 텍스트");
 
         // then
         // 1. writer에게 알림이 저장된다
@@ -273,20 +255,14 @@ class NotificationServiceTest {
                 .nickname("리뷰어")
                 .build();
 
-        CoverLetter coverLetter = CoverLetterFixture.builder()
-                .id(1L)
-                .userId(writerId)
-                .companyName("네이버")
-                .applyYear(2025)
-                .applyHalf(ApplyHalfType.FIRST_HALF)
-                .build();
+        String notificationTitle = "네이버 2025 상반기";
 
         given(userRepository.findByIdOrElseThrow(reviewerId)).willReturn(reviewer);
 
         ArgumentCaptor<Notification> notificationCaptor = ArgumentCaptor.forClass(Notification.class);
 
         // when
-        notificationService.sendFeedbackNotificationToWriter(reviewerId, coverLetter, qnaId, originText);
+        notificationService.sendFeedbackNotificationToWriter(reviewerId, writerId, notificationTitle, qnaId, originText);
 
         // then
         verify(notificationRepository).save(notificationCaptor.capture());
