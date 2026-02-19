@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
@@ -93,6 +94,7 @@ public class UploadService {
         return "%s/%s/%s".formatted(FOLDER_NAME, userId, fileId);
     }
 
+    @Transactional
     public void createJob(String userId, JobCreateRequest request) {
 
         String jobId = UlidCreator.getUlid().toString();
@@ -116,12 +118,11 @@ public class UploadService {
         //TODO : 람다 호출 이벤트 발행
     }
 
-    public String extractFileId(String fileKey) {
+    private String extractFileId(String fileKey) {
         int lastSlashIndex = fileKey.lastIndexOf("/");
-        int lastDotIndex = fileKey.lastIndexOf(".");
 
-        if (lastSlashIndex != -1 && lastDotIndex != -1 && lastSlashIndex < lastDotIndex) {
-            return fileKey.substring(lastSlashIndex + 1, lastDotIndex);
+        if (lastSlashIndex != -1 && lastSlashIndex < fileKey.length() - 1) {
+            return fileKey.substring(lastSlashIndex + 1);
         }
         throw new BaseException(UploadErrorCode.INVALID_FILE_KEY);
     }
