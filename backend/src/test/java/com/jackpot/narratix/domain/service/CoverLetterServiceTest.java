@@ -4,17 +4,21 @@ import com.jackpot.narratix.domain.controller.request.CoverLetterFilterRequest;
 import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
 import com.jackpot.narratix.domain.controller.request.CreateQuestionRequest;
 import com.jackpot.narratix.domain.controller.request.CoverLetterAndQnAEditRequest;
+import com.jackpot.narratix.domain.controller.request.CoverLettersSaveRequest;
 import com.jackpot.narratix.domain.controller.response.CoverLetterResponse;
 import com.jackpot.narratix.domain.controller.response.FilteredCoverLettersResponse;
 import com.jackpot.narratix.domain.controller.response.CreateCoverLetterResponse;
+import com.jackpot.narratix.domain.controller.response.SavedCoverLetterCountResponse;
 import com.jackpot.narratix.domain.controller.response.TotalCoverLetterCountResponse;
 import com.jackpot.narratix.domain.controller.response.UpcomingCoverLetterResponse;
 import com.jackpot.narratix.domain.entity.CoverLetter;
+import com.jackpot.narratix.domain.entity.UploadJob;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
 import com.jackpot.narratix.domain.exception.CoverLetterErrorCode;
 import com.jackpot.narratix.domain.repository.CoverLetterRepository;
 import com.jackpot.narratix.domain.repository.QnARepository;
+import com.jackpot.narratix.domain.repository.UploadJobRepository;
 import com.jackpot.narratix.domain.repository.dto.QnACountProjection;
 import com.jackpot.narratix.global.exception.BaseException;
 import com.jackpot.narratix.global.exception.GlobalErrorCode;
@@ -58,6 +62,9 @@ class CoverLetterServiceTest {
 
     @Mock
     private QnARepository qnARepository;
+
+    @Mock
+    private UploadJobRepository uploadJobRepository;
 
     @Test
     @DisplayName("자기소개서 생성 성공")
@@ -137,17 +144,14 @@ class CoverLetterServiceTest {
         String userId = "testUser123";
         Long coverLetterId = 1L;
 
-        CoverLetter coverLetter = CoverLetter.createNewCoverLetter(
-                userId,
-                new CreateCoverLetterRequest(
-                        "테스트기업",
-                        2024,
-                        ApplyHalfType.FIRST_HALF,
-                        "백엔드 개발자",
-                        LocalDate.of(2024, 12, 31),
-                        List.of()
-                )
-        );
+        CoverLetter coverLetter = CoverLetter.builder()
+                .userId(userId)
+                .companyName("테스트기업")
+                .applyYear(2024)
+                .applyHalf(ApplyHalfType.FIRST_HALF)
+                .jobPosition("백엔드 개발자")
+                .deadline(LocalDate.of(2024, 12, 31))
+                .build();
         ReflectionTestUtils.setField(coverLetter, "id", coverLetterId);
 
         given(coverLetterRepository.findById(coverLetterId)).willReturn(Optional.of(coverLetter));
@@ -314,17 +318,14 @@ class CoverLetterServiceTest {
                 List.of()
         );
 
-        CoverLetter coverLetter = CoverLetter.createNewCoverLetter(
-                userId,
-                new CreateCoverLetterRequest(
-                        "원래 기업명",
-                        2024,
-                        ApplyHalfType.FIRST_HALF,
-                        "백엔드 개발자",
-                        LocalDate.of(2024, 12, 31),
-                        List.of()
-                )
-        );
+        CoverLetter coverLetter = CoverLetter.builder()
+                .userId(userId)
+                .companyName("원래 기업명")
+                .applyYear(2024)
+                .applyHalf(ApplyHalfType.FIRST_HALF)
+                .jobPosition("백엔드 개발자")
+                .deadline(LocalDate.of(2024, 12, 31))
+                .build();
         ReflectionTestUtils.setField(coverLetter, "id", coverLetterId);
 
         given(coverLetterRepository.findByIdOrElseThrow(coverLetterId)).willReturn(coverLetter);
@@ -356,17 +357,14 @@ class CoverLetterServiceTest {
                 List.of()
         );
 
-        CoverLetter coverLetter = CoverLetter.createNewCoverLetter(
-                userId,
-                new CreateCoverLetterRequest(
-                        "원래 기업명",
-                        2024,
-                        ApplyHalfType.FIRST_HALF,
-                        "백엔드 개발자",
-                        LocalDate.of(2024, 12, 31),
-                        List.of()
-                )
-        );
+        CoverLetter coverLetter = CoverLetter.builder()
+                .userId(userId)
+                .companyName("원래 기업명")
+                .applyYear(2024)
+                .applyHalf(ApplyHalfType.FIRST_HALF)
+                .jobPosition("백엔드 개발자")
+                .deadline(LocalDate.of(2024, 12, 31))
+                .build();
         ReflectionTestUtils.setField(coverLetter, "id", coverLetterId);
 
         given(coverLetterRepository.findByIdOrElseThrow(coverLetterId)).willReturn(coverLetter);
@@ -419,17 +417,14 @@ class CoverLetterServiceTest {
                 List.of()
         );
 
-        CoverLetter coverLetter = CoverLetter.createNewCoverLetter(
-                userId,
-                new CreateCoverLetterRequest(
-                        "원래 기업명",
-                        2024,
-                        ApplyHalfType.FIRST_HALF,
-                        "백엔드 개발자",
-                        LocalDate.of(2024, 12, 31),
-                        List.of()
-                )
-        );
+        CoverLetter coverLetter = CoverLetter.builder()
+                .userId(userId)
+                .companyName("원래 기업명")
+                .applyYear(2024)
+                .applyHalf(ApplyHalfType.FIRST_HALF)
+                .jobPosition("백엔드 개발자")
+                .deadline(LocalDate.of(2024, 12, 31))
+                .build();
         ReflectionTestUtils.setField(coverLetter, "id", coverLetterId);
 
         given(coverLetterRepository.findByIdOrElseThrow(coverLetterId)).willReturn(coverLetter);
@@ -601,17 +596,14 @@ class CoverLetterServiceTest {
     }
 
     private CoverLetter createMockCoverLetter(Long id, String userId, String companyName, LocalDate deadline) {
-        CoverLetter coverLetter = CoverLetter.createNewCoverLetter(
-                userId,
-                new CreateCoverLetterRequest(
-                        companyName,
-                        2024,
-                        ApplyHalfType.FIRST_HALF,
-                        "백엔드 개발자",
-                        deadline,
-                        List.of()
-                )
-        );
+        CoverLetter coverLetter = CoverLetter.builder()
+                .userId(userId)
+                .companyName(companyName)
+                .applyYear(2024)
+                .applyHalf(ApplyHalfType.FIRST_HALF)
+                .jobPosition("백엔드 개발자")
+                .deadline(deadline)
+                .build();
         ReflectionTestUtils.setField(coverLetter, "id", id);
         return coverLetter;
     }
@@ -706,5 +698,143 @@ class CoverLetterServiceTest {
                 .hasFieldOrPropertyWithValue("errorCode", CoverLetterErrorCode.DATE_RANGE_EXCEEDED);
 
         verify(coverLetterRepository, never()).findDeadlineByUserIdBetweenDeadline(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("업로드된 자기소개서 1개 저장 및 UploadJob 삭제 성공")
+    void saveCoverLetterAndDeleteJob_SingleJobComplete() {
+        // given
+        String userId = "testUser123";
+        String uploadJobId = "01JPZTEST001";
+
+        CoverLettersSaveRequest request = new CoverLettersSaveRequest(
+                List.of(
+                        new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest(
+                                new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest.CoverLetterSaveRequest(
+                                        "현대자동차", "백엔드 개발자", 2024, ApplyHalfType.FIRST_HALF, LocalDate.of(2024, 12, 31)
+                                ),
+                                List.of(
+                                        new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest.QnASaveRequest(
+                                                "지원동기를 입력해주세요.", "저는 개발자입니다.", QuestionCategoryType.MOTIVATION
+                                        )
+                                )
+                        )
+                )
+        );
+
+        CoverLetter savedCoverLetter = mock(CoverLetter.class);
+        given(coverLetterRepository.saveAll(any())).willReturn(List.of(savedCoverLetter));
+
+        UploadJob mockUploadJob = mock(UploadJob.class);
+        given(mockUploadJob.isOwner(userId)).willReturn(true);
+        given(uploadJobRepository.findById(uploadJobId)).willReturn(Optional.of(mockUploadJob));
+
+        // when
+        SavedCoverLetterCountResponse response = coverLetterService.saveCoverLetterAndDeleteJob(userId, uploadJobId, request);
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.savedCoverLetterCount()).isEqualTo(1);
+
+        verify(coverLetterRepository, times(1)).saveAll(any());
+        verify(uploadJobRepository, times(1)).deleteById(uploadJobId);
+    }
+
+    @Test
+    @DisplayName("업로드된 자기소개서 3개 저장 및 UploadJob 삭제 성공")
+    void saveCoverLetterAndDeleteJob_MultipleJobComplete() {
+        // given
+        String userId = "testUser123";
+        String uploadJobId = "01JPZTEST001";
+
+        CoverLettersSaveRequest.CoverLetterAndQnASaveRequest.QnASaveRequest qnaReq =
+                new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest.QnASaveRequest(
+                        "지원동기를 입력해주세요.", "저는 개발자입니다.", QuestionCategoryType.MOTIVATION
+                );
+
+        CoverLettersSaveRequest request = new CoverLettersSaveRequest(
+                List.of(
+                        new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest(
+                                new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest.CoverLetterSaveRequest(
+                                        "현대자동차", "백엔드 개발자", 2024, ApplyHalfType.FIRST_HALF, LocalDate.of(2024, 6, 30)
+                                ),
+                                List.of(qnaReq)
+                        ),
+                        new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest(
+                                new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest.CoverLetterSaveRequest(
+                                        "삼성전자", "프론트엔드 개발자", 2024, ApplyHalfType.SECOND_HALF, LocalDate.of(2024, 12, 31)
+                                ),
+                                List.of(qnaReq)
+                        ),
+                        new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest(
+                                new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest.CoverLetterSaveRequest(
+                                        "네이버", "백엔드 개발자", 2024, ApplyHalfType.FIRST_HALF, LocalDate.of(2024, 5, 31)
+                                ),
+                                List.of(qnaReq)
+                        )
+                )
+        );
+
+        List<CoverLetter> savedCoverLetters = List.of(
+                mock(CoverLetter.class), mock(CoverLetter.class), mock(CoverLetter.class)
+        );
+        given(coverLetterRepository.saveAll(any())).willReturn(savedCoverLetters);
+
+        UploadJob mockUploadJob = mock(UploadJob.class);
+        given(mockUploadJob.isOwner(userId)).willReturn(true);
+        given(uploadJobRepository.findById(uploadJobId)).willReturn(Optional.of(mockUploadJob));
+
+        // when
+        SavedCoverLetterCountResponse response = coverLetterService.saveCoverLetterAndDeleteJob(userId, uploadJobId, request);
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.savedCoverLetterCount()).isEqualTo(3);
+
+        verify(coverLetterRepository, times(1)).saveAll(any());
+        verify(uploadJobRepository, times(1)).deleteById(uploadJobId);
+    }
+
+    @Test
+    @DisplayName("업로드된 자기소개서 저장 시 올바른 userId와 필드를 가진 엔티티가 전달된다")
+    void saveCoverLetterAndDeleteJob_CorrectEntity() {
+        // given
+        String userId = "testUser123";
+        String uploadJobId = "01JPZTEST001";
+
+        CoverLettersSaveRequest request = new CoverLettersSaveRequest(
+                List.of(
+                        new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest(
+                                new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest.CoverLetterSaveRequest(
+                                        "현대자동차", "백엔드 개발자", 2024, ApplyHalfType.FIRST_HALF, LocalDate.of(2024, 12, 31)
+                                ),
+                                List.of(
+                                        new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest.QnASaveRequest(
+                                                "지원동기를 입력해주세요.", "저는 개발자입니다.", QuestionCategoryType.MOTIVATION
+                                        )
+                                )
+                        )
+                )
+        );
+
+        ArgumentCaptor<List<CoverLetter>> coverLetterCaptor = ArgumentCaptor.forClass(List.class);
+        given(coverLetterRepository.saveAll(coverLetterCaptor.capture()))
+                .willReturn(List.of(mock(CoverLetter.class)));
+
+        // when
+        coverLetterService.saveCoverLetterAndDeleteJob(userId, uploadJobId, request);
+
+        // then
+        List<CoverLetter> capturedCoverLetters = coverLetterCaptor.getValue();
+        assertThat(capturedCoverLetters).hasSize(1);
+
+        CoverLetter capturedCoverLetter = capturedCoverLetters.get(0);
+        assertThat(capturedCoverLetter.getUserId()).isEqualTo(userId);
+        assertThat(capturedCoverLetter.getCompanyName()).isEqualTo("현대자동차");
+        assertThat(capturedCoverLetter.getJobPosition()).isEqualTo("백엔드 개발자");
+        assertThat(capturedCoverLetter.getApplyYear()).isEqualTo(2024);
+        assertThat(capturedCoverLetter.getApplyHalf()).isEqualTo(ApplyHalfType.FIRST_HALF);
+        assertThat(capturedCoverLetter.getDeadline()).isEqualTo(LocalDate.of(2024, 12, 31));
+        assertThat(capturedCoverLetter.getQnAs()).hasSize(1);
     }
 }

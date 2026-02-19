@@ -3,9 +3,11 @@ package com.jackpot.narratix.domain.controller.api;
 import com.jackpot.narratix.domain.controller.request.CoverLetterFilterRequest;
 import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
 import com.jackpot.narratix.domain.controller.request.CoverLetterAndQnAEditRequest;
+import com.jackpot.narratix.domain.controller.request.CoverLettersSaveRequest;
 import com.jackpot.narratix.domain.controller.response.CoverLetterResponse;
 import com.jackpot.narratix.domain.controller.response.FilteredCoverLettersResponse;
 import com.jackpot.narratix.domain.controller.response.CreateCoverLetterResponse;
+import com.jackpot.narratix.domain.controller.response.SavedCoverLetterCountResponse;
 import com.jackpot.narratix.domain.controller.response.TotalCoverLetterCountResponse;
 import com.jackpot.narratix.domain.controller.response.UpcomingCoverLetterResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -139,5 +141,22 @@ public interface CoverLetterApi {
             @Parameter(hidden = true) String userId,
             @Parameter(description = "시작 날짜 (yyyy-MM-dd)", required = true, example = "2024-01-01") LocalDate startDate,
             @Parameter(description = "종료 날짜 (yyyy-MM-dd)", required = true, example = "2024-12-31") LocalDate endDate
+    );
+
+    @Operation(summary = "업로드된 자기소개서 저장", description = "업로드 작업(uploadJobId)에 해당하는 자기소개서 목록을 저장하고 작업을 삭제합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "저장 성공",
+                    content = @Content(schema = @Schema(implementation = SavedCoverLetterCountResponse.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "401", description = "인증 실패"),
+            @ApiResponse(responseCode = "404", description = "업로드 작업을 찾을 수 없음")
+    })
+    ResponseEntity<SavedCoverLetterCountResponse> saveUploadedCoverLetter(
+            @Parameter(hidden = true) String userId,
+            @Parameter(description = "업로드 작업 ID", required = true, example = "abc123") String uploadJobId,
+            CoverLettersSaveRequest request
     );
 }

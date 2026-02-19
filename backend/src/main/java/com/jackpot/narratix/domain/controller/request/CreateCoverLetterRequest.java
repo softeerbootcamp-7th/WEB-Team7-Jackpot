@@ -1,5 +1,7 @@
 package com.jackpot.narratix.domain.controller.request;
 
+import com.jackpot.narratix.domain.entity.CoverLetter;
+import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
@@ -19,4 +21,23 @@ public record CreateCoverLetterRequest(
         @Size(min = 1, max = 10, message = "질문은 최소 1개에서 최대 10개까지 입력할 수 있습니다.")
         @Valid List<CreateQuestionRequest> questions
 ) {
+    public CoverLetter toEntity(String userId) {
+
+        CoverLetter coverLetter = CoverLetter.builder()
+                .userId(userId)
+                .companyName(companyName)
+                .applyYear(applyYear)
+                .applyHalf(applyHalf)
+                .jobPosition(jobPosition)
+                .deadline(deadline)
+                .build();
+
+        List<QnA> qnAs = questions.stream()
+                .map(question -> question.toEntity(userId))
+                .toList();
+
+        coverLetter.addQnAs(qnAs);
+
+        return coverLetter;
+    }
 }

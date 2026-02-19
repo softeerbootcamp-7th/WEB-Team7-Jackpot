@@ -2,13 +2,10 @@ package com.jackpot.narratix.domain.controller;
 
 import com.jackpot.narratix.domain.controller.api.CoverLetterApi;
 import com.jackpot.narratix.domain.controller.request.CoverLetterFilterRequest;
-import com.jackpot.narratix.domain.controller.response.FilteredCoverLettersResponse;
+import com.jackpot.narratix.domain.controller.request.CoverLettersSaveRequest;
+import com.jackpot.narratix.domain.controller.response.*;
 import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
 import com.jackpot.narratix.domain.controller.request.CoverLetterAndQnAEditRequest;
-import com.jackpot.narratix.domain.controller.response.CoverLetterResponse;
-import com.jackpot.narratix.domain.controller.response.CreateCoverLetterResponse;
-import com.jackpot.narratix.domain.controller.response.TotalCoverLetterCountResponse;
-import com.jackpot.narratix.domain.controller.response.UpcomingCoverLetterResponse;
 import com.jackpot.narratix.domain.service.CoverLetterService;
 import com.jackpot.narratix.global.auth.UserId;
 import jakarta.validation.Valid;
@@ -104,5 +101,15 @@ public class CoverLetterController implements CoverLetterApi {
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate
     ) {
         return ResponseEntity.ok(coverLetterService.findDeadlineByDateRange(userId, startDate, endDate));
+    }
+
+    @Override
+    @PostMapping("/upload/{uploadJobId}")
+    public ResponseEntity<SavedCoverLetterCountResponse> saveUploadedCoverLetter(
+            @UserId String userId,
+            @PathVariable String uploadJobId,
+            @RequestBody @Valid CoverLettersSaveRequest request
+    ) {
+        return ResponseEntity.ok(coverLetterService.saveCoverLetterAndDeleteJob(userId, uploadJobId, request));
     }
 }

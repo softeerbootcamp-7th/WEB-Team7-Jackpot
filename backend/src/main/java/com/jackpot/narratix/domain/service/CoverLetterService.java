@@ -1,18 +1,17 @@
 package com.jackpot.narratix.domain.service;
 
-import com.jackpot.narratix.domain.controller.request.CoverLetterFilterRequest;
-import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
-import com.jackpot.narratix.domain.controller.request.CoverLetterAndQnAEditRequest;
-import com.jackpot.narratix.domain.controller.request.QnAEditRequest;
+import com.jackpot.narratix.domain.controller.request.*;
 import com.jackpot.narratix.domain.controller.response.*;
 import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.QnA;
+import com.jackpot.narratix.domain.entity.UploadJob;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import com.jackpot.narratix.domain.exception.CoverLetterErrorCode;
 import com.jackpot.narratix.domain.exception.QnAErrorCode;
 import com.jackpot.narratix.domain.repository.CoverLetterRepository;
 import com.jackpot.narratix.domain.repository.QnARepository;
 import com.jackpot.narratix.domain.repository.ScrapRepository;
+import com.jackpot.narratix.domain.repository.UploadJobRepository;
 import com.jackpot.narratix.domain.repository.dto.QnACountProjection;
 import com.jackpot.narratix.global.exception.BaseException;
 import com.jackpot.narratix.global.exception.GlobalErrorCode;
@@ -31,14 +30,15 @@ public class CoverLetterService {
 
     private final CoverLetterRepository coverLetterRepository;
     private final QnARepository qnARepository;
+    private final UploadJobRepository uploadJobRepository;
     private final ScrapRepository scrapRepository;
 
     @Transactional
     public CreateCoverLetterResponse createNewCoverLetter(String userId, CreateCoverLetterRequest createCoverLetterRequest) {
-        CoverLetter coverLetter = CoverLetter.createNewCoverLetter(userId, createCoverLetterRequest);
-        CoverLetter newCoverLetter = coverLetterRepository.save(coverLetter);
+        CoverLetter coverLetter = createCoverLetterRequest.toEntity(userId);
+        coverLetter = coverLetterRepository.save(coverLetter);
 
-        return new CreateCoverLetterResponse(newCoverLetter.getId());
+        return new CreateCoverLetterResponse(coverLetter.getId());
     }
 
     @Transactional(readOnly = true)
@@ -237,5 +237,26 @@ public class CoverLetterService {
                         .map(QnAListResponse.QnAResponse::of)
                         .toList()
         );
+    }
+
+    @Transactional
+    public SavedCoverLetterCountResponse saveCoverLetterAndDeleteJob(
+            String userId, String uploadJobId, CoverLettersSaveRequest request
+    ) {
+        List<CoverLetter> coverLetters = request.toEntity(userId);
+        coverLetters = coverLetterRepository.saveAll(coverLetters);
+
+        int savedCount = coverLetters.size();
+
+        Optional<UploadJob> uploadJobOpt = uploadJobRepository.findById(uploadJobId);
+        if(uploadJobOpt.isPresent()){
+            UploadJob uploadJob = uploadJobOpt.get();
+            if(!uploadJob.isOwner(userId)){
+                throw new BaseException(GlobalErrorCode.FORBIDDEN);
+            }
+            uploadJobRepository.deleteById(uploadJobId);
+        }
+
+        return new SavedCoverLetterCountResponse(savedCount);
     }
 }

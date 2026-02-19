@@ -3,8 +3,10 @@ package com.jackpot.narratix.domain.controller;
 import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
 import com.jackpot.narratix.domain.controller.request.CreateQuestionRequest;
 import com.jackpot.narratix.domain.controller.request.CoverLetterAndQnAEditRequest;
+import com.jackpot.narratix.domain.controller.request.CoverLettersSaveRequest;
 import com.jackpot.narratix.domain.controller.response.CreateCoverLetterResponse;
 import com.jackpot.narratix.domain.controller.response.FilteredCoverLettersResponse;
+import com.jackpot.narratix.domain.controller.response.SavedCoverLetterCountResponse;
 import com.jackpot.narratix.domain.controller.response.TotalCoverLetterCountResponse;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
@@ -480,6 +482,190 @@ class CoverLetterControllerTest {
                 Arguments.of("2024-01-01", "2024-12-31", null),  // size 누락
                 Arguments.of("2024/01/01", "2024-12-31", "10"),  // 잘못된 날짜 포맷 (startDate)
                 Arguments.of("2024-01-01", "2024/12/31", "10")   // 잘못된 날짜 포맷 (endDate)
+        );
+    }
+
+    @Test
+    @DisplayName("업로드된 자기소개서 저장 성공")
+    void saveUploadedCoverLetter_Success() throws Exception {
+        // given
+        String uploadJobId = "01JPZTEST001";
+
+        CoverLettersSaveRequest request = new CoverLettersSaveRequest(
+                List.of(
+                        new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest(
+                                new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest.CoverLetterSaveRequest(
+                                        "현대자동차", "백엔드 개발자", 2024, ApplyHalfType.FIRST_HALF, LocalDate.of(2024, 12, 31)
+                                ),
+                                List.of(
+                                        new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest.QnASaveRequest(
+                                                "지원동기를 입력해주세요.", "저는 개발자입니다.", QuestionCategoryType.MOTIVATION
+                                        )
+                                )
+                        )
+                )
+        );
+
+        given(coverLetterService.saveCoverLetterAndDeleteJob(any(), any(), any()))
+                .willReturn(new SavedCoverLetterCountResponse(1));
+
+        // when & then
+        mockMvc.perform(post("/api/v1/coverletter/upload/" + uploadJobId)
+                        .header(AuthConstants.AUTHORIZATION, TEST_TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.savedCoverLetterCount").value(1));
+    }
+
+    @Test
+    @DisplayName("업로드된 자기소개서 3개 저장 성공")
+    void saveUploadedCoverLetter_3개_저장_성공() throws Exception {
+        // given
+        String uploadJobId = "01JPZTEST001";
+
+        CoverLettersSaveRequest.CoverLetterAndQnASaveRequest.QnASaveRequest qnaReq =
+                new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest.QnASaveRequest(
+                        "지원동기를 입력해주세요.", "저는 개발자입니다.", QuestionCategoryType.MOTIVATION
+                );
+
+        CoverLettersSaveRequest request = new CoverLettersSaveRequest(
+                List.of(
+                        new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest(
+                                new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest.CoverLetterSaveRequest(
+                                        "현대자동차", "백엔드 개발자", 2024, ApplyHalfType.FIRST_HALF, LocalDate.of(2024, 6, 30)
+                                ),
+                                List.of(qnaReq)
+                        ),
+                        new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest(
+                                new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest.CoverLetterSaveRequest(
+                                        "삼성전자", "프론트엔드 개발자", 2024, ApplyHalfType.SECOND_HALF, LocalDate.of(2024, 12, 31)
+                                ),
+                                List.of(qnaReq)
+                        ),
+                        new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest(
+                                new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest.CoverLetterSaveRequest(
+                                        "네이버", "백엔드 개발자", 2024, ApplyHalfType.FIRST_HALF, LocalDate.of(2024, 5, 31)
+                                ),
+                                List.of(qnaReq)
+                        )
+                )
+        );
+
+        given(coverLetterService.saveCoverLetterAndDeleteJob(any(), any(), any()))
+                .willReturn(new SavedCoverLetterCountResponse(3));
+
+        // when & then
+        mockMvc.perform(post("/api/v1/coverletter/upload/" + uploadJobId)
+                        .header(AuthConstants.AUTHORIZATION, TEST_TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.savedCoverLetterCount").value(3));
+    }
+
+    @Test
+    @DisplayName("업로드된 자기소개서 저장 시 coverLetters가 null이면 400 Bad Request 반환")
+    void saveUploadedCoverLetter_CoverLettersNull_BadRequest() throws Exception {
+        // given
+        String uploadJobId = "01JPZTEST001";
+        CoverLettersSaveRequest request = new CoverLettersSaveRequest(null);
+
+        // when & then
+        mockMvc.perform(post("/api/v1/coverletter/upload/" + uploadJobId)
+                        .header(AuthConstants.AUTHORIZATION, TEST_TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideInvalidSaveUploadedCoverLetterRequests")
+    @DisplayName("업로드된 자기소개서 저장 시 유효성 검증 실패하면 400 Bad Request 반환")
+    void saveUploadedCoverLetter_ValidationFailed_BadRequest(CoverLettersSaveRequest request) throws Exception {
+        // given
+        String uploadJobId = "01JPZTEST001";
+
+        // when & then
+        mockMvc.perform(post("/api/v1/coverletter/upload/" + uploadJobId)
+                        .header(AuthConstants.AUTHORIZATION, TEST_TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    private static Stream<Arguments> provideInvalidSaveUploadedCoverLetterRequests() {
+        CoverLettersSaveRequest.CoverLetterAndQnASaveRequest.QnASaveRequest validQna =
+                new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest.QnASaveRequest(
+                        "지원동기를 입력해주세요.", "저는 개발자입니다.", QuestionCategoryType.MOTIVATION
+                );
+        CoverLettersSaveRequest.CoverLetterAndQnASaveRequest.CoverLetterSaveRequest validCoverLetterReq =
+                new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest.CoverLetterSaveRequest(
+                        "현대자동차", "백엔드 개발자", 2024, ApplyHalfType.FIRST_HALF, LocalDate.of(2024, 12, 31)
+                );
+
+        // 11개의 QnA 리스트 (최대 10개 초과)
+        List<CoverLettersSaveRequest.CoverLetterAndQnASaveRequest.QnASaveRequest> elevenQnas =
+                new ArrayList<>();
+        for (int i = 0; i < 11; i++) {
+            elevenQnas.add(validQna);
+        }
+
+        // 4개의 자기소개서 (최대 3개 초과)
+        List<CoverLettersSaveRequest.CoverLetterAndQnASaveRequest> fourCoverLetters =
+                new ArrayList<>();
+        for (int i = 0; i < 4; i++) {
+            fourCoverLetters.add(new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest(
+                    validCoverLetterReq, List.of(validQna)
+            ));
+        }
+
+        return Stream.of(
+                // coverLetters 빈 리스트 (min 1)
+                Arguments.of(new CoverLettersSaveRequest(List.of())),
+                // coverLetters 4개 초과 (max 3)
+                Arguments.of(new CoverLettersSaveRequest(fourCoverLetters)),
+                // companyName null
+                Arguments.of(new CoverLettersSaveRequest(List.of(
+                        new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest(
+                                new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest.CoverLetterSaveRequest(
+                                        null, "백엔드 개발자", 2024, ApplyHalfType.FIRST_HALF, LocalDate.of(2024, 12, 31)
+                                ),
+                                List.of(validQna)
+                        )
+                ))),
+                // jobPosition null
+                Arguments.of(new CoverLettersSaveRequest(List.of(
+                        new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest(
+                                new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest.CoverLetterSaveRequest(
+                                        "현대자동차", null, 2024, ApplyHalfType.FIRST_HALF, LocalDate.of(2024, 12, 31)
+                                ),
+                                List.of(validQna)
+                        )
+                ))),
+                // applyHalf null
+                Arguments.of(new CoverLettersSaveRequest(List.of(
+                        new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest(
+                                new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest.CoverLetterSaveRequest(
+                                        "현대자동차", "백엔드 개발자", 2024, null, LocalDate.of(2024, 12, 31)
+                                ),
+                                List.of(validQna)
+                        )
+                ))),
+                // qnAs 빈 리스트 (min 1)
+                Arguments.of(new CoverLettersSaveRequest(List.of(
+                        new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest(
+                                validCoverLetterReq,
+                                List.of()
+                        )
+                ))),
+                // qnAs 11개 초과 (max 10)
+                Arguments.of(new CoverLettersSaveRequest(List.of(
+                        new CoverLettersSaveRequest.CoverLetterAndQnASaveRequest(
+                                validCoverLetterReq,
+                                elevenQnas
+                        )
+                )))
         );
     }
 }

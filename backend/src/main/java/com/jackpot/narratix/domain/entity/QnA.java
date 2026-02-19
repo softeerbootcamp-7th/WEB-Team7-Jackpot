@@ -1,14 +1,11 @@
 package com.jackpot.narratix.domain.entity;
 
-import com.jackpot.narratix.domain.controller.request.CreateQuestionRequest;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
 import com.jackpot.narratix.domain.entity.enums.ReviewRoleType;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -16,6 +13,8 @@ import java.util.Objects;
 @Entity
 @Getter
 @Table(name = "qna")
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 public class QnA extends BaseTimeEntity {
 
@@ -47,17 +46,12 @@ public class QnA extends BaseTimeEntity {
     private String answer;
 
     @NotNull
+    @Builder.Default
     @Column(name = "version", nullable = false)
     private Long version = 0L;
 
-    public static QnA newQnA(CoverLetter coverLetter, CreateQuestionRequest request) {
-        QnA qna = new QnA();
-        qna.coverLetter = coverLetter;
-        qna.questionCategory = request.category();
-        qna.question = request.question();
-        qna.userId = coverLetter.getUserId();
-        qna.version = 0L;
-        return qna;
+    public void connectCoverLetter(CoverLetter coverLetter) {
+        this.coverLetter = coverLetter;
     }
 
     public boolean isOwner(String userId){
