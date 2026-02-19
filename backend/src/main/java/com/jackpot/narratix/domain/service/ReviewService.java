@@ -2,14 +2,15 @@ package com.jackpot.narratix.domain.service;
 
 import com.jackpot.narratix.domain.controller.request.ReviewCreateRequest;
 import com.jackpot.narratix.domain.controller.request.ReviewEditRequest;
+import com.jackpot.narratix.domain.controller.request.TextUpdateRequest;
 import com.jackpot.narratix.domain.controller.response.ReviewsGetResponse;
-import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.Review;
 import com.jackpot.narratix.domain.entity.User;
 import com.jackpot.narratix.domain.entity.enums.ReviewRoleType;
 import com.jackpot.narratix.domain.event.ReviewDeleteEvent;
 import com.jackpot.narratix.domain.event.ReviewEditEvent;
+import com.jackpot.narratix.domain.event.TextReplaceAllEvent;
 import com.jackpot.narratix.domain.exception.ReviewErrorCode;
 import com.jackpot.narratix.domain.event.ReviewCreatedEvent;
 import com.jackpot.narratix.domain.repository.QnARepository;
@@ -34,9 +35,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ReviewService {
 
+    static final String MARKER_CLOSE = "⟦/r⟧";
+
     private final NotificationService notificationService;
     private final ApplicationEventPublisher eventPublisher;
     private final ShareLinkSessionRegistry shareLinkSessionRegistry;
+    private final TextDeltaService textDeltaService;
+    private final OTTransformer otTransformer;
 
     private final ReviewRepository reviewRepository;
     private final UserRepository userRepository;
@@ -48,14 +53,59 @@ public class ReviewService {
         Long coverLetterId = qnA.getCoverLetter().getId();
         validateWebSocketConnected(reviewerId, coverLetterId, ReviewRoleType.REVIEWER);
 
-        // TODO: 버전과 비교해서 리뷰를 달 수 있는지 확인
+        // flush: JPA 컨텍스트의 qnA가 최신 answer·version으로 갱신됨
+        textDeltaService.flushToDb(qnAId);
 
+        long reviewerVersion = request.version();
+        long currentVersion = qnA.getVersion();
+
+        // OT 변환 (reviewerVersion == currentVersion이면 변환 불필요)
+        int transformedStart = request.startIdx().intValue();
+        int transformedEnd = request.endIdx().intValue();
+        if (reviewerVersion < currentVersion) {
+            List<TextUpdateRequest> otDeltas = textDeltaService.getOtDeltasSince(qnAId, reviewerVersion);
+            boolean hasOtHistorySinceReviewerVersion = !otDeltas.isEmpty() && otDeltas.get(0).version() == reviewerVersion;
+            if (!hasOtHistorySinceReviewerVersion) {
+                throw new BaseException(ReviewErrorCode.REVIEW_VERSION_TOO_OLD);
+            }
+            int[] transformed = otTransformer.transformRange(transformedStart, transformedEnd, otDeltas);
+            transformedStart = transformed[0];
+            transformedEnd = transformed[1];
+        } else if (reviewerVersion > currentVersion) {
+            throw new BaseException(ReviewErrorCode.REVIEW_VERSION_AHEAD);
+        }
+
+        // originText 검증
+        String currentAnswer = qnA.getAnswer() != null ? qnA.getAnswer() : "";
+        validateOriginText(request.originText(), currentAnswer, transformedStart, transformedEnd);
+
+        // Review 엔티티 저장 (reviewId 확보)
         Review review = reviewRepository.save(request.toEntity(reviewerId, qnAId));
 
-        // TODO: 본문 텍스트 전체 변경 이벤트 발행
+        // 텍스트 마킹 삽입
+        String wrappedAnswer = addTagToReviewedSection(currentAnswer, transformedStart, transformedEnd, review.getId(), request.originText());
+        qnA.editAnswer(wrappedAnswer);
+        long reviewVersion = qnARepository.incrementVersion(qnAId, 1);
 
+        // afterCommit: Redis version counter 강제 갱신
+        textDeltaService.resetDeltaVersion(qnAId, reviewVersion);
+
+        eventPublisher.publishEvent(new TextReplaceAllEvent(coverLetterId, qnAId, reviewVersion, wrappedAnswer));
         eventPublisher.publishEvent(ReviewCreatedEvent.of(coverLetterId, qnAId, review));
         notificationService.sendFeedbackNotificationToWriter(reviewerId, qnA.getCoverLetter(), qnAId, request.originText());
+    }
+
+    private String addTagToReviewedSection(String currentAnswer, int transformedStart, int transformedEnd, Long tagId, String originText) {
+        return currentAnswer.substring(0, transformedStart)
+                + markerOpen(tagId) + originText + MARKER_CLOSE
+                + currentAnswer.substring(transformedEnd);
+    }
+
+    private void validateOriginText(String originText, String currentAnswer, int transformedStart, int transformedEnd) {
+        String textAtRange = currentAnswer.substring(transformedStart, transformedEnd);
+        if (!textAtRange.equals(originText)) {
+            throw new BaseException(ReviewErrorCode.REVIEW_TEXT_MISMATCH);
+        }
     }
 
     @Transactional
@@ -98,10 +148,23 @@ public class ReviewService {
         validateReviewBelongsToQnA(review, qnAId);
         validateIsReviewOwnerOrQnAOwner(userId, review, qnA);
 
+        // flush: 최신 answer 확보
+        textDeltaService.flushToDb(qnAId);
+
+        String currentAnswer = qnA.getAnswer() != null ? qnA.getAnswer() : "";
+        String marker = markerOpen(reviewId) + review.getOriginText() + MARKER_CLOSE;
+
+        if (currentAnswer.contains(marker)) {
+            String unwrapped = currentAnswer.replace(marker, review.getOriginText());
+            qnA.editAnswer(unwrapped);
+            long newVersion = qnARepository.incrementVersion(qnAId, 1);
+            textDeltaService.resetDeltaVersion(qnAId, newVersion);
+            eventPublisher.publishEvent(new TextReplaceAllEvent(coverLetterId, qnAId, newVersion, unwrapped));
+        } else {
+            log.warn("리뷰 마커를 찾을 수 없음, 텍스트 변경 없이 삭제 진행: qnAId={}, reviewId={}", qnAId, reviewId);
+        }
+
         reviewRepository.delete(review);
-
-        // TODO: Writer, Reviewer 본문 텍스트 전체 변경 이벤트 발송
-
         eventPublisher.publishEvent(new ReviewDeleteEvent(coverLetterId, qnAId, reviewId));
     }
 
@@ -118,23 +181,34 @@ public class ReviewService {
         validateWebSocketConnected(userId, coverLetterId, ReviewRoleType.WRITER);
 
         Review review = reviewRepository.findByIdOrElseThrow(reviewId);
-
         validateReviewBelongsToQnA(review, qnAId);
         validateIsQnAOwner(userId, qnA);
 
-        // TODO: Redis에서 최신 버전 가져오기
-        // TODO: 최신 버전에서 첨삭 댓글 확인 및 originText와 같은지 비교
+        // flush: 최신 answer 확보
+        textDeltaService.flushToDb(qnAId);
 
         if (review.isApproved()) {
             review.restore();
         } else {
             review.approve();
         }
-        Review updatedReview = reviewRepository.save(review);
 
-        // TODO: 웹소켓 본문 텍스트 변경 이벤트 발송
+        String currentAnswer = qnA.getAnswer() != null ? qnA.getAnswer() : "";
+        String oldMarkerContent = markerOpen(reviewId) + review.getSuggest() + MARKER_CLOSE;
 
-        eventPublisher.publishEvent(ReviewEditEvent.of(coverLetterId, qnAId, updatedReview));
+        if (currentAnswer.contains(oldMarkerContent)) {
+            String newMarkerContent = markerOpen(reviewId) + review.getOriginText() + MARKER_CLOSE;
+            String newAnswer = currentAnswer.replace(oldMarkerContent, newMarkerContent);
+            qnA.editAnswer(newAnswer);
+            long newVersion = qnARepository.incrementVersion(qnAId, 1);
+            textDeltaService.resetDeltaVersion(qnAId, newVersion);
+            eventPublisher.publishEvent(new TextReplaceAllEvent(coverLetterId, qnAId, newVersion, newAnswer));
+        } else {
+            log.warn("리뷰 마커를 찾을 수 없음, 상태 토글만 진행: qnAId={}, reviewId={}", qnAId, reviewId);
+        }
+
+        reviewRepository.save(review);
+        eventPublisher.publishEvent(ReviewEditEvent.of(coverLetterId, qnAId, review));
     }
 
     private void validateWebSocketConnected(String userId, Long coverLetterId, ReviewRoleType role) {
@@ -194,5 +268,9 @@ public class ReviewService {
                 .toList();
 
         return new ReviewsGetResponse(reviewResponses);
+    }
+
+    private static String markerOpen(Long reviewId) {
+        return "⟦r:" + reviewId + "⟧";
     }
 }

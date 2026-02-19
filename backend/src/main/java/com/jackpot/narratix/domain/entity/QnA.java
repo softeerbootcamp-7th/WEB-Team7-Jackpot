@@ -54,7 +54,7 @@ public class QnA extends BaseTimeEntity {
         this.coverLetter = coverLetter;
     }
 
-    public boolean isOwner(String userId){
+    public boolean isOwner(String userId) {
         return Objects.equals(this.userId, userId);
     }
 
@@ -67,11 +67,6 @@ public class QnA extends BaseTimeEntity {
         this.question = question;
         this.questionCategory = category;
         updateModifiedAt(LocalDateTime.now());
-    }
-
-    public long incrementVersionBy(int deltaCount) {
-        this.version += deltaCount;
-        return this.version;
     }
 
     public ReviewRoleType determineReviewRole(String userId) {

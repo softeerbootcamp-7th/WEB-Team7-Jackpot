@@ -41,4 +41,6 @@ public interface QnARepository {
     List<Long> findIdsByCoverLetterId(Long coverLetterId);
 
     List<QnA> findByIds(List<Long> qnAIds);
+
+    int incrementVersion(Long qnAId, int size);
 }

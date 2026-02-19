@@ -146,7 +146,7 @@ public class ShareLinkService {
 
         // 세션 시작 시 1회: Redis 버전 카운터를 QnA.version으로 초기화
         // 이후 delta push마다 DB 조회 없이 Redis INCR만으로 절대 버전 획득
-        textDeltaService.initDeltaVersion(qnA.getId(), qnA.getVersion());
+        textDeltaService.initDeltaVersion(qnA.getId(), qnA.getVersion() + 1);
 
         return QnAVersionResponse.of(qnA);
     }

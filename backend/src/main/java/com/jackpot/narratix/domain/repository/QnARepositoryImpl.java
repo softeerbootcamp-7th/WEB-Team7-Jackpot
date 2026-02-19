@@ -100,4 +100,9 @@ public class QnARepositoryImpl implements QnARepository {
         return qnAJpaRepository.findAllById(qnAIds);
     }
 
+    @Override
+    public int incrementVersion(Long qnAId, int size) {
+        return qnAJpaRepository.incrementVersion(qnAId, size);
+    }
+
 }

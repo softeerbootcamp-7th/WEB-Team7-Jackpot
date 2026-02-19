@@ -16,6 +16,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -103,7 +104,7 @@ public class TextDeltaService {
 
         String newAnswer = textMerger.merge(qnA.getAnswer(), applicableDeltas);
         qnA.editAnswer(newAnswer);
-        qnA.incrementVersionBy(applicableDeltas.size());
+        qnARepository.incrementVersion(qnAId, applicableDeltas.size());
 
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
@@ -123,6 +124,35 @@ public class TextDeltaService {
         }
     }
 
+    /**
+     * 리뷰 처리(생성·삭제·승인) 후 Redis 버전 카운터를 DB version에 맞게 강제 갱신한다.
+     */
+    public void resetDeltaVersion(Long qnAId, long newVersion) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                try {
+                    textDeltaRedisRepository.setVersion(qnAId, newVersion);
+                    log.info("리뷰 처리 후 버전 카운터 갱신 완료: qnAId={}, newVersion={}", qnAId, newVersion);
+                } catch (Exception e) {
+                    log.error("리뷰 처리 후 버전 카운터 갱신 실패: qnAId={}, newVersion={}", qnAId, newVersion, e);
+                }
+            }
+        });
+    }
+
+    /**
+     * OT 변환에 필요한 델타를 committed + pending에서 수집한다.
+     * fromVersion 이상의 델타를 version 오름차순으로 반환한다.
+     */
+    public List<TextUpdateRequest> getOtDeltasSince(Long qnAId, long fromVersion) {
+        List<TextUpdateRequest> committed = textDeltaRedisRepository.getCommitted(qnAId);
+        List<TextUpdateRequest> pending = textDeltaRedisRepository.getPending(qnAId);
+        return Stream.concat(committed.stream(), pending.stream()) // version asc
+                .filter(d -> d.version() >= fromVersion)
+                .toList();
+    }
+
     private void clearPendingSilently(Long qnAId) {
         try {
             textDeltaRedisRepository.clearPending(qnAId);
@@ -137,7 +167,7 @@ public class TextDeltaService {
      * <p>버전 충돌은 Lua 스크립트에서 push가 발생하기 전에 감지되므로 Redis 롤백이 필요 없다.
      * DB 텍스트와 현재 pending 델타를 병합한 결과를 담은 TEXT_REPLACE_ALL 메시지를 반환한다.</p>
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public WebSocketMessageResponse recoverTextReplaceAll(Long qnAId) {
         return buildTextReplaceAllResponse(qnAId);
     }
@@ -148,7 +178,7 @@ public class TextDeltaService {
      * <p>push가 완료된 마지막 델타를 Redis에서 롤백한 뒤
      * DB 텍스트와 나머지 pending 델타를 병합한 결과를 담은 TEXT_REPLACE_ALL 메시지를 반환한다.</p>
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public WebSocketMessageResponse recoverTextReplaceAllWithRollback(Long qnAId) {
         try {
             textDeltaRedisRepository.rollbackLastPush(qnAId);
@@ -169,9 +199,15 @@ public class TextDeltaService {
             deltas = Collections.emptyList();
         }
 
-        String newAnswer = textMerger.merge(qnA.getAnswer(), deltas);
+        // flushToDb와 동일한 패턴: DB version 기준으로 이미 반영된 stale 델타 제거
+        long dbVersion = qnA.getVersion();
+        List<TextUpdateRequest> applicableDeltas = deltas.stream()
+                .filter(d -> d.version() >= dbVersion)
+                .toList();
+
+        String newAnswer = textMerger.merge(qnA.getAnswer(), applicableDeltas);
         qnA.editAnswer(newAnswer);
-        long version = qnA.incrementVersionBy(deltas.size());
+        long version = qnARepository.incrementVersion(qnAId, applicableDeltas.size());
 
         log.info("TEXT_REPLACE_ALL 메시지 생성: qnAId={}, version={}", qnAId, version);
         WebSocketTextReplaceAllMessage message = new WebSocketTextReplaceAllMessage(version, newAnswer);

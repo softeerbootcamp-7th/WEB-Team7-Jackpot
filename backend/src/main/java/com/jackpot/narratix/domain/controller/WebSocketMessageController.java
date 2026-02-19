@@ -6,6 +6,7 @@ import com.jackpot.narratix.domain.controller.response.TextUpdateResponse;
 import com.jackpot.narratix.domain.controller.response.WebSocketMessageResponse;
 import com.jackpot.narratix.domain.entity.enums.ReviewRoleType;
 import com.jackpot.narratix.domain.entity.enums.WebSocketMessageType;
+import com.jackpot.narratix.domain.exception.SerializationException;
 import com.jackpot.narratix.domain.exception.VersionConflictException;
 import com.jackpot.narratix.domain.exception.WebSocketErrorCode;
 import com.jackpot.narratix.domain.service.TextDeltaService;
@@ -97,9 +98,17 @@ public class WebSocketMessageController {
         long deltaVersion;
         try {
             deltaVersion = textDeltaService.saveAndMaybeFlush(qnAId, request);
-        } catch (VersionConflictException e) {
-            // delta push 미발생 — rollback 없이 현재 상태를 TEXT_REPLACE_ALL로 전송
+        } catch (VersionConflictException e) { // delta push 미발생 — rollback 없이 현재 상태를 TEXT_REPLACE_ALL로 전송
             log.warn("버전 충돌, TEXT_REPLACE_ALL 전송: shareId={}, qnAId={}", shareId, qnAId);
+            try {
+                WebSocketMessageResponse response = textDeltaService.recoverTextReplaceAll(qnAId);
+                webSocketMessageSender.sendMessageToShare(shareId, response);
+            } catch (Exception re) {
+                log.error("recoverTextReplaceAll 실패: shareId={}, qnAId={}", shareId, qnAId, re);
+            }
+            return;
+        } catch (SerializationException e) { // delta push 미발생 — rollback 없이 현재 상태를 TEXT_REPLACE_ALL로 전송
+            log.error("TextUpdateRequest 직렬화 실패, TEXT_REPLACE_ALL 전송: shareId={}, qnAId={}", shareId, qnAId, e);
             try {
                 WebSocketMessageResponse response = textDeltaService.recoverTextReplaceAll(qnAId);
                 webSocketMessageSender.sendMessageToShare(shareId, response);

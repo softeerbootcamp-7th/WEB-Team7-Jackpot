@@ -3,6 +3,7 @@ package com.jackpot.narratix.domain.repository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jackpot.narratix.domain.controller.request.TextUpdateRequest;
+import com.jackpot.narratix.domain.exception.SerializationException;
 import com.jackpot.narratix.domain.exception.VersionConflictException;
 import com.jackpot.narratix.global.exception.BaseException;
 import com.jackpot.narratix.global.exception.GlobalErrorCode;
@@ -166,7 +167,7 @@ public class TextDeltaRedisRepository {
             return result;
         } catch (JsonProcessingException e) {
             log.error("TextUpdateRequest 직렬화 실패: qnAId={}", qnAId, e);
-            throw new BaseException(GlobalErrorCode.INTERNAL_SERVER_ERROR);
+            throw new SerializationException(e);
         }
     }
 
@@ -197,6 +198,14 @@ public class TextDeltaRedisRepository {
      */
     public List<TextUpdateRequest> getPending(Long qnAId) {
         return deserializeList(qnAId, redisTemplate.opsForList().range(pendingKey(qnAId), 0, -1));
+    }
+
+    /**
+     * DB에 반영된 committed 델타를 순서대로 반환한다 (최대 {@value MAX_COMMITTED_SIZE}개).
+     * Reviewer가 오래된 버전에서 OT를 수행할 때 사용한다.
+     */
+    public List<TextUpdateRequest> getCommitted(Long qnAId) {
+        return deserializeList(qnAId, redisTemplate.opsForList().range(committedKey(qnAId), 0, -1));
     }
 
     /**
@@ -234,6 +243,15 @@ public class TextDeltaRedisRepository {
     }
 
     /**
+     * 버전 카운터를 강제로 갱신한다
+     * 리뷰 처리(생성·삭제·승인) 후 DB version과 Redis version counter를 동기화할 때 사용한다.
+     */
+    public void setVersion(Long qnAId, long version) {
+        redisTemplate.opsForValue().set(versionKey(qnAId), String.valueOf(version), KEY_TTL);
+        log.debug("버전 카운터 강제 갱신: qnAId={}, version={}", qnAId, version);
+    }
+
+    /**
      * pending 키만 삭제한다.
      * DB 커밋 후 committed 이동(commit())이 실패했을 때 dirty 데이터를 제거하는 Fallback으로 사용된다.
      * committed 히스토리는 보존되지 않는다.
@@ -268,5 +286,4 @@ public class TextDeltaRedisRepository {
                 }).filter(Objects::nonNull)
                 .toList();
     }
-
 }
