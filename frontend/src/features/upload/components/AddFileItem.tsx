@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useId, useState } from 'react';
 
 import documentIcon from '@/assets/icons/documentIcon.svg';
 import { UploadPageIcons as I } from '@/features/upload/icons';
@@ -6,17 +6,23 @@ import type { UploadStatus } from '@/features/upload/types/upload';
 import { formatFileSize } from '@/features/upload/utils/formatFileSize';
 
 interface AddFileItemProps {
+  index: number;
   file: File | null;
   uploadStatus?: UploadStatus;
   onFileChange: (newFile: File | null) => void;
 }
 
 const AddFileItem = ({
+  index,
   file,
   uploadStatus = 'idle',
   onFileChange,
 }: AddFileItemProps) => {
   const inputId = useId();
+  // 3단계: AddFileItem 드래그 드롭 구현
+  // 3-2. 상태 변수: isDragOver - 드래그 오버 상태 표시
+  const [isDragOver, setIsDragOver] = useState(false);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
@@ -28,6 +34,31 @@ const AddFileItem = ({
   const handleRemove = () => {
     onFileChange(null);
   };
+
+  // 3-1. Drag & Drop 이벤트 핸들러
+  const handleDragOver = (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    const droppedFile = e.dataTransfer.files?.[0];
+    if (droppedFile) {
+      onFileChange(droppedFile);
+    }
+  };
+
   const getStatusUI = () => {
     switch (uploadStatus) {
       case 'uploading':
@@ -105,8 +136,14 @@ const AddFileItem = ({
         </div>
       ) : (
         <label
-          className={`relative flex h-[23.5rem] w-full flex-col items-center justify-center gap-5 overflow-hidden rounded-lg transition-all duration-500 ease-in-out ${file ? '' : 'cursor-pointer bg-gray-50'}`}
+          // 3-3. UI 피드백: 드래그 오버 시 배경 색상 변경 (blue-50), 테두리 표시
+          className={`relative flex h-[23.5rem] w-full flex-col items-center justify-center gap-5 overflow-hidden rounded-lg transition-all duration-500 ease-in-out ${file ? '' : 'cursor-pointer bg-gray-50'} ${
+            isDragOver ? 'bg-blue-50 ring-2 ring-blue-400' : ''
+          }`}
           htmlFor={inputId}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
         >
           <div
             key='empty-content'
