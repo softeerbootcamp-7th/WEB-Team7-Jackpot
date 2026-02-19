@@ -143,9 +143,21 @@ const CoverLetterContent = ({
         const change = onTextChangeRef.current(newText);
         if (change && typeof change === 'object') {
           const startIdx = change.changeStart;
-          const endIdx =
-            change.changeStart + Math.abs(change.oldLength - change.newLength);
-          const replacedText = newText.slice(startIdx, endIdx);
+          const oldLen = currentText.length;
+          const newLen = newText.length;
+
+          let suffixLen = 0;
+          while (
+            suffixLen < oldLen - startIdx &&
+            suffixLen < newLen - startIdx &&
+            currentText[oldLen - 1 - suffixLen] ===
+              newText[newLen - 1 - suffixLen]
+          ) {
+            suffixLen++;
+          }
+
+          const endIdx = oldLen - suffixLen;
+          const replacedText = newText.slice(startIdx, newLen - suffixLen);
 
           undoStack.current.push({
             text: currentText,
