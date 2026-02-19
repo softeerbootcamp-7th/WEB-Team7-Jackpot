@@ -27,7 +27,6 @@ public class TextDeltaService {
     private final TextDeltaRedisRepository textDeltaRedisRepository;
     private final QnARepository qnARepository;
     private final TextMerger textMerger;
-    private final WebSocketMessageSender webSocketMessageSender;
 
     /**
      * 버전 카운터를 초기화하고 pending 키 TTL을 설정한다.
@@ -133,33 +132,33 @@ public class TextDeltaService {
     }
 
     /**
-     * saveAndMaybeFlush에서 버전 충돌 발생 시 Writer와 Reviewer의 텍스트 상태를 동기화한다.
+     * saveAndMaybeFlush에서 버전 충돌 발생 시 Writer와 Reviewer의 텍스트 상태를 동기화하기 위한 메시지를 반환한다.
      *
      * <p>버전 충돌은 Lua 스크립트에서 push가 발생하기 전에 감지되므로 Redis 롤백이 필요 없다.
-     * DB 텍스트와 현재 pending 델타를 병합한 결과를 TEXT_REPLACE_ALL로 양측에 전송한다.</p>
+     * DB 텍스트와 현재 pending 델타를 병합한 결과를 담은 TEXT_REPLACE_ALL 메시지를 반환한다.</p>
      */
     @Transactional(readOnly = true)
-    public void recoverTextReplaceAll(String shareId, Long qnAId) {
-        sendTextReplaceAll(shareId, qnAId);
+    public WebSocketMessageResponse recoverTextReplaceAll(Long qnAId) {
+        return buildTextReplaceAllResponse(qnAId);
     }
 
     /**
-     * saveAndMaybeFlush에서 push 이후 실제 오류(예: flushToDb 실패) 발생 시 텍스트 상태를 동기화한다.
+     * saveAndMaybeFlush에서 push 이후 실제 오류(예: flushToDb 실패) 발생 시 텍스트 상태를 동기화하기 위한 메시지를 반환한다.
      *
      * <p>push가 완료된 마지막 델타를 Redis에서 롤백한 뒤
-     * DB 텍스트와 나머지 pending 델타를 병합한 결과를 TEXT_REPLACE_ALL로 양측에 전송한다.</p>
+     * DB 텍스트와 나머지 pending 델타를 병합한 결과를 담은 TEXT_REPLACE_ALL 메시지를 반환한다.</p>
      */
     @Transactional(readOnly = true)
-    public void recoverTextReplaceAllWithRollback(String shareId, Long qnAId) {
+    public WebSocketMessageResponse recoverTextReplaceAllWithRollback(Long qnAId) {
         try {
             textDeltaRedisRepository.rollbackLastPush(qnAId);
         } catch (Exception e) {
             log.error("rollbackLastPush 실패: qnAId={}", qnAId, e);
         }
-        sendTextReplaceAll(shareId, qnAId);
+        return buildTextReplaceAllResponse(qnAId);
     }
 
-    private void sendTextReplaceAll(String shareId, Long qnAId) {
+    private WebSocketMessageResponse buildTextReplaceAllResponse(Long qnAId) {
         QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
 
         List<TextUpdateRequest> deltas;
@@ -174,11 +173,8 @@ public class TextDeltaService {
         qnA.editAnswer(newAnswer);
         long version = qnA.incrementVersionBy(deltas.size());
 
+        log.info("TEXT_REPLACE_ALL 메시지 생성: qnAId={}, version={}", qnAId, version);
         WebSocketTextReplaceAllMessage message = new WebSocketTextReplaceAllMessage(version, newAnswer);
-        WebSocketMessageResponse response = new WebSocketMessageResponse(
-                WebSocketMessageType.TEXT_REPLACE_ALL, qnAId, message);
-
-        log.info("TEXT_REPLACE_ALL 전송: shareId={}, qnAId={}, version={}", shareId, qnAId, version);
-        webSocketMessageSender.sendMessageToShare(shareId, response);
+        return new WebSocketMessageResponse(WebSocketMessageType.TEXT_REPLACE_ALL, qnAId, message);
     }
 }
