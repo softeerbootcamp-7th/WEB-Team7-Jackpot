@@ -1,6 +1,7 @@
 package com.jackpot.narratix.domain.controller;
 
 import com.jackpot.narratix.domain.controller.api.UploadApi;
+import com.jackpot.narratix.domain.controller.request.JobCreateRequest;
 import com.jackpot.narratix.domain.controller.request.PresignedUrlRequest;
 import com.jackpot.narratix.domain.controller.response.PresignedUrlResponse;
 import com.jackpot.narratix.domain.service.UploadService;
@@ -28,6 +29,16 @@ public class UploadController implements UploadApi {
 
     ) {
         return ResponseEntity.ok(uploadService.createPresignedUrl(userId, request));
+    }
+
+    @Override
+    @PostMapping("/jobs")
+    public ResponseEntity<Void> createJob(
+            @UserId String userId,
+            @RequestBody @Valid JobCreateRequest request
+    ) {
+        uploadService.createJob(userId, request);
+        return ResponseEntity.noContent().build();
     }
 
 }
