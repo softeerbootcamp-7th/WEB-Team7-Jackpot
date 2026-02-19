@@ -122,17 +122,37 @@ class OTTransformerTest {
     }
 
     @Test
-    @DisplayName("start가 델타 시작점과 동일하면 변화 없다 (경계: index <= dStart)")
-    void transformRange_StartEqualsDeltaStart_NoChange() {
-        // delta: [3, 6) → "XXXXX" | start=3 (dStart와 동일 → 첫 번째 분기)
-        // end=9 >= 6(dEnd) → 9 + (5-3) = 11
+    @DisplayName("start가 교체 델타 시작점과 동일하면 교체 텍스트 끝으로 밀려난다 (경계: isStartBound → strict <)")
+    void transformRange_StartEqualsDeltaStart_PushedToReplacedEnd() {
+        // "I am a student" → review [5, 14) = "a student"
+        // delta: [5, 6) → "the best" | start=5 = dStart
+        // s: 5 < 5 → false, 5 >= 6 → false → inside → 5 + 8 = 13
+        // e: 14 >= 6(dEnd) → 14 + (8-1) = 21
         List<TextUpdateRequest> deltas = List.of(
                 new TextUpdateRequest(0L, 3, 6, "XXXXX")
         );
 
         int[] result = otTransformer.transformRange(3, 9, deltas);
 
-        assertThat(result).containsExactly(3, 11);
+        // s: 3 < 3 → false, 3 >= 6 → false → inside → 3 + 5 = 8
+        // e: 9 >= 6(dEnd) → 9 + (5-3) = 11
+        assertThat(result).containsExactly(8, 11);
+    }
+
+    @Test
+    @DisplayName("순수 삽입이 start 경계에서 발생하면 start도 함께 밀려난다")
+    void transformRange_PureInsertionAtStart_StartShiftsForward() {
+        // "I am a student" → review [5, 14) = "a student"
+        // delta: [5, 5) → "really " (pure insertion, 7글자)
+        // s: 5 < 5 → false, 5 >= 5(dEnd) → true → 5 + 7 = 12
+        // e: 14 >= 5(dEnd) → 14 + 7 = 21
+        List<TextUpdateRequest> deltas = List.of(
+                new TextUpdateRequest(0L, 5, 5, "really ")
+        );
+
+        int[] result = otTransformer.transformRange(5, 14, deltas);
+
+        assertThat(result).containsExactly(12, 21);
     }
 
     @Test

@@ -34,8 +34,8 @@ public class OTTransformer {
             int replacedLength = delta.replacedText().length();
             int lengthChange = replacedLength - (dEnd - dStart);
 
-            s = transformIndex(s, dStart, dEnd, lengthChange, replacedLength);
-            e = transformIndex(e, dStart, dEnd, lengthChange, replacedLength);
+            s = transformIndex(s, dStart, dEnd, lengthChange, replacedLength, true);
+            e = transformIndex(e, dStart, dEnd, lengthChange, replacedLength, false);
         }
         if (s > e) {
             throw new BaseException(ReviewErrorCode.REVIEW_TEXT_MISMATCH);
@@ -46,8 +46,10 @@ public class OTTransformer {
     /**
      * 단일 인덱스를 하나의 델타 기준으로 변환한다.
      */
-    private static int transformIndex(int index, int dStart, int dEnd, int lengthChange, int replacedLength) {
-        if (index <= dStart) { // 델타 이전 위치 → 영향 없음
+    private static int transformIndex(int index, int dStart, int dEnd, int lengthChange, int replacedLength, boolean isStartBound) {
+        // start 경계: 삽입/교체가 정확히 start 위치에서 발생하면 start도 밀어서 원본 텍스트만 추적
+        // end 경계: 삽입이 정확히 end 위치에서 발생하면 end는 고정 (범위 확장 방지)
+        if (isStartBound ? index < dStart : index <= dStart) { // 델타 이전 위치 → 영향 없음
             return index;
         }
         if (index >= dEnd) { // 델타 이후 위치 → 길이 변화만큼 이동
