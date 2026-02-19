@@ -19,13 +19,13 @@ import {
   useDeleteReview,
 } from '@/shared/hooks/useReviewQueries';
 import type { CoverLetterType } from '@/shared/types/coverLetter';
-import type { ExtraShareQnA } from '@/shared/types/qna';
+import type { ExtraShareQnA, MinimalQnA } from '@/shared/types/qna';
 import type { Review } from '@/shared/types/review';
 import type { SelectionInfo } from '@/shared/types/selectionInfo';
 
 interface CoverLetterEditorProps {
   coverLetter: CoverLetterType;
-  currentQna: ExtraShareQnA | undefined;
+  currentQna: ExtraShareQnA | MinimalQnA | undefined;
   currentText: string;
   currentReviews: Review[];
   currentPageIndex: number;
@@ -166,7 +166,7 @@ const CoverLetterEditor = ({
               sendMessage={sendMessage}
               shareId={shareId}
               qnAId={currentQna.qnAId.toString()}
-              initialVersion={currentQna.version}
+              initialVersion={'version' in currentQna ? currentQna.version : 0}
             />
           </div>
 
