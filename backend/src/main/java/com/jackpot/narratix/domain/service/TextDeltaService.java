@@ -66,16 +66,16 @@ public class TextDeltaService {
             textDeltaRedisRepository.initVersionIfAbsent(qnAId, qnA.getVersion());
         }
 
-        long deltaVersion = textDeltaRedisRepository.pushAndIncrVersion(qnAId, request);
+        textDeltaRedisRepository.pushAndIncrVersion(qnAId, request);
         long pendingSize = textDeltaRedisRepository.pendingSize(qnAId);
-        log.debug("델타 저장: qnAId={}, deltaVersion={}, pendingSize={}", qnAId, deltaVersion, pendingSize);
+        log.debug("델타 저장: qnAId={}, deltaVersion={}, pendingSize={}", qnAId, request.version(), pendingSize);
 
         if (pendingSize >= FLUSH_THRESHOLD) {
             log.info("flush 임계값 도달: qnAId={}", qnAId);
             flushToDb(qnAId);
         }
 
-        return deltaVersion;
+        return request.version();
     }
 
     /**
