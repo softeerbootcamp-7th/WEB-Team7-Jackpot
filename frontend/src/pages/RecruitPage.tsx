@@ -13,11 +13,13 @@ import {
 import { useDeleteCoverLetter } from '@/features/recruit/hooks/queries/useCoverLetterMutation';
 import ContentHeader from '@/shared/components/ContentHeader';
 import EmptyCase from '@/shared/components/EmptyCase';
+import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
 import { getISODate } from '@/shared/utils/dates';
 
 const RecruitPage = () => {
   const { year, month, day } = useParams();
   const { mutate: deleteCoverLetter } = useDeleteCoverLetter();
+  const { showToast } = useToastMessageContext();
 
   // 상태 관리
   // 폼이 열려있는지 여부
@@ -54,13 +56,15 @@ const RecruitPage = () => {
   }, []);
 
   // 삭제 버튼 클릭
+  // [박소민] TODO: 삭제 모달 구현 (window.confirm은 임시)
   const handleDeleteClick = useCallback(
     (id: number) => {
       if (window.confirm('정말 삭제하시겠습니까?')) {
         deleteCoverLetter({ coverLetterId: id });
+        showToast('공고가 삭제되었습니다.', true);
       }
     },
-    [deleteCoverLetter],
+    [deleteCoverLetter, showToast],
   );
 
   // 폼 닫기
