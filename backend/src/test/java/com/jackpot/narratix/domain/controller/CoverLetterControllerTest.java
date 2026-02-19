@@ -366,12 +366,20 @@ class CoverLetterControllerTest {
 
     private static Stream<Arguments> provideInvalidEditCoverLetterRequests() {
         LocalDate validDate = LocalDate.of(2024, 12, 31);
+        CoverLetterAndQnAEditRequest.CoverLetterEditRequest validCoverLetter =
+                new CoverLetterAndQnAEditRequest.CoverLetterEditRequest(1L, "현대자동차", 2024, ApplyHalfType.FIRST_HALF, "백엔드 개발자", validDate);
         return Stream.of(
                 Arguments.of(new CoverLetterAndQnAEditRequest(new CoverLetterAndQnAEditRequest.CoverLetterEditRequest(null, "현대자동차", 2024, ApplyHalfType.FIRST_HALF, "백엔드 개발자", validDate), List.of())),
                 Arguments.of(new CoverLetterAndQnAEditRequest(new CoverLetterAndQnAEditRequest.CoverLetterEditRequest(1L, null, 2024, ApplyHalfType.FIRST_HALF, "백엔드 개발자", validDate), List.of())),
                 Arguments.of(new CoverLetterAndQnAEditRequest(new CoverLetterAndQnAEditRequest.CoverLetterEditRequest(1L, "현대자동차", null, ApplyHalfType.FIRST_HALF, "백엔드 개발자", validDate), List.of())),
                 Arguments.of(new CoverLetterAndQnAEditRequest(new CoverLetterAndQnAEditRequest.CoverLetterEditRequest(1L, "현대자동차", 2024, null, "백엔드 개발자", validDate), List.of())),
-                Arguments.of(new CoverLetterAndQnAEditRequest(new CoverLetterAndQnAEditRequest.CoverLetterEditRequest(1L, "현대자동차", 2024, ApplyHalfType.FIRST_HALF, null, validDate), List.of()))
+                Arguments.of(new CoverLetterAndQnAEditRequest(new CoverLetterAndQnAEditRequest.CoverLetterEditRequest(1L, "현대자동차", 2024, ApplyHalfType.FIRST_HALF, null, validDate), List.of())),
+                // QnA question null
+                Arguments.of(new CoverLetterAndQnAEditRequest(validCoverLetter,
+                        List.of(new CoverLetterAndQnAEditRequest.QnAEditRequest(10L, null, QuestionCategoryType.MOTIVATION)))),
+                // QnA category null
+                Arguments.of(new CoverLetterAndQnAEditRequest(validCoverLetter,
+                        List.of(new CoverLetterAndQnAEditRequest.QnAEditRequest(10L, "질문", null))))
         );
     }
 
@@ -668,4 +676,62 @@ class CoverLetterControllerTest {
                 )))
         );
     }
+
+    @Test
+    @DisplayName("자기소개서 수정 성공 - 204 No Content 반환")
+    void editCoverLetter_Success() throws Exception {
+        // given
+        CoverLetterAndQnAEditRequest request = new CoverLetterAndQnAEditRequest(
+                new CoverLetterAndQnAEditRequest.CoverLetterEditRequest(
+                        1L, "수정된 기업명", 2025, ApplyHalfType.SECOND_HALF, "프론트엔드 개발자", LocalDate.of(2025, 6, 30)
+                ),
+                List.of(new CoverLetterAndQnAEditRequest.QnAEditRequest(10L, "지원 동기를 작성해주세요.", QuestionCategoryType.MOTIVATION))
+        );
+
+        // when & then
+        mockMvc.perform(put("/api/v1/coverletter")
+                        .header(AuthConstants.AUTHORIZATION, TEST_TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("자기소개서 수정 - qnAId null인 새 문항 포함 시 204 반환")
+    void editCoverLetter_새QnA추가_Success() throws Exception {
+        // given
+        CoverLetterAndQnAEditRequest request = new CoverLetterAndQnAEditRequest(
+                new CoverLetterAndQnAEditRequest.CoverLetterEditRequest(
+                        1L, "기업명", 2024, ApplyHalfType.FIRST_HALF, "백엔드 개발자", null
+                ),
+                List.of(new CoverLetterAndQnAEditRequest.QnAEditRequest(null, "새 질문입니다.", QuestionCategoryType.VALUES))
+        );
+
+        // when & then
+        mockMvc.perform(put("/api/v1/coverletter")
+                        .header(AuthConstants.AUTHORIZATION, TEST_TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("자기소개서 수정 - questions 빈 배열이면 기존 QnA 전체 삭제 - 204 반환")
+    void editCoverLetter_빈questions배열_Success() throws Exception {
+        // given
+        CoverLetterAndQnAEditRequest request = new CoverLetterAndQnAEditRequest(
+                new CoverLetterAndQnAEditRequest.CoverLetterEditRequest(
+                        1L, "기업명", 2024, ApplyHalfType.FIRST_HALF, "백엔드 개발자", null
+                ),
+                List.of()
+        );
+
+        // when & then
+        mockMvc.perform(put("/api/v1/coverletter")
+                        .header(AuthConstants.AUTHORIZATION, TEST_TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNoContent());
+    }
+
 }
