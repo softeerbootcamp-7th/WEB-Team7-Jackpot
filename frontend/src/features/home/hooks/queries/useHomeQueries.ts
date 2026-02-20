@@ -5,6 +5,11 @@ import {
   fetchHomeCount,
   fetchUpcomingDeadlines,
 } from '@/features/home/api/homeApi';
+import {
+  MAX_COVER_LETTER_SIZE_PER_DEADLINE,
+  MAX_DEADLINE_SIZE,
+} from '@/features/home/constants';
+import type { CalendarDatesResponse } from '@/features/home/types/home';
 import { searchCoverLetters } from '@/shared/api/coverLetterApi';
 import { getTodayISODate } from '@/shared/utils/dates';
 
@@ -20,18 +25,23 @@ export const useHomeCount = (date?: string) => {
 };
 
 // 캘린더 날짜 조회
-export const useCalendarDates = (startDate: string, endDate: string) => {
-  return useSuspenseQuery({
+export const useCalendarDates = (
+  startDate: string,
+  endDate: string,
+): CalendarDatesResponse => {
+  const { data } = useSuspenseQuery({
     queryKey: ['home', 'calendar', { startDate, endDate }],
     queryFn: () => fetchCalendarDates({ startDate, endDate }),
     staleTime: 5 * 60 * 1000,
   });
+
+  return data as CalendarDatesResponse;
 };
 
 // 다가오는 일정
 export const useUpcomingDeadlines = (
-  maxDeadLineSize = 3,
-  maxCoverLetterSizePerDeadLine = 2,
+  maxDeadLineSize = MAX_DEADLINE_SIZE,
+  maxCoverLetterSizePerDeadLine = MAX_COVER_LETTER_SIZE_PER_DEADLINE,
   date?: string,
 ) => {
   const targetDate = date || getTodayISODate();
