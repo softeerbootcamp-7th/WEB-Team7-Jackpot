@@ -14,6 +14,7 @@ import {
   restoreCaret,
 } from '@/features/coverLetter/libs/caret';
 import type { TextChangeResult } from '@/features/coverLetter/types/coverLetter';
+import { mapCleanRangeToTaggedRange } from '@/shared/hooks/useReviewState/helpers';
 import { useTextSelection } from '@/shared/hooks/useTextSelection';
 import type { Review } from '@/shared/types/review';
 import type { SelectionInfo } from '@/shared/types/selectionInfo';
@@ -71,7 +72,6 @@ const CoverLetterContent = ({
   const isComposingRef = useRef(false);
   const ignoreNextInputAfterCompositionRef = useRef(false);
   const composingLastSentTextRef = useRef<string | null>(null);
-  const composingDidSendRef = useRef(false);
   const DUPLICATE_PATCH_WINDOW_MS = 150;
   const lastSentPatchRef = useRef<{
     oldText: string;
@@ -108,7 +108,6 @@ const CoverLetterContent = ({
     // 포커스/커서 복원은 replaceAllSignal 경로에서만 처리한다.
     const wasComposing = isComposingRef.current;
     isComposingRef.current = false;
-    composingDidSendRef.current = false;
     if (composingFlushTimerRef.current) {
       clearTimeout(composingFlushTimerRef.current);
       composingFlushTimerRef.current = null;
@@ -209,11 +208,15 @@ const CoverLetterContent = ({
       }
 
       const patch = buildTextPatch(oldText, newText);
+      const taggedRange = mapCleanRangeToTaggedRange(oldText, reviews, {
+        start: patch.startIdx,
+        end: patch.endIdx,
+      });
       const nextVersion = onReserveNextVersion();
       sendMessage(`/pub/share/${shareId}/qna/${qnAId}/text-update`, {
         version: nextVersion,
-        startIdx: patch.startIdx,
-        endIdx: patch.endIdx,
+        startIdx: taggedRange.startIdx,
+        endIdx: taggedRange.endIdx,
         replacedText: patch.replacedText,
       } as WriterMessageType);
       lastSentPatchRef.current = { oldText, newText, at: now };
@@ -225,6 +228,7 @@ const CoverLetterContent = ({
       onReserveNextVersion,
       onTextUpdateSent,
       qnAId,
+      reviews,
       sendMessage,
       shareId,
     ],
@@ -316,7 +320,6 @@ const CoverLetterContent = ({
     const sent = sendTextPatch(baseText, domText);
     if (!sent) return false;
     composingLastSentTextRef.current = domText;
-    composingDidSendRef.current = true;
     return true;
   }, [sendTextPatch]);
 
@@ -380,9 +383,9 @@ const CoverLetterContent = ({
       clearComposingFlushTimer();
       composingFlushTimerRef.current = setTimeout(() => {
         flushComposingSocketOnly();
-        // 조합 중에는 React 상태를 건드리지 않고 ref만 동기화해
-        // contentEditable 재렌더로 인한 중복 입력을 방지한다.
-        syncDOMToState();
+        // 조합 중에도 로컬 상태를 주기적으로 동기화해,
+        // 외부 리렌더 타이밍에 조합 문자가 유실되지 않게 한다.
+        flushDOMText({ skipSocket: true });
       }, 250);
       return;
     }
@@ -392,7 +395,6 @@ const CoverLetterContent = ({
     ignoreNextInputAfterCompositionRef.current = false;
     clearComposingFlushTimer();
     composingLastSentTextRef.current = latestTextRef.current;
-    composingDidSendRef.current = false;
     isComposingRef.current = true;
   };
   const handleCompositionEnd = () => {
@@ -402,13 +404,13 @@ const CoverLetterContent = ({
     onComposingLengthChangeRef.current?.(null);
     flushDOMText({
       skipSocket: true,
-      skipVersionIncrement: sentBySocket || composingDidSendRef.current,
+      skipVersionIncrement: sentBySocket,
     });
+
     // compositionEnd 직후 브라우저가 추가 input 이벤트를 올릴 수 있어
     // 동일 텍스트 중복 처리/중복 전송을 방지한다.
     ignoreNextInputAfterCompositionRef.current = true;
     composingLastSentTextRef.current = null;
-    composingDidSendRef.current = false;
   };
 
   useEffect(
@@ -431,7 +433,6 @@ const CoverLetterContent = ({
 
     isComposingRef.current = false;
     composingLastSentTextRef.current = null;
-    composingDidSendRef.current = false;
     clearComposingFlushTimer();
     onComposingLengthChangeRef.current?.(null);
     latestTextRef.current = text;

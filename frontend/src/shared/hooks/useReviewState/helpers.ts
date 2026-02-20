@@ -300,14 +300,48 @@ export const updateSelectionForTextChange = (
     };
   }
 
-  // 변경 영역에 selection이 완전히 포함 → 취소
-  if (start >= changeStart && end <= changeEnd) {
-    return null;
+  // 변경 영역이 selection을 완전히 포함 → 취소
+  if (changeStart <= start && changeEnd >= end) return null;
+
+  // 이하: 부분 겹침 처리
+  // spec 2.2: 원문이 모두 삭제된 경우에만 드래그가 풀린다.
+
+  // Case A: change가 selection 내부에서만 발생 (삽입·수정이 선택 범위 안에서만 일어남)
+  // start < changeStart && end > changeEnd
+  if (start < changeStart && end > changeEnd) {
+    const newEnd = end + lengthDiff;
+    if (newEnd <= start) return null;
+    return {
+      ...selection,
+      range: { start, end: newEnd },
+      selectedText: newText.slice(start, newEnd),
+      lineEndIndex: selection.lineEndIndex + lengthDiff,
+    };
   }
 
-  // 부분 겹침 → 안전하게 취소
-  // TODO: OT 시스템 도입 후 부분 겹침 시에도 유효한 범위를 유지하는 로직 추가 가능
-  return null;
+  // Case B: change가 selection 뒤쪽 경계와 겹침 (start < changeStart < end ≤ changeEnd)
+  // → selection을 changeStart까지 축소
+  if (start < changeStart) {
+    const newEnd = changeStart;
+    return {
+      ...selection,
+      range: { start, end: newEnd },
+      selectedText: newText.slice(start, newEnd),
+      lineEndIndex: Math.max(newEnd, selection.lineEndIndex + lengthDiff),
+    };
+  }
+
+  // Case C: change가 selection 앞쪽 경계와 겹침 (changeStart ≤ start < changeEnd < end)
+  // → selection 시작을 change 끝으로 이동
+  const newStart = changeStart + newLength;
+  const newEnd = end + lengthDiff;
+  if (newEnd <= newStart) return null;
+  return {
+    ...selection,
+    range: { start: newStart, end: newEnd },
+    selectedText: newText.slice(newStart, newEnd),
+    lineEndIndex: Math.max(newStart, selection.lineEndIndex + lengthDiff),
+  };
 };
 
 // 편집된 텍스트와 리뷰 범위를 받아 태그 포함 원본으로 재구성
@@ -349,4 +383,61 @@ export const reconstructTaggedText = (
 
   result += cleanedText.slice(lastIndex);
   return result;
+};
+
+const CLOSE_TAG = '⟦/r⟧';
+
+const toTaggedIndex = (taggedText: string, cleanIndex: number): number => {
+  const boundedCleanIndex = Math.max(0, cleanIndex);
+  let rawIndex = 0;
+  let cleanCount = 0;
+
+  while (rawIndex < taggedText.length && cleanCount < boundedCleanIndex) {
+    if (taggedText.startsWith('⟦r:', rawIndex)) {
+      const closeBracketIndex = taggedText.indexOf('⟧', rawIndex);
+      rawIndex = closeBracketIndex === -1 ? taggedText.length : closeBracketIndex + 1;
+      continue;
+    }
+    if (taggedText.startsWith(CLOSE_TAG, rawIndex)) {
+      rawIndex += CLOSE_TAG.length;
+      continue;
+    }
+    rawIndex += 1;
+    cleanCount += 1;
+  }
+
+  return rawIndex;
+};
+
+export const mapCleanRangeToTaggedRange = (
+  cleanedText: string,
+  reviews: Review[],
+  range: { start: number; end: number },
+) => {
+  const taggedText = reconstructTaggedText(cleanedText, reviews);
+  const start = Math.max(0, range.start);
+  const end = Math.min(cleanedText.length, Math.max(start, range.end));
+
+  let startIdx = toTaggedIndex(taggedText, start);
+  let endIdx = toTaggedIndex(taggedText, end);
+
+  // 순수 삽입(start === end)이고 cursor가 ⟦/r⟧ 바로 앞에 있으면 close tag 이후로 이동.
+  // updateReviewRanges의 `end <= changeStart` 처리와 일관성을 유지하여
+  // "리뷰 바로 뒤 삽입"이 서버에서도 리뷰 외부(태그 뒤)에 적용되도록 보장한다.
+  if (start === end) {
+    while (taggedText.startsWith(CLOSE_TAG, startIdx)) {
+      startIdx += CLOSE_TAG.length;
+    }
+    endIdx = startIdx;
+  }
+
+  const mapped = { startIdx, endIdx };
+  console.log('[mapCleanRangeToTaggedRange]', {
+    cleanRange: { start, end },
+    mappedRange: mapped,
+    cleanedTextLength: cleanedText.length,
+    taggedTextLength: taggedText.length,
+    taggedTextPreview: taggedText.slice(Math.max(0, mapped.startIdx - 20), mapped.endIdx + 20),
+  });
+  return mapped;
 };

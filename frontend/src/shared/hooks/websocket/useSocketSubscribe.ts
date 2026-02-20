@@ -5,7 +5,7 @@ import type { Client, IMessage, StompSubscription } from '@stomp/stompjs';
 interface UseSocketSubscribeProps {
   shareId: string;
   qnaId?: string;
-  onMessage?: (message: IMessage) => void;
+  onMessage?: (message: unknown) => void;
   isConnected: boolean;
   clientRef: React.RefObject<Client | null>;
 }

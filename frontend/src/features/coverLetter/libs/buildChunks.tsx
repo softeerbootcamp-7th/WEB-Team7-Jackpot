@@ -40,6 +40,7 @@ export const buildChunks = (
     const matchingReview = reviews.find(
       (review) =>
         (review.viewStatus === 'PENDING' || review.viewStatus === 'ACCEPTED') &&
+        review.range.start >= 0 &&
         review.range.start <= chunkPositions[i] &&
         review.range.end >= chunkPositions[i] + chunk.text.length,
     );

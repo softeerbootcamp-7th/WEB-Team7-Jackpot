@@ -1,4 +1,4 @@
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 
 import CoverLetterSection from '@/features/review/components/coverLetter/CoverLetterSection';
 import ReviewListSection from '@/features/review/components/review/ReviewListSection';
@@ -13,10 +13,14 @@ import { useSocketMessage } from '@/shared/hooks/websocket/useSocketMessage';
 import { useSocketSubscribe } from '@/shared/hooks/websocket/useSocketSubscribe';
 import { useStompClient } from '@/shared/hooks/websocket/useStompClient';
 import type { RecentCoverLetterType } from '@/shared/types/coverLetter';
-import { isWebSocketResponse } from '@/shared/types/websocket';
+import {
+  isShareDeactivatedMessage,
+  isWebSocketResponse,
+} from '@/shared/types/websocket';
 
 const ReviewLayout = () => {
   const { sharedId } = useParams();
+  const navigate = useNavigate();
 
   if (!sharedId) {
     throw new Error('유효하지 않은 공유 링크입니다.');
@@ -61,6 +65,11 @@ const ReviewLayout = () => {
     qnaId: currentQnAId?.toString(),
     clientRef,
     onMessage: (message: unknown) => {
+      if (isShareDeactivatedMessage(message)) {
+        alert('작성자가 첨삭 url을 비활성화시켰어요!');
+        navigate('/');
+        return;
+      }
       if (!isWebSocketResponse(message)) return;
       handleMessage(message);
     },

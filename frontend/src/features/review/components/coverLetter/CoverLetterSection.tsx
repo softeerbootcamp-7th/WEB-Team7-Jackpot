@@ -8,6 +8,7 @@ import {
   useCreateReview,
   useUpdateReview,
 } from '@/shared/hooks/useReviewQueries';
+import { mapCleanRangeToTaggedRange } from '@/shared/hooks/useReviewState/helpers';
 import type { Review } from '@/shared/types/review';
 import type { SelectionInfo } from '@/shared/types/selectionInfo';
 
@@ -77,18 +78,30 @@ const CoverLetterSection = ({
       const nextVersion = onReserveNextVersion
         ? onReserveNextVersion()
         : currentVersion;
+      const taggedRange = mapCleanRangeToTaggedRange(
+        text,
+        reviews,
+        selection.range,
+      );
       createReview(
         {
           version: nextVersion - 1,
-          startIdx: selection.range.start,
-          endIdx: selection.range.end,
+          startIdx: taggedRange.startIdx,
+          endIdx: taggedRange.endIdx,
           originText: selection.selectedText,
           suggest,
           comment,
         },
         {
-          onError: () =>
-            showToast('리뷰 생성에 실패했습니다. 다시 시도해주세요.'),
+          onError: (error: unknown) => {
+            const isConflict =
+              error instanceof Error && error.message.includes('409');
+            showToast(
+              isConflict
+                ? '이미 수정된 원문이에요. 다시 선택해 주세요.'
+                : '리뷰 생성에 실패했습니다. 다시 시도해주세요.',
+            );
+          },
           onSettled: resetSelection,
         },
       );

@@ -7,6 +7,7 @@ import {
   buildReviewsFromApi,
   calculateTextChange,
   parseTaggedText,
+  reconstructTaggedText,
   updateReviewRanges,
   updateSelectionForTextChange,
 } from '@/shared/hooks/useReviewState/helpers';
@@ -245,64 +246,77 @@ export const useReviewState = ({
 
   const handleTextUpdateEvent = useCallback(
     (targetQnaId: number, payload: TextUpdateResponseType['payload']) => {
-      const oldText = getCurrentTextByQnaId(targetQnaId);
+      console.log('[useReviewState:event] TEXT_UPDATE', {
+        targetQnaId,
+        payload,
+      });
       const { startIdx, endIdx, replacedText, version } = payload;
       const currentVersionForQna = getCurrentVersionByQnaId(targetQnaId);
       if (version <= currentVersionForQna) return;
-      const oldLength = Math.max(0, endIdx - startIdx);
 
-      const newText =
-        oldText.slice(0, startIdx) + replacedText + oldText.slice(endIdx);
+      // 서버 인덱스(startIdx, endIdx)는 태그 포함 본문 기준이므로
+      // 현재 clean text에서 tagged text를 복원하고 delta를 적용한 뒤 다시 파싱한다.
+      const currentCleanText =
+        editedAnswersRef.current[targetQnaId] ??
+        originalTextByQnaIdRef.current[targetQnaId] ??
+        '';
+      const reviewsForTagging =
+        targetQnaId === qnaId ? currentReviewsRef.current : [];
 
-      const newLength = replacedText.length;
+      const taggedText = reconstructTaggedText(currentCleanText, reviewsForTagging);
+      const newTaggedText =
+        taggedText.slice(0, startIdx) + replacedText + taggedText.slice(endIdx);
+      const { cleaned: newCleanText, taggedRanges } = parseTaggedText(newTaggedText);
+
       // 다음 소켓 이벤트가 render 이전에 와도 최신 기준으로 계산되도록 ref를 즉시 동기화한다.
       editedAnswersRef.current = {
         ...editedAnswersRef.current,
-        [targetQnaId]: newText,
+        [targetQnaId]: newCleanText,
       };
       versionByQnaIdRef.current = {
         ...versionByQnaIdRef.current,
         [targetQnaId]: version,
       };
+      lastTaggedRangesRef.current[targetQnaId] = taggedRanges;
 
-      setEditedAnswers((prev) => ({ ...prev, [targetQnaId]: newText }));
+      setEditedAnswers((prev) => ({ ...prev, [targetQnaId]: newCleanText }));
+      setVersionByQnaId((prev) => ({ ...prev, [targetQnaId]: version }));
+
       setReviewsByQnaId((prevReviews) => {
         const baseReviews = getLatestReviews(prevReviews, targetQnaId);
-        const nextReviews = updateReviewRanges(
-          baseReviews,
-          startIdx,
-          oldLength,
-          newLength,
-          newText,
-        );
-
+        const sourceReviews = getApiReviewSource(targetQnaId, baseReviews);
         return {
           ...prevReviews,
-          [targetQnaId]: nextReviews,
+          [targetQnaId]: buildReviewsFromApi(newCleanText, taggedRanges, sourceReviews),
         };
       });
 
       if (targetQnaId === qnaId) {
+        const change = calculateTextChange(currentCleanText, newCleanText);
         setSelection((prev) => {
           if (!prev) return null;
           return updateSelectionForTextChange(
             prev,
-            startIdx,
-            oldLength,
-            newLength,
-            newText,
+            change.changeStart,
+            change.oldLength,
+            change.newLength,
+            newCleanText,
           );
         });
       }
-
-      setVersionByQnaId((prev) => ({ ...prev, [targetQnaId]: version }));
     },
-    [getCurrentTextByQnaId, getCurrentVersionByQnaId, getLatestReviews, qnaId],
+    [getCurrentVersionByQnaId, getLatestReviews, getApiReviewSource, qnaId],
   );
 
   const handleTextReplaceAllEvent = useCallback(
     (targetQnaId: number, payload: TextReplaceAllResponseType['payload']) => {
+      console.log('[useReviewState:event] TEXT_REPLACE_ALL', {
+        targetQnaId,
+        payload,
+      });
       const { version, content } = payload;
+      // TEXT_REPLACE_ALL은 서버의 전체 상태 스냅샷이므로 버전 비교 없이 항상 적용한다.
+      // Writer가 투기적으로 올린 로컬 버전이 서버 버전보다 높더라도 덮어쓴다.
       const { cleaned, taggedRanges } = parseTaggedText(content);
       const oldText = getCurrentTextByQnaId(targetQnaId);
       lastTaggedRangesRef.current[targetQnaId] = taggedRanges;
@@ -360,6 +374,10 @@ export const useReviewState = ({
 
   const handleReviewCreatedEvent = useCallback(
     (targetQnaId: number, payload: ReviewCreatedResponseType['payload']) => {
+      console.log('[useReviewState:event] REVIEW_CREATED', {
+        targetQnaId,
+        payload,
+      });
       const { reviewId, originText, suggest, comment, sender, createdAt } =
         payload;
       const taggedRange = lastTaggedRangesRef.current[targetQnaId]?.find(
@@ -396,6 +414,10 @@ export const useReviewState = ({
 
   const handleReviewDeletedEvent = useCallback(
     (targetQnaId: number, payload: ReviewDeletedResponseType['payload']) => {
+      console.log('[useReviewState:event] REVIEW_DELETED', {
+        targetQnaId,
+        payload,
+      });
       setReviewsByQnaId((prevReviews) => ({
         ...prevReviews,
         [targetQnaId]: getLatestReviews(prevReviews, targetQnaId).filter(
@@ -412,6 +434,10 @@ export const useReviewState = ({
 
   const handleReviewUpdatedEvent = useCallback(
     (targetQnaId: number, payload: ReviewUpdatedResponseType['payload']) => {
+      console.log('[useReviewState:event] REVIEW_UPDATED', {
+        targetQnaId,
+        payload,
+      });
       const currentDocumentText = getCurrentTextByQnaId(targetQnaId);
 
       setReviewsByQnaId((prevReviews) => {

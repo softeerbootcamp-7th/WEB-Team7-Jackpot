@@ -66,12 +66,23 @@ export interface ReviewCreatedResponseType {
   };
 }
 
+export interface ShareDeactivatedResponseType {
+  type: 'SHARE_DEACTIVATED';
+}
+
 export type WebSocketResponse =
   | TextUpdateResponseType
   | ReviewUpdatedResponseType
   | ReviewDeletedResponseType
   | ReviewCreatedResponseType
   | TextReplaceAllResponseType;
+
+export const isShareDeactivatedMessage = (
+  message: unknown,
+): message is ShareDeactivatedResponseType =>
+  typeof message === 'object' &&
+  message !== null &&
+  (message as Record<string, unknown>).type === 'SHARE_DEACTIVATED';
 
 const WEBSOCKET_TYPES = new Set<WebSocketResponse['type']>([
   'TEXT_UPDATE',
