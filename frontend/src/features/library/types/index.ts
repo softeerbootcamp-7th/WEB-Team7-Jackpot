@@ -1,3 +1,5 @@
+import type { Category } from '@/shared/types/coverLetter';
+
 export type LibraryView = 'COMPANY' | 'QUESTION';
 
 export interface LibraryResponse {
@@ -22,7 +24,7 @@ export interface CoverLetterListResponse {
   hasNext: boolean;
 }
 
-// [박소민] TODO: 변경된 API에 사용하기에 applySeasn optional로 변경, (questionCount 추가)
+// [박소민] TODO: 변경된 API에 사용하기에 applySeason optional로 변경, (questionCount 추가)
 export interface QuestionItem {
   id: number;
   companyName: string;
@@ -34,7 +36,7 @@ export interface QuestionItem {
 }
 
 export interface QuestionListResponse {
-  questionCategory: string;
+  questionCategoryType: Category | null; // 카테고리 선택 안 한 경우 null
   qnAs: QuestionItem[];
   hasNext: boolean;
 }
@@ -56,6 +58,17 @@ export interface QnASearchResponse {
   libraryCount: number;
   libraries: string[];
   qnACount: number;
-  qnAs: QuestionItem[];
+  qnAs: QnAsSearchResponse[];
   hasNext: boolean;
+}
+
+export interface QnAsSearchResponse {
+  qnAId: number;
+  companyName: string;
+  jobPosition: string;
+  applySeason: string | null;
+  question: string;
+  answer: string | null;
+  coverLetterId: number;
+  questionCategoryType: Category | null;
 }

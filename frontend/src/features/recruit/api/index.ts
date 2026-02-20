@@ -3,7 +3,6 @@ import { z } from 'zod';
 import type {
   CalendarRequest,
   CalendarResponse,
-  QnAListResponse,
 } from '@/features/recruit/types';
 import { apiClient } from '@/shared/api/apiClient';
 import { CATEGORY_VALUES } from '@/shared/constants/createCoverLetter';
@@ -62,7 +61,10 @@ export const fetchCalendarDates = async (
 
 export const fetchQnAList = async (
   qnAIds: number[],
-): Promise<QnAListResponse> => {
+): Promise<z.infer<typeof QnAListResponseSchema>> => {
+  if (qnAIds.length === 0) {
+    return { qnAs: [] };
+  }
   const queryParams = new URLSearchParams();
   qnAIds.forEach((id) => queryParams.append('qnAIds', String(id)));
 

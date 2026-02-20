@@ -41,7 +41,7 @@ const DocumentList = <T,>({
   }
 
   // 2. 에러 발생 시
-  if (isError) {
+  if (isError && items.length === 0) {
     return (
       <div className='flex h-40 w-full items-center justify-center text-red-500'>
         데이터를 불러오는 중 문제가 발생했습니다.

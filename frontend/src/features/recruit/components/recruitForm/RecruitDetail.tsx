@@ -3,10 +3,8 @@ import { useState } from 'react';
 import Deadline from '@/shared/components/Deadline';
 import LabeledSelectInput from '@/shared/components/LabeledSelectInput';
 import RecruitPeriodSelectInput from '@/shared/components/RecruitPeriodSelectInput';
-import type {
-  ApiApplyHalf,
-  CreateCoverLetterRequest,
-} from '@/shared/types/coverLetter';
+import { DEFAULT_APPLY_HALF } from '@/shared/constants/createCoverLetter';
+import type { CreateCoverLetterRequest } from '@/shared/types/coverLetter';
 import type { DropdownStateType } from '@/shared/types/dropdown';
 import { generateYearList } from '@/shared/utils/dates';
 
@@ -66,9 +64,9 @@ const RecruitDetail = ({ formData, onUpdate }: Props) => {
       <RecruitPeriodSelectInput
         label='채용 시기'
         yearValue={formData.applyYear ?? new Date().getFullYear()}
-        seasonValue={formData.applyHalf ?? 'FIRST_HALF'}
+        seasonValue={formData.applyHalf ?? DEFAULT_APPLY_HALF}
         onChangeYear={(val) => onUpdate('applyYear', val)}
-        onChangeSeason={(val: ApiApplyHalf) => onUpdate('applyHalf', val)}
+        onChangeSeason={(val) => onUpdate('applyHalf', val)}
         constantData={yearList}
         handleDropdown={(isOpen) => toggleDropdown('yearDropdown', isOpen)}
         isOpen={isDropdownOpen.yearDropdown}

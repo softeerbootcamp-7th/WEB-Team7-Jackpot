@@ -1,7 +1,4 @@
-import type {
-  CoverLetterBase,
-  CoverLetterQuestion,
-} from '@/shared/types/coverLetter';
+import type { Category, CoverLetterBase } from '@/shared/types/coverLetter';
 
 export interface CalendarCoverLetterItem extends CoverLetterBase {
   questionCount: number;
@@ -20,9 +17,10 @@ export interface CalendarRequest {
   isShared?: boolean;
 }
 
-export type CoverLetterInfo = Omit<CalendarCoverLetterItem, 'questionCount'>;
-
 export interface QnAListResponse {
-  qnAs: CoverLetterQuestion[];
+  qnAs: {
+    qnAId: number;
+    question: string;
+    category: Category;
+  }[];
 }
-

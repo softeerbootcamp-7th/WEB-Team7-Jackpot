@@ -1,5 +1,3 @@
-import { useEffect } from 'react';
-
 import { useNavigate } from 'react-router';
 
 import NewCoverLetterView from '@/features/coverLetter/components/newCoverLetter/NewCoverLetterView';
@@ -14,11 +12,7 @@ const NewCoverLetterContainer = () => {
   const { mutateAsync: create } = useCreateCoverLetter(); // [박소민] 자기소개서 등록 후 해당 페이지로 이동해야 하므로 비동기로 처리
   const { showToast } = useToastMessageContext();
 
-  const { formData, handleChange, setFormData } = useRecruitForm(DEFAULT_DATA);
-
-  useEffect(() => {
-    setFormData(DEFAULT_DATA);
-  }, [setFormData]);
+  const { formData, handleChange } = useRecruitForm(DEFAULT_DATA);
 
   // [박소민] TODO: 등록 완료 되었지만 자기소개서 랜딩 페이지에 반영안되는 버그 해결
 

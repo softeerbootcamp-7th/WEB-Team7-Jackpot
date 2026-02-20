@@ -8,6 +8,7 @@ import { fetchCalendarDates, fetchQnAList } from '@/features/recruit/api';
 import type { CalendarRequest } from '@/features/recruit/types';
 import { getCoverLetter } from '@/shared/api/coverLetterApi';
 import { getQnAIdList } from '@/shared/api/qnaApi';
+import { CATEGORY_VALUES } from '@/shared/constants/createCoverLetter';
 import { coverLetterQueryKeys } from '@/shared/hooks/queries/coverLetterQueryKeys';
 import type { ApiApplyHalf, Category } from '@/shared/types/coverLetter';
 
@@ -71,7 +72,7 @@ export const useUpdateRecruit = (coverLetterId: number) => {
         questions = qnaRes.qnAs
           .filter((q) => {
             // ID가 없어도(신규), 질문 내용이나 카테고리가 있으면 유효한 데이터로 간주
-            return q.question !== '' || q.category !== '';
+            return q.question !== '' || CATEGORY_VALUES.includes(q.category); // ''는 카테고리 선택 안 한 경우의 초기값이므로 유효하지 않음
           })
           .map((q) => ({
             qnAId: q.qnAId ?? null, // undefined인 경우 null로 명시적 변환

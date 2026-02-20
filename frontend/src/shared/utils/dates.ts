@@ -4,18 +4,16 @@
 const cloneDate = (date: Date): Date => new Date(date.getTime());
 
 /**
- * 날짜를 YYYY-MM-DD 형태의 문자열로 변환 (Time 제외, 순수 날짜 비교용)
+ * 날짜를 YYYY-MM-DD 형태의 문자열로 변환 (UTC 기준)
+ * ISO datetime 문자열("2025-01-25T09:41:00Z")을 받아도 UTC 날짜로 정확히 추출
  */
 export const getISODate = (date: Date | string | null | undefined): string => {
   if (!date) return '';
   const d = typeof date === 'string' ? new Date(date) : date;
   if (isNaN(d.getTime())) return '';
 
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-
-  return `${year}-${month}-${day}`;
+  // UTC 기준으로 날짜 추출
+  return d.toISOString().split('T')[0];
 };
 
 /**

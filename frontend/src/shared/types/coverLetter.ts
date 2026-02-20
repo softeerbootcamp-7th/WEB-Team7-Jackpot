@@ -40,7 +40,7 @@ export interface CreateCoverLetterResponse {
 }
 
 export interface UpdateCoverLetter {
-  coverLetter: CoverLetterType;
+  coverLetter: Omit<CoverLetterType, 'questions'>;
   questions: CoverLetterQuestion[];
 }
 

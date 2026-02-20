@@ -1,10 +1,15 @@
-import type { CreateCoverLetterRequest } from '@/shared/types/coverLetter';
+import type {
+  ApiApplyHalf,
+  CreateCoverLetterRequest,
+} from '@/shared/types/coverLetter';
+
+export const DEFAULT_APPLY_HALF: ApiApplyHalf = 'FIRST_HALF';
 
 export const DEFAULT_DATA: CreateCoverLetterRequest = {
   companyName: '',
   jobPosition: '',
   applyYear: new Date().getFullYear(),
-  applyHalf: 'FIRST_HALF',
+  applyHalf: DEFAULT_APPLY_HALF,
   deadline: '',
   questions: [{ question: '', category: '' }],
 };

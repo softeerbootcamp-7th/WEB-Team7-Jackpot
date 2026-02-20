@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router';
+import { NavLink } from 'react-router';
 
 import { FolderIcon } from '@/features/library/icons/Folder';
 import { LibraryFolder } from '@/features/library/icons/LibraryFolder';
@@ -18,15 +18,6 @@ const QnASearchResult = ({
   isLoading,
   className,
 }: QnASearchResultProps) => {
-  const navigate = useNavigate();
-
-  // 상세 페이지 이동 핸들러
-  const handleItemClick = (companyName: string, coverLetterId: number) => {
-    // [박소민] TODO: URL 구조 확정되면 여기에 맞게 수정 필요
-    // 예시: /library/qna/:questionCategory/:qnaId
-    navigate(`/library/company/${companyName}/${coverLetterId}`);
-  };
-
   // 로딩 상태
   if (isLoading) {
     return (
@@ -122,12 +113,9 @@ const QnASearchResult = ({
 
           <div className='flex w-full flex-col items-start justify-start px-3'>
             {data.qnAs.map((qna) => (
-              <button
-                type='button'
-                key={qna.id}
-                onClick={() =>
-                  handleItemClick(qna.companyName, qna.coverLetterId)
-                }
+              <NavLink
+                key={qna.qnAId}
+                to={`/library/qna/${qna.questionCategoryType}/${qna.qnAId}`}
                 className='flex w-full cursor-pointer flex-col items-start justify-start gap-3 border-b border-gray-200 px-3 py-5 text-left transition-colors hover:bg-gray-50'
               >
                 <div className='inline-flex w-full items-center justify-between'>
@@ -137,18 +125,19 @@ const QnASearchResult = ({
                         {qna.companyName}
                       </div>
                     </div>
-
                     <div className='flex items-center justify-center gap-1 rounded-xl bg-gray-100 px-3 py-1.5'>
                       <div className='text-xs leading-4 font-medium text-gray-500'>
                         {qna.jobPosition}
                       </div>
                     </div>
 
-                    <div className='flex items-center justify-center gap-1 rounded-xl bg-gray-100 px-3 py-1.5'>
-                      <div className='text-xs leading-4 font-medium text-gray-500'>
-                        {qna.applySeason}
+                    {qna.applySeason && (
+                      <div className='flex items-center justify-center gap-1 rounded-xl bg-gray-100 px-3 py-1.5'>
+                        <div className='text-xs leading-4 font-medium text-gray-500'>
+                          {qna.applySeason}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
 
@@ -162,7 +151,7 @@ const QnASearchResult = ({
                     {qna.answer}
                   </div>
                 </div>
-              </button>
+              </NavLink>
             ))}
           </div>
         </div>
