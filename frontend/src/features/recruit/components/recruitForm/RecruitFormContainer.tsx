@@ -1,38 +1,34 @@
 import { useEffect } from 'react';
 
 import RecruitFormView from '@/features/recruit/components/recruitForm/RecruitFormView';
-import { DEFAULT_DATA } from '@/features/recruit/constants';
+import { useUpdateRecruit } from '@/features/recruit/hooks/queries/useCalendarQuery';
 import {
   useCreateCoverLetter,
   useUpdateCoverLetter,
 } from '@/features/recruit/hooks/queries/useCoverLetterMutation';
-import { useRecruitForm } from '@/features/recruit/hooks/useRecruitForm';
-import { mapServerDataToFormData } from '@/features/recruit/utils';
-import { useCoverLetter } from '@/shared/hooks/useCoverLetterQueries';
+import { DEFAULT_DATA } from '@/shared/constants/createCoverLetter';
+import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
+import { useRecruitForm } from '@/shared/hooks/useRecruitForm';
 
 interface Props {
-  recruitId?: number | null; // RecruitPage의 state(number | null)와 타입 일치
+  recruitId?: number | null;
   onClose: () => void;
 }
 
 const RecruitFormContainer = ({ recruitId, onClose }: Props) => {
-  // 1. 상세 데이터 조회 (recruitId가 있을 때만 enabled)
-  const { data, isLoading } = useCoverLetter(recruitId || 0);
-
-  // 2. 뮤테이션 훅
-  const { mutate: create, isPending: isCreating } = useCreateCoverLetter();
-  const { mutate: update, isPending: isUpdating } = useUpdateCoverLetter();
-
-  // 3. 폼 훅 초기화
+  const { data, isLoading } = useUpdateRecruit(recruitId ?? 0);
+  const { showToast } = useToastMessageContext();
   const { formData, handleChange, setFormData } = useRecruitForm(DEFAULT_DATA);
 
-  // 4. 서버 데이터가 로드되면 폼 상태 동기화
+  const { mutateAsync: createCoverLetter, isPending: isCreating } =
+    useCreateCoverLetter();
+  const { mutateAsync: updateCoverLetter, isPending: isUpdating } =
+    useUpdateCoverLetter();
+
   useEffect(() => {
-    if (recruitId && data && data.coverLetterId === recruitId) {
-      const mappedData = mapServerDataToFormData(data);
-      setFormData(mappedData);
+    if (recruitId && data) {
+      setFormData(data);
     } else if (!recruitId) {
-      // 신규 등록 모드라면 초기값으로 리셋
       setFormData(DEFAULT_DATA);
     }
   }, [recruitId, data, setFormData]);
@@ -47,19 +43,39 @@ const RecruitFormContainer = ({ recruitId, onClose }: Props) => {
   }
 
   // 6. 제출 핸들러
-  const handleSubmit = () => {
-    const options = {
-      onSuccess: onClose,
-      onError: (error: Error) => {
-        console.error('공고 저장 실패:', error);
-        // TODO: 토스트 메시지 등 사용자 피드백 추가
-      },
-    };
+  const handleSubmit = async () => {
+    try {
+      if (recruitId) {
+        // 수정 모드
+        const coverLetter = {
+          coverLetterId: recruitId,
+          companyName: formData.companyName,
+          jobPosition: formData.jobPosition,
+          applyYear: formData.applyYear,
+          applyHalf: formData.applyHalf,
+          deadline: formData.deadline,
+        };
+        const questions = (formData.questions ?? []).map((question) =>
+          question.qnAId === undefined
+            ? { ...question, qnAId: null }
+            : question,
+        );
 
-    if (recruitId) {
-      update({ coverLetterId: recruitId, ...formData }, options);
-    } else {
-      create(formData, options);
+        await updateCoverLetter({
+          coverLetter,
+          questions,
+        });
+        showToast('성공적으로 수정되었습니다.', true);
+      } else {
+        // 생성 모드
+        await createCoverLetter(formData);
+        showToast('새 공고가 등록되었습니다.', true);
+      }
+
+      onClose();
+    } catch (error) {
+      console.error('작업 실패:', error);
+      showToast('저장에 실패했습니다. 다시 시도해주세요.', false);
     }
   };
 

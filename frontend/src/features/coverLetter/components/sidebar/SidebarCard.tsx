@@ -1,5 +1,5 @@
-import { DeleteIcon } from '@/features/coverLetter/icons/Delete';
 import type { ScrapItem } from '@/features/coverLetter/types/coverLetter';
+import { DeleteIcon } from '@/shared/icons/Delete';
 import type { RecentCoverLetterType } from '@/shared/types/coverLetter';
 
 interface CardProps {

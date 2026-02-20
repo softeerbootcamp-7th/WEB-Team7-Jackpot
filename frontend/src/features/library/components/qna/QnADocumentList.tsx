@@ -1,36 +1,45 @@
-import { useNavigate, useParams } from 'react-router';
+import { useParams } from 'react-router';
 
-import { getMockQuestionsByQnAName } from '@/features/library/api/mockData';
-import DocumentList from '@/features/library/components/DocumentList';
+import DocumentLayout from '@/features/library/components/DocumentLayout';
 import QnADocument from '@/features/library/components/qna/QnADocument';
 import { useQnAListQueries } from '@/features/library/hooks/queries/useLibraryListQueries';
+import DocumentList from '@/shared/components/DocumentList';
 
-type Props = {
-  className: string;
-};
-
-const isDev = import.meta.env.DEV;
+interface Props {
+  className?: string;
+}
 
 const QnADocumentList = ({ className }: Props) => {
   const { qnAName } = useParams<{ qnAName?: string }>();
-  const navigate = useNavigate();
 
+  // isLoading, isError도 함께 구조분해 할당 추천
   const { data } = useQnAListQueries(qnAName ?? null);
   const questions =
-    data?.pages.flatMap((page) => page.questions) ??
-    (isDev ? getMockQuestionsByQnAName(qnAName ?? null) : []);
+    data?.pages.flatMap((page) =>
+      page.qnAs.map((item) => {
+        return {
+          id: item.id,
+          companyName: item.companyName,
+          jobPosition: item.jobPosition,
+          applySeason: item.applySeason,
+          question: item.question,
+          answer: item.answer,
+          coverLetterId: item.coverLetterId,
+        };
+      }),
+    ) ?? [];
 
   return (
-    <DocumentList
+    <DocumentLayout
+      title={qnAName ?? '제목 없음'}
+      backUrl='/library/qna'
       className={className}
-      // `qnAName`이 없을 경우를 대비해 기본값 설정
-      title={qnAName ?? ''}
-      items={questions}
-      onBack={() => navigate('/library/qna')}
-      renderItem={(document) => (
-        <QnADocument key={document.id} content={document} />
-      )}
-    />
+    >
+      <DocumentList
+        items={questions}
+        renderItem={(qna) => <QnADocument key={qna.id} content={qna} />}
+      />
+    </DocumentLayout>
   );
 };
 

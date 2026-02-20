@@ -7,9 +7,9 @@ import {
 } from '@/shared/api/coverLetterApi';
 import { coverLetterQueryKeys } from '@/shared/hooks/queries/coverLetterQueryKeys';
 import type {
-  CoverLetterType,
   CreateCoverLetterRequest,
   CreateCoverLetterResponse,
+  UpdateCoverLetter,
 } from '@/shared/types/coverLetter';
 
 // [박소민] 공통으로 사용할 성공 핸들러
@@ -39,7 +39,7 @@ export const useCreateCoverLetter = () => {
 export const useUpdateCoverLetter = () => {
   const invalidate = useInvalidateCoverLetters();
 
-  return useMutation<void, Error, CoverLetterType>({
+  return useMutation<void, Error, UpdateCoverLetter>({
     mutationFn: updateCoverLetter,
     onSuccess: () => invalidate(), // ['coverLetters'] 전체 무효화
     onError: (error) => console.error('수정 실패:', error.message),

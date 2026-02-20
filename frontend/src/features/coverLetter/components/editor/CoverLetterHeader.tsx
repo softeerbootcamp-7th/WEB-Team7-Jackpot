@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 
 import type { CoverLetterType } from '@/shared/types/coverLetter';
+import { getDate } from '@/shared/utils/dates';
 import { mapApplyHalf } from '@/shared/utils/recruitSeason';
 
 interface CoverLetterHeaderProps {
@@ -46,7 +47,7 @@ const CoverLetterHeader = ({
         <span>총 {totalPages}문항</span>
         <span>·</span>
         <span>
-          {new Date(coverLetter.deadline).toLocaleDateString('ko-KR')}
+          {coverLetter.deadline ? getDate(coverLetter.deadline) : '마감일 미정'}
         </span>
         {modifiedDisplay && (
           <>

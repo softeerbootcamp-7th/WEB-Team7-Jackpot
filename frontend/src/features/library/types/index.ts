@@ -1,25 +1,18 @@
+import type { Category } from '@/shared/types/coverLetter';
+
 export type LibraryView = 'COMPANY' | 'QUESTION';
 
 export interface LibraryResponse {
   libraries: string[];
 }
 
-export interface CoverLetterQnA {
-  qnAId: number;
-  question: string;
-  answer: string;
-  answerSize: number;
-  modifiedAt: string;
-}
-
-export interface CoverLetter {
+export interface CoverLetterItem {
   id: number;
-  applySeason: string;
+  applySeason: string | null;
   companyName: string;
   jobPosition: string;
   questionCount: number;
-  modifiedAt: string; // ISO 8601 format 권장
-  question: CoverLetterQnA[]; // 복수형입니다.
+  modifiedAt: string; // [박소민] TODO: 타입 유효성 검사
 }
 
 export type DocumentListResponse =
@@ -27,21 +20,24 @@ export type DocumentListResponse =
   | QuestionListResponse;
 
 export interface CoverLetterListResponse {
-  coverLetters: CoverLetter[];
+  coverLetters: CoverLetterItem[];
   hasNext: boolean;
 }
 
+// [박소민] TODO: 변경된 API에 사용하기에 applySeason optional로 변경, (questionCount 추가)
 export interface QuestionItem {
   id: number;
   companyName: string;
   jobPosition: string;
-  applySeason: string;
+  applySeason: string | null; // "2024 상반기" 형식 (null 허용)
   question: string;
-  answer: string;
+  answer: string | null;
+  coverLetterId: number;
 }
 
 export interface QuestionListResponse {
-  questions: QuestionItem[];
+  questionCategoryType: Category | null; // 카테고리 선택 안 한 경우 null
+  qnAs: QuestionItem[];
   hasNext: boolean;
 }
 
@@ -54,6 +50,25 @@ export interface CreateScrapRequest {
 }
 
 export interface CreateScrapResponse {
-  scrapId: number;
-  createdAt: string;
+  qnAId: number;
+  scrapCount: number;
+}
+
+export interface QnASearchResponse {
+  libraryCount: number;
+  libraries: string[];
+  qnACount: number;
+  qnAs: QnAsSearchResponse[];
+  hasNext: boolean;
+}
+
+export interface QnAsSearchResponse {
+  qnAId: number;
+  companyName: string;
+  jobPosition: string;
+  applySeason: string | null;
+  question: string;
+  answer: string | null;
+  coverLetterId: number;
+  questionCategoryType: Category | null;
 }

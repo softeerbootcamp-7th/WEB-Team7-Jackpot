@@ -6,6 +6,7 @@ import type {
   CreateCoverLetterRequest,
   CreateCoverLetterResponse,
   RecentCoverLetterType,
+  UpdateCoverLetter,
 } from '@/shared/types/coverLetter';
 
 interface SearchCoverLettersParams {
@@ -69,7 +70,7 @@ export const createCoverLetter = async (
 };
 
 export const updateCoverLetter = async (
-  payload: CoverLetterType,
+  payload: UpdateCoverLetter,
 ): Promise<void> => {
   await apiClient.put({
     endpoint: '/coverletter',

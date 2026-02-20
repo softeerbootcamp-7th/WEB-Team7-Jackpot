@@ -1,18 +1,12 @@
-import type { ApiApplyHalf } from '@/shared/types/coverLetter';
+import type { Category, CoverLetterBase } from '@/shared/types/coverLetter';
 
-export interface CoverLetterItem {
-  coverLetterId: number;
-  companyName: string;
-  jobPosition: string;
-  applyYear: number;
-  applyHalf: ApiApplyHalf;
-  deadline: string;
+export interface CalendarCoverLetterItem extends CoverLetterBase {
   questionCount: number;
 }
 
 export interface CalendarResponse {
   totalCount: number;
-  coverLetters: CoverLetterItem[];
+  coverLetters: CalendarCoverLetterItem[];
   hasNext: boolean;
 }
 
@@ -23,8 +17,10 @@ export interface CalendarRequest {
   isShared?: boolean;
 }
 
-export type CoverLetterInfo = Omit<CoverLetterItem, 'questionCount'>;
-
-export interface ErrorResponse {
-  message: string;
+export interface QnAListResponse {
+  qnAs: {
+    qnAId: number;
+    question: string;
+    category: Category;
+  }[];
 }

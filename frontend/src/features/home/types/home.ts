@@ -1,3 +1,5 @@
+import type { ISODateString } from '@/shared/types/coverLetter';
+
 export interface HomeCountResponse {
   coverLetterCount: number;
   qnaCount: number;
@@ -5,7 +7,7 @@ export interface HomeCountResponse {
 }
 
 export interface UpcomingDeadline {
-  deadline: string;
+  deadline: ISODateString;
   coverLetters: {
     coverLetterId: number;
     companyName: string;

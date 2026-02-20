@@ -18,7 +18,8 @@ const CoverLetterLandingPage = () => {
   const { showToast } = useToastMessageContext();
 
   const handleSearch = useCallback(
-    (word: string) => {
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const word = e.target.value;
       const { isValid, message } = validateSearchKeyword(word);
       if (!isValid && message) {
         showToast(message);
@@ -49,8 +50,10 @@ const CoverLetterLandingPage = () => {
         <div className='flex min-w-0 flex-1 items-center gap-3'>
           <SearchInput
             key={searchKey}
-            onSearch={handleSearch}
+            onChange={handleSearch}
             placeholder='기업명, 직무명을 입력해주세요'
+            keyword={searchWord}
+            errorMessage={null}
           />
           <button
             type='button'

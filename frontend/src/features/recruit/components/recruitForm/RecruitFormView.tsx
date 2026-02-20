@@ -5,6 +5,7 @@ import RecruitDetail from '@/features/recruit/components/recruitForm/RecruitDeta
 import { RecruitIcons as I } from '@/features/recruit/icons';
 import QuestionsSection from '@/shared/components/QuestionsSection';
 import type { CreateCoverLetterRequest } from '@/shared/types/coverLetter';
+import { isQuestionsValid } from '@/shared/utils/coverLetter';
 
 interface Props {
   mode: 'CREATE' | 'EDIT';
@@ -33,11 +34,19 @@ const RecruitFormView = ({
     if (step === 1) {
       const company = formData.companyName?.trim() || '';
       const job = formData.jobPosition?.trim() || '';
-      return company.length > 0 && job.length > 0;
+      const deadline = formData.deadline ? formData.deadline.trim() : '';
+      return company.length > 0 && job.length > 0 && deadline.length > 0;
     } else {
-      return (formData.questions ?? []).length > 0;
+      const questions = formData.questions ?? [];
+      return isQuestionsValid(questions);
     }
-  }, [step, formData.companyName, formData.jobPosition, formData.questions]);
+  }, [
+    step,
+    formData.companyName,
+    formData.jobPosition,
+    formData.deadline,
+    formData.questions,
+  ]);
 
   const handlePrevStep = useCallback(() => {
     setStep((prev) => Math.max(1, prev - 1));

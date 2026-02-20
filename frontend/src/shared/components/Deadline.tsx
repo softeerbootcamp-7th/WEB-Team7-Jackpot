@@ -95,8 +95,8 @@ const Deadline = ({ label, value, onChange }: Props) => {
 
   return (
     <div className='flex w-full flex-col items-start justify-start gap-3'>
-      <div className='inline-flex items-center justify-start gap-0.5 self-stretch'>
-        <div className='text-lg leading-7 font-bold text-gray-950'>{label}</div>
+      <div className='text-lg font-bold text-gray-950'>
+        {label} <span className='text-red-600'>*</span>
       </div>
 
       <div className='flex w-full items-start justify-between gap-2'>

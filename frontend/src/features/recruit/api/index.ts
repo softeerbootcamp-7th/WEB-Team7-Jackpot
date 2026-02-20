@@ -1,13 +1,11 @@
 import { z } from 'zod';
 
-import { fetchCalendarDatesMock } from '@/features/recruit/api/mockData';
 import type {
   CalendarRequest,
   CalendarResponse,
 } from '@/features/recruit/types';
 import { apiClient } from '@/shared/api/apiClient';
-
-const isDev = import.meta.env.DEV;
+import { CATEGORY_VALUES } from '@/shared/constants/createCoverLetter';
 
 const ApiApplyHalfSchema = z.enum(['FIRST_HALF', 'SECOND_HALF']);
 
@@ -27,19 +25,27 @@ const CalendarResponseSchema = z.object({
   hasNext: z.boolean(),
 });
 
+export const CategorySchema = z.enum(CATEGORY_VALUES);
+
+const QnAListResponseSchema = z.object({
+  qnAs: z.array(
+    z.object({
+      qnAId: z.number(),
+      question: z.string(),
+      category: CategorySchema,
+    }),
+  ),
+});
+
 export const fetchCalendarDates = async (
   params: CalendarRequest,
   lastIdParam?: number,
 ): Promise<CalendarResponse> => {
-  if (isDev) {
-    return fetchCalendarDatesMock(params, lastIdParam);
-  }
-
   const queryParams = new URLSearchParams({
     startDate: params.startDate,
     endDate: params.endDate,
-    size: String(params.size ?? 7),
-    isShared: String(params.isShared ?? true),
+    size: String(params.size ?? 7), // [박소민] 기본값은 7로 설정
+    isShared: String(params.isShared ?? false), // [박소민] 기본값은 false로 설정
   });
 
   if (lastIdParam !== undefined) {
@@ -51,4 +57,20 @@ export const fetchCalendarDates = async (
   });
 
   return CalendarResponseSchema.parse(response);
+};
+
+export const fetchQnAList = async (
+  qnAIds: number[],
+): Promise<z.infer<typeof QnAListResponseSchema>> => {
+  if (qnAIds.length === 0) {
+    return { qnAs: [] };
+  }
+  const queryParams = new URLSearchParams();
+  qnAIds.forEach((id) => queryParams.append('qnAIds', String(id)));
+
+  const response = await apiClient.get({
+    endpoint: `/qna/all?${queryParams.toString()}`,
+  });
+
+  return QnAListResponseSchema.parse(response);
 };

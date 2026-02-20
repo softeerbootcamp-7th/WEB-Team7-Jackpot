@@ -6,9 +6,9 @@ import LabeledSelectInput from '@/features/upload/components/LabeledSelectInput'
 import { QUESTION_TYPE_LIST } from '@/features/upload/constants/uploadPage';
 import useCoverLetterState from '@/features/upload/hooks/useCoverLetterState';
 import { UploadPageIcons as I } from '@/features/upload/icons';
-import type { DropdownStateType } from '@/features/upload/types/upload';
 import { yearList } from '@/features/upload/utils/generateAboutDate';
 import RecruitPeriodSelectInput from '@/shared/components/RecruitPeriodSelectInput';
+import type { DropdownStateType } from '@/shared/types/dropdown';
 
 // [윤종근] - 추후에 지울 예정인 UI 테스트만을 위한 임시 데이터라서 constants에 옮기지 않았습니다.
 const COMPANY_NAME_LIST: string[] = ['현대자동차', '현대오토에버', '현대카드'];
@@ -83,9 +83,7 @@ const LabelingResultItem = ({
               yearValue={currentData.recruitPeriod.year}
               seasonValue={currentData.recruitPeriod.season}
               constantData={yearList}
-              onChangeYear={(value) =>
-                updateContents(tabState, 'year', value)
-              }
+              onChangeYear={(value) => updateContents(tabState, 'year', value)}
               onChangeSeason={(value) =>
                 updateContents(tabState, 'season', value)
               }

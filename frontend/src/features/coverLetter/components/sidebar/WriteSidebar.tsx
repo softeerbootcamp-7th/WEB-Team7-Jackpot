@@ -99,11 +99,17 @@ const WriteSidebar = ({
           </div>
         </div>
         <SearchInput
-          onSearch={handleSearch}
+          onChange={(event) => handleSearch(event.currentTarget.value)}
           placeholder={
             isScrap
               ? '질문 또는 답변을 입력해주세요'
               : '문항 유형을 입력해주세요'
+          }
+          keyword={searchWord}
+          errorMessage={
+            validateSearchKeyword(searchWord).isValid
+              ? null
+              : validateSearchKeyword(searchWord).message
           }
         />
       </div>

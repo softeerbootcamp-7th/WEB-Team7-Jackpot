@@ -12,12 +12,13 @@ import SignUpPage from '@/pages/SignUpPage';
 import UploadPage from '@/pages/UploadPage';
 
 import CoverLetterReviewContent from '@/features/coverLetter/components/editor/CoverLetterReviewContent';
-import NewCoverLetter from '@/features/coverLetter/components/newCoverLetter/NewCoverLetter';
+import NewCoverLetterContainer from '@/features/coverLetter/components/newCoverLetter/NewCoverLetterContainer';
 import CoverLetterLayout from '@/features/coverLetter/layouts/CoverLetterLayout';
 import WriteSidebarLayout from '@/features/coverLetter/layouts/WriteSidebarLayout';
-import DetailView from '@/features/library/components/DetailView';
-import LibraryLayout from '@/features/library/components/LibraryLayout';
-import LibrarySidebarLayout from '@/features/library/components/LibrarySidebarLayout';
+import CompanyDetailView from '@/features/library/components/company/CompanyDetailView';
+import LibraryLayout from '@/features/library/components/layouts/LibraryLayout';
+import LibrarySidebarLayout from '@/features/library/components/layouts/LibrarySidebarLayout';
+import QnADetailView from '@/features/library/components/qna/QnADetailView';
 import RecruitRedirect from '@/features/recruit/components/RecruitRedirect';
 import LabelingResultSection from '@/features/upload/components/LabelingResultSection';
 import UploadCompleteSection from '@/features/upload/components/UploadCompleteSection';
@@ -71,7 +72,7 @@ function App() {
                   />
                   <Route
                     path=':companyName/:coverLetterId'
-                    element={<DetailView />}
+                    element={<CompanyDetailView />}
                   />
                 </Route>
                 <Route path='qna'>
@@ -83,7 +84,7 @@ function App() {
                     path=':qnAName'
                     element={<EmptyCase {...coverLetterEmptyCaseText} />}
                   />
-                  <Route path=':qnAName/:qnAId' element={<DetailView />} />
+                  <Route path=':qnAName/:qnAId' element={<QnADetailView />} />
                 </Route>
               </Route>
             </Route>
@@ -100,7 +101,10 @@ function App() {
                 element={<CoverLetterLandingPage />}
               />
               <Route element={<WriteSidebarLayout />}>
-                <Route path='/cover-letter/new' element={<NewCoverLetter />} />
+                <Route
+                  path='/cover-letter/new'
+                  element={<NewCoverLetterContainer />}
+                />
                 <Route
                   path='/cover-letter/edit'
                   element={<Navigate to='/cover-letter/list' replace />}
