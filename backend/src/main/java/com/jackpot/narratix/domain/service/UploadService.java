@@ -16,7 +16,6 @@ import com.jackpot.narratix.global.exception.GlobalErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,7 +37,6 @@ public class UploadService {
     private final S3Presigner s3Presigner;
 
     private final UploadJobRepository uploadJobRepository;
-    private final ApplicationEventPublisher eventPublisher;
     private final LambdaCallService lambdaCallService;
 
     private final LabeledQnARepository labeledQnARepository;
