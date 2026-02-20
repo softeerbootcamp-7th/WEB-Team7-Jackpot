@@ -1,9 +1,9 @@
 package com.jackpot.narratix.domain.controller;
 
-import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
-import com.jackpot.narratix.domain.controller.request.CreateQuestionRequest;
 import com.jackpot.narratix.domain.controller.request.CoverLetterAndQnAEditRequest;
 import com.jackpot.narratix.domain.controller.request.CoverLettersSaveRequest;
+import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
+import com.jackpot.narratix.domain.controller.request.CreateQuestionRequest;
 import com.jackpot.narratix.domain.controller.response.CreateCoverLetterResponse;
 import com.jackpot.narratix.domain.controller.response.FilteredCoverLettersResponse;
 import com.jackpot.narratix.domain.controller.response.SavedCoverLetterCountResponse;
@@ -110,9 +110,15 @@ class CoverLetterControllerTest {
         LocalDate validDate = LocalDate.of(2024, 12, 31);
 
         return Stream.of(
-                Arguments.of(new CreateCoverLetterRequest(null, 2024, ApplyHalfType.FIRST_HALF, "백엔드 개발자", validDate, List.of(validQuestion))),
-                Arguments.of(new CreateCoverLetterRequest("현대자동차", 2024, null, "백엔드 개발자", validDate, List.of(validQuestion))),
-                Arguments.of(new CreateCoverLetterRequest("현대자동차", 2024, ApplyHalfType.FIRST_HALF, null, validDate, List.of(validQuestion)))
+                Arguments.of(new CreateCoverLetterRequest(null, 2024, ApplyHalfType.FIRST_HALF, "백엔드", validDate, List.of(validQuestion))),
+                Arguments.of(new CreateCoverLetterRequest("", 2024, ApplyHalfType.FIRST_HALF, "백엔드", validDate, List.of(validQuestion))),
+                Arguments.of(new CreateCoverLetterRequest("  ", 2024, ApplyHalfType.FIRST_HALF, "백엔드", validDate, List.of(validQuestion))),
+
+                Arguments.of(new CreateCoverLetterRequest("현대차", 2024, ApplyHalfType.FIRST_HALF, null, validDate, List.of(validQuestion))),
+                Arguments.of(new CreateCoverLetterRequest("현대차", 2024, ApplyHalfType.FIRST_HALF, "", validDate, List.of(validQuestion))),
+                Arguments.of(new CreateCoverLetterRequest("현대차", 2024, ApplyHalfType.FIRST_HALF, "  ", validDate, List.of(validQuestion))),
+
+                Arguments.of(new CreateCoverLetterRequest("현대차", 2024, null, "백엔드", validDate, List.of(validQuestion)))
         );
     }
 
