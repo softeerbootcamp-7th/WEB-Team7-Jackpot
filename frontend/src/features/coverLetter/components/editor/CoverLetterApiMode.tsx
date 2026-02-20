@@ -27,11 +27,13 @@ const CoverLetterApiMode = ({
   );
   const currentQna = qnas.length > 0 ? qnas[safePageIndex] : undefined;
 
-  const { data: reviewData } = useReviewsByQnaId(currentQna?.qnAId);
+  const { data: reviewData } = useReviewsByQnaId(currentQna?.qnAId, {
+    enabled: isReviewActive,
+  });
 
   const reviewState = useReviewState({
     qna: currentQna,
-    apiReviews: reviewData?.reviews,
+    apiReviews: isReviewActive ? reviewData?.reviews : undefined,
   });
 
   const {
