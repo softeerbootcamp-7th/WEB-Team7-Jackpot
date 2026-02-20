@@ -1,9 +1,10 @@
-import type { Review } from '@/shared/types/review';
+import type { Review, ReviewViewStatus } from '@/shared/types/review';
+import type { SelectionInfo } from '@/shared/types/selectionInfo';
 
 // parseTaggedText: 태그 제거 + 위치 계산
 export const parseTaggedText = (raw: string) => {
-  const openTagRegex = /<c(\d+)>/g;
-  const closeTagRegex = /<\/c(\d+)>/g;
+  const openTagRegex = /⟦r:(\d+)⟧/g;
+  const closeTagRegex = /⟦\/r⟧/g;
 
   const tags: Array<{
     id: number;
@@ -23,10 +24,10 @@ export const parseTaggedText = (raw: string) => {
     });
   }
 
-  // 닫는 태그
+  // 닫는 태그 (⟦/r⟧에는 ID가 없으므로 id는 파싱 시 스택에서 결정)
   while ((match = closeTagRegex.exec(raw)) !== null) {
     tags.push({
-      id: Number(match[1]),
+      id: -1,
       type: 'close',
       position: match.index,
       matchLength: match[0].length,
@@ -48,17 +49,16 @@ export const parseTaggedText = (raw: string) => {
     if (tag.type === 'open') {
       stack.push({ id: tag.id, start: cleaned.length });
     } else {
-      const openIndex = stack.findIndex((t) => t.id === tag.id);
-      if (openIndex !== -1) {
-        const open = stack[openIndex];
+      // ⟦/r⟧는 ID가 없으므로 가장 최근에 열린 태그를 닫음 (스택 pop)
+      const open = stack.pop();
+      if (open) {
         taggedRanges.push({
-          id: tag.id,
+          id: open.id,
           start: open.start,
           end: cleaned.length,
         });
-        stack.splice(openIndex, 1);
       } else {
-        console.warn(`Closing tag </c${tag.id}> without matching opening tag`);
+        console.warn('Closing tag ⟦/r⟧ without matching opening tag');
       }
     }
 
@@ -77,6 +77,37 @@ export const parseTaggedText = (raw: string) => {
   return { cleaned, taggedRanges };
 };
 
+// 리뷰의 현재 뷰 상태를 계산
+export const computeViewStatus = (
+  review: Review,
+  currentText: string,
+): ReviewViewStatus => {
+  const { start, end } = review.range;
+
+  const textAtRange = currentText.slice(start, end);
+
+  if (review.isApproved) {
+    // ACCEPTED: 현재 텍스트가 suggest와 일치
+    const suggestText = review.suggest ?? '';
+    return textAtRange === suggestText ? 'ACCEPTED' : 'OUTDATED';
+  }
+
+  // PENDING 계열: 원본 텍스트와 비교
+  const originText = review.originText ?? review.selectedText;
+  return textAtRange === originText ? 'PENDING' : 'PENDING_CHANGED';
+};
+
+// 리뷰 배열에 viewStatus를 일괄 계산하여 반영
+export const applyViewStatus = <T extends Review>(
+  reviews: T[],
+  currentText: string,
+): T[] => {
+  return reviews.map((r) => ({
+    ...r,
+    viewStatus: computeViewStatus(r, currentText),
+  }));
+};
+
 // buildReviewsFromApi: API 리뷰 -> 내부 Review
 export const buildReviewsFromApi = (
   cleanedText: string,
@@ -88,9 +119,10 @@ export const buildReviewsFromApi = (
     suggest: string | null;
     comment: string;
     createdAt: string;
+    isApproved: boolean;
   }>,
 ): Review[] => {
-  return apiReviews.map((api) => {
+  const reviews = apiReviews.map((api) => {
     const tagged = taggedRanges.find((t) => t.id === api.id);
 
     if (!tagged) {
@@ -104,6 +136,7 @@ export const buildReviewsFromApi = (
         originText: api.originText,
         suggest: api.suggest,
         createdAt: api.createdAt,
+        isApproved: api.isApproved,
         isValid: false,
       };
     }
@@ -121,13 +154,13 @@ export const buildReviewsFromApi = (
       originText: api.originText,
       suggest: api.suggest,
       createdAt: api.createdAt,
+      isApproved: api.isApproved,
       isValid: isTextMatching,
     };
   });
-};
 
-let internalReviewAutoId = 1000;
-export const generateInternalReviewId = () => ++internalReviewAutoId;
+  return applyViewStatus(reviews, cleanedText);
+};
 
 // 두 문자열을 비교하여 변경된 위치와 길이를 계산
 export const calculateTextChange = (
@@ -245,9 +278,50 @@ export const updateReviewRanges = <T extends Review>(
   }
 
   // 겹친 리뷰 무효화
-  return validatedReviews.map((r) =>
+  const finalReviews = validatedReviews.map((r) =>
     conflictIds.has(r.id) ? { ...r, isValid: false } : r,
   );
+
+  // viewStatus 재계산
+  return applyViewStatus(finalReviews, newDocumentText);
+};
+
+// 텍스트 변경에 따라 selection 범위를 업데이트
+// TODO: websocket 연결 시 서버에서 전달하는 OT operation을 직접 적용하는 방식으로 교체 고려
+export const updateSelectionForTextChange = (
+  selection: SelectionInfo,
+  changeStart: number,
+  oldLength: number,
+  newLength: number,
+  newText: string,
+): SelectionInfo | null => {
+  const lengthDiff = newLength - oldLength;
+  const changeEnd = changeStart + oldLength;
+  const { start, end } = selection.range;
+
+  // 변경 이전 영역 → 그대로
+  if (end <= changeStart) return selection;
+
+  // 변경 이후 영역 → shift
+  if (start >= changeEnd) {
+    const newStart = start + lengthDiff;
+    const newEnd = end + lengthDiff;
+    return {
+      ...selection,
+      range: { start: newStart, end: newEnd },
+      selectedText: newText.slice(newStart, newEnd),
+      lineEndIndex: selection.lineEndIndex + lengthDiff,
+    };
+  }
+
+  // 변경 영역에 selection이 완전히 포함 → 취소
+  if (start >= changeStart && end <= changeEnd) {
+    return null;
+  }
+
+  // 부분 겹침 → 안전하게 취소
+  // TODO: OT 시스템 도입 후 부분 겹침 시에도 유효한 범위를 유지하는 로직 추가 가능
+  return null;
 };
 
 // 편집된 텍스트와 리뷰 범위를 받아 태그 포함 원본으로 재구성
@@ -282,7 +356,7 @@ export const reconstructTaggedText = (
 
     // 텍스트 조립
     result += cleanedText.slice(lastIndex, start);
-    result += `<c${review.id}>${cleanedText.slice(start, end)}</c${review.id}>`;
+    result += `⟦r:${review.id}⟧${cleanedText.slice(start, end)}⟦/r⟧`;
 
     lastIndex = end;
   }

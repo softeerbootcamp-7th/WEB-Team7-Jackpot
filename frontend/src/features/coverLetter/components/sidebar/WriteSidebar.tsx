@@ -2,7 +2,7 @@ import { Suspense, useCallback } from 'react';
 
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
 
-import CardSection from '@/features/coverLetter/components/CardSection';
+import SidebarCardSection from '@/features/coverLetter/components/sidebar/SidebarCardSection';
 import ErrorBoundary from '@/shared/components/ErrorBoundary';
 import SearchInput from '@/shared/components/SearchInput';
 import SectionError from '@/shared/components/SectionError';
@@ -10,7 +10,7 @@ import { SidebarSkeleton } from '@/shared/components/SidebarSkeleton';
 import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
 import { validateSearchKeyword } from '@/shared/utils/validation';
 
-const CoverLetterWriteSidebar = ({
+const WriteSidebar = ({
   currentSidebarTab,
   onTabChange,
 }: {
@@ -122,7 +122,7 @@ const CoverLetterWriteSidebar = ({
         )}
       >
         <Suspense fallback={<SidebarSkeleton />}>
-          <CardSection
+          <SidebarCardSection
             searchWord={searchWord}
             isScrap={isScrap}
             deleteScrap={deleteScrap}
@@ -133,4 +133,4 @@ const CoverLetterWriteSidebar = ({
   );
 };
 
-export default CoverLetterWriteSidebar;
+export default WriteSidebar;

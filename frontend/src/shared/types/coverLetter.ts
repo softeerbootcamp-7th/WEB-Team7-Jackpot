@@ -7,7 +7,7 @@ export interface CoverLetterQuestion {
   category: string;
 }
 
-export interface CoverLetter {
+export interface CoverLetterType {
   coverLetterId: number;
   companyName: string;
   jobPosition: string;
@@ -17,7 +17,7 @@ export interface CoverLetter {
   questions?: CoverLetterQuestion[];
 }
 
-export interface RecentCoverLetter extends CoverLetter {
+export interface RecentCoverLetterType extends CoverLetterType {
   questionCount: number;
 }
 
@@ -35,5 +35,3 @@ export interface CreateCoverLetterRequest {
 export interface CreateCoverLetterResponse {
   coverLetterId: number;
 }
-
-

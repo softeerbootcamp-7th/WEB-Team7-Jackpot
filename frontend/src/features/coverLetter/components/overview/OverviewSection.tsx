@@ -10,7 +10,7 @@ interface CoverLetterSectionProps {
   onPageChange: (page: number) => void;
 }
 
-const CoverLetterOverviewSection = ({
+const OverviewSection = ({
   searchWord,
   isFilterActive,
   page,
@@ -40,4 +40,4 @@ const CoverLetterOverviewSection = ({
   );
 };
 
-export default CoverLetterOverviewSection;
+export default OverviewSection;

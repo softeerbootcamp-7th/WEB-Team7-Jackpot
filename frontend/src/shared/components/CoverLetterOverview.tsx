@@ -3,11 +3,11 @@ import type { ReactNode } from 'react';
 import CoverLetterPreview from '@/shared/components/CoverLetterPreview';
 import Pagination from '@/shared/components/Pagination';
 import WritingCoverLetterIcon from '@/shared/icons/WritingCoverLetter';
-import type { RecentCoverLetter } from '@/shared/types/coverLetter';
+import type { RecentCoverLetterType } from '@/shared/types/coverLetter';
 
 interface CoverLetterOverviewProps {
   button?: ReactNode;
-  coverLetters: RecentCoverLetter[];
+  coverLetters: RecentCoverLetterType[];
   isCoverLetter?: boolean;
   isHome?: boolean;
   currentPage?: number;

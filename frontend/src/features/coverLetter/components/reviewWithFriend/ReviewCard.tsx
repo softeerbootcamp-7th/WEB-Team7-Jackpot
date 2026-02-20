@@ -1,3 +1,4 @@
+import Avatar from '@/features/coverLetter/components/reviewWithFriend/Avatar';
 import PaperChipIcon from '@/shared/icons/PaperChipIcon';
 import PenToolIcon from '@/shared/icons/PenToolIcon';
 import type { Review } from '@/shared/types/review';
@@ -40,10 +41,7 @@ const ReviewCard = ({
       <div className='flex w-full flex-col items-start justify-start gap-4'>
         <div className='flex w-full items-start justify-between'>
           <div className='inline-flex flex-1 items-center justify-start gap-3'>
-            <div className='relative h-12 w-12 overflow-hidden rounded-[100px] bg-purple-100'>
-              <div className='absolute top-[33px] left-[3px] h-11 w-11 rounded-full bg-purple-300' />
-              <div className='absolute top-[12px] left-[17px] h-4 w-4 rounded-full bg-purple-300' />
-            </div>
+            <Avatar size='md' />
             <div className='inline-flex flex-1 flex-col items-start justify-center'>
               <div className='line-clamp-1 flex justify-start self-stretch text-base leading-6 font-bold text-gray-900'>
                 {review.sender?.nickname}

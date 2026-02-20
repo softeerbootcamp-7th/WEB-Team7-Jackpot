@@ -1,10 +1,10 @@
 import {
-  type CoverLetter,
+  type CoverLetterType,
   type CreateCoverLetterRequest,
 } from '@/shared/types/coverLetter';
 
 export const mapServerDataToFormData = (
-  serverData: CoverLetter,
+  serverData: CoverLetterType,
 ): CreateCoverLetterRequest => {
   return {
     companyName: serverData.companyName,

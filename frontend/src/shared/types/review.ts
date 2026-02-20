@@ -15,6 +15,12 @@ export interface ReviewBase {
   range: TextRange;
 }
 
+export type ReviewViewStatus =
+  | 'PENDING'
+  | 'PENDING_CHANGED'
+  | 'ACCEPTED'
+  | 'OUTDATED';
+
 export interface Review extends ReviewBase {
   id: number;
   sender?: Sender;
@@ -22,4 +28,6 @@ export interface Review extends ReviewBase {
   suggest?: string | null;
   createdAt?: string;
   isValid?: boolean;
+  isApproved?: boolean;
+  viewStatus?: ReviewViewStatus;
 }

@@ -5,30 +5,29 @@ import {
 import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
 import { useUpdateQnA } from '@/shared/hooks/useQnAQueries';
 import { reconstructTaggedText } from '@/shared/hooks/useReviewState/helpers';
-import type { QnA } from '@/shared/types/qna';
 import type { Review } from '@/shared/types/review';
 
 interface UseCoverLetterActionsParams {
-  documentId: number;
-  currentQna: QnA | undefined;
+  coverLetterId: number;
+  currentQna: { qnAId: number } | undefined;
   editedAnswers: Record<number, string>;
   currentReviews: Review[];
-  isReviewOpen: boolean;
-  setIsReviewOpen: (v: boolean) => void;
+  isReviewActive: boolean;
+  setIsReviewActive: (v: boolean) => void;
 }
 
 const useCoverLetterActions = ({
-  documentId,
+  coverLetterId,
   currentQna,
   editedAnswers,
   currentReviews,
-  isReviewOpen,
-  setIsReviewOpen,
+  isReviewActive,
+  setIsReviewActive,
 }: UseCoverLetterActionsParams) => {
   const { mutate: updateQnA, isPending } = useUpdateQnA();
   const { showToast } = useToastMessageContext();
 
-  const { data: sharedLink, isLoading } = useSharedLink(documentId);
+  const { data: sharedLink, isLoading } = useSharedLink(coverLetterId);
   const { mutate: toggleLink } = useSharedLinkToggle();
 
   const handleSave = () => {
@@ -71,7 +70,12 @@ const useCoverLetterActions = ({
     }
 
     const shareLinkId = sharedLink.shareLinkId;
-    const url = `${import.meta.env.VITE_SERVICE_BASE_URL || window.location.origin}/review/${shareLinkId}`;
+    const baseUrl =
+      window.location.origin === import.meta.env.VITE_DEV_BASE_URL
+        ? import.meta.env.VITE_DEV_BASE_URL
+        : import.meta.env.VITE_SERVICE_BASE_URL;
+
+    const url = `${baseUrl || window.location.origin}/review/${shareLinkId}`;
 
     navigator.clipboard
       .writeText(url)
@@ -84,13 +88,13 @@ const useCoverLetterActions = ({
   };
 
   const handleToggleReview = () => {
-    const next = !isReviewOpen;
-    setIsReviewOpen(next);
+    const next = !isReviewActive;
+    setIsReviewActive(next);
     toggleLink(
-      { coverLetterId: documentId, active: next },
+      { coverLetterId, active: next },
       {
         onError: () => {
-          setIsReviewOpen(!next);
+          setIsReviewActive(!next);
           showToast('공유 설정 변경에 실패했습니다.');
         },
       },

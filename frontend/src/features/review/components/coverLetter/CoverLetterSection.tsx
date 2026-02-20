@@ -1,15 +1,15 @@
-import { useCallback, useRef, useState } from 'react';
-
 import CoverLetterChipList from '@/features/review/components/coverLetter/CoverLetterChipList';
 import CoverLetterContent from '@/features/review/components/coverLetter/CoverLetterContent';
 import CoverLetterPagination from '@/features/review/components/coverLetter/CoverLetterPagination';
 import CoverLetterQuestion from '@/features/review/components/coverLetter/CoverLetterQuestion';
-import ReviewModal from '@/features/review/components/reviewModal/ReviewModal';
-import type { Review, ReviewBase } from '@/shared//types/review';
-import useOutsideClick from '@/shared/hooks/useOutsideClick';
+import ReviewModalContainer from '@/features/review/components/coverLetter/ReviewModalContainer';
+import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
+import {
+  useCreateReview,
+  useUpdateReview,
+} from '@/shared/hooks/useReviewQueries';
+import type { Review } from '@/shared/types/review';
 import type { SelectionInfo } from '@/shared/types/selectionInfo';
-
-const SPACER_HEIGHT = 10;
 
 interface CoverLetterSectionProps {
   company: string;
@@ -21,7 +21,9 @@ interface CoverLetterSectionProps {
   currentPage: number;
   totalPages: number;
   editingReview: Review | null;
-  onAddReview: (review: ReviewBase) => void;
+  selection: SelectionInfo | null;
+  onSelectionChange: (selection: SelectionInfo | null) => void;
+  qnaId: number;
   onUpdateReview: (id: number, revision: string, comment: string) => void;
   onCancelEdit: () => void;
   onPageChange: (index: number) => void;
@@ -37,41 +39,57 @@ const CoverLetterSection = ({
   currentPage,
   totalPages,
   editingReview,
-  onAddReview,
+  selection,
+  onSelectionChange,
+  qnaId,
   onUpdateReview,
   onCancelEdit,
   onPageChange,
 }: CoverLetterSectionProps) => {
-  const [selection, setSelection] = useState<SelectionInfo | null>(null);
-  const modalRef = useRef<HTMLDivElement>(null);
+  const { showToast } = useToastMessageContext();
 
-  const handleOutsideClick = useCallback(() => {
-    setSelection(null);
-    if (editingReview) onCancelEdit();
-  }, [editingReview, onCancelEdit]);
-
-  useOutsideClick(modalRef, handleOutsideClick, !!selection);
+  const { mutate: createReview } = useCreateReview(qnaId);
+  const { mutate: updateReviewMutation } = useUpdateReview(qnaId);
 
   const handleSubmit = (revision: string, comment: string) => {
     if (!selection) return;
 
+    const resetSelection = () => onSelectionChange(null);
+
     if (editingReview) {
-      onUpdateReview(editingReview.id, revision, comment);
-      // TODO: review 수정 API
+      updateReviewMutation(
+        {
+          reviewId: editingReview.id,
+          body: { suggest: revision, comment },
+        },
+        {
+          onSuccess: () => onUpdateReview(editingReview.id, revision, comment),
+          onError: () =>
+            showToast('리뷰 업데이트에 실패했습니다. 다시 시도해주세요.'),
+          onSettled: resetSelection,
+        },
+      );
     } else {
-      onAddReview({
-        selectedText: selection.selectedText,
-        revision,
-        comment,
-        range: selection.range,
-      });
-      // TODO: review 추가 API
+      createReview(
+        {
+          version: 0,
+          startIdx: selection.range.start,
+          endIdx: selection.range.end,
+          originText: selection.selectedText,
+          suggest: revision,
+          comment,
+        },
+        {
+          onError: () =>
+            showToast('리뷰 생성에 실패했습니다. 다시 시도해주세요.'),
+          onSettled: resetSelection,
+        },
+      );
     }
-    setSelection(null);
   };
 
   const handleCancel = () => {
-    setSelection(null);
+    onSelectionChange(null);
     window.getSelection()?.removeAllRanges();
     if (editingReview) onCancelEdit();
   };
@@ -86,7 +104,7 @@ const CoverLetterSection = ({
           reviews={reviews}
           editingReview={editingReview}
           selection={selection}
-          onSelectionChange={setSelection}
+          onSelectionChange={onSelectionChange}
         />
       </div>
       <CoverLetterPagination
@@ -96,26 +114,12 @@ const CoverLetterSection = ({
       />
 
       {selection && (
-        <div
-          ref={modalRef}
-          className='fixed z-50'
-          role='presentation'
-          style={{
-            top: selection.modalTop + SPACER_HEIGHT,
-            left: selection.modalLeft,
-          }}
-          onMouseDown={(e) => {
-            e.stopPropagation();
-          }}
-        >
-          <ReviewModal
-            selectedText={selection.selectedText}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            initialRevision={editingReview?.revision}
-            initialComment={editingReview?.comment}
-          />
-        </div>
+        <ReviewModalContainer
+          selection={selection}
+          editingReview={editingReview}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+        />
       )}
     </div>
   );

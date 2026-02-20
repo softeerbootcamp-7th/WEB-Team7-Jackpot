@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 
-import Card from '@/features/coverLetter/components/Card';
+import SidebarCard from '@/features/coverLetter/components/sidebar/SidebarCard';
 import { useScrapCoverLetters } from '@/features/coverLetter/hooks/useCoverLetterQueries';
 import type { ScrapItem } from '@/features/coverLetter/types/coverLetter';
 import { SidebarSkeleton } from '@/shared/components/SidebarSkeleton';
@@ -37,7 +37,7 @@ const ScrapList = ({ searchWord, deleteScrap, onSelect }: ScrapListProps) => {
   return (
     <>
       {items.map((item) => (
-        <Card
+        <SidebarCard
           key={`scrap-${item.questionId}`}
           item={item}
           isScrap={true}

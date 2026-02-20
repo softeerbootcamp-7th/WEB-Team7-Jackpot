@@ -2,16 +2,15 @@ import { useEffect, useState } from 'react';
 
 import { Outlet, useOutletContext } from 'react-router';
 
-import CoverLetterWriteSidebar from '@/features/coverLetter/components/CoverLetterWriteSidebar';
+import WriteSidebar from '@/features/coverLetter/components/sidebar/WriteSidebar';
+import type { OutletContext } from '@/features/coverLetter/types/outletContext';
 
 const WriteSidebarLayout = () => {
   const [currentSidebarTab, setCurrentSidebarTab] = useState<
     'scrap' | 'library'
   >('scrap');
-  const { isReviewActive, setIsReviewActive } = useOutletContext<{
-    isReviewActive: boolean;
-    setIsReviewActive: (v: boolean) => void;
-  }>();
+  const { isReviewActive, setIsReviewActive } =
+    useOutletContext<OutletContext>();
 
   useEffect(() => {
     return () => setIsReviewActive(false);
@@ -21,7 +20,7 @@ const WriteSidebarLayout = () => {
     <div className='flex w-full flex-1 flex-col'>
       <div className='flex min-h-0 w-full flex-1'>
         <aside className='h-full w-[427px] flex-none overflow-hidden'>
-          <CoverLetterWriteSidebar
+          <WriteSidebar
             currentSidebarTab={currentSidebarTab}
             onTabChange={setCurrentSidebarTab}
           />

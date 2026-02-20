@@ -1,20 +1,16 @@
-import { Suspense, useCallback, useEffect, useState } from 'react';
+import { Suspense, useEffect } from 'react';
 
-import { useParams } from 'react-router';
+import { useOutletContext, useParams } from 'react-router';
 
-import CoverLetterSection from '@/features/coverLetter/components/CoverLetterSection';
+import CoverLetterSection from '@/features/coverLetter/components/editor/CoverLetterSection';
 import { useSharedLink } from '@/features/coverLetter/hooks/useCoverLetterQueries';
+import type { OutletContext } from '@/features/coverLetter/types/outletContext';
 import ErrorBoundary from '@/shared/components/ErrorBoundary';
 import SectionError from '@/shared/components/SectionError';
 
-const CoverLetterReviewContent = ({
-  isReviewActive,
-  setIsReviewActive,
-}: {
-  isReviewActive: boolean;
-  setIsReviewActive: (v: boolean) => void;
-}) => {
-  const [selectedReviewId, setSelectedReviewId] = useState<number | null>(null);
+const CoverLetterReviewContent = () => {
+  const { isReviewActive, setIsReviewActive } =
+    useOutletContext<OutletContext>();
   const { coverLetterId } = useParams();
   const id = Number(coverLetterId);
   const isValidId = !!coverLetterId && !Number.isNaN(id);
@@ -26,17 +22,6 @@ const CoverLetterReviewContent = ({
       setIsReviewActive(sharedLink.active);
     }
   }, [sharedLink?.active, setIsReviewActive]);
-
-  const handleToggleReview = useCallback(
-    (value: boolean) => {
-      setIsReviewActive(value);
-    },
-    [setIsReviewActive],
-  );
-
-  const handleReviewClick = useCallback((reviewId: number | null) => {
-    setSelectedReviewId(reviewId);
-  }, []);
 
   if (!isValidId) {
     return <SectionError text='잘못된 자기소개서 ID입니다' />;
@@ -52,9 +37,7 @@ const CoverLetterReviewContent = ({
         <CoverLetterSection
           id={id}
           isReviewActive={isReviewActive}
-          setIsReviewActive={handleToggleReview}
-          selectedReviewId={selectedReviewId}
-          onReviewClick={handleReviewClick}
+          setIsReviewActive={setIsReviewActive}
         />
       </Suspense>
     </ErrorBoundary>

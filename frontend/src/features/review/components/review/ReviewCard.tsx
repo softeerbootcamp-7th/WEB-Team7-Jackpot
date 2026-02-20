@@ -24,7 +24,8 @@ const ReviewCard = ({
   const [isDetail, setIsDetail] = useState(false);
   const hasEdit = !!review.revision;
   const hasComment = !!review.comment;
-  const isInVlid = review.isValid === false;
+  const viewStatus = review.viewStatus ?? 'PENDING';
+  const showBanner = viewStatus !== 'PENDING';
 
   return (
     <div
@@ -38,8 +39,8 @@ const ReviewCard = ({
         <div className='flex w-full items-start justify-between gap-5'>
           <div className='flex flex-1 items-center gap-3'>
             <CardUserInfo
-              name='귀여운 캥거루'
-              dateTime='2025-01-15T17:30:00Z'
+              name={review.sender?.nickname ?? '익명'}
+              dateTime={review.createdAt ?? ''}
             />
           </div>
           <div className='py-0.5'>
@@ -51,8 +52,9 @@ const ReviewCard = ({
         </div>
 
         <div className='flex w-full flex-col gap-4'>
-          {isInVlid && (
+          {showBanner && (
             <InvalidReviewBanner
+              viewStatus={viewStatus}
               isExpanded={isDetail}
               originText={review.selectedText}
             />
@@ -65,13 +67,11 @@ const ReviewCard = ({
 
           <div className='flex w-full items-center justify-between'>
             <ChipRow hasEdit={hasEdit} hasComment={hasComment} />
-            {!isInVlid && (
-              <ActionButtons
-                reviewId={review.id}
-                handleEditReview={handleEditReview}
-                handleDeleteReview={handleDeleteReview}
-              />
-            )}
+            <ActionButtons
+              reviewId={review.id}
+              handleEditReview={handleEditReview}
+              handleDeleteReview={handleDeleteReview}
+            />
           </div>
         </div>
       </div>

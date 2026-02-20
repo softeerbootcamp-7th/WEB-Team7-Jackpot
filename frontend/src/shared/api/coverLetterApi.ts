@@ -2,10 +2,10 @@ import { z } from 'zod';
 
 import { apiClient } from '@/shared/api/apiClient';
 import type {
-  CoverLetter,
+  CoverLetterType,
   CreateCoverLetterRequest,
   CreateCoverLetterResponse,
-  RecentCoverLetter,
+  RecentCoverLetterType,
 } from '@/shared/types/coverLetter';
 
 interface SearchCoverLettersParams {
@@ -22,15 +22,13 @@ interface PageInfo {
 }
 
 interface CoverLetterSearchResponse {
-  coverLetters: RecentCoverLetter[];
+  coverLetters: RecentCoverLetterType[];
   page: PageInfo;
 }
 
 const CreateCoverLetterResponseSchema = z.object({
   coverLetterId: z.number(),
 });
-
-// --- Existing Search/Get APIs ---
 
 export const searchCoverLetters = async ({
   searchWord,
@@ -50,17 +48,15 @@ export const searchCoverLetters = async ({
 
 export const getCoverLetter = async (
   coverLetterId: number,
-): Promise<CoverLetter> => {
+): Promise<CoverLetterType> => {
   if (!coverLetterId || Number.isNaN(coverLetterId) || coverLetterId <= 0) {
     throw new Error(`Invalid coverLetterId: ${coverLetterId}`);
   }
 
-  return apiClient.get<CoverLetter>({
+  return apiClient.get<CoverLetterType>({
     endpoint: `/coverletter/${coverLetterId}`,
   });
 };
-
-// --- Added Mutation APIs (Moved from features) ---
 
 export const createCoverLetter = async (
   payload: CreateCoverLetterRequest,
@@ -73,7 +69,7 @@ export const createCoverLetter = async (
 };
 
 export const updateCoverLetter = async (
-  payload: CoverLetter,
+  payload: CoverLetterType,
 ): Promise<void> => {
   await apiClient.put({
     endpoint: '/coverletter',

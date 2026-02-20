@@ -1,7 +1,7 @@
 import { Suspense, useCallback, useState } from 'react';
 
-import CoverLetterOverviewSection from '@/features/coverLetter/components/CoverLetterOverviewSection';
-import NewCoverLetterButton from '@/features/coverLetter/components/NewCoverLetterButton';
+import NewCoverLetterButton from '@/features/coverLetter/components/overview/NewCoverLetterButton';
+import OverviewSection from '@/features/coverLetter/components/overview/OverviewSection';
 import { ReviewWithFriendIcon } from '@/features/coverLetter/icons/ReviewWithFriend';
 import CoverLetterOverviewSkeleton from '@/features/home/components/CoverLetterOverviewSkeleton';
 import ErrorBoundary from '@/shared/components/ErrorBoundary';
@@ -84,7 +84,7 @@ const CoverLetterLandingPage = () => {
         >
           <Suspense fallback={<CoverLetterOverviewSkeleton len={9} />}>
             <div className='flex h-full flex-1'>
-              <CoverLetterOverviewSection
+              <OverviewSection
                 searchWord={searchWord}
                 isFilterActive={isFilterActive}
                 page={page}

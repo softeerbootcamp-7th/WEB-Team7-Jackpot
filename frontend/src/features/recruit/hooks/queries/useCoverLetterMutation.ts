@@ -7,7 +7,7 @@ import {
 } from '@/shared/api/coverLetterApi';
 import { coverLetterQueryKeys } from '@/shared/hooks/queries/coverLetterQueryKeys';
 import type {
-  CoverLetter,
+  CoverLetterType,
   CreateCoverLetterRequest,
   CreateCoverLetterResponse,
 } from '@/shared/types/coverLetter';
@@ -39,7 +39,7 @@ export const useCreateCoverLetter = () => {
 export const useUpdateCoverLetter = () => {
   const invalidate = useInvalidateCoverLetters();
 
-  return useMutation<void, Error, CoverLetter>({
+  return useMutation<void, Error, CoverLetterType>({
     mutationFn: updateCoverLetter,
     onSuccess: () => invalidate(), // ['coverLetters'] 전체 무효화
     onError: (error) => console.error('수정 실패:', error.message),
