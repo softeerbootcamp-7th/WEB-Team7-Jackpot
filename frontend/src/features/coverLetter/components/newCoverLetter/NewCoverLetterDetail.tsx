@@ -67,8 +67,8 @@ const NewCoverLetterDetail = ({ formData, onUpdate }: Props) => {
       <div className='flex w-1/2 flex-1 flex-col gap-5'>
         <RecruitPeriodSelectInput
           label='채용 시기'
-          yearValue={formData.applyYear}
-          seasonValue={formData.applyHalf}
+          yearValue={formData.applyYear ?? new Date().getFullYear()}
+          seasonValue={formData.applyHalf ?? 'FIRST_HALF'}
           onChangeYear={(val) => onUpdate('applyYear', val)}
           onChangeSeason={(val: ApiApplyHalf) => onUpdate('applyHalf', val)}
           constantData={yearList}
