@@ -79,7 +79,7 @@ const CoverLetterSection = ({
         : currentVersion;
       createReview(
         {
-          version: nextVersion,
+          version: nextVersion - 1,
           startIdx: selection.range.start,
           endIdx: selection.range.end,
           originText: selection.selectedText,

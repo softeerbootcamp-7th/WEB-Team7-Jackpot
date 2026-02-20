@@ -92,10 +92,17 @@ export const useTextSelection = ({
     let timeoutId: number | undefined;
 
     const { range, originText } = editingReview;
+    if (range.start < 0 || range.end < 0 || range.start >= range.end) {
+      onSelectionChange(null);
+      return;
+    }
     const startPos = findNodeAtIndex(containerRef.current, range.start);
     const endPos = findNodeAtIndex(containerRef.current, range.end);
 
-    if (!startPos || !endPos) return;
+    if (!startPos || !endPos) {
+      onSelectionChange(null);
+      return;
+    }
 
     const domRange = document.createRange();
     domRange.setStart(startPos.node, startPos.offset);
@@ -143,8 +150,7 @@ export const useTextSelection = ({
     () => [
       ...reviews
         .filter(
-          (r) =>
-            r.viewStatus === 'PENDING' || r.viewStatus === 'ACCEPTED',
+          (r) => r.viewStatus === 'PENDING' || r.viewStatus === 'ACCEPTED',
         )
         .map((r) => r.range),
       ...(selection && !editingReview ? [selection.range] : []),

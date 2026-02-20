@@ -236,7 +236,9 @@ export const updateReviewRanges = <T extends Review>(
     const currentText = newDocumentText.slice(start, end);
     const hasSuggest = review.suggest != null && review.suggest.length > 0;
     const expectedText = review.isApproved
-      ? (hasSuggest ? review.suggest : review.originText)
+      ? hasSuggest
+        ? review.suggest
+        : review.originText
       : review.originText;
     if (currentText !== expectedText) {
       return { ...review, range: { start: -1, end: -1 } };

@@ -56,13 +56,14 @@ export const findNodeAtIndex = (
   container: HTMLElement,
   targetIndex: number,
 ) => {
+  const safeTargetIndex = Math.max(0, targetIndex);
   const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
   let accumulated = 0;
   let node: Text | null;
 
   while ((node = walker.nextNode() as Text | null)) {
-    if (accumulated + node.length >= targetIndex) {
-      return { node, offset: targetIndex - accumulated };
+    if (accumulated + node.length >= safeTargetIndex) {
+      return { node, offset: safeTargetIndex - accumulated };
     }
     accumulated += node.length;
   }
