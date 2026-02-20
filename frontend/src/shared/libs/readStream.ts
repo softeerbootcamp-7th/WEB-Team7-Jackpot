@@ -13,7 +13,6 @@ export const readStream = async <T = unknown>(
       const { value, done } = await reader.read();
 
       if (done) {
-        console.log('SSE 스트림 정상 종료');
         break;
       }
 
@@ -74,7 +73,7 @@ export const readStream = async <T = unknown>(
     }
   } catch (err) {
     if (err instanceof Error && err.name === 'AbortError') {
-      console.log('스트림 읽기 중단됨 (Abort)');
+      // 스트림 중단
     } else {
       console.error('스트림 읽기 에러:', err);
       throw err;
