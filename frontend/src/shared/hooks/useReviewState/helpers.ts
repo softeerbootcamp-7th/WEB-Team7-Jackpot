@@ -395,7 +395,8 @@ const toTaggedIndex = (taggedText: string, cleanIndex: number): number => {
   while (rawIndex < taggedText.length && cleanCount < boundedCleanIndex) {
     if (taggedText.startsWith('⟦r:', rawIndex)) {
       const closeBracketIndex = taggedText.indexOf('⟧', rawIndex);
-      rawIndex = closeBracketIndex === -1 ? taggedText.length : closeBracketIndex + 1;
+      rawIndex =
+        closeBracketIndex === -1 ? taggedText.length : closeBracketIndex + 1;
       continue;
     }
     if (taggedText.startsWith(CLOSE_TAG, rawIndex)) {
@@ -432,12 +433,6 @@ export const mapCleanRangeToTaggedRange = (
   }
 
   const mapped = { startIdx, endIdx };
-  console.log('[mapCleanRangeToTaggedRange]', {
-    cleanRange: { start, end },
-    mappedRange: mapped,
-    cleanedTextLength: cleanedText.length,
-    taggedTextLength: taggedText.length,
-    taggedTextPreview: taggedText.slice(Math.max(0, mapped.startIdx - 20), mapped.endIdx + 20),
-  });
+
   return mapped;
 };
