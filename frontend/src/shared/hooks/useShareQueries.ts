@@ -17,7 +17,11 @@ export const useShareCoverLetter = (shareId: string, isConnected: boolean) => {
 
 // ShareId로 QnA 단건 조회 (페이지네이션 전환용 non-suspense)
 // staleTime 미설정 의도: 페이지 전환 시 항상 최신 QnA 데이터를 가져와야 하므로 기본값(0) 사용
-export const useShareQnA = (shareId: string, qnAId: number | undefined) => {
+export const useShareQnA = (
+  shareId: string,
+  qnAId: number | undefined,
+  enabled: boolean = true,
+) => {
   return useQuery({
     queryKey: ['share', shareId, 'qna', qnAId],
     queryFn: () => {
@@ -26,6 +30,6 @@ export const useShareQnA = (shareId: string, qnAId: number | undefined) => {
       }
       return getShareQnA(shareId, qnAId);
     },
-    enabled: qnAId !== null,
+    enabled: enabled && qnAId != null,
   });
 };

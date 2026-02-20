@@ -91,7 +91,7 @@ export const useTextSelection = ({
     if (!editingReview || !containerRef.current) return;
     let timeoutId: number | undefined;
 
-    const { range, selectedText } = editingReview;
+    const { range, originText } = editingReview;
     const startPos = findNodeAtIndex(containerRef.current, range.start);
     const endPos = findNodeAtIndex(containerRef.current, range.end);
 
@@ -120,7 +120,7 @@ export const useTextSelection = ({
         const modalInfoAfter = calculateModalInfo(
           containerRef.current!,
           domRange,
-          selectedText,
+          originText,
         );
         if (modalInfoAfter) onSelectionChange(modalInfoAfter);
       }, 300);
@@ -128,7 +128,7 @@ export const useTextSelection = ({
       const modalInfo = calculateModalInfo(
         containerRef.current,
         domRange,
-        selectedText,
+        originText,
       );
       if (modalInfo) onSelectionChange(modalInfo);
     }
@@ -142,7 +142,10 @@ export const useTextSelection = ({
   const highlights = useMemo(
     () => [
       ...reviews
-        .filter((r) => r.isValid !== false) // 유효한 리뷰만
+        .filter(
+          (r) =>
+            r.viewStatus === 'PENDING' || r.viewStatus === 'ACCEPTED',
+        )
         .map((r) => r.range),
       ...(selection && !editingReview ? [selection.range] : []),
     ],

@@ -9,8 +9,7 @@ export interface Sender {
 }
 
 export interface ReviewBase {
-  selectedText: string;
-  revision: string;
+  originText: string;
   comment: string;
   range: TextRange;
 }
@@ -19,15 +18,14 @@ export type ReviewViewStatus =
   | 'PENDING'
   | 'PENDING_CHANGED'
   | 'ACCEPTED'
-  | 'OUTDATED';
+  | 'OUTDATED'
+  | 'REVERT';
 
 export interface Review extends ReviewBase {
   id: number;
   sender?: Sender;
-  originText?: string;
   suggest?: string | null;
   createdAt?: string;
-  isValid?: boolean;
   isApproved?: boolean;
   viewStatus?: ReviewViewStatus;
 }

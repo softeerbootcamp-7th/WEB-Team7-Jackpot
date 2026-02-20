@@ -35,7 +35,6 @@ export const useSocketSubscribe = ({
         (message: IMessage) => {
           if (message.body) {
             const parsedBody = JSON.parse(message.body);
-            console.log('received message:', parsedBody);
             if (onMessageRef.current) {
               onMessageRef.current(parsedBody);
             }

@@ -31,15 +31,18 @@ const CoverLetterLiveMode = ({
   );
   const currentQnAId = qnaIds.length > 0 ? qnaIds[safePageIndex] : undefined;
 
-  const { data: currentQna, isLoading: isQnALoading } = useShareQnA(
-    shareId,
-    currentQnAId,
-  );
   const { isConnected, sendMessage, clientRef } = useStompClient({
     shareId: shareId,
   });
+  const { data: currentQna, isLoading: isQnALoading } = useShareQnA(
+    shareId,
+    currentQnAId,
+    isConnected,
+  );
 
-  const { data: reviewData } = useReviewsByQnaId(currentQnAId);
+  const { data: reviewData } = useReviewsByQnaId(currentQnAId, {
+    enabled: isConnected,
+  });
 
   const reviewState = useReviewState({
     qna: currentQna,

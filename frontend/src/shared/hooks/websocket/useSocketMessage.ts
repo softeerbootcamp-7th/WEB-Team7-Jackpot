@@ -10,11 +10,6 @@ interface UseSocketMessageParams {
 export const useSocketMessage = ({ dispatchers }: UseSocketMessageParams) => {
   const handleMessage = useCallback(
     (message: WebSocketResponse) => {
-      console.log('[WS] incoming', {
-        type: message.type,
-        qnAId: message.qnAId,
-        payload: message.payload,
-      });
       switch (message.type) {
         case 'TEXT_REPLACE_ALL':
           dispatchers.handleTextReplaceAllEvent(message.qnAId, message.payload);

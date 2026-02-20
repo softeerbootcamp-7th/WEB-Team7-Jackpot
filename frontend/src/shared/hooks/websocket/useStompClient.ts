@@ -29,11 +29,7 @@ export const useStompClient = ({ shareId }: UseStompClientProps) => {
         Authorization: token ?? '',
         shareId: shareId,
       },
-      debug: (str: string) => {
-        console.log('[STOMP]:', str);
-      },
       onConnect: () => {
-        console.log('Websocket Connected!');
         setIsConnected(true);
       },
       onStompError: (frame: IFrame) => {
@@ -50,7 +46,6 @@ export const useStompClient = ({ shareId }: UseStompClientProps) => {
     clientRef.current = client;
 
     return () => {
-      console.log('websocket disconnecting');
       client.deactivate();
       setIsConnected(false);
     };
@@ -62,8 +57,6 @@ export const useStompClient = ({ shareId }: UseStompClientProps) => {
         destination,
         body: JSON.stringify(body),
       });
-    } else {
-      console.log('STOMP not connected');
     }
   };
 

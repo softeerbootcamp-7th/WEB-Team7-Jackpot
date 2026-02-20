@@ -42,6 +42,7 @@ const ReviewLayout = () => {
   const { data: currentQna, isLoading: isQnALoading } = useShareQnA(
     sharedId,
     currentQnAId,
+    isConnected,
   );
   const { data: reviewData } = useReviewsByQnaId(currentQnAId);
 

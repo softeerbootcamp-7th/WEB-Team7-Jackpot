@@ -64,7 +64,7 @@ export interface UseReviewStateResult {
   selection: SelectionInfo | null;
   setSelection: (selection: SelectionInfo | null) => void;
   handleTextChange: (newText: string) => TextChangeResult | void;
-  handleUpdateReview: (id: number, revision: string, comment: string) => void;
+  handleUpdateReview: (id: number, suggest: string, comment: string) => void;
   handleEditReview: (id: number) => void;
   handleCancelEdit: () => void;
   editedAnswers: Record<number, string>;
@@ -160,6 +160,26 @@ export const useReviewState = ({
   }, [qnaId, originalText]);
 
   const lastTaggedRangesRef = useRef<Record<number, TaggedRange[]>>({});
+  const socketEventQueueRef = useRef<Array<() => void>>([]);
+  const isSocketQueueScheduledRef = useRef(false);
+
+  const flushSocketEventQueue = useCallback(() => {
+    isSocketQueueScheduledRef.current = false;
+    while (socketEventQueueRef.current.length > 0) {
+      const job = socketEventQueueRef.current.shift();
+      job?.();
+    }
+  }, []);
+
+  const enqueueSocketEvent = useCallback(
+    (job: () => void) => {
+      socketEventQueueRef.current.push(job);
+      if (isSocketQueueScheduledRef.current) return;
+      isSocketQueueScheduledRef.current = true;
+      queueMicrotask(flushSocketEventQueue);
+    },
+    [flushSocketEventQueue],
+  );
 
   const getLatestReviews = useCallback(
     (prev: Record<number, Review[]>, id: number): Review[] => {
@@ -203,14 +223,21 @@ export const useReviewState = ({
       return baseReviews.map((review) => ({
         id: review.id,
         sender: review.sender ?? { id: '', nickname: '' },
-        originText: review.originText ?? review.selectedText,
-        suggest: review.suggest ?? review.revision ?? null,
+        originText: review.originText,
+        suggest: review.suggest ?? null,
         comment: review.comment ?? '',
         createdAt: review.createdAt ?? '',
         isApproved: Boolean(review.isApproved),
       }));
     },
     [qnaId, apiReviews],
+  );
+
+  const revalidateReviewsByCurrentText = useCallback(
+    (reviews: Review[], currentDocumentText: string): Review[] => {
+      return applyViewStatus(reviews, currentDocumentText);
+    },
+    [],
   );
 
   const handleTextUpdateEvent = useCallback(
@@ -220,22 +247,26 @@ export const useReviewState = ({
       const currentVersionForQna = getCurrentVersionByQnaId(targetQnaId);
       if (version <= currentVersionForQna) return;
       const oldLength = Math.max(0, endIdx - startIdx);
+
       const newText =
         oldText.slice(0, startIdx) + replacedText + oldText.slice(endIdx);
+
       const newLength = replacedText.length;
 
       setEditedAnswers((prev) => ({ ...prev, [targetQnaId]: newText }));
       setReviewsByQnaId((prevReviews) => {
         const baseReviews = getLatestReviews(prevReviews, targetQnaId);
+        const nextReviews = updateReviewRanges(
+          baseReviews,
+          startIdx,
+          oldLength,
+          newLength,
+          newText,
+        );
+
         return {
           ...prevReviews,
-          [targetQnaId]: updateReviewRanges(
-            baseReviews,
-            startIdx,
-            oldLength,
-            newLength,
-            newText,
-          ),
+          [targetQnaId]: nextReviews,
         };
       });
 
@@ -326,22 +357,15 @@ export const useReviewState = ({
 
       const review: Review = {
         id: reviewId,
-        selectedText: originText,
-        revision: suggest ?? '',
+        originText,
         comment,
         range: taggedRange
           ? { start: taggedRange.start, end: taggedRange.end }
           : { start: -1, end: -1 },
         sender,
-        originText,
         suggest,
         createdAt,
         isApproved: false,
-        isValid: Boolean(
-          taggedRange &&
-          currentDocumentText.slice(taggedRange.start, taggedRange.end) ===
-            originText,
-        ),
       };
 
       setReviewsByQnaId((prevReviews) => {
@@ -380,29 +404,53 @@ export const useReviewState = ({
 
       setReviewsByQnaId((prevReviews) => {
         const baseReviews = getLatestReviews(prevReviews, targetQnaId);
-        const nextReviews = baseReviews.map((review) => {
+        const patchedReviews = baseReviews.map((review) => {
           if (review.id !== payload.reviewId) return review;
+
+          const { start, end } = review.range;
+          const incomingOriginText = payload.originText;
+          const incomingSuggest = payload.suggest;
+          const previousOriginText = review.originText;
+          const previousSuggest = review.suggest ?? null;
+
+          // 승인/되돌리기 토글에서는 origin/suggest가 서로 뒤집혀 들어온다.
+          const isSwapToggleEvent =
+            previousSuggest !== null &&
+            incomingOriginText === previousSuggest &&
+            incomingSuggest === previousOriginText;
+
+          const nextIsApproved =
+            payload.isApproved !== undefined
+              ? payload.isApproved
+              : isSwapToggleEvent
+                ? !review.isApproved
+                : start >= 0 &&
+                    end >= 0 &&
+                    currentDocumentText.slice(start, end) === incomingOriginText
+                  ? Boolean(review.isApproved)
+                  : false;
 
           return {
             ...review,
-            selectedText: payload.originText,
-            originText: payload.originText,
-            revision: payload.suggest ?? '',
-            suggest: payload.suggest,
+            originText: incomingOriginText,
+            suggest: incomingSuggest,
             comment: payload.content,
-            ...(payload.isApproved !== undefined
-              ? { isApproved: payload.isApproved }
-              : {}),
+            isApproved: nextIsApproved,
           };
         });
 
+        const nextReviews = revalidateReviewsByCurrentText(
+          patchedReviews,
+          currentDocumentText,
+        );
+
         return {
           ...prevReviews,
-          [targetQnaId]: applyViewStatus(nextReviews, currentDocumentText),
+          [targetQnaId]: nextReviews,
         };
       });
     },
-    [getCurrentTextByQnaId, getLatestReviews],
+    [getCurrentTextByQnaId, getLatestReviews, revalidateReviewsByCurrentText],
   );
 
   const handleTextChange = useCallback(
@@ -443,16 +491,17 @@ export const useReviewState = ({
       });
       return change;
     },
+
     [qnaId, getCurrentTextByQnaId, getLatestReviews, qnaVersion],
   );
 
   const handleUpdateReview = useCallback(
-    (id: number, revision: string, comment: string) => {
+    (id: number, suggest: string, comment: string) => {
       if (qnaId === undefined) return;
       setReviewsByQnaId((prev) => ({
         ...prev,
         [qnaId]: getLatestReviews(prev, qnaId).map((r) =>
-          r.id === id ? { ...r, revision, comment } : r,
+          r.id === id ? { ...r, suggest, comment } : r,
         ),
       }));
       setEditingId(null);
@@ -465,13 +514,27 @@ export const useReviewState = ({
 
   const dispatchers = useMemo<ReviewDispatchers>(
     () => ({
-      handleTextUpdateEvent,
-      handleTextReplaceAllEvent,
-      handleReviewCreatedEvent,
-      handleReviewDeletedEvent,
-      handleReviewUpdatedEvent,
+      handleTextUpdateEvent: (targetQnaId, payload) =>
+        enqueueSocketEvent(() => handleTextUpdateEvent(targetQnaId, payload)),
+      handleTextReplaceAllEvent: (targetQnaId, payload) =>
+        enqueueSocketEvent(() =>
+          handleTextReplaceAllEvent(targetQnaId, payload),
+        ),
+      handleReviewCreatedEvent: (targetQnaId, payload) =>
+        enqueueSocketEvent(() =>
+          handleReviewCreatedEvent(targetQnaId, payload),
+        ),
+      handleReviewDeletedEvent: (targetQnaId, payload) =>
+        enqueueSocketEvent(() =>
+          handleReviewDeletedEvent(targetQnaId, payload),
+        ),
+      handleReviewUpdatedEvent: (targetQnaId, payload) =>
+        enqueueSocketEvent(() =>
+          handleReviewUpdatedEvent(targetQnaId, payload),
+        ),
     }),
     [
+      enqueueSocketEvent,
       handleTextUpdateEvent,
       handleTextReplaceAllEvent,
       handleReviewCreatedEvent,

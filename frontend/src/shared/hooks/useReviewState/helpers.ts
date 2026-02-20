@@ -83,18 +83,22 @@ export const computeViewStatus = (
   currentText: string,
 ): ReviewViewStatus => {
   const { start, end } = review.range;
+  if (start < 0 || end < 0 || start >= end) return 'OUTDATED';
 
   const textAtRange = currentText.slice(start, end);
+  const matchesOrigin = textAtRange === review.originText;
+  const hasSuggest = review.suggest != null && review.suggest.length > 0;
+  const matchesSuggest = hasSuggest && textAtRange === review.suggest;
 
   if (review.isApproved) {
-    // ACCEPTED: 현재 텍스트가 suggest와 일치
-    const suggestText = review.suggest ?? '';
-    return textAtRange === suggestText ? 'ACCEPTED' : 'OUTDATED';
+    if (matchesOrigin) return 'ACCEPTED';
+    if (matchesSuggest) return 'PENDING_CHANGED';
+    return 'OUTDATED';
   }
 
-  // PENDING 계열: 원본 텍스트와 비교
-  const originText = review.originText ?? review.selectedText;
-  return textAtRange === originText ? 'PENDING' : 'PENDING_CHANGED';
+  if (matchesOrigin) return 'PENDING';
+  if (matchesSuggest) return 'ACCEPTED';
+  return 'PENDING_CHANGED';
 };
 
 // 리뷰 배열에 viewStatus를 일괄 계산하여 반영
@@ -128,34 +132,25 @@ export const buildReviewsFromApi = (
     if (!tagged) {
       return {
         id: api.id,
-        selectedText: api.originText,
-        revision: api.suggest || '',
+        originText: api.originText,
         comment: api.comment,
         range: { start: -1, end: -1 },
         sender: api.sender,
-        originText: api.originText,
         suggest: api.suggest,
         createdAt: api.createdAt,
         isApproved: api.isApproved,
-        isValid: false,
       };
     }
 
-    const actualText = cleanedText.slice(tagged.start, tagged.end);
-    const isTextMatching = actualText === api.originText;
-
     return {
       id: api.id,
-      selectedText: api.originText,
-      revision: api.suggest || '',
+      originText: api.originText,
       comment: api.comment,
       range: { start: tagged.start, end: tagged.end },
       sender: api.sender,
-      originText: api.originText,
       suggest: api.suggest,
       createdAt: api.createdAt,
       isApproved: api.isApproved,
-      isValid: isTextMatching,
     };
   });
 
@@ -219,12 +214,19 @@ export const updateReviewRanges = <T extends Review>(
       };
     }
 
-    // 변경 영역에 리뷰가 완전히 포함되는 경우 → 무효화
+    // 변경 영역에 리뷰가 완전히 포함되는 경우:
+    // - 변경 범위와 리뷰 범위가 정확히 일치하면(첨삭 적용 케이스) 새 길이에 맞춰 범위를 유지
+    // - 그 외에는 기존대로 무효화
     if (start >= changeStart && end <= changeEnd) {
+      if (start === changeStart && end === changeEnd) {
+        return {
+          ...review,
+          range: { start: changeStart, end: changeStart + newLength },
+        };
+      }
       return {
         ...review,
         range: { start: -1, end: -1 },
-        isValid: false,
       };
     }
 
@@ -250,19 +252,25 @@ export const updateReviewRanges = <T extends Review>(
     };
   });
 
-  // originText 검증
+  // 리뷰 기준 텍스트 검증. 불일치 리뷰는 range를 비활성화한다.
   const validatedReviews = shiftedReviews.map((review) => {
     const { start, end } = review.range;
-    if (start < 0 || end < 0 || !review.isValid)
-      return { ...review, isValid: false };
+    if (start < 0 || end < 0)
+      return { ...review, range: { start: -1, end: -1 } };
 
     const currentText = newDocumentText.slice(start, end);
-    return { ...review, isValid: currentText === review.originText };
+    const expectedText = review.isApproved
+      ? (review.suggest ?? review.originText)
+      : review.originText;
+    if (currentText !== expectedText) {
+      return { ...review, range: { start: -1, end: -1 } };
+    }
+    return review;
   });
 
   // 겹침 검증
   const activeReviews = validatedReviews
-    .filter((r) => r.range.start !== -1 && r.isValid)
+    .filter((r) => r.range.start !== -1)
     .sort((a, b) => a.range.start - b.range.start);
 
   const conflictIds = new Set<number>();
@@ -279,7 +287,7 @@ export const updateReviewRanges = <T extends Review>(
 
   // 겹친 리뷰 무효화
   const finalReviews = validatedReviews.map((r) =>
-    conflictIds.has(r.id) ? { ...r, isValid: false } : r,
+    conflictIds.has(r.id) ? { ...r, range: { start: -1, end: -1 } } : r,
   );
 
   // viewStatus 재계산
@@ -332,10 +340,10 @@ export const reconstructTaggedText = (
   // 유효한 리뷰 필터링
   const validReviews = reviews.filter(
     (r) =>
-      r.isValid !== false &&
       r.range.start !== -1 &&
       r.range.start < r.range.end &&
-      r.range.end <= cleanedText.length,
+      r.range.end <= cleanedText.length &&
+      (r.viewStatus === 'PENDING' || r.viewStatus === 'ACCEPTED'),
   );
 
   const sorted = [...validReviews].sort(
