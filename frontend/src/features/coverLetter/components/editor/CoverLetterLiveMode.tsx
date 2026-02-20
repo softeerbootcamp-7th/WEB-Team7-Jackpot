@@ -118,6 +118,7 @@ const CoverLetterLiveMode = ({
       toolbar={toolbar}
       onPageChange={setCurrentPageIndex}
       onTextChange={reviewState.handleTextChange}
+      onReserveNextVersion={reviewState.reserveNextVersion}
       currentVersion={reviewState.currentVersion}
       currentReplaceAllSignal={reviewState.currentReplaceAllSignal}
       isConnected={isConnected}

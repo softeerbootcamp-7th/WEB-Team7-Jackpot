@@ -28,7 +28,11 @@ interface CoverLetterContentProps {
   selectedReviewId: number | null;
   onSelectionChange: (selection: SelectionInfo | null) => void;
   onReviewClick: (reviewId: number) => void;
-  onTextChange?: (newText: string) => TextChangeResult | void;
+  onTextChange?: (
+    newText: string,
+    options?: { skipVersionIncrement?: boolean },
+  ) => TextChangeResult | void;
+  onReserveNextVersion?: () => number;
   onComposingLengthChange?: (length: number | null) => void;
   isConnected: boolean;
   sendMessage: (destination: string, body: unknown) => void;
@@ -49,6 +53,7 @@ const CoverLetterContent = ({
   onSelectionChange,
   onReviewClick,
   onTextChange,
+  onReserveNextVersion,
   onComposingLengthChange,
   isConnected,
   sendMessage,
@@ -76,7 +81,7 @@ const CoverLetterContent = ({
     onSelectionChange,
   });
 
-  const versionRef = useRef(initialVersion);
+  const fallbackVersionRef = useRef(initialVersion);
   const lastSeenVersionRef = useRef(initialVersion);
   const latestTextRef = useRef(text);
   const onComposingLengthChangeRef = useRef(onComposingLengthChange);
@@ -93,7 +98,7 @@ const CoverLetterContent = ({
   useEffect(() => {
     const versionChanged = initialVersion !== lastSeenVersionRef.current;
     lastSeenVersionRef.current = initialVersion;
-    versionRef.current = initialVersion;
+    fallbackVersionRef.current = initialVersion;
 
     if (!versionChanged) return;
 
@@ -206,20 +211,31 @@ const CoverLetterContent = ({
 
   const sendTextPatch = useCallback(
     (oldText: string, newText: string) => {
-      if (!isConnected || !shareId || !qnAId) return;
-      if (oldText === newText) return;
+      if (!isConnected || !shareId || !qnAId) return false;
+      if (oldText === newText) return false;
 
       const patch = buildPatch(oldText, newText);
-      versionRef.current += 1;
+      const nextVersion = onReserveNextVersion
+        ? onReserveNextVersion()
+        : (fallbackVersionRef.current += 1);
       sendMessage(`/pub/share/${shareId}/qna/${qnAId}/text-update`, {
-        version: versionRef.current,
+        version: nextVersion,
         startIdx: patch.startIdx,
         endIdx: patch.endIdx,
         replacedText: patch.replacedText,
       } as WriterMessageType);
       onTextUpdateSent?.(new Date().toISOString());
+      return true;
     },
-    [buildPatch, isConnected, onTextUpdateSent, qnAId, sendMessage, shareId],
+    [
+      buildPatch,
+      isConnected,
+      onReserveNextVersion,
+      onTextUpdateSent,
+      qnAId,
+      sendMessage,
+      shareId,
+    ],
   );
 
   const updateText = useCallback(
@@ -228,8 +244,13 @@ const CoverLetterContent = ({
 
       const currentText = latestTextRef.current;
       if (newText !== currentText) {
-        const change = onTextChangeRef.current(newText);
-        if (change && typeof change === 'object') {
+          const sentBySocket = !options?.skipSocket
+            ? sendTextPatch(currentText, newText)
+            : false;
+          const change = onTextChangeRef.current(newText, {
+            skipVersionIncrement: sentBySocket,
+          });
+          if (change && typeof change === 'object') {
           undoStack.current.push({
             text: currentText,
             caret: caretOffsetRef.current,
@@ -240,9 +261,6 @@ const CoverLetterContent = ({
           isInputtingRef.current = true;
           latestTextRef.current = newText; // 즉시 동기 업데이트 — re-render 전 다음 입력에서도 최신 값 사용
 
-          if (!options?.skipSocket) {
-            sendTextPatch(currentText, newText);
-          }
         }
       }
     },

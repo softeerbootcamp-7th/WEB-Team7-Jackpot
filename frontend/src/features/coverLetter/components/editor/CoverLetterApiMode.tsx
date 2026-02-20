@@ -84,6 +84,7 @@ const CoverLetterApiMode = ({
       toolbar={toolbar}
       onPageChange={setCurrentPageIndex}
       onTextChange={reviewState.handleTextChange}
+      onReserveNextVersion={reviewState.reserveNextVersion}
       currentVersion={reviewState.currentVersion}
       currentReplaceAllSignal={reviewState.currentReplaceAllSignal}
       isSaving={isPending}

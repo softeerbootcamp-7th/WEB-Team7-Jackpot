@@ -33,7 +33,11 @@ interface CoverLetterEditorProps {
   isReviewActive: boolean;
   toolbar: ReactNode;
   onPageChange: (index: number) => void;
-  onTextChange: (newText: string) => void;
+  onTextChange: (
+    newText: string,
+    options?: { skipVersionIncrement?: boolean },
+  ) => void;
+  onReserveNextVersion?: () => number;
   currentVersion: number;
   currentReplaceAllSignal: number;
   isSaving?: boolean;
@@ -53,6 +57,7 @@ const CoverLetterEditor = ({
   toolbar,
   onPageChange,
   onTextChange,
+  onReserveNextVersion,
   currentVersion,
   currentReplaceAllSignal,
   isSaving = false,
@@ -173,6 +178,7 @@ const CoverLetterEditor = ({
               onSelectionChange={setSelection}
               onReviewClick={handleReviewClick}
               onTextChange={onTextChange}
+              onReserveNextVersion={onReserveNextVersion}
               onComposingLengthChange={setComposingLength}
               isConnected={isConnected}
               sendMessage={sendMessage}

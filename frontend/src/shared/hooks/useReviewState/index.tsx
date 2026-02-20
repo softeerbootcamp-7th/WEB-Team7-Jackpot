@@ -63,7 +63,11 @@ export interface UseReviewStateResult {
   editingReview: Review | null;
   selection: SelectionInfo | null;
   setSelection: (selection: SelectionInfo | null) => void;
-  handleTextChange: (newText: string) => TextChangeResult | void;
+  handleTextChange: (
+    newText: string,
+    options?: { skipVersionIncrement?: boolean },
+  ) => TextChangeResult | void;
+  reserveNextVersion: () => number;
   handleUpdateReview: (id: number, suggest: string, comment: string) => void;
   handleEditReview: (id: number) => void;
   handleCancelEdit: () => void;
@@ -454,7 +458,10 @@ export const useReviewState = ({
   );
 
   const handleTextChange = useCallback(
-    (newText: string): TextChangeResult | void => {
+    (
+      newText: string,
+      options?: { skipVersionIncrement?: boolean },
+    ): TextChangeResult | void => {
       if (qnaId === undefined) return;
 
       const oldText = getCurrentTextByQnaId(qnaId);
@@ -474,10 +481,17 @@ export const useReviewState = ({
           ),
         };
       });
-      setVersionByQnaId((prev) => ({
-        ...prev,
-        [qnaId]: (prev[qnaId] ?? qnaVersion) + 1,
-      }));
+      if (!options?.skipVersionIncrement) {
+        const nextVersion = getCurrentVersionByQnaId(qnaId) + 1;
+        versionByQnaIdRef.current = {
+          ...versionByQnaIdRef.current,
+          [qnaId]: nextVersion,
+        };
+        setVersionByQnaId((prev) => ({
+          ...prev,
+          [qnaId]: nextVersion,
+        }));
+      }
 
       setSelection((prev) => {
         if (!prev) return null;
@@ -492,8 +506,28 @@ export const useReviewState = ({
       return change;
     },
 
-    [qnaId, getCurrentTextByQnaId, getLatestReviews, qnaVersion],
+    [
+      qnaId,
+      getCurrentTextByQnaId,
+      getCurrentVersionByQnaId,
+      getLatestReviews,
+      qnaVersion,
+    ],
   );
+
+  const reserveNextVersion = useCallback((): number => {
+    if (qnaId === undefined) return 0;
+    const nextVersion = getCurrentVersionByQnaId(qnaId) + 1;
+    versionByQnaIdRef.current = {
+      ...versionByQnaIdRef.current,
+      [qnaId]: nextVersion,
+    };
+    setVersionByQnaId((prev) => ({
+      ...prev,
+      [qnaId]: nextVersion,
+    }));
+    return nextVersion;
+  }, [qnaId, getCurrentVersionByQnaId]);
 
   const handleUpdateReview = useCallback(
     (id: number, suggest: string, comment: string) => {
@@ -552,6 +586,7 @@ export const useReviewState = ({
     selection,
     setSelection,
     handleTextChange,
+    reserveNextVersion,
     handleUpdateReview,
     handleEditReview,
     handleCancelEdit,
