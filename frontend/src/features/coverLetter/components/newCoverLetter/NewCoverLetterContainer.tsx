@@ -1,20 +1,18 @@
 import { useNavigate } from 'react-router';
 
 import NewCoverLetterView from '@/features/coverLetter/components/newCoverLetter/NewCoverLetterView';
-import { useCreateCoverLetter } from '@/features/recruit/hooks/queries/useCoverLetterMutation';
 import { DEFAULT_DATA } from '@/shared/constants/createCoverLetter';
 import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
+import { useCreateCoverLetter } from '@/shared/hooks/useCoverLetterQueries';
 import { useRecruitForm } from '@/shared/hooks/useRecruitForm';
 import { setStoredToastMessage } from '@/shared/utils/toastMessageStorage';
 
 const NewCoverLetterContainer = () => {
   const navigate = useNavigate();
-  const { mutateAsync: create } = useCreateCoverLetter(); // [박소민] 자기소개서 등록 후 해당 페이지로 이동해야 하므로 비동기로 처리
+  const { mutateAsync: create } = useCreateCoverLetter(); // 자기소개서 등록 후 해당 페이지로 이동해야 하므로 비동기로 처리
   const { showToast } = useToastMessageContext();
 
   const { formData, handleChange } = useRecruitForm(DEFAULT_DATA);
-
-  // [박소민] TODO: 등록 완료 되었지만 자기소개서 랜딩 페이지에 반영안되는 버그 해결
 
   const handleSubmit = async () => {
     try {
