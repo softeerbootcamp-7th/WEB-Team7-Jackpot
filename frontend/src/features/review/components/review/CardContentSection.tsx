@@ -21,14 +21,14 @@ const CardContentSection = ({
 
   return (
     <div className='flex w-full flex-col gap-4'>
-      {review.revision && (
+      {review.suggest && (
         <div className='flex w-full flex-col gap-1'>
           <div className='flex items-center gap-1.5'>
             <PaperChipIcon />
             <span className='text-body-l font-bold text-gray-950'>첨삭</span>
           </div>
           <p className='text-body-s pl-6 font-normal text-gray-600'>
-            {review.revision}
+            {review.suggest}
           </p>
         </div>
       )}

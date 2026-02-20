@@ -12,17 +12,17 @@ const TabSelector = ({ tab, onTabChange }: TabSelectorProps) => {
     <div className='flex h-12 w-full items-center rounded-2xl bg-gray-100 p-1'>
       <button
         type='button'
-        onClick={() => onTabChange('revision')}
+        onClick={() => onTabChange('suggest')}
         className={`flex h-10 w-1/2 items-center justify-center gap-1.5 rounded-xl transition-all ${
-          tab === 'revision'
+          tab === 'suggest'
             ? 'bg-white shadow-[0px_0px_10px_0px_rgba(41,41,41,0.06)]'
             : ''
         }`}
       >
-        <PaperChipIcon active={tab === 'revision'} />
+        <PaperChipIcon active={tab === 'suggest'} />
         <span
           className={`text-body-l ${
-            tab === 'revision'
+            tab === 'suggest'
               ? 'font-bold text-gray-900'
               : 'font-normal text-gray-400'
           }`}

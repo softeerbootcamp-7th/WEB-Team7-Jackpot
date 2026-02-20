@@ -35,9 +35,10 @@ export interface ReviewUpdatedResponseType {
   payload: {
     reviewId: number;
     originText: string;
-    suggest: string;
+    suggest: string | null;
     content: string;
     modifiedAt: string;
+    isApproved?: boolean;
   };
 }
 
@@ -59,10 +60,14 @@ export interface ReviewCreatedResponseType {
     };
     reviewId: number;
     originText: string;
-    suggest: string;
+    suggest: string | null;
     comment: string;
     createdAt: string;
   };
+}
+
+export interface ShareDeactivatedResponseType {
+  type: 'SHARE_DEACTIVATED';
 }
 
 export type WebSocketResponse =
@@ -71,3 +76,38 @@ export type WebSocketResponse =
   | ReviewDeletedResponseType
   | ReviewCreatedResponseType
   | TextReplaceAllResponseType;
+
+export const isShareDeactivatedMessage = (
+  message: unknown,
+): message is ShareDeactivatedResponseType =>
+  typeof message === 'object' &&
+  message !== null &&
+  (message as Record<string, unknown>).type === 'SHARE_DEACTIVATED';
+
+const WEBSOCKET_TYPES = new Set<WebSocketResponse['type']>([
+  'TEXT_UPDATE',
+  'REVIEW_UPDATED',
+  'REVIEW_DELETED',
+  'REVIEW_CREATED',
+  'TEXT_REPLACE_ALL',
+]);
+
+const isWebSocketType = (
+  type: unknown,
+): type is WebSocketResponse['type'] =>
+  typeof type === 'string' &&
+  WEBSOCKET_TYPES.has(type as WebSocketResponse['type']);
+
+export const isWebSocketResponse = (
+  message: unknown,
+): message is WebSocketResponse => {
+  if (typeof message !== 'object' || message === null) return false;
+
+  const candidate = message as Record<string, unknown>;
+  return (
+    isWebSocketType(candidate.type) &&
+    typeof candidate.qnAId === 'number' &&
+    typeof candidate.payload === 'object' &&
+    candidate.payload !== null
+  );
+};

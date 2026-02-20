@@ -22,7 +22,7 @@ const ReviewCard = ({
   handleDeleteReview,
 }: ReviewCardProps) => {
   const [isDetail, setIsDetail] = useState(false);
-  const hasEdit = !!review.revision;
+  const hasEdit = !!review.suggest;
   const hasComment = !!review.comment;
   const viewStatus = review.viewStatus ?? 'PENDING';
   const showBanner = viewStatus !== 'PENDING';
@@ -56,11 +56,11 @@ const ReviewCard = ({
             <InvalidReviewBanner
               viewStatus={viewStatus}
               isExpanded={isDetail}
-              originText={review.selectedText}
+              originText={review.originText}
             />
           )}
           <CardContentSection
-            text={review.selectedText}
+            text={review.originText}
             review={review}
             isDetail={isDetail}
           />

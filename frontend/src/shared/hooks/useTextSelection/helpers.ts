@@ -56,13 +56,14 @@ export const findNodeAtIndex = (
   container: HTMLElement,
   targetIndex: number,
 ) => {
+  const safeTargetIndex = Math.max(0, targetIndex);
   const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
   let accumulated = 0;
   let node: Text | null;
 
   while ((node = walker.nextNode() as Text | null)) {
-    if (accumulated + node.length >= targetIndex) {
-      return { node, offset: targetIndex - accumulated };
+    if (accumulated + node.length >= safeTargetIndex) {
+      return { node, offset: safeTargetIndex - accumulated };
     }
     accumulated += node.length;
   }
@@ -250,7 +251,8 @@ export const isRangeOverlapping = (
   return reviews.some((review) => {
     const h = review.range;
     return (
-      !(rangeEnd <= h.start || rangeStart >= h.end) && review.isValid !== false
+      !(rangeEnd <= h.start || rangeStart >= h.end) &&
+      (review.viewStatus === 'PENDING' || review.viewStatus === 'ACCEPTED')
     );
   });
 };

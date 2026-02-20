@@ -27,11 +27,13 @@ const CoverLetterApiMode = ({
   );
   const currentQna = qnas.length > 0 ? qnas[safePageIndex] : undefined;
 
-  const { data: reviewData } = useReviewsByQnaId(currentQna?.qnAId);
+  const { data: reviewData } = useReviewsByQnaId(currentQna?.qnAId, {
+    enabled: isReviewActive,
+  });
 
   const reviewState = useReviewState({
     qna: currentQna,
-    apiReviews: reviewData?.reviews,
+    apiReviews: isReviewActive ? reviewData?.reviews : undefined,
   });
 
   const {
@@ -72,7 +74,6 @@ const CoverLetterApiMode = ({
 
   return (
     <CoverLetterEditor
-      key={safePageIndex}
       coverLetter={coverLetter}
       currentQna={currentQna}
       currentText={reviewState.currentText}
@@ -83,6 +84,10 @@ const CoverLetterApiMode = ({
       toolbar={toolbar}
       onPageChange={setCurrentPageIndex}
       onTextChange={reviewState.handleTextChange}
+      onReserveNextVersion={reviewState.reserveNextVersion}
+      currentVersion={reviewState.currentVersion}
+      currentReplaceAllSignal={reviewState.currentReplaceAllSignal}
+      isSaving={isPending}
     />
   );
 };

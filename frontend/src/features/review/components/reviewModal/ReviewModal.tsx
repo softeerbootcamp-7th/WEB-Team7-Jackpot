@@ -1,16 +1,16 @@
 import { useState } from 'react';
 
 import CommentTab from '@/features/review/components/reviewModal/CommentTab';
-import RevisionTab from '@/features/review/components/reviewModal/RevisionTab';
+import SuggestionTab from '@/features/review/components/reviewModal/SuggestionTab';
 import TabSelector from '@/features/review/components/reviewModal/TabSelector';
 import { REVIEW_CONSTRAINTS } from '@/features/review/constants/review';
 import type { TabType } from '@/features/review/types/review';
 
 interface ReviewModalProps {
   selectedText: string;
-  onSubmit: (revision: string, comment: string) => void;
+  onSubmit: (suggest: string, comment: string) => void;
   onCancel: () => void;
-  initialRevision?: string;
+  initialSuggest?: string;
   initialComment?: string;
 }
 
@@ -18,31 +18,31 @@ const ReviewModal = ({
   selectedText,
   onSubmit,
   onCancel,
-  initialRevision = '',
+  initialSuggest = '',
   initialComment = '',
 }: ReviewModalProps) => {
-  const [revision, setRevision] = useState(initialRevision);
+  const [suggest, setSuggest] = useState(initialSuggest);
   const [comment, setComment] = useState(initialComment);
-  const [tab, setTab] = useState<TabType>('revision');
+  const [tab, setTab] = useState<TabType>('suggest');
 
   const isSubmitEnabled =
-    (revision.trim().length > 0 || comment.trim().length > 0) &&
+    (suggest.trim().length > 0 || comment.trim().length > 0) &&
     comment.length <= REVIEW_CONSTRAINTS.MAX_COMMENT_LENGTH;
 
   const handleSubmit = () => {
     if (!isSubmitEnabled) return;
-    onSubmit(revision, comment);
+    onSubmit(suggest, comment);
   };
 
-  const displayText = revision.trim().length > 0 ? revision : selectedText;
+  const displayText = suggest.trim().length > 0 ? suggest : selectedText;
 
   return (
     <div className='flex w-96 flex-col items-end gap-4 rounded-[32px] bg-white p-5 shadow-[0px_0px_30px_0px_rgba(41,41,41,0.06)]'>
       <div className='flex w-full flex-col items-start gap-2'>
         <TabSelector tab={tab} onTabChange={setTab} />
 
-        {tab === 'revision' && (
-          <RevisionTab revision={revision} onRevisionChange={setRevision} />
+        {tab === 'suggest' && (
+          <SuggestionTab suggest={suggest} onSuggestChange={setSuggest} />
         )}
 
         {tab === 'comment' && (

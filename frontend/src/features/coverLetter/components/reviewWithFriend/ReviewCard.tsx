@@ -16,7 +16,7 @@ const ReviewCard = ({
   onReviewClick,
 }: ReviewCardProps) => {
   const isSelected = selectedReviewId === review.id;
-  const hasRevision = !!review.revision;
+  const hasSuggestion = !!review.suggest;
   const hasComment = !!review.comment;
 
   const formattedDate = review.createdAt
@@ -63,7 +63,7 @@ const ReviewCard = ({
           </div>
         </div>
         <div className='inline-flex items-center justify-start gap-1.5'>
-          {hasRevision && (
+          {hasSuggestion && (
             <div className='flex items-center justify-start gap-1 rounded-[100px] bg-red-50 py-[5px] pr-2.5 pl-2'>
               <PaperChipIcon />
               <div className='justify-start text-xs leading-5 font-medium text-red-600'>

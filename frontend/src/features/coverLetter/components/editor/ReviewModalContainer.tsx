@@ -43,7 +43,7 @@ const ReviewModalContainer = ({
     >
       <ReviewModal
         review={editingReview}
-        initialRevision={editingReview?.revision}
+        initialSuggest={editingReview?.suggest ?? ''}
         initialComment={editingReview?.comment}
         onDelete={onDelete}
         onToggleApproval={onToggleApproval}

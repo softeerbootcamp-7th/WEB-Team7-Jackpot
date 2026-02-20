@@ -10,14 +10,17 @@ import {
   type UpdateReviewRequest,
 } from '@/shared/api/reviewApi';
 
-export const useReviewsByQnaId = (qnaId: number | undefined) => {
+export const useReviewsByQnaId = (
+  qnaId: number | undefined,
+  options?: { enabled?: boolean },
+) => {
   return useQuery({
     queryKey: ['reviews', qnaId],
     queryFn: () => {
       if (qnaId == null) throw new Error('qnaId is required');
       return getReviewsByQnaId(qnaId);
     },
-    enabled: qnaId !== null,
+    enabled: (options?.enabled ?? true) && qnaId != null,
     staleTime: 5 * 60 * 1000,
   });
 };

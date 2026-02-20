@@ -1,9 +1,5 @@
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 
-import { useSocketMessage } from '@/features/coverLetter/hooks/websocket/useSocketMessage';
-import { useSocketSubscribe } from '@/features/coverLetter/hooks/websocket/useSocketSubscribe';
-import { useStompClient } from '@/features/coverLetter/hooks/websocket/useStompClient';
-import type { WebSocketResponse } from '@/features/coverLetter/types/websocket';
 import CoverLetterSection from '@/features/review/components/coverLetter/CoverLetterSection';
 import ReviewListSection from '@/features/review/components/review/ReviewListSection';
 import useCoverLetterPagination from '@/shared/hooks/useCoverLetterPagination';
@@ -13,16 +9,22 @@ import {
   useShareCoverLetter,
   useShareQnA,
 } from '@/shared/hooks/useShareQueries';
+import { useSocketMessage } from '@/shared/hooks/websocket/useSocketMessage';
+import { useSocketSubscribe } from '@/shared/hooks/websocket/useSocketSubscribe';
+import { useStompClient } from '@/shared/hooks/websocket/useStompClient';
 import type { RecentCoverLetterType } from '@/shared/types/coverLetter';
+import {
+  isShareDeactivatedMessage,
+  isWebSocketResponse,
+} from '@/shared/types/websocket';
 
 const ReviewLayout = () => {
   const { sharedId } = useParams();
+  const navigate = useNavigate();
 
   if (!sharedId) {
     throw new Error('유효하지 않은 공유 링크입니다.');
   }
-
-  const { handleMessage } = useSocketMessage({ shareId: sharedId });
 
   const { isConnected, clientRef } = useStompClient({
     shareId: sharedId,
@@ -41,33 +43,38 @@ const ReviewLayout = () => {
 
   const currentQnAId = qnAIds.length > 0 ? qnAIds[safePageIndex] : undefined;
 
+  const { data: currentQna, isLoading: isQnALoading } = useShareQnA(
+    sharedId,
+    currentQnAId,
+    isConnected,
+  );
+  const { data: reviewData } = useReviewsByQnaId(currentQnAId);
+
+  const reviewState = useReviewState({
+    qna: currentQna,
+    apiReviews: reviewData?.reviews,
+  });
+
+  const { handleMessage } = useSocketMessage({
+    dispatchers: reviewState.dispatchers,
+  });
+
   useSocketSubscribe({
     isConnected,
     shareId: sharedId,
     qnaId: currentQnAId?.toString(),
     clientRef,
-    onMessage: (message: unknown) =>
-      handleMessage(message as WebSocketResponse),
+    onMessage: (message: unknown) => {
+      if (isShareDeactivatedMessage(message)) {
+        alert('작성자가 첨삭 url을 비활성화시켰어요!');
+        navigate('/');
+        return;
+      }
+      if (!isWebSocketResponse(message)) return;
+      handleMessage(message);
+    },
   });
-  const { data: currentQna, isLoading: isQnALoading } = useShareQnA(
-    sharedId,
-    currentQnAId,
-  );
-  const { data: reviewData } = useReviewsByQnaId(currentQnAId);
 
-  const {
-    currentText,
-    currentReviews,
-    editingReview,
-    selection,
-    setSelection,
-    handleUpdateReview,
-    handleEditReview,
-    handleCancelEdit,
-  } = useReviewState({
-    qna: currentQna,
-    apiReviews: reviewData?.reviews,
-  });
   if (!isConnected) {
     return <div>웹소켓 연결 중...</div>;
   }
@@ -109,25 +116,27 @@ const ReviewLayout = () => {
           job={coverLetter.jobPosition}
           questionIndex={safePageIndex + 1}
           question={currentQna.question}
-          text={currentText}
-          reviews={currentReviews}
+          text={reviewState.currentText}
+          reviews={reviewState.currentReviews}
           currentPage={safePageIndex}
           totalPages={qnAIds.length}
-          editingReview={editingReview}
-          selection={selection}
-          onSelectionChange={setSelection}
+          editingReview={reviewState.editingReview}
+          selection={reviewState.selection}
+          onSelectionChange={reviewState.setSelection}
           qnaId={currentQna.qnAId}
-          onUpdateReview={handleUpdateReview}
-          onCancelEdit={handleCancelEdit}
+          onUpdateReview={reviewState.handleUpdateReview}
+          onCancelEdit={reviewState.handleCancelEdit}
           onPageChange={setCurrentPageIndex}
+          currentVersion={reviewState.currentVersion}
+          onReserveNextVersion={reviewState.reserveNextVersion}
         />
       </main>
       <aside className='h-full w-[426px] flex-none'>
         <ReviewListSection
-          reviews={currentReviews}
-          editingReview={editingReview}
+          reviews={reviewState.currentReviews}
+          editingReview={reviewState.editingReview}
           qnaId={currentQna.qnAId}
-          onEditReview={handleEditReview}
+          onEditReview={reviewState.handleEditReview}
         />
       </aside>
     </div>

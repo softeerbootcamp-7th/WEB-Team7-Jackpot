@@ -1,1 +1,1 @@
-export type TabType = 'revision' | 'comment';
+export type TabType = 'suggest' | 'comment';

@@ -11,7 +11,7 @@ const SPACER_HEIGHT = 10;
 interface ReviewModalContainerProps {
   selection: SelectionInfo;
   editingReview: Review | null;
-  onSubmit: (revision: string, comment: string) => void;
+  onSubmit: (suggest: string, comment: string) => void;
   onCancel: () => void;
 }
 
@@ -41,7 +41,7 @@ const ReviewModalContainer = ({
         selectedText={selection.selectedText}
         onSubmit={onSubmit}
         onCancel={onCancel}
-        initialRevision={editingReview?.revision}
+        initialSuggest={editingReview?.suggest ?? ''}
         initialComment={editingReview?.comment}
       />
     </div>

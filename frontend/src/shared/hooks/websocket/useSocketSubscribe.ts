@@ -5,7 +5,7 @@ import type { Client, IMessage, StompSubscription } from '@stomp/stompjs';
 interface UseSocketSubscribeProps {
   shareId: string;
   qnaId?: string;
-  onMessage?: (message: IMessage) => void;
+  onMessage?: (message: unknown) => void;
   isConnected: boolean;
   clientRef: React.RefObject<Client | null>;
 }
@@ -35,7 +35,6 @@ export const useSocketSubscribe = ({
         (message: IMessage) => {
           if (message.body) {
             const parsedBody = JSON.parse(message.body);
-            console.log('received message:', parsedBody);
             if (onMessageRef.current) {
               onMessageRef.current(parsedBody);
             }

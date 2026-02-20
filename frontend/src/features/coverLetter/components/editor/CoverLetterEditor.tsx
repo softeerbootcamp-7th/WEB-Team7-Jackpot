@@ -33,7 +33,14 @@ interface CoverLetterEditorProps {
   isReviewActive: boolean;
   toolbar: ReactNode;
   onPageChange: (index: number) => void;
-  onTextChange: (newText: string) => void;
+  onTextChange: (
+    newText: string,
+    options?: { skipVersionIncrement?: boolean },
+  ) => void;
+  onReserveNextVersion?: () => number;
+  currentVersion: number;
+  currentReplaceAllSignal: number;
+  isSaving?: boolean;
   isConnected?: boolean;
   sendMessage?: (destination: string, body: unknown) => void;
   shareId?: string;
@@ -50,23 +57,49 @@ const CoverLetterEditor = ({
   toolbar,
   onPageChange,
   onTextChange,
+  onReserveNextVersion,
+  currentVersion,
+  currentReplaceAllSignal,
+  isSaving = false,
   isConnected = false,
   sendMessage = () => {},
   shareId = '',
 }: CoverLetterEditorProps) => {
   const [, setSearchParams] = useSearchParams();
-  const [selectedReviewId, setSelectedReviewId] = useState<number | null>(null);
-  const [selection, setSelection] = useState<SelectionInfo | null>(null);
+  const currentQnaId = currentQna?.qnAId ?? null;
+  const [selectedReviewState, setSelectedReviewState] = useState<{
+    qnaId: number | null;
+    reviewId: number | null;
+  }>({
+    qnaId: null,
+    reviewId: null,
+  });
+  const [selectionState, setSelectionState] = useState<{
+    qnaId: number | null;
+    selection: SelectionInfo | null;
+  }>({
+    qnaId: null,
+    selection: null,
+  });
   const [composingLength, setComposingLength] = useState<number | null>(null);
+  const [lastTextUpdateAt, setLastTextUpdateAt] = useState<string | undefined>(
+    undefined,
+  );
+  const selectedReviewId =
+    selectedReviewState.qnaId === currentQnaId
+      ? selectedReviewState.reviewId
+      : null;
+  const selection =
+    selectionState.qnaId === currentQnaId ? selectionState.selection : null;
 
   const { mutate: deleteReviewApi } = useDeleteReview(currentQna?.qnAId);
   const { mutate: updateReviewMutation } = useApproveReview(currentQna?.qnAId);
   const { showToast } = useToastMessageContext();
 
   const clearUIState = useCallback(() => {
-    setSelectedReviewId(null);
-    setSelection(null);
-  }, []);
+    setSelectedReviewState({ qnaId: currentQnaId, reviewId: null });
+    setSelectionState({ qnaId: currentQnaId, selection: null });
+  }, [currentQnaId]);
 
   const onDeleteReview = useCallback(
     (reviewId: number) => {
@@ -102,14 +135,24 @@ const CoverLetterEditor = ({
     [selectedReviewId, currentReviews],
   );
 
-  const handleReviewClick = useCallback((reviewId: number | null) => {
-    setSelectedReviewId(reviewId);
-  }, []);
+  const handleReviewClick = useCallback(
+    (reviewId: number | null) => {
+      setSelectedReviewState({ qnaId: currentQnaId, reviewId });
+    },
+    [currentQnaId],
+  );
 
   const handleDismiss = useCallback(() => {
-    setSelection(null);
-    setSelectedReviewId(null);
-  }, []);
+    setSelectionState({ qnaId: currentQnaId, selection: null });
+    setSelectedReviewState({ qnaId: currentQnaId, reviewId: null });
+  }, [currentQnaId]);
+
+  const handleSelectionChange = useCallback(
+    (nextSelection: SelectionInfo | null) => {
+      setSelectionState({ qnaId: currentQnaId, selection: nextSelection });
+    },
+    [currentQnaId],
+  );
 
   useEffect(() => {
     const qnAId = currentQna?.qnAId;
@@ -137,6 +180,8 @@ const CoverLetterEditor = ({
             coverLetter={coverLetter}
             totalPages={totalPages}
             modifiedAt={currentQna.modifiedAt}
+            isSaving={isSaving}
+            textUpdatedAt={lastTextUpdateAt}
           />
 
           <div className='flex min-h-0 flex-1 flex-col gap-3.5 overflow-hidden'>
@@ -158,15 +203,18 @@ const CoverLetterEditor = ({
               selection={selection}
               isReviewActive={isReviewActive}
               selectedReviewId={selectedReviewId}
-              onSelectionChange={setSelection}
+              onSelectionChange={handleSelectionChange}
               onReviewClick={handleReviewClick}
               onTextChange={onTextChange}
+              onReserveNextVersion={onReserveNextVersion}
               onComposingLengthChange={setComposingLength}
               isConnected={isConnected}
               sendMessage={sendMessage}
               shareId={shareId}
               qnAId={currentQna.qnAId.toString()}
-              initialVersion={'version' in currentQna ? currentQna.version : 0}
+              currentVersion={currentVersion}
+              replaceAllSignal={currentReplaceAllSignal}
+              onTextUpdateSent={setLastTextUpdateAt}
             />
           </div>
 

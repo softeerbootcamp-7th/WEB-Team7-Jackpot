@@ -24,32 +24,48 @@ const useCoverLetterActions = ({
   isReviewActive,
   setIsReviewActive,
 }: UseCoverLetterActionsParams) => {
-  const { mutate: updateQnA, isPending } = useUpdateQnA();
+  const { mutateAsync: updateQnAAsync, isPending } = useUpdateQnA();
   const { showToast } = useToastMessageContext();
 
   const { data: sharedLink, isLoading } = useSharedLink(coverLetterId);
   const { mutate: toggleLink } = useSharedLinkToggle();
 
-  const handleSave = () => {
+  const saveCurrentAnswer = async (showSuccessToast = true) => {
+    if (isPending) return false;
+
     const qnAId = currentQna?.qnAId;
     const editedText = qnAId !== undefined ? editedAnswers[qnAId] : null;
 
-    if (qnAId === undefined) return showToast('저장할 문항이 없습니다.');
-
-    if (editedText === null || editedText === undefined) {
-      return showToast('변경된 내용이 없습니다.');
+    if (qnAId === undefined) {
+      showToast('저장할 문항이 없습니다.', false);
+      return false;
     }
 
-    updateQnA(
-      {
+    if (editedText === null || editedText === undefined) {
+      return true;
+    }
+
+    try {
+      await updateQnAAsync({
         qnAId,
         answer: reconstructTaggedText(editedText, currentReviews),
-      },
-      {
-        onSuccess: () => showToast('저장되었습니다.', true),
-        onError: (error) => showToast(`저장에 실패했습니다: ${error.message}`),
-      },
-    );
+      });
+      if (showSuccessToast) {
+        showToast('저장되었습니다.', true);
+      }
+      return true;
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : '알 수 없는 오류가 발생했습니다.';
+      showToast(`저장에 실패했습니다: ${message}`);
+      return false;
+    }
+  };
+
+  const handleSave = () => {
+    void saveCurrentAnswer(true);
   };
 
   const handleDelete = () => {
@@ -87,8 +103,16 @@ const useCoverLetterActions = ({
       });
   };
 
-  const handleToggleReview = () => {
+  const handleToggleReview = async () => {
     const next = !isReviewActive;
+
+    if (next) {
+      const saveSucceeded = await saveCurrentAnswer(false);
+      if (!saveSucceeded) {
+        return;
+      }
+    }
+
     setIsReviewActive(next);
     toggleLink(
       { coverLetterId, active: next },

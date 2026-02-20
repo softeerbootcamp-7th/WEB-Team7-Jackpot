@@ -8,6 +8,7 @@ import {
   useCreateReview,
   useUpdateReview,
 } from '@/shared/hooks/useReviewQueries';
+import { mapCleanRangeToTaggedRange } from '@/shared/hooks/useReviewState/helpers';
 import type { Review } from '@/shared/types/review';
 import type { SelectionInfo } from '@/shared/types/selectionInfo';
 
@@ -24,9 +25,11 @@ interface CoverLetterSectionProps {
   selection: SelectionInfo | null;
   onSelectionChange: (selection: SelectionInfo | null) => void;
   qnaId: number;
-  onUpdateReview: (id: number, revision: string, comment: string) => void;
+  onUpdateReview: (id: number, suggest: string, comment: string) => void;
   onCancelEdit: () => void;
   onPageChange: (index: number) => void;
+  currentVersion: number;
+  onReserveNextVersion?: () => number;
 }
 
 const CoverLetterSection = ({
@@ -45,13 +48,15 @@ const CoverLetterSection = ({
   onUpdateReview,
   onCancelEdit,
   onPageChange,
+  currentVersion,
+  onReserveNextVersion,
 }: CoverLetterSectionProps) => {
   const { showToast } = useToastMessageContext();
 
   const { mutate: createReview } = useCreateReview(qnaId);
   const { mutate: updateReviewMutation } = useUpdateReview(qnaId);
 
-  const handleSubmit = (revision: string, comment: string) => {
+  const handleSubmit = (suggest: string, comment: string) => {
     if (!selection) return;
 
     const resetSelection = () => onSelectionChange(null);
@@ -60,28 +65,43 @@ const CoverLetterSection = ({
       updateReviewMutation(
         {
           reviewId: editingReview.id,
-          body: { suggest: revision, comment },
+          body: { suggest, comment },
         },
         {
-          onSuccess: () => onUpdateReview(editingReview.id, revision, comment),
+          onSuccess: () => onUpdateReview(editingReview.id, suggest, comment),
           onError: () =>
             showToast('리뷰 업데이트에 실패했습니다. 다시 시도해주세요.'),
           onSettled: resetSelection,
         },
       );
     } else {
+      const nextVersion = onReserveNextVersion
+        ? onReserveNextVersion()
+        : currentVersion;
+      const taggedRange = mapCleanRangeToTaggedRange(
+        text,
+        reviews,
+        selection.range,
+      );
       createReview(
         {
-          version: 0,
-          startIdx: selection.range.start,
-          endIdx: selection.range.end,
+          version: nextVersion - 1,
+          startIdx: taggedRange.startIdx,
+          endIdx: taggedRange.endIdx,
           originText: selection.selectedText,
-          suggest: revision,
+          suggest,
           comment,
         },
         {
-          onError: () =>
-            showToast('리뷰 생성에 실패했습니다. 다시 시도해주세요.'),
+          onError: (error: unknown) => {
+            const isConflict =
+              error instanceof Error && error.message.includes('409');
+            showToast(
+              isConflict
+                ? '이미 수정된 원문이에요. 다시 선택해 주세요.'
+                : '리뷰 생성에 실패했습니다. 다시 시도해주세요.',
+            );
+          },
           onSettled: resetSelection,
         },
       );

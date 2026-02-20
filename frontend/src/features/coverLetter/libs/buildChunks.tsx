@@ -39,20 +39,25 @@ export const buildChunks = (
 
     const matchingReview = reviews.find(
       (review) =>
-        review.isValid &&
+        (review.viewStatus === 'PENDING' || review.viewStatus === 'ACCEPTED') &&
+        review.range.start >= 0 &&
         review.range.start <= chunkPositions[i] &&
         review.range.end >= chunkPositions[i] + chunk.text.length,
     );
     if (!matchingReview) return renderText(chunk.text, key);
 
     const isSelected = selectedReviewId === matchingReview.id;
+    const reviewClassName = [
+      isReviewActive && 'cursor-pointer font-bold',
+      isSelected && 'rounded-sm bg-red-100 ring-1 ring-red-200',
+    ]
+      .filter(Boolean)
+      .join(' ');
 
     return (
       <span
         key={`review-wrap-${matchingReview.id}-${i}`}
-        className={`${isReviewActive ? 'cursor-pointer font-bold' : ''} ${
-          isSelected ? 'rounded-sm bg-red-100 ring-1 ring-red-200' : ''
-        }`}
+        className={reviewClassName}
         data-review-id={matchingReview.id}
       >
         {renderText(chunk.text, `review-content-${matchingReview.id}-${i}`)}
