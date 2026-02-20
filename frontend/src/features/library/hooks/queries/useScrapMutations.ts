@@ -9,8 +9,9 @@ export const useCreateScrapMutation = () => {
 
   return useMutation({
     mutationFn: (qnAId: number) => createScrap({ qnAId }),
-    onSuccess: () => {
+    onSuccess: (_data, qnAId) => {
       queryClient.invalidateQueries({ queryKey: scrapNumKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['qna', qnAId] });
     },
     onError: (error) => {
       console.error('스크랩 생성 실패:', error);
@@ -24,8 +25,9 @@ export const useDeleteScrapMutation = () => {
 
   return useMutation({
     mutationFn: (qnAId: number) => deleteScrap(qnAId),
-    onSuccess: () => {
+    onSuccess: (_data, qnAId) => {
       queryClient.invalidateQueries({ queryKey: scrapNumKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['qna', qnAId] });
     },
     onError: (error) => {
       console.error('스크랩 삭제 실패:', error);

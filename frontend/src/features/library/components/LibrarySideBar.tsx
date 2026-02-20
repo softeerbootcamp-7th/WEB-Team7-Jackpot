@@ -56,12 +56,14 @@ const LibrarySideBar = ({ folderList }: LibrarySideBarProps) => {
       }
     }
 
-    // 기업 탭으로 가면 URL 파라미터 정리
-    if (currentTab === 'COMPANY' && searchParams.has('keyword')) {
-      const nextParams = new URLSearchParams(searchParams);
-      nextParams.delete('keyword');
-      setSearchParams(nextParams, { replace: true });
-    }
+    // 기업 탭으로 가면 URL 파라미터 정리 (콜백 패턴 적용 - searchParams 제거)
+if (currentTab === 'COMPANY') {
+  setSearchParams((prev) => {
+    if (!prev.has('keyword')) return prev; // keyword가 없으면 아무것도 안 함
+    prev.delete('keyword');
+    return prev;
+  }, { replace: true });
+}
 
     prevTabRef.current = currentTab;
   }, [currentTab, searchParams, setSearchParams]);

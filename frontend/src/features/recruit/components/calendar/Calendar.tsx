@@ -5,7 +5,7 @@ import CalendarHeader from '@/features/recruit/components/calendar/CalendarHeade
 import CalendarWeekday from '@/features/recruit/components/calendar/CalendarWeekday';
 import CalendarDaySkeleton from '@/features/recruit/components/calendar/skeleton/CalendarDaySkeleton';
 import CalendarHeaderSkeleton from '@/features/recruit/components/calendar/skeleton/CalendarHeaderSkeleton';
-import type { CoverLetterItem } from '@/features/recruit/types';
+import type { CalendarCoverLetterItem } from '@/features/recruit/types';
 import { getISODate } from '@/shared/utils/dates';
 
 interface Props {
@@ -17,7 +17,7 @@ interface Props {
     isSelected: (date: Date) => boolean;
     isCurrentMonth: (date: Date) => boolean;
   };
-  eventsByDate: Record<string, CoverLetterItem[]>;
+  eventsByDate: Record<string, CalendarCoverLetterItem[]>;
 }
 
 const Calendar = ({

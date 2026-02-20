@@ -22,12 +22,12 @@ export interface CoverLetterListResponse {
   hasNext: boolean;
 }
 
-// [박소민] TODO: 변경된 API에 맞춰 수정
+// [박소민] TODO: 변경된 API에 사용하기에 applySeasn optional로 변경, (questionCount 추가)
 export interface QuestionItem {
   id: number;
   companyName: string;
   jobPosition: string;
-  applySeason: string; // "2024 상반기" 형식
+  applySeason?: string; // "2024 상반기" 형식
   question: string;
   answer: string | null;
   coverLetterId: number;

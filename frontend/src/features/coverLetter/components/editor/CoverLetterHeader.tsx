@@ -21,7 +21,9 @@ const CoverLetterHeader = ({
         <span>총 {totalPages}문항</span>
         <span>·</span>
         <span>
-          {new Date(coverLetter.deadline).toLocaleDateString('ko-KR')}
+          {coverLetter?.deadline
+            ? new Date(coverLetter.deadline).toLocaleDateString('ko-KR')
+            : '마감일 미정'}
         </span>
         {modifiedAt && (
           <>

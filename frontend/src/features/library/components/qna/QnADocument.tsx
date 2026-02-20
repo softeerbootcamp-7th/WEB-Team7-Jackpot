@@ -56,7 +56,6 @@ const QnADocument = ({ content, rightAction }: Props) => {
             <div
               className='ml-2 flex flex-shrink-0 items-center'
               onClick={(e) => {
-                e.preventDefault(); // 페이지 이동 방지
                 e.stopPropagation(); // 버블링 방지
               }}
             >

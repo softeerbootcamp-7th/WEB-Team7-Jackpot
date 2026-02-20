@@ -32,12 +32,8 @@ const CompanyDetailView = () => {
   const currentPage = Number(searchParams.get('page')) || 1;
   const currentQuestionIndex = currentPage - 1; // 0-based index
 
-<<<<<<< HEAD
   // 리스트 쿼리에서 문서 정보 찾기 (헤더 표시용)
   const currentDocument: CoverLetterItem | undefined = companyQuery.data?.pages
-=======
-  const currentDocument: CoverLetter | undefined = companyQuery.data?.pages
->>>>>>> c63c2e8 ([refactor] type, interface 중복되는 타입 shared로 이동 후 정리)
     .flatMap((page) => page.coverLetters)
     .find((doc) => doc.id === Number(coverLetterId));
 

@@ -124,7 +124,7 @@ export const fetchDocumentList = async (
     params.append('companyName', folderName);
 
     const response = await apiClient.get({
-      endpoint: `/library/company/all&${params.toString()}`,
+      endpoint: `/library/company/all?${params.toString()}`,
     });
 
     return CoverLetterListResponseSchema.parse(response);
@@ -135,7 +135,7 @@ export const fetchDocumentList = async (
     params.append('questionCategory', folderName);
 
     const response = await apiClient.get({
-      endpoint: `/library/question/all&${params.toString()}`,
+      endpoint: `/library/question/all?${params.toString()}`,
     });
 
     //  변경된 스키마로 파싱

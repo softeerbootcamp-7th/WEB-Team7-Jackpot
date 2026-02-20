@@ -25,9 +25,9 @@ export interface CoverLetterBase {
 }
 
 export interface CoverLetterQuestion {
-  qnAId?: number | null; // [박소민] 질문 수정 시 필요 (신규 추가 시 null 허용)
+  qnAId?: number | null; // 신규 추가 시 null 전송, 기존 질문 수정 시 number, 미설정은 undefined
   question: string;
-  category: Category | '';
+  category: Category | ''; // 초기값은 빈 문자열로 설정 (카테고리 선택 안 했을 때)
 }
 
 export interface CoverLetterType extends CoverLetterBase {

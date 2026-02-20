@@ -1,10 +1,7 @@
 import { useParams } from 'react-router';
 
-<<<<<<< HEAD
 import DetailButtons from '@/features/library/components/DetailButtons';
 import DetailView from '@/features/library/components/DetailView';
-=======
->>>>>>> c63c2e8 ([refactor] type, interface 중복되는 타입 shared로 이동 후 정리)
 import { useQnAListQueries } from '@/features/library/hooks/queries/useLibraryListQueries';
 import { useQnAQuery } from '@/features/library/hooks/queries/useLibraryListQueries';
 import { getDate } from '@/shared/utils/dates';
