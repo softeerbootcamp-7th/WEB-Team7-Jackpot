@@ -1,15 +1,15 @@
 import CoverLetterEditor from '@/features/coverLetter/components/editor/CoverLetterEditor';
 import CoverLetterToolbar from '@/features/coverLetter/components/editor/CoverLetterToolbar';
 import useCoverLetterActions from '@/features/coverLetter/hooks/useCoverLetterActions';
-import { useSocketMessage } from '@/features/coverLetter/hooks/websocket/useSocketMessage';
-import { useSocketSubscribe } from '@/features/coverLetter/hooks/websocket/useSocketSubscribe';
-import { useStompClient } from '@/features/coverLetter/hooks/websocket/useStompClient';
-import type { WebSocketResponse } from '@/features/coverLetter/types/websocket';
 import useCoverLetterPagination from '@/shared/hooks/useCoverLetterPagination';
 import { useReviewsByQnaId } from '@/shared/hooks/useReviewQueries';
 import useReviewState from '@/shared/hooks/useReviewState';
 import { useShareQnA } from '@/shared/hooks/useShareQueries';
+import { useSocketMessage } from '@/shared/hooks/websocket/useSocketMessage';
+import { useSocketSubscribe } from '@/shared/hooks/websocket/useSocketSubscribe';
+import { useStompClient } from '@/shared/hooks/websocket/useStompClient';
 import type { CoverLetterType } from '@/shared/types/coverLetter';
+import type { WebSocketResponse } from '@/shared/types/websocket';
 
 interface CoverLetterLiveModeProps {
   shareId: string;
@@ -35,11 +35,19 @@ const CoverLetterLiveMode = ({
     shareId,
     currentQnAId,
   );
-  const { handleMessage } = useSocketMessage({
-    shareId: shareId,
-  });
   const { isConnected, sendMessage, clientRef } = useStompClient({
     shareId: shareId,
+  });
+
+  const { data: reviewData } = useReviewsByQnaId(currentQnAId);
+
+  const reviewState = useReviewState({
+    qna: currentQna,
+    apiReviews: reviewData?.reviews,
+  });
+
+  const { handleMessage } = useSocketMessage({
+    dispatchers: reviewState.dispatchers,
   });
 
   useSocketSubscribe({
@@ -49,13 +57,6 @@ const CoverLetterLiveMode = ({
     onMessage: (message: unknown) =>
       handleMessage(message as WebSocketResponse),
     clientRef,
-  });
-
-  const { data: reviewData } = useReviewsByQnaId(currentQnAId);
-
-  const reviewState = useReviewState({
-    qna: currentQna,
-    apiReviews: reviewData?.reviews,
   });
 
   const { handleDelete, handleCopyLink, handleToggleReview } =
@@ -104,7 +105,6 @@ const CoverLetterLiveMode = ({
 
   return (
     <CoverLetterEditor
-      key={safePageIndex}
       coverLetter={coverLetter}
       currentQna={currentQna}
       currentText={reviewState.currentText}
@@ -115,6 +115,8 @@ const CoverLetterLiveMode = ({
       toolbar={toolbar}
       onPageChange={setCurrentPageIndex}
       onTextChange={reviewState.handleTextChange}
+      currentVersion={reviewState.currentVersion}
+      currentReplaceAllSignal={reviewState.currentReplaceAllSignal}
       isConnected={isConnected}
       sendMessage={sendMessage}
       shareId={shareId}

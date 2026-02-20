@@ -35,9 +35,10 @@ export interface ReviewUpdatedResponseType {
   payload: {
     reviewId: number;
     originText: string;
-    suggest: string;
+    suggest: string | null;
     content: string;
     modifiedAt: string;
+    isApproved?: boolean;
   };
 }
 
@@ -59,7 +60,7 @@ export interface ReviewCreatedResponseType {
     };
     reviewId: number;
     originText: string;
-    suggest: string;
+    suggest: string | null;
     comment: string;
     createdAt: string;
   };
