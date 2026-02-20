@@ -16,13 +16,15 @@ public record SearchLibraryAndQnAResponse(
         Boolean hasNext
 ) {
     public record QnAItem(
-            Long id,
+            Long qnAId,
             String companyName,
             String jobPosition,
             String applySeason,
             String question,
             String answer,
-            Long coverLetterId
+            Long coverLetterId,
+            QuestionCategoryType questionCategoryType
+
     ) {
         public static QnAItem from(QnA qnA) {
             CoverLetter coverLetter = qnA.getCoverLetter();
@@ -36,7 +38,8 @@ public record SearchLibraryAndQnAResponse(
                             coverLetter.getApplyHalf().getDescription()),
                     qnA.getQuestion(),
                     qnA.getAnswer(),
-                    coverLetter.getId()
+                    coverLetter.getId(),
+                    qnA.getQuestionCategory()
             );
         }
     }
