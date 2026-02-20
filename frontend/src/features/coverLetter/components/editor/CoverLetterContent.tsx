@@ -358,6 +358,9 @@ const CoverLetterContent = ({
       clearComposingFlushTimer();
       composingFlushTimerRef.current = setTimeout(() => {
         flushComposingSocketOnly();
+        // 조합 중에도 로컬 상태를 주기적으로 동기화해,
+        // 외부 리렌더 시 조합 문자가 사라지는 현상을 막는다.
+        flushDOMText({ skipSocket: true });
       }, 250);
       return;
     }
