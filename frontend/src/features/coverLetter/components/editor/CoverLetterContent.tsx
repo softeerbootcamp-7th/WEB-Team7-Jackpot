@@ -83,6 +83,7 @@ const CoverLetterContent = ({
 
   const fallbackVersionRef = useRef(initialVersion);
   const lastSeenVersionRef = useRef(initialVersion);
+  const prevReplaceAllSignalRef = useRef(replaceAllSignal);
   const latestTextRef = useRef(text);
   const onComposingLengthChangeRef = useRef(onComposingLengthChange);
   const getFocusedCaretOffset = useCallback(() => {
@@ -244,13 +245,13 @@ const CoverLetterContent = ({
 
       const currentText = latestTextRef.current;
       if (newText !== currentText) {
-          const sentBySocket = !options?.skipSocket
-            ? sendTextPatch(currentText, newText)
-            : false;
-          const change = onTextChangeRef.current(newText, {
-            skipVersionIncrement: sentBySocket,
-          });
-          if (change && typeof change === 'object') {
+        const sentBySocket = !options?.skipSocket
+          ? sendTextPatch(currentText, newText)
+          : false;
+        const change = onTextChangeRef.current(newText, {
+          skipVersionIncrement: sentBySocket,
+        });
+        if (change && typeof change === 'object') {
           undoStack.current.push({
             text: currentText,
             caret: caretOffsetRef.current,
@@ -260,7 +261,6 @@ const CoverLetterContent = ({
           redoStack.current = [];
           isInputtingRef.current = true;
           latestTextRef.current = newText; // 즉시 동기 업데이트 — re-render 전 다음 입력에서도 최신 값 사용
-
         }
       }
     },
@@ -407,6 +407,8 @@ const CoverLetterContent = ({
 
   useLayoutEffect(() => {
     if (!contentRef.current) return;
+    if (prevReplaceAllSignalRef.current === replaceAllSignal) return;
+    prevReplaceAllSignalRef.current = replaceAllSignal;
 
     const wasFocused = contentRef.current.contains(document.activeElement);
     if (wasFocused) {
