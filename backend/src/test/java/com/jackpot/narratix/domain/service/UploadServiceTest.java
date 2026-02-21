@@ -81,6 +81,45 @@ class UploadServiceTest {
     }
 
     @Test
+    @DisplayName("라벨링된 QnA 목록 조회 성공 - 서로 다른 파일의 QnA는 별도 그룹으로 분리됨")
+    void findLabeledCoverLetterByUploadJobId_다중파일_그룹화() {
+        // given
+        String userId = "user1";
+        String uploadJobId = "job1";
+
+        UploadFile uploadFile1 = UploadFile.builder().id("fileId1").build();
+        UploadFile uploadFile2 = UploadFile.builder().id("fileId2").build();
+
+        UploadJob uploadJob = mock(UploadJob.class);
+        when(uploadJob.isOwner(userId)).thenReturn(true);
+        when(uploadJobRepository.findByIdOrElseThrow(uploadJobId)).thenReturn(uploadJob);
+
+        LabeledQnA qna1 = LabeledQnA.builder()
+                .question("지원 동기는?")
+                .answer("성장 가능성을 보고 지원했습니다.")
+                .questionCategory(QuestionCategoryType.MOTIVATION)
+                .uploadFile(uploadFile1)
+                .build();
+
+        LabeledQnA qna2 = LabeledQnA.builder()
+                .question("팀워크 경험은?")
+                .answer("협업한 경험이 있습니다.")
+                .questionCategory(QuestionCategoryType.TEAMWORK_EXPERIENCE)
+                .uploadFile(uploadFile2)
+                .build();
+
+        when(labeledQnARepository.findAllByUploadJobId(uploadJobId)).thenReturn(List.of(qna1, qna2));
+
+        // when
+        LabeledQnAListResponse response = uploadService.findLabeledCoverLetterByUploadJobId(userId, uploadJobId);
+
+        // then
+        assertThat(response.coverLetters()).hasSize(2);
+        assertThat(response.coverLetters())
+                .allSatisfy(coverLetter -> assertThat(coverLetter.qnAs()).hasSize(1));
+    }
+
+    @Test
     @DisplayName("라벨링된 QnA 목록 조회 성공 - QnA가 없는 경우 빈 리스트 반환")
     void findLabeledCoverLetterByUploadJobId_빈_목록() {
         // given
