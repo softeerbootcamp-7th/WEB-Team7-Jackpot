@@ -93,10 +93,10 @@ public class TextDeltaService {
         QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
 
         // DB version을 기준으로 dirty 델타 제거 (Redis commit 실패 후 잔존 데이터 이중 적용 방지)
-        // delta.version()은 push 직전 서버 버전이므로, delta.version() < dbVersion인 것은 이미 반영됨
+        // delta.version()은 클라이언트가 보낸 다음 버전(push 후 Redis 버전)이므로, delta.version() <= dbVersion인 것은 이미 DB에 반영됨
         long dbVersion = qnA.getVersion();
         List<TextUpdateRequest> applicableDeltas = deltas.stream()
-                .filter(d -> d.version() >= dbVersion)
+                .filter(d -> d.version() > dbVersion)
                 .toList();
 
         // getPending()으로 읽은 항목 수를 commit()에 전달해 그 이후 유입된 델타를 보존한다.
@@ -125,21 +125,18 @@ public class TextDeltaService {
     }
 
     /**
-     * 리뷰 처리(생성·삭제·승인) 후 Redis 버전 카운터를 DB version에 맞게 강제 갱신한다.
+     * 리뷰 처리(생성·삭제·승인) 후 Redis 버전 카운터를 DB version에 맞게 즉시 갱신한다.
+     * TEXT_REPLACE_ALL 이벤트 발행 전에 Redis 버전을 동기화하여 버전 충돌을 방지한다.
      */
     public void resetDeltaVersion(Long qnAId, long newVersion) {
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                try {
-                    textDeltaRedisRepository.setVersion(qnAId, newVersion);
-                    log.info("리뷰 처리 후 버전 카운터 갱신 완료: qnAId={}, newVersion={}", qnAId, newVersion);
-                } catch (Exception e) {
-                    log.error("리뷰 처리 후 버전 카운터 갱신 실패: qnAId={}, newVersion={}", qnAId, newVersion, e);
-                }
-            }
-        });
+        try {
+            textDeltaRedisRepository.setVersion(qnAId, newVersion);
+            log.info("리뷰 처리 후 버전 카운터 갱신 완료: qnAId={}, newVersion={}", qnAId, newVersion);
+        } catch (Exception e) {
+            log.error("리뷰 처리 후 버전 카운터 갱신 실패: qnAId={}, newVersion={}", qnAId, newVersion, e);
+        }
     }
+
 
     /**
      * OT 변환에 필요한 델타를 committed + pending에서 수집한다.
@@ -200,9 +197,11 @@ public class TextDeltaService {
         }
 
         // flushToDb와 동일한 패턴: DB version 기준으로 이미 반영된 stale 델타 제거
+        // delta.version()은 클라이언트가 보낸 다음 버전(push 후 Redis 버전)이므로,
+        // delta.version() <= dbVersion인 것은 이미 DB에 반영됨
         long dbVersion = qnA.getVersion();
         List<TextUpdateRequest> applicableDeltas = deltas.stream()
-                .filter(d -> d.version() >= dbVersion)
+                .filter(d -> d.version() > dbVersion)
                 .toList();
 
         String newAnswer = textMerger.merge(qnA.getAnswer(), applicableDeltas);
