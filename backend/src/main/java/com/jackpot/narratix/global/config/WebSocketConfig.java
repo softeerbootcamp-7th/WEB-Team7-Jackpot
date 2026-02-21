@@ -37,7 +37,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         config.enableSimpleBroker(SUBSCRIBE_PREFIX)
                 .setHeartbeatValue(new long[]{OUTGOING_INTERVAL_HEARTBEAT_TIME, INGOING_INTERVAL_HEARTBEAT_TIME})
                 .setTaskScheduler(heartbeatTaskScheduler());
-        // TODO: 추후 redis pub/sub 구조의 Message Broker를 사용해야 함
         config.setApplicationDestinationPrefixes(PUBLISH_PREFIX); // 클라이언트가 보낼 경로 (클라이언트 -> 서버)
     }
 

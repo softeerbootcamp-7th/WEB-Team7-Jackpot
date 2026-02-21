@@ -1,15 +1,18 @@
 package com.jackpot.narratix.global.exception;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConversionException;
+import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 
 @Slf4j
 @RestControllerAdvice
@@ -54,6 +57,29 @@ public class GlobalExceptionHandler {
         log.warn("Method not supported: {}", e.getMessage());
         ErrorResponse response = ErrorResponse.of(GlobalErrorCode.METHOD_NOT_ALLOWED);
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(response);
+    }
+
+    // 비동기 요청(SSE) 중 연결이 끊겨서 생기는 에러 핸들링
+    @ExceptionHandler(AsyncRequestNotUsableException.class)
+    public void handleAsyncRequestNotUsableException(AsyncRequestNotUsableException e) {
+        log.warn("Async request is not usable: {}", e.getMessage());
+        // 이미 응답 채널이 닫혔으므로 아무것도 반환하지 않음 (로그만 남김)
+    }
+
+    // SSE 스트림에 JSON 에러 응답을 쓰려다 실패하는 경우를 대비한 핸들러
+    @ExceptionHandler(HttpMessageNotWritableException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotWritableException(
+            HttpMessageNotWritableException e, HttpServletRequest request
+    ) {
+        String acceptHeader = request.getHeader("Accept");
+        boolean isSseRequest = acceptHeader != null && acceptHeader.contains("text/event-stream");
+        if (isSseRequest) {
+            log.warn("Failed to write SSE response (client likely disconnected): {}", e.getMessage());
+            return null; // SSE 연결이 이미 닫힌 경우 응답 불필요
+        }
+        log.error("Failed to write HTTP response: {}", e.getMessage());
+        ErrorResponse response = ErrorResponse.of(GlobalErrorCode.INTERNAL_SERVER_ERROR);
+        return ResponseEntity.internalServerError().body(response);
     }
 
     @ExceptionHandler(Exception.class)

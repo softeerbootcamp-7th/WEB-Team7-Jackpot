@@ -1,5 +1,6 @@
 package com.jackpot.narratix.global.websocket;
 
+import com.jackpot.narratix.global.auth.jwt.exception.JwtException;
 import com.jackpot.narratix.global.exception.BaseException;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
@@ -21,14 +22,18 @@ public class GlobalStompErrorHandler extends StompSubProtocolErrorHandler {
             Message<byte[]> clientMessage,
             @NonNull Throwable ex
     ) {
-        log.error("STOMP error occurred", ex);
+        // JWT 예외는 예상 가능한 시나리오이므로 간단한 WARN 로그만 출력
+        if (ex.getCause() instanceof JwtException jwtException) {
+            return handleBaseException(clientMessage, jwtException);
+        }
 
-        // BaseException 처리
+        // 기타 BaseException 처리
         if (ex.getCause() instanceof BaseException baseException) {
             return handleBaseException(clientMessage, baseException);
         }
 
         // 기타 예외 처리
+        log.error("STOMP error occurred", ex);
         return handleGenericException(clientMessage, ex);
     }
 

@@ -2,9 +2,9 @@ package com.jackpot.narratix.domain.service;
 
 import com.jackpot.narratix.domain.controller.response.WebSocketMessageResponse;
 import com.jackpot.narratix.domain.entity.enums.ReviewRoleType;
+import com.jackpot.narratix.global.websocket.RedisPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class WebSocketMessageSender {
 
-    private final SimpMessagingTemplate messagingTemplate;
+    private final RedisPublisher redisPublisher;
 
     private static final String DESTINATION_PATTERN = "/sub/share/%s/qna/%s/review/%s";
 
@@ -20,14 +20,14 @@ public class WebSocketMessageSender {
         String writerDestination = getDestination(ReviewRoleType.WRITER, shareId, message.qnAId());
         String reviewerDestination = getDestination(ReviewRoleType.REVIEWER, shareId, message.qnAId());
 
-        messagingTemplate.convertAndSend(writerDestination, message);
-        messagingTemplate.convertAndSend(reviewerDestination, message);
+        redisPublisher.publish(writerDestination, message);
+        redisPublisher.publish(reviewerDestination, message);
     }
 
     public void sendMessageToReviewer(String shareId, WebSocketMessageResponse message) {
         String reviewerDestination = getDestination(ReviewRoleType.REVIEWER, shareId, message.qnAId());
         log.info("Send Reviewer At {}, message={}", reviewerDestination, message);
-        messagingTemplate.convertAndSend(reviewerDestination, message);
+        redisPublisher.publish(reviewerDestination, message);
     }
 
     private String getDestination(ReviewRoleType role, String shareId, Long qnAId) {

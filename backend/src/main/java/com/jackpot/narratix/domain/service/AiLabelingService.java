@@ -24,18 +24,20 @@ import java.nio.charset.StandardCharsets;
 public class AiLabelingService {
 
     private final RestClient restClient;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
     private final String promptTemplate;
     private final String apiKey;
     private final String modelPath;
 
     public AiLabelingService(
             RestClient geminiRestClient,
+            ObjectMapper objectMapper,
             @Value("${gemini.api-key}") String apiKey,
             @Value("${gemini.model-path}") String modelPath,
             @Value("classpath:LabelingPrompt.txt") Resource promptResource
     ) {
         this.restClient = geminiRestClient;
+        this.objectMapper = objectMapper;
         this.apiKey = apiKey;
         this.modelPath = modelPath;
         this.promptTemplate = loadPrompt(promptResource);

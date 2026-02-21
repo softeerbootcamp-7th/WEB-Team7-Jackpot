@@ -3,17 +3,22 @@ package com.jackpot.narratix.domain.entity.notification_meta;
 import com.jackpot.narratix.domain.entity.enums.NotificationType;
 import com.jackpot.narratix.global.exception.BaseException;
 import com.jackpot.narratix.global.exception.GlobalErrorCode;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@Component
 public class NotificationMetaConverter {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static ObjectMapper objectMapper;
+
+    @Autowired
+    public void setObjectMapper(ObjectMapper objectMapper) {
+        NotificationMetaConverter.objectMapper = objectMapper;
+    }
 
     public static String serialize(NotificationMeta meta) {
         if (meta == null) {
