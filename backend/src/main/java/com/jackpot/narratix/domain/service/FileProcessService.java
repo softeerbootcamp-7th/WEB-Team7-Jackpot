@@ -6,11 +6,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jackpot.narratix.domain.entity.LabeledQnA;
 import com.jackpot.narratix.domain.entity.UploadFile;
 import com.jackpot.narratix.domain.entity.UploadJob;
-import com.jackpot.narratix.domain.exception.UploadErrorCode;
 import com.jackpot.narratix.domain.repository.LabeledQnARepository;
 import com.jackpot.narratix.domain.repository.UploadFileRepository;
 import com.jackpot.narratix.domain.service.dto.LabeledQnARequest;
-import com.jackpot.narratix.global.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,11 +31,7 @@ public class FileProcessService {
 
     @Transactional
     public void processUploadedFile(String fileId, String extractedText, String labelingJson) {
-        UploadFile file = uploadFileRepository.findById(fileId)
-                .orElseThrow(() -> {
-                    log.error("File not found. skip. fileId={}", fileId);
-                    return new BaseException(UploadErrorCode.FILE_NOT_FOUND);
-                });
+        UploadFile file = uploadFileRepository.findByIdOrElseThrow(fileId);
 
         file.successExtract(extractedText);
         log.info("Extract success saved. FileId = {}", fileId);
@@ -79,7 +73,7 @@ public class FileProcessService {
 
     @Transactional
     public void processFailedFile(String fileId, String errorMessage) {
-        UploadFile file = uploadFileRepository.findById(fileId).orElse(null);
+        UploadFile file = uploadFileRepository.findByIdOrElseThrow(fileId);
         if (file == null) {
             log.warn("File not found. skip. fileId={}", fileId);
             return;
