@@ -1,25 +1,23 @@
 package com.jackpot.narratix.domain.entity;
 
-import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
-import com.jackpot.narratix.domain.controller.request.EditCoverLetterRequest;
+import com.jackpot.narratix.domain.controller.request.CoverLetterAndQnAEditRequest;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
-import com.jackpot.narratix.global.exception.BaseException;
-import com.jackpot.narratix.global.exception.GlobalErrorCode;
+import com.jackpot.narratix.domain.entity.enums.ReviewRoleType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 @Entity
 @Table(name = "coverletter")
 @Getter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 public class CoverLetter extends BaseTimeEntity {
 
@@ -49,41 +47,45 @@ public class CoverLetter extends BaseTimeEntity {
     @Column(name = "job_position", nullable = false)
     private String jobPosition;
 
-    @Column(name = "deadline", nullable = true)
+    @NotNull
+    @Column(name = "deadline", nullable = false)
     private LocalDate deadline;
 
+    @Builder.Default
     @OneToMany(mappedBy = "coverLetter", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<QnA> qnAs = new ArrayList<>();
 
-    public int getQuestionCount() {
-        return qnAs != null ? qnAs.size() : 0;
+    public void addQnAs(List<QnA> qnAs) {
+        qnAs.forEach(qnA -> {
+            this.qnAs.add(qnA);
+            qnA.connectCoverLetter(this);
+        });
     }
 
-    public static CoverLetter from(String userId, CreateCoverLetterRequest request) {
-        CoverLetter coverLetter = new CoverLetter();
-        coverLetter.userId = userId;
-        coverLetter.companyName = request.companyName();
-        coverLetter.applyYear = request.applyYear();
-        coverLetter.applyHalf = request.applyHalf();
-        coverLetter.jobPosition = request.jobPosition();
-        coverLetter.deadline = request.deadline();
-        coverLetter.qnAs = request.questions().stream()
-                .map(question -> QnA.newQnA(coverLetter, question))
-                .collect(Collectors.toCollection(ArrayList::new));
-        return coverLetter;
+    public int getQuestionCount() {
+        return qnAs.size();
     }
 
     public boolean isOwner(String userId) {
         return Objects.equals(this.userId, userId);
     }
 
-    public void edit(String userId, EditCoverLetterRequest request){
-        if(!isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
+    public void removeQnAsNotIn(Set<Long> keepIds) {
+        this.qnAs.removeIf(qnA -> !keepIds.contains(qnA.getId()));
+    }
 
+    public void edit(CoverLetterAndQnAEditRequest.CoverLetterEditRequest request){
         this.companyName = request.companyName();
         this.applyYear = request.applyYear();
         this.applyHalf = request.applyHalf();
         this.jobPosition = request.jobPosition();
         this.deadline = request.deadline();
+    }
+
+    public ReviewRoleType determineReviewRole(String userId) {
+        if (isOwner(userId)) {
+            return ReviewRoleType.WRITER;
+        }
+        return ReviewRoleType.REVIEWER;
     }
 }

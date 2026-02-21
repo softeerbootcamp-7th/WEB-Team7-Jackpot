@@ -2,8 +2,8 @@ package com.jackpot.narratix.domain.controller.api;
 
 import com.jackpot.narratix.domain.controller.request.QnAEditRequest;
 import com.jackpot.narratix.domain.controller.response.QnAEditResponse;
+import com.jackpot.narratix.domain.controller.response.QnAListResponse;
 import com.jackpot.narratix.domain.controller.response.QnAResponse;
-import com.jackpot.narratix.global.auth.UserId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -13,8 +13,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -34,13 +35,12 @@ public interface QnAApi {
             @ApiResponse(responseCode = "403", description = "권한 없음"),
             @ApiResponse(responseCode = "404", description = "질문/답변을 찾을 수 없음")
     })
-    @PutMapping
     ResponseEntity<QnAEditResponse> editQnA(
-            @Parameter(hidden = true) @UserId String userId,
-            @Valid @RequestBody QnAEditRequest request
+            @Parameter(hidden = true) String userId,
+            @Valid QnAEditRequest request
     );
 
-    @Operation(summary = "질문/답변 조회", description = "ID로 질문 및 답변을 조회합니다.")
+    @Operation(summary = "QnA 단건 조회", description = "ID로 질문 및 답변을 조회합니다.")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -49,12 +49,11 @@ public interface QnAApi {
             ),
             @ApiResponse(responseCode = "401", description = "인증 실패"),
             @ApiResponse(responseCode = "403", description = "권한 없음"),
-            @ApiResponse(responseCode = "404", description = "질문/답변을 찾을 수 없음")
+            @ApiResponse(responseCode = "404", description = "QnA를 찾을 수 없음")
     })
-    @GetMapping
     ResponseEntity<QnAResponse> getQnAById(
-            @Parameter(hidden = true) @UserId String userId,
-            @Parameter(description = "질문/답변 ID", required = true) @RequestParam Long qnaId
+            @Parameter(hidden = true) String userId,
+            @Parameter(description = "질문/답변 ID", required = true, example = "1") Long qnAId
     );
 
     @Operation(summary = "자기소개서의 질문 ID 목록 조회", description = "특정 자기소개서에 속한 모든 질문의 ID 목록을 조회합니다.")
@@ -68,9 +67,24 @@ public interface QnAApi {
             @ApiResponse(responseCode = "403", description = "권한 없음"),
             @ApiResponse(responseCode = "404", description = "자기소개서를 찾을 수 없음")
     })
-    @GetMapping("/id/all")
     ResponseEntity<List<Long>> getQnAIdsByCoverLetterId(
-            @Parameter(hidden = true) @UserId String userId,
-            @Parameter(description = "자기소개서 ID", required = true) @RequestParam Long coverLetterId
+            @Parameter(hidden = true) String userId,
+            @Parameter(description = "자기소개서 ID") Long coverLetterId
+    );
+
+    @Operation(summary = "QnA ID 목록으로 QnA 목록 조회", description = "QnA ID 목록으로 QnA 목록을 조회합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(schema = @Schema(implementation = QnAListResponse.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "401", description = "인증 실패"),
+            @ApiResponse(responseCode = "403", description = "권한 없음")
+    })
+    ResponseEntity<QnAListResponse> getQnAsByQnAIds(
+            @Parameter(hidden = true) String userId,
+            @Parameter(description = "QnA ID 목록") @NotEmpty @Size(max = 20) List<Long> qnAIds
     );
 }

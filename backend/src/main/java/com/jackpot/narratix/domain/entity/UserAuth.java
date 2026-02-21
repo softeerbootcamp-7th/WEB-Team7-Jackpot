@@ -1,6 +1,5 @@
 package com.jackpot.narratix.domain.entity;
 
-import com.jackpot.narratix.domain.controller.dto.JoinRequest;
 import com.jackpot.narratix.domain.service.PasswordHashUtil;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;

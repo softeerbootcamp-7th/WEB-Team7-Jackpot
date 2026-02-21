@@ -1,7 +1,5 @@
 package com.jackpot.narratix.domain.service;
 
-import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
-import com.jackpot.narratix.domain.controller.request.CreateQuestionRequest;
 import com.jackpot.narratix.domain.controller.response.CompanyLibraryResponse;
 import com.jackpot.narratix.domain.controller.response.QuestionLibraryResponse;
 import com.jackpot.narratix.domain.entity.CoverLetter;
@@ -341,28 +339,27 @@ class LibraryServiceTest {
     }
 
     private CoverLetter createMockCoverLetter(Long id, String userId, String companyName, LocalDate deadline) {
-        CoverLetter coverLetter = CoverLetter.from(
-                userId,
-                new CreateCoverLetterRequest(
-                        companyName,
-                        2024,
-                        ApplyHalfType.FIRST_HALF,
-                        "백엔드 개발자",
-                        deadline,
-                        List.of()
-                )
-        );
+        CoverLetter coverLetter = CoverLetter.builder()
+                .userId(userId)
+                .companyName(companyName)
+                .applyYear(2024)
+                .applyHalf(ApplyHalfType.FIRST_HALF)
+                .jobPosition("백엔드 개발자")
+                .deadline(deadline)
+                .build();
         ReflectionTestUtils.setField(coverLetter, "id", id);
         return coverLetter;
     }
 
     private QnA createMockQnA(Long id, CoverLetter coverLetter, String category, String question, String answer) {
-        CreateQuestionRequest request = new CreateQuestionRequest(question, category);
-
-        QnA qna = QnA.newQnA(coverLetter, request);
+        QnA qna = QnA.builder()
+                .coverLetter(coverLetter)
+                .userId(coverLetter.getUserId())
+                .question(question)
+                .questionCategory(QuestionCategoryType.fromDescription(category))
+                .build();
 
         ReflectionTestUtils.setField(qna, "id", id);
-
         ReflectionTestUtils.setField(qna, "answer", answer);
 
         return qna;

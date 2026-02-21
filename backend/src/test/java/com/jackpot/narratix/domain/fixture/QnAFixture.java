@@ -20,4 +20,17 @@ public class QnAFixture {
         setAuditFields(qna);
         return qna;
     }
+
+    public static QnA createQnAWithId(
+            Long id, CoverLetter coverLetter, String userId, String question, QuestionCategoryType category
+    ) {
+        QnA qna = new QnA();
+        ReflectionTestUtils.setField(qna, "id", id);
+        ReflectionTestUtils.setField(qna, "coverLetter", coverLetter);
+        ReflectionTestUtils.setField(qna, "userId", userId);
+        ReflectionTestUtils.setField(qna, "question", question);
+        ReflectionTestUtils.setField(qna, "questionCategory", category);
+        setAuditFields(qna);
+        return qna;
+    }
 }

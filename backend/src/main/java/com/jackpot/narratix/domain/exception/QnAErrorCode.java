@@ -9,7 +9,9 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum QnAErrorCode implements ErrorCode {
 
-    QNA_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 QnA를 찾을 수 없습니다.");
+    QNA_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 QnA를 찾을 수 없습니다."),
+    NOT_SAME_COVERLETTER(HttpStatus.BAD_REQUEST, "하나의 자기소개서에서의 QnA 목록이 아닙니다.");
+
 
     private final HttpStatus status;
     private final String message;

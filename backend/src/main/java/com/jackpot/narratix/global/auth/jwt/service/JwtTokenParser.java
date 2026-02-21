@@ -15,7 +15,17 @@ public class JwtTokenParser {
 
     private final JwtKeyProvider jwtKeyProvider;
 
-    public Token parseToken(String rawToken) {
+    public Token parseJwtToken(String rawToken) {
+        Claims claims = parseClaims(rawToken);
+        return Token.of(
+                rawToken,
+                claims.getSubject(),
+                claims.getIssuedAt(),
+                claims.getExpiration()
+        );
+    }
+
+    public Token parseBearerToken(String rawToken) {
         String token = extractPrefix(rawToken);
         Claims claims = parseClaims(token);
         return Token.of(

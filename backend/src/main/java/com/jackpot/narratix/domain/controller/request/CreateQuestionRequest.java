@@ -2,6 +2,7 @@ package com.jackpot.narratix.domain.controller.request;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
 import jakarta.validation.constraints.NotNull;
 
@@ -15,5 +16,13 @@ public record CreateQuestionRequest(
             @JsonProperty("category") String category
     ) {
         this(question, QuestionCategoryType.fromDescription(category));
+    }
+
+    public QnA toEntity(String userId) {
+        return QnA.builder()
+                .userId(userId)
+                .question(question)
+                .questionCategory(category)
+                .build();
     }
 }

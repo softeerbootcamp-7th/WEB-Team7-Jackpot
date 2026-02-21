@@ -17,6 +17,6 @@ public class ScrapId implements Serializable {
     private String userId;
 
     @Column(name = "qna_id")
-    private Long qnaId;
+    private Long qnAId;
 
 }
