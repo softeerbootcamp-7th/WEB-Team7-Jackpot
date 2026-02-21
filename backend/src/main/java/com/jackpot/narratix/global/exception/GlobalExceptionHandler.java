@@ -1,5 +1,6 @@
 package com.jackpot.narratix.global.exception;
 
+import com.jackpot.narratix.global.auth.jwt.exception.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,14 @@ import org.springframework.web.context.request.async.AsyncRequestNotUsableExcept
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(JwtException.class)
+    protected ResponseEntity<ErrorResponse> handleJwtException(JwtException e) {
+        ErrorCode errorCode = e.getErrorCode();
+        ErrorResponse response = ErrorResponse.of(errorCode);
+        // JWT 인증 실패는 정상적인 인증 흐름이므로 로그를 남기지 않음 (ERROR 로그 방지)
+        return ResponseEntity.status(errorCode.getStatus()).body(response);
+    }
 
     @ExceptionHandler(BaseException.class)
     protected ResponseEntity<ErrorResponse> handleBaseException(BaseException e) {
