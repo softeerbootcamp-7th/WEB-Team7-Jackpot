@@ -17,15 +17,12 @@ interface FeedbackNotificationType extends NotificationBaseType {
   };
 }
 
-interface CoverLetterType {
-  coverLetterId: number;
-  questionIds: (number | null)[];
-}
-
 interface LabelingNotificationType extends NotificationBaseType {
   type: 'LABELING_COMPLETE';
   meta: {
-    coverLetters: CoverLetterType[];
+    jobId: string;
+    successFileCount: number;
+    failFileCount: number;
   };
 }
 
