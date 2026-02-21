@@ -1,21 +1,12 @@
 package com.jackpot.narratix.domain.service;
 
-import com.jackpot.narratix.domain.controller.request.CoverLetterFilterRequest;
-import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
-import com.jackpot.narratix.domain.controller.request.CreateQuestionRequest;
-import com.jackpot.narratix.domain.controller.request.CoverLetterAndQnAEditRequest;
-import com.jackpot.narratix.domain.controller.request.CoverLettersSaveRequest;
-import com.jackpot.narratix.domain.controller.response.CoverLetterResponse;
-import com.jackpot.narratix.domain.controller.response.FilteredCoverLettersResponse;
-import com.jackpot.narratix.domain.controller.response.CreateCoverLetterResponse;
-import com.jackpot.narratix.domain.controller.response.SavedCoverLetterCountResponse;
-import com.jackpot.narratix.domain.controller.response.TotalCoverLetterCountResponse;
-import com.jackpot.narratix.domain.controller.response.UpcomingCoverLetterResponse;
+import com.jackpot.narratix.domain.controller.request.*;
+import com.jackpot.narratix.domain.controller.response.*;
 import com.jackpot.narratix.domain.entity.CoverLetter;
+import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.UploadJob;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
-import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.exception.CoverLetterErrorCode;
 import com.jackpot.narratix.domain.exception.QnAErrorCode;
 import com.jackpot.narratix.domain.fixture.QnAFixture;
@@ -41,11 +32,7 @@ import org.springframework.data.domain.SliceImpl;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -1042,5 +1029,37 @@ class CoverLetterServiceTest {
         assertThat(capturedCoverLetter.getApplyHalf()).isEqualTo(ApplyHalfType.FIRST_HALF);
         assertThat(capturedCoverLetter.getDeadline()).isEqualTo(LocalDate.of(2024, 12, 31));
         assertThat(capturedCoverLetter.getQnAs()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("사용자 ID로 지원한 회사 목록 조회")
+    void getCompaniesTest() {
+        // given
+        String userId = "user123";
+        List<String> mockCompanies = List.of("Samsung", "Naver", "Kakao");
+        given(coverLetterRepository.findCompanyNamesByUserId(userId)).willReturn(mockCompanies);
+
+        // when
+        List<String> result = coverLetterService.getCompanies(userId);
+
+        // then
+        assertThat(result).hasSize(3).contains("Samsung", "Naver");
+        verify(coverLetterRepository, times(1)).findCompanyNamesByUserId(userId);
+    }
+
+    @Test
+    @DisplayName("사용자 ID로 지원한 직무 목록 조회")
+    void getJobPositionsTest() {
+        // given
+        String userId = "user123";
+        List<String> mockPositions = List.of("Backend Engineer", "Frontend Engineer");
+        given(coverLetterRepository.findJobPositionsByUserId(userId)).willReturn(mockPositions);
+
+        // when
+        List<String> result = coverLetterService.getJobPositions(userId);
+
+        // then
+        assertThat(result).hasSize(2).containsExactly("Backend Engineer", "Frontend Engineer");
+        verify(coverLetterRepository, times(1)).findJobPositionsByUserId(userId);
     }
 }
