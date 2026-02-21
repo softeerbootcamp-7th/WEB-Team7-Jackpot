@@ -2,7 +2,7 @@ package com.jackpot.narratix.global.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.lambda.LambdaClient;
 
@@ -13,7 +13,7 @@ public class LambdaConfig {
     public LambdaClient lambdaClient() {
         return LambdaClient.builder()
                 .region(Region.AP_NORTHEAST_2)
-                .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+                .credentialsProvider(DefaultCredentialsProvider.builder().build())
                 .build();
     }
 }
