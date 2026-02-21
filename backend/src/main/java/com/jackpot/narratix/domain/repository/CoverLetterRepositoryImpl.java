@@ -9,11 +9,7 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.SliceImpl;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -239,4 +235,10 @@ public class CoverLetterRepositoryImpl implements CoverLetterRepository {
                 .or(isSameDeadlineButBeforeModifiedAt)
                 .or(isSameDeadlineAndModifiedAtButSmallerId);
     }
+
+    @Override
+    public List<String> findJobPositionsByUserId(String userId) {
+        return coverLetterJpaRepository.findDistinctJobPositionsByUserId(userId);
+    }
+
 }
