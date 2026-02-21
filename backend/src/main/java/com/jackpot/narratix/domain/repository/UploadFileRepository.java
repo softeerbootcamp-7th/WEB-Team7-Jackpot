@@ -13,6 +13,9 @@ public interface UploadFileRepository extends JpaRepository<UploadFile, String> 
         return findById(fileId).orElseThrow(() -> new BaseException(UploadErrorCode.FILE_NOT_FOUND)); // 에러 코드는 프로젝트에 맞게 수정해주세요
     }
 
-    @Query("SELECT COUNT(f) FROM UploadFile f WHERE f.uploadJob.id = :jobId AND f.status NOT IN ('COMPLETED', 'FAILED')")
-    long countIncompleteFiles(@Param("jobId") String jobId);
+    @Query("SELECT COUNT(f) FROM UploadFile f WHERE f.uploadJob.id = :jobId AND f.status = 'FAILED'")
+    long countFailedFiles(@Param("jobId") String jobId);
+
+    @Query("SELECT COUNT(f) FROM UploadFile f WHERE f.uploadJob.id = :jobId AND f.status = 'COMPLETED'")
+    long countCompletedFiles(@Param("jobId") String jobId);
 }
