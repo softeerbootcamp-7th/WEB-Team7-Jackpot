@@ -88,13 +88,7 @@ public class ReviewService {
 
         // 텍스트 마킹 삽입
         String wrappedAnswer = addTagToReviewedSection(currentAnswer, transformedStart, transformedEnd, review.getId(), request.originText());
-        qnA.editAnswer(wrappedAnswer);
-        long reviewVersion = qnARepository.incrementVersion(qnAId, 1);
-
-        // afterCommit: Redis version counter 강제 갱신
-        textDeltaService.resetDeltaVersion(qnAId, reviewVersion);
-
-        eventPublisher.publishEvent(new TextReplaceAllEvent(coverLetterId, qnAId, reviewVersion, wrappedAnswer));
+        editAnswerAndPublishTextReplaceAllEvent(qnAId, qnA, wrappedAnswer, coverLetterId);
         eventPublisher.publishEvent(ReviewCreatedEvent.of(coverLetterId, qnAId, review));
 
         notificationService.sendFeedbackNotificationToWriter(reviewerId, writerId, notificationTitle, qnAId, request.originText());
@@ -161,10 +155,7 @@ public class ReviewService {
 
         if (currentAnswer.contains(marker)) {
             String unwrapped = currentAnswer.replace(marker, review.getOriginText());
-            qnA.editAnswer(unwrapped);
-            long newVersion = qnARepository.incrementVersion(qnAId, 1);
-            textDeltaService.resetDeltaVersion(qnAId, newVersion);
-            eventPublisher.publishEvent(new TextReplaceAllEvent(coverLetterId, qnAId, newVersion, unwrapped));
+            editAnswerAndPublishTextReplaceAllEvent(qnAId, qnA, unwrapped, coverLetterId);
         } else {
             log.warn("리뷰 마커를 찾을 수 없음, 텍스트 변경 없이 삭제 진행: qnAId={}, reviewId={}", qnAId, reviewId);
         }
@@ -204,16 +195,20 @@ public class ReviewService {
         if (currentAnswer.contains(oldMarkerContent)) {
             String newMarkerContent = markerOpen(reviewId) + review.getOriginText() + MARKER_CLOSE;
             String newAnswer = currentAnswer.replace(oldMarkerContent, newMarkerContent);
-            qnA.editAnswer(newAnswer);
-            long newVersion = qnARepository.incrementVersion(qnAId, 1);
-            textDeltaService.resetDeltaVersion(qnAId, newVersion);
-            eventPublisher.publishEvent(new TextReplaceAllEvent(coverLetterId, qnAId, newVersion, newAnswer));
+            editAnswerAndPublishTextReplaceAllEvent(qnAId, qnA, newAnswer, coverLetterId);
         } else {
             log.warn("리뷰 마커를 찾을 수 없음, 상태 토글만 진행: qnAId={}, reviewId={}", qnAId, reviewId);
         }
 
         reviewRepository.save(review);
         eventPublisher.publishEvent(ReviewEditEvent.of(coverLetterId, qnAId, review));
+    }
+
+    private void editAnswerAndPublishTextReplaceAllEvent(Long qnAId, QnA qnA, String newAnswer, Long coverLetterId) {
+        qnA.editAnswer(newAnswer);
+        long newVersion = qnARepository.incrementVersion(qnAId, 1);
+        textDeltaService.resetDeltaVersion(qnAId, newVersion);
+        eventPublisher.publishEvent(new TextReplaceAllEvent(coverLetterId, qnAId, newVersion, newAnswer));
     }
 
     private void validateWebSocketConnected(String userId, Long coverLetterId, ReviewRoleType role) {
