@@ -2,6 +2,7 @@ package com.jackpot.narratix.domain.service;
 
 import com.jackpot.narratix.domain.controller.response.LabeledQnAListResponse;
 import com.jackpot.narratix.domain.entity.LabeledQnA;
+import com.jackpot.narratix.domain.entity.UploadFile;
 import com.jackpot.narratix.domain.entity.UploadJob;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
 import com.jackpot.narratix.domain.exception.UploadErrorCode;
@@ -35,25 +36,32 @@ class UploadServiceTest {
     private UploadService uploadService;
 
     @Test
-    @DisplayName("라벨링된 QnA 목록 조회 성공 - QnA가 있는 경우")
-    void findLabeledCoverLetterByUploadJobId_성공() {
+    @DisplayName("라벨링된 QnA 목록 조회 성공 - 계층형 구조 반환 확인")
+    void findLabeledCoverLetterByUploadJobId() {
         // given
         String userId = "user1";
         String uploadJobId = "job1";
+        UploadFile uploadFile = UploadFile.builder()
+                .id("fileId")
+                .build();
 
         UploadJob uploadJob = mock(UploadJob.class);
         when(uploadJob.isOwner(userId)).thenReturn(true);
         when(uploadJobRepository.findByIdOrElseThrow(uploadJobId)).thenReturn(uploadJob);
 
-        LabeledQnA qna1 = mock(LabeledQnA.class);
-        when(qna1.getQuestion()).thenReturn("지원 동기는?");
-        when(qna1.getAnswer()).thenReturn("성장 가능성을 보고 지원했습니다.");
-        when(qna1.getQuestionCategory()).thenReturn(QuestionCategoryType.MOTIVATION);
+        LabeledQnA qna1 = LabeledQnA.builder()
+                .question("지원 동기는?")
+                .answer("성장 가능성을 보고 지원했습니다.")
+                .questionCategory(QuestionCategoryType.MOTIVATION)
+                .uploadFile(uploadFile)
+                .build();
 
-        LabeledQnA qna2 = mock(LabeledQnA.class);
-        when(qna2.getQuestion()).thenReturn("팀워크 경험은?");
-        when(qna2.getAnswer()).thenReturn("팀 프로젝트에서 협업한 경험이 있습니다.");
-        when(qna2.getQuestionCategory()).thenReturn(QuestionCategoryType.TEAMWORK_EXPERIENCE);
+        LabeledQnA qna2 = LabeledQnA.builder()
+                .question("팀워크 경험은?")
+                .answer("협업한 경험이 있습니다.")
+                .questionCategory(QuestionCategoryType.TEAMWORK_EXPERIENCE)
+                .uploadFile(uploadFile)
+                .build();
 
         when(labeledQnARepository.findAllByUploadJobId(uploadJobId)).thenReturn(List.of(qna1, qna2));
 
@@ -61,7 +69,13 @@ class UploadServiceTest {
         LabeledQnAListResponse response = uploadService.findLabeledCoverLetterByUploadJobId(userId, uploadJobId);
 
         // then
-        assertThat(response.qnaList()).hasSize(2);
+        assertThat(response.coverLetters()).hasSize(1);
+        assertThat(response.coverLetters().get(0).qnAs()).hasSize(2);
+
+        var firstQnA = response.coverLetters().get(0).qnAs().get(0);
+        assertThat(firstQnA.question()).isEqualTo("지원 동기는?");
+        assertThat(firstQnA.answerSize()).isEqualTo(firstQnA.answer().length());
+
         verify(uploadJobRepository, times(1)).findByIdOrElseThrow(uploadJobId);
         verify(labeledQnARepository, times(1)).findAllByUploadJobId(uploadJobId);
     }
@@ -82,7 +96,7 @@ class UploadServiceTest {
         LabeledQnAListResponse response = uploadService.findLabeledCoverLetterByUploadJobId(userId, uploadJobId);
 
         // then
-        assertThat(response.qnaList()).isEmpty();
+        assertThat(response.coverLetters()).isEmpty();
         verify(uploadJobRepository, times(1)).findByIdOrElseThrow(uploadJobId);
         verify(labeledQnARepository, times(1)).findAllByUploadJobId(uploadJobId);
     }
