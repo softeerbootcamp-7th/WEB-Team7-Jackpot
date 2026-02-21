@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jackpot.narratix.domain.entity.LabeledQnA;
 import com.jackpot.narratix.domain.entity.UploadFile;
+import com.jackpot.narratix.domain.entity.UploadJob;
 import com.jackpot.narratix.domain.exception.UploadErrorCode;
 import com.jackpot.narratix.domain.repository.LabeledQnARepository;
 import com.jackpot.narratix.domain.repository.UploadFileRepository;
@@ -14,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
 
@@ -87,4 +90,22 @@ public class FileProcessService {
         checkJobCompletionAndNotify(file.getUploadJob());
 
     }
+
+    private void checkJobCompletionAndNotify(UploadJob job) {
+
+        uploadFileRepository.flush();
+        long incompleteCount = uploadFileRepository.countIncompleteFiles(job.getId());
+
+        if (incompleteCount == 0) {
+            log.info("All files completed for Job: {}. Sending SSE Notification.", job.getId());
+
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    // TODO: SSE 알림 전송 로직 실행
+                }
+            });
+        }
+    }
 }
+
