@@ -160,7 +160,7 @@ public interface CoverLetterApi {
             @ApiResponse(
                     responseCode = "200",
                     description = "조회 성공",
-                    content = @Content(schema = @Schema(implementation = LocalDate.class))
+                    content = @Content(schema = @Schema(type = "array", implementation = String.class))
             ),
             @ApiResponse(responseCode = "401", description = "인증 실패")
     })
@@ -173,7 +173,7 @@ public interface CoverLetterApi {
             @ApiResponse(
                     responseCode = "200",
                     description = "조회 성공",
-                    content = @Content(schema = @Schema(implementation = LocalDate.class))
+                    content = @Content(schema = @Schema(type = " array", implementation = String.class))
             ),
             @ApiResponse(responseCode = "401", description = "인증 실패")
     })
