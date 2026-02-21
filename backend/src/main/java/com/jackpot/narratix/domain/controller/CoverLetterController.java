@@ -120,7 +120,7 @@ public class CoverLetterController implements CoverLetterApi {
     }
 
     @Override
-    @GetMapping("/jobpositions/all")
+    @GetMapping("/job-positions/all")
     public ResponseEntity<List<String>> getJobPositions(@UserId String userId) {
         return ResponseEntity.ok(coverLetterService.getJobPositions(userId));
     }
