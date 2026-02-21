@@ -105,6 +105,8 @@ class FileProcessServiceTest {
         // given
         String fileId = "test-file";
         String jobId = "test-job";
+        String userId = "test-user";
+        UploadFile file = setupFileAndJobMock(fileId, jobId, userId);
 
         when(uploadFileRepository.countByUploadJobId(jobId)).thenReturn(3L);
         when(uploadFileRepository.countByUploadJobIdAndStatus(jobId, UploadStatus.FAILED)).thenReturn(0L);
