@@ -1,15 +1,10 @@
 package com.jackpot.narratix.domain.controller.api;
 
-import com.jackpot.narratix.domain.controller.request.CoverLetterFilterRequest;
-import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
 import com.jackpot.narratix.domain.controller.request.CoverLetterAndQnAEditRequest;
+import com.jackpot.narratix.domain.controller.request.CoverLetterFilterRequest;
 import com.jackpot.narratix.domain.controller.request.CoverLettersSaveRequest;
-import com.jackpot.narratix.domain.controller.response.CoverLetterResponse;
-import com.jackpot.narratix.domain.controller.response.FilteredCoverLettersResponse;
-import com.jackpot.narratix.domain.controller.response.CreateCoverLetterResponse;
-import com.jackpot.narratix.domain.controller.response.SavedCoverLetterCountResponse;
-import com.jackpot.narratix.domain.controller.response.TotalCoverLetterCountResponse;
-import com.jackpot.narratix.domain.controller.response.UpcomingCoverLetterResponse;
+import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
+import com.jackpot.narratix.domain.controller.response.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -159,4 +154,31 @@ public interface CoverLetterApi {
             @Parameter(description = "업로드 작업 ID", required = true, example = "abc123") String uploadJobId,
             CoverLettersSaveRequest request
     );
+
+    @Operation(summary = "기업명 조회", description = "자기소개서에 기등록되어 있는 기업명을 조회합니다")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(schema = @Schema(implementation = LocalDate.class))
+            ),
+            @ApiResponse(responseCode = "401", description = "인증 실패")
+    })
+    ResponseEntity<List<String>> getCompanies(
+            @Parameter(hidden = true) String userId
+    );
+
+    @Operation(summary = "직무명 조회", description = "자기소개서에 기등록되어 있는 직무명을 조회합니다")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(schema = @Schema(implementation = LocalDate.class))
+            ),
+            @ApiResponse(responseCode = "401", description = "인증 실패")
+    })
+    ResponseEntity<List<String>> getJobPositions(
+            @Parameter(hidden = true) String userId
+    );
+
 }
