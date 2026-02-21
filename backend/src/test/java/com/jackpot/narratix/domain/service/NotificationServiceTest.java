@@ -171,6 +171,7 @@ class NotificationServiceTest {
         // given
         String reviewerId = "reviewer123";
         String writerId = "writer456";
+        Long coverLetterId = 1L;
         Long qnaId = 1L;
         String originText = "원본 텍스트";
 
@@ -186,7 +187,9 @@ class NotificationServiceTest {
         ArgumentCaptor<Notification> notificationCaptor = ArgumentCaptor.forClass(Notification.class);
 
         // when
-        notificationService.sendFeedbackNotificationToWriter(reviewerId, writerId, notificationTitle, qnaId, originText);
+        notificationService.sendFeedbackNotificationToWriter(
+                reviewerId, writerId, notificationTitle, coverLetterId, qnaId, originText
+        );
 
         // then
         verify(userRepository).findByIdOrElseThrow(reviewerId);
@@ -213,6 +216,7 @@ class NotificationServiceTest {
         String reviewerId = "reviewer123";
         String writerId = "writer456";
         Long qnaId = 1L;
+        Long coverLetterId = 1L;
 
         User reviewer = UserFixture.builder()
                 .id(reviewerId)
@@ -226,7 +230,9 @@ class NotificationServiceTest {
         ArgumentCaptor<Notification> notificationCaptor = ArgumentCaptor.forClass(Notification.class);
 
         // when
-        notificationService.sendFeedbackNotificationToWriter(reviewerId, writerId, notificationTitle, qnaId, "원본 텍스트");
+        notificationService.sendFeedbackNotificationToWriter(
+                reviewerId, writerId, notificationTitle, coverLetterId, qnaId, "원본 텍스트"
+        );
 
         // then
         // 1. writer에게 알림이 저장된다
@@ -247,6 +253,7 @@ class NotificationServiceTest {
         // given
         String reviewerId = "reviewer123";
         String writerId = "writer456";
+        Long coverLetterId = 1L;
         Long qnaId = 1L;
         String originText = "원본 텍스트";
 
@@ -262,7 +269,9 @@ class NotificationServiceTest {
         ArgumentCaptor<Notification> notificationCaptor = ArgumentCaptor.forClass(Notification.class);
 
         // when
-        notificationService.sendFeedbackNotificationToWriter(reviewerId, writerId, notificationTitle, qnaId, originText);
+        notificationService.sendFeedbackNotificationToWriter(
+                reviewerId, writerId, notificationTitle, coverLetterId, qnaId, originText
+        );
 
         // then
         verify(notificationRepository).save(notificationCaptor.capture());
