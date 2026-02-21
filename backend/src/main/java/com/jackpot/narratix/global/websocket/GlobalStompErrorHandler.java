@@ -29,7 +29,6 @@ public class GlobalStompErrorHandler extends StompSubProtocolErrorHandler {
 
         // 기타 BaseException 처리
         if (ex.getCause() instanceof BaseException baseException) {
-            log.error("STOMP error occurred: {}", baseException.getErrorCode().getMessage());
             return handleBaseException(clientMessage, baseException);
         }
 
