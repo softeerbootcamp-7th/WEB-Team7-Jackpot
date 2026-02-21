@@ -1,16 +1,15 @@
 import { useState } from 'react';
 
-import { useNavigate } from 'react-router';
-
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useLogout } from '@/features/auth/hooks/useAuthClient';
 import NotificationDropdown from '@/features/notification/components/NotificationDropdown';
 import NavItem from '@/shared/components/NavItem';
 import { NAV_ITEMS } from '@/shared/constants/globalHeader';
+import { useSmartNavigate } from '@/shared/hooks/useSmartNavigate';
 import { CommonIcon as I } from '@/shared/icons';
 
 const PageGlobalHeader = () => {
-  const navigate = useNavigate();
+  const smartNavigate = useSmartNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const { userInfo, isLoading } = useAuth();
@@ -24,13 +23,13 @@ const PageGlobalHeader = () => {
   };
 
   return (
-    <header className='mb-[1.875rem] flex h-[3.75rem] w-full items-center justify-between bg-white px-75'>
+    <header className='mb-[1.875rem] flex h-[3.75rem] w-full min-w-[1700px] items-center justify-between bg-white px-75'>
       <div className='flex items-center gap-20'>
         <div className='flex items-center text-2xl font-bold text-blue-300'>
           <button
             className='cursor-pointer'
             type='button'
-            onClick={() => navigate('/home')}
+            onClick={() => smartNavigate('/home')}
             aria-label='홈으로 이동'
           >
             <I.TitleLogo width='99' height='27' />
@@ -42,7 +41,9 @@ const PageGlobalHeader = () => {
             {NAV_ITEMS.map((item) => {
               return (
                 <li key={item.label}>
-                  <NavItem to={item.path}>{item.label}</NavItem>
+                  <NavItem to={item.path} end={item.end}>
+                    {item.label}
+                  </NavItem>
                 </li>
               );
             })}
@@ -72,10 +73,10 @@ const PageGlobalHeader = () => {
                 className='fixed inset-0 z-10 cursor-default'
                 onClick={() => setIsProfileOpen(false)}
               />
-              <div className='absolute right-0 z-20 mt-2 flex w-24 flex-col rounded-lg bg-white shadow-[0_0_20px_rgba(0,0,0,0.1)] select-none'>
+              <div className='absolute right-0 z-20 mt-2 flex w-24 flex-col rounded-md bg-white shadow-[0_0_20px_rgba(0,0,0,0.1)] select-none'>
                 <button
                   type='button'
-                  className='w-full px-4 py-2 text-center text-sm text-red-600 hover:bg-red-50'
+                  className='w-full px-4 py-2 text-center text-sm font-bold text-red-600 hover:bg-red-50'
                   onClick={handleLogout}
                 >
                   로그아웃

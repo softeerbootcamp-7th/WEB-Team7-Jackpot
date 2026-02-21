@@ -1,4 +1,10 @@
-const CoverLetterOverviewSkeleton = ({ len = 6 }: { len?: number }) => {
+const COVERLETTER_OVERVIEW_LENGTH = 6;
+
+const CoverLetterOverviewSkeleton = ({
+  len = COVERLETTER_OVERVIEW_LENGTH,
+}: {
+  len?: number;
+}) => {
   return (
     <div className='inline-flex w-full flex-col items-start justify-start gap-6'>
       <div className='grid w-full grid-cols-3 gap-3'>

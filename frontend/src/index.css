@@ -392,4 +392,37 @@
       background-color: var(--color-gray-400);
     }
   }
+
+  /* 모든 인터랙티브 요소에 공통 포커스 링 적용 (Tab 접근 시) */
+  button:focus-visible,
+  input:focus-visible,
+  a:focus-visible,
+  [tabindex='0']:focus-visible {
+    outline: 2px solid var(--color-blue-600);
+    outline-offset: 2px;
+    transition: outline-offset 0.1s ease; /* 약간의 생동감 */
+  }
+
+  .focusable-card {
+    /* 기본 상태: 1px 회색 테두리 (안쪽으로 -1px 오프셋) */
+    outline: 1px solid var(--color-gray-100); /* gray-100 */
+    outline-offset: -1px;
+
+    /* 애니메이션 설정 */
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
+  }
+
+  /* 마우스 클릭 시 나타나는 기본 포커스 제거 */
+  .focusable-card:focus {
+    outline: none;
+  }
+
+  /* 키보드로 접근 시(Tab 키) 스타일 */
+  .focusable-card:focus-visible {
+    /* 2px 파란색 테두리 (바깥쪽으로 2px 오프셋) */
+    outline: 2px solid var(--color-blue-600); /* blue-500 */
+    outline-offset: 2px;
+  }
 }

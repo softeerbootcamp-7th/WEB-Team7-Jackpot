@@ -1,5 +1,14 @@
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { useHomeCount } from '@/features/home/hooks/useHomeQueries';
+import {
+  SUMMARY_OVERVIEW_COMPLETE_SUFFIX,
+  SUMMARY_OVERVIEW_COVER_LETTER_COUNT,
+  SUMMARY_OVERVIEW_DEFAULT_USER,
+  SUMMARY_OVERVIEW_QNA_ANSWERED,
+  SUMMARY_OVERVIEW_QNA_COUNT,
+  SUMMARY_OVERVIEW_SEASON,
+  SUMMARY_OVERVIEW_SEASON_COUNT,
+} from '@/features/home/constants';
+import { useHomeCount } from '@/features/home/hooks/queries/useHomeQueries';
 import BooksIcon from '@/features/home/icons/BooksIcon';
 import ScrollIcon from '@/features/home/icons/ScrollIcon';
 import ThoughtIcon from '@/features/home/icons/ThoughtIcon';
@@ -24,10 +33,12 @@ const SummaryOverview = () => {
         </div>
         <div className='inline-flex flex-col items-start justify-start'>
           <div className='text-title-s font-medium text-gray-400'>
-            {userInfo?.nickname || '사용자'}님은 지금까지
+            {userInfo?.nickname || SUMMARY_OVERVIEW_DEFAULT_USER}
+            {SUMMARY_OVERVIEW_COMPLETE_SUFFIX}
           </div>
           <div className='justify-start text-xl leading-9 font-bold text-gray-950'>
-            {data.coverLetterCount}장의 자기소개서를 완성했어요
+            {data.coverLetterCount}
+            {SUMMARY_OVERVIEW_COVER_LETTER_COUNT}
           </div>
         </div>
       </div>
@@ -37,10 +48,11 @@ const SummaryOverview = () => {
         </div>
         <div className='inline-flex flex-col items-start justify-start'>
           <div className='text-title-s justify-start font-medium text-gray-400'>
-            끝까지 작성을 마친 답변들은
+            {SUMMARY_OVERVIEW_QNA_ANSWERED}
           </div>
           <div className='justify-start text-xl leading-9 font-bold text-gray-950'>
-            총 {data.qnaCount}문항이에요
+            총 {data.qnaCount}
+            {SUMMARY_OVERVIEW_QNA_COUNT}
           </div>
         </div>
       </div>
@@ -50,10 +62,11 @@ const SummaryOverview = () => {
         </div>
         <div className='inline-flex flex-col items-start justify-start'>
           <div className='text-title-s justify-start font-medium text-gray-400'>
-            이번 시즌에는
+            {SUMMARY_OVERVIEW_SEASON}
           </div>
           <div className='justify-start text-xl leading-9 font-bold text-gray-950'>
-            총 {data.seasonCoverLetterCount}개의 공고에 지원했어요
+            총 {data.seasonCoverLetterCount}
+            {SUMMARY_OVERVIEW_SEASON_COUNT}
           </div>
         </div>
       </div>

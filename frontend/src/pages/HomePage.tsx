@@ -5,14 +5,14 @@ import HomeCoverLetterSection from '@/features/home/components/HomeCoverLetterSe
 import ScheduleOverview from '@/features/home/components/ScheduleOverview';
 import SummaryOverview from '@/features/home/components/SummaryOverview';
 import SummaryOverviewSkeleton from '@/features/home/components/SummaryOverviewSkeleton';
-import UpcomingSchedulesSkeleton from '@/features/home/components/UpcomingSchedulesSkeleton';
+import UpcomingSchedulesSkeleton from '@/features/home/components/upcomingSchedule/UpcomingSchedulesSkeleton';
 import ErrorBoundary from '@/shared/components/ErrorBoundary';
 import SectionError from '@/shared/components/SectionError';
 
 const HomePage = () => {
   return (
     <div className='flex min-h-screen w-full min-w-[1700px] flex-col overflow-x-hidden overflow-y-auto'>
-      <div className='flex flex-1 flex-col gap-10 px-[18.75rem] pb-[1.125rem]'>
+      <div className='flex flex-1 flex-col gap-10 px-[18.75rem] pb-[3.125rem]'>
         <img
           className='h-96 w-full rounded-2xl'
           src='/images/banner.png'

@@ -1,5 +1,6 @@
 package com.jackpot.narratix.domain.controller;
 
+import com.jackpot.narratix.domain.controller.api.UserAuthApi;
 import com.jackpot.narratix.domain.controller.dto.CheckIdRequest;
 import com.jackpot.narratix.domain.controller.dto.JoinRequest;
 import com.jackpot.narratix.domain.controller.dto.LoginRequest;
@@ -16,23 +17,23 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
-public class UserAuthController {
+public class UserAuthController implements UserAuthApi {
 
     private final UserAuthService userAuthService;
 
-    @PostMapping("/checkid")
+    @Override
     public ResponseEntity<Void> checkId(@Valid @RequestBody CheckIdRequest request) {
         userAuthService.checkIdAvailable(request.getUserId());
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/join")
+    @Override
     public ResponseEntity<UserTokenResponse> join(@Valid @RequestBody JoinRequest request) {
         TokenResponse tokens = userAuthService.join(request);
         return createTokenResponse(tokens);
     }
 
-    @PostMapping("/login")
+    @Override
     public ResponseEntity<UserTokenResponse> login(@Valid @RequestBody LoginRequest request) {
         TokenResponse tokens = userAuthService.login(request);
         return createTokenResponse(tokens);

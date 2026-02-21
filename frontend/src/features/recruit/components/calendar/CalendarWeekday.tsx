@@ -1,9 +1,9 @@
-import { weekList } from '@/shared/constants/dates';
+import { WEEK_LIST } from '@/shared/constants/dates';
 
 const CalendarWeekday = () => {
   return (
     <>
-      {weekList.map((d) => (
+      {WEEK_LIST.map((d) => (
         <div
           key={d}
           className='flex flex-1 items-end justify-center gap-2.5 px-3 py-1.5'
