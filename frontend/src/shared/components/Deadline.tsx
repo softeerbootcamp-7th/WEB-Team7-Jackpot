@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+
+import { getDaysInMonth, isValidDate, parseDate } from '@/shared/utils/dates';
 
 interface Props {
   label: string;
@@ -7,62 +9,26 @@ interface Props {
   onChange: (value: string) => void;
 }
 
-// 파싱 헬퍼 함수 (컴포넌트 밖)
-const parseDate = (val?: string | Date) => {
-  if (!val) return { y: '', m: '', d: '' };
-
-  if (typeof val === 'string') {
-    const parts = val.split('-');
-    return parts.length === 3
-      ? { y: parts[0], m: parts[1], d: parts[2] }
-      : { y: '', m: '', d: '' };
-  }
-
-  if (val instanceof Date) {
-    if (isNaN(val.getTime())) return { y: '', m: '', d: '' };
-    return {
-      y: String(val.getFullYear()),
-      m: String(val.getMonth() + 1).padStart(2, '0'),
-      d: String(val.getDate()).padStart(2, '0'),
-    };
-  }
-
-  return { y: '', m: '', d: '' };
-};
-
 const Deadline = ({ label, value, onChange }: Props) => {
-  // 초기값 세팅
   const initial = parseDate(value);
 
   const [localY, setLocalY] = useState(initial.y);
   const [localM, setLocalM] = useState(initial.m);
   const [localD, setLocalD] = useState(initial.d);
 
-  // [수정된 useEffect]
-  useEffect(() => {
-    const { y: propY, m: propM, d: propD } = parseDate(value);
+  // ✨ 핵심 1: 부모로부터 받은 이전 value를 기억할 상태를 하나 만듭니다.
+  const [prevValue, setPrevValue] = useState(value);
 
-    // 숫자로 변환하여 비교 ( "5" == "05" )
-    // 빈 문자열('')은 Number 변환 시 0이 되므로, 둘 다 비어있는 경우도 체크해야 함
-    const isEq = (a: string, b: string) => {
-      if (a === b) return true; // 완전 일치
-      if (a === '' || b === '') return false; // 하나만 비었으면 불일치
-      return Number(a) === Number(b); // "05" vs "5" 처리
-    };
+  // ✨ 핵심 2: useEffect 없이 렌더링 중에 바로 비교해 버립니다!
+  if (value !== prevValue) {
+    // 값이 달라졌다면, 새로운 값으로 동기화합니다.
+    setPrevValue(value);
 
-    // 현재 로컬 상태와 부모로부터 온 값이 '의미적으로' 같으면 무시
-    if (isEq(localY, propY) && isEq(localM, propM) && isEq(localD, propD)) {
-      return;
-    }
-
-    // 다르면 업데이트 (외부에서 데이터가 로드된 경우)
-    setLocalY(propY);
-    setLocalM(propM);
-    setLocalD(propD);
-
-    // 의존성 배열에는 value만 넣습니다. local state를 넣으면 루프 돕니다.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value]);
+    const { y, m, d } = parseDate(value);
+    setLocalY(y);
+    setLocalM(m);
+    setLocalD(d);
+  }
 
   const handleInputChange = (
     type: 'year' | 'month' | 'day',
@@ -70,10 +36,25 @@ const Deadline = ({ label, value, onChange }: Props) => {
   ) => {
     const numValue = inputValue.replace(/[^0-9]/g, '');
 
+    // 1. 입력 단계에서의 방어 로직 (사용자가 타이핑하는 순간 블로킹)
     if (type === 'year' && numValue.length > 4) return;
-    if ((type === 'month' || type === 'day') && numValue.length > 2) return;
 
-    // UI 즉시 반영 (사용자 경험 최우선)
+    if (type === 'month') {
+      if (numValue.length > 2) return;
+      if (Number(numValue) > 12) return; // 13 이상 입력 블록
+      if (numValue.length === 2 && Number(numValue) === 0) return; // '00' 입력 블록
+    }
+
+    if (type === 'day') {
+      if (numValue.length > 2) return;
+
+      // 현재 입력된 연/월 기준으로 허용되는 최대 일수 계산
+      const maxDays = getDaysInMonth(localY, localM);
+      if (Number(numValue) > maxDays) return; // (예) 2월인데 30을 누르면 무시됨
+      if (numValue.length === 2 && Number(numValue) === 0) return; // '00' 입력 블록
+    }
+
+    // UI 즉시 반영
     if (type === 'year') setLocalY(numValue);
     if (type === 'month') setLocalM(numValue);
     if (type === 'day') setLocalD(numValue);
@@ -83,13 +64,15 @@ const Deadline = ({ label, value, onChange }: Props) => {
     const nextM = type === 'month' ? numValue : localM;
     const nextD = type === 'day' ? numValue : localD;
 
-    // 모두 유효할 때만 전송
+    // 2. 완벽한 날짜가 완성되었을 때의 검증 로직
     if (nextY.length === 4 && nextM.length >= 1 && nextD.length >= 1) {
       const formattedM = nextM.padStart(2, '0');
       const formattedD = nextD.padStart(2, '0');
 
-      // 입력 중인 값과 기존 value가 다를 때만 호출하여 부모 리렌더링 최소화
-      onChange(`${nextY}-${formattedM}-${formattedD}`);
+      // 사용자가 '일'을 31로 먼저 치고, 나중에 '월'을 2월로 바꾼 경우 등 예외 상황 방어
+      if (isValidDate(nextY, formattedM, formattedD)) {
+        onChange(`${nextY}-${formattedM}-${formattedD}`);
+      }
     }
   };
 

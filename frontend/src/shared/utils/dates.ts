@@ -223,3 +223,59 @@ export const getDDay = (targetDate: string | Date): number => {
   const diffTime = target.getTime() - today.getTime();
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 };
+
+// 마감일을 입력할 때 "2024-02-30"과 같은 논리적으로 존재하지 않는 날짜를 방지하기 위한 유틸 함수
+// 1. 파싱 헬퍼 함수
+export const parseDate = (val?: string | Date) => {
+  if (!val) return { y: '', m: '', d: '' };
+
+  if (typeof val === 'string') {
+    const parts = val.split('-');
+    return parts.length === 3
+      ? { y: parts[0], m: parts[1], d: parts[2] }
+      : { y: '', m: '', d: '' };
+  }
+
+  if (val instanceof Date) {
+    if (isNaN(val.getTime())) return { y: '', m: '', d: '' };
+    return {
+      y: String(val.getFullYear()),
+      m: String(val.getMonth() + 1).padStart(2, '0'),
+      d: String(val.getDate()).padStart(2, '0'),
+    };
+  }
+
+  return { y: '', m: '', d: '' };
+};
+
+// 2. 특정 연도와 월의 최대 일수를 구하는 함수 (윤년 완벽 처리)
+export const getDaysInMonth = (year: string, month: string): number => {
+  const y = parseInt(year, 10);
+  const m = parseInt(month, 10);
+
+  // 연도나 월이 아직 다 입력되지 않았다면 기본 최대일인 31 반환
+  if (isNaN(y) || isNaN(m)) return 31;
+
+  // 자바스크립트 Date 객체의 특징 활용: 일(Day) 자리에 0을 넣으면 이전 달의 마지막 날을 반환함
+  return new Date(y, m, 0).getDate();
+};
+
+// 3. 2월 31일과 같은 논리적 오류를 잡아내는 최종 검증 함수
+export const isValidDate = (
+  year: string,
+  month: string,
+  day: string,
+): boolean => {
+  const y = parseInt(year, 10);
+  const m = parseInt(month, 10);
+  const d = parseInt(day, 10);
+
+  if (isNaN(y) || isNaN(m) || isNaN(d)) return false;
+
+  const date = new Date(y, m - 1, d);
+  return (
+    date.getFullYear() === y &&
+    date.getMonth() === m - 1 &&
+    date.getDate() === d
+  );
+};
