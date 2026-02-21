@@ -1,10 +1,12 @@
 package com.jackpot.narratix.global.exception;
 
 import com.jackpot.narratix.global.auth.jwt.exception.JwtException;
+import com.jackpot.narratix.global.sse.SseException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
@@ -14,10 +16,31 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.io.IOException;
 
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(SseException.class)
+    protected SseEmitter handleSseException(SseException e) {
+        ErrorCode errorCode = e.getErrorCode();
+        log.warn("SSE connection error: {}", errorCode.getMessage());
+
+        // SSE 에러 이벤트를 전송하고 즉시 완료
+        SseEmitter emitter = new SseEmitter(0L);
+        try {
+            emitter.send(SseEmitter.event()
+                    .name("error")
+                    .data(errorCode.getMessage()));
+            emitter.complete();
+        } catch (IOException ex) {
+            log.error("Failed to send SSE error event: {}", errorCode.getMessage(), ex);
+        }
+        return emitter;
+    }
 
     @ExceptionHandler(JwtException.class)
     protected ResponseEntity<ErrorResponse> handleJwtException(JwtException e) {
