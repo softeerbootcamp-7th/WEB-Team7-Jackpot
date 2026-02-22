@@ -1,4 +1,4 @@
-import { UploadPageIcons as UI } from '@/features/upload/icons';
+import * as UI from '@/features/upload/icons';
 
 const UploadLayoutHeader = () => {
   return (

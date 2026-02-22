@@ -1,3 +1,4 @@
+// 개별 import
 import { ChevronDownIcon } from '@/features/coverLetter/icons/ChevronDown';
 import { CoverLetterIcon } from '@/features/coverLetter/icons/CoverLetter';
 import { CoverLetterWriteIcon } from '@/features/coverLetter/icons/CoverLetterWrite';
@@ -9,6 +10,21 @@ import { ReviewWithFriendIcon } from '@/features/coverLetter/icons/ReviewWithFri
 import ToggleIcon from '@/features/coverLetter/icons/ToggleIcon';
 import TrashIcon from '@/features/coverLetter/icons/TrashIcon';
 
+// 개별 export (tree-shaking 가능)
+export {
+  ChevronDownIcon,
+  CoverLetterIcon,
+  CoverLetterWriteIcon,
+  FileDocument,
+  LinkAngled,
+  NewCoverLetterIcon,
+  NewCoverLetterTabIcon,
+  ReviewWithFriendIcon,
+  ToggleIcon,
+  TrashIcon,
+};
+
+// 네임스페이스 export (기존 호환성)
 export const CoverLetterPageIcons = {
   ChevronDownIcon,
   CoverLetterIcon,
@@ -20,4 +36,4 @@ export const CoverLetterPageIcons = {
   ReviewWithFriendIcon,
   ToggleIcon,
   TrashIcon,
-};
+} as const;

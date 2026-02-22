@@ -1,3 +1,4 @@
+// 개별 import
 import AddFileIcon from '@/features/upload/icons/AddFileIcon';
 import AILabelingIcon from '@/features/upload/icons/AILabelingIcon';
 import CompleteSavedIcon from '@/features/upload/icons/CompleteSavedIcon';
@@ -18,6 +19,30 @@ import UploadIcon from '@/features/upload/icons/UploadIcon';
 import UploadIconInButton from '@/features/upload/icons/UploadIconInButton';
 import UploadInputIcon from '@/features/upload/icons/UploadInputIcon';
 
+// 개별 export (tree-shaking 가능)
+export {
+  AddFileIcon,
+  AILabelingIcon,
+  CompleteSavedIcon,
+  DocumentBoxIcon,
+  DropdownArrow,
+  FileRemoveIcon,
+  FileUploadIcon,
+  FolderIconInButton,
+  LabelingResultIcon,
+  LeftPaginationButtonIcon,
+  LoadingSpinnerIcon,
+  RightPaginationButtonIcon,
+  TextDocumentIcon,
+  TextUploadIcon,
+  UploadCompleteBackground,
+  UploadCompleteIcon,
+  UploadIcon,
+  UploadIconInButton,
+  UploadInputIcon,
+};
+
+// 네임스페이스 export (기존 호환성)
 export const UploadPageIcons = {
   AddFileIcon,
   AILabelingIcon,
@@ -38,4 +63,4 @@ export const UploadPageIcons = {
   UploadIcon,
   UploadIconInButton,
   UploadInputIcon,
-};
+} as const;

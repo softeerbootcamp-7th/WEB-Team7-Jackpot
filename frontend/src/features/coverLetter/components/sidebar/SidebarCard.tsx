@@ -1,5 +1,5 @@
 import type { ScrapItem } from '@/features/coverLetter/types/coverLetter';
-import { SharedIcons as SI } from '@/shared/icons';
+import * as SI from '@/shared/icons';
 import type { RecentCoverLetterType } from '@/shared/types/coverLetter';
 
 interface CardProps {

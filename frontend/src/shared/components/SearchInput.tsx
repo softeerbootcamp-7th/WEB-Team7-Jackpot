@@ -1,6 +1,6 @@
 import { type ChangeEvent } from 'react';
 
-import { SharedIcons as SI } from '@/shared/icons';
+import * as SI from '@/shared/icons';
 
 interface SearchInputProps {
   placeholder: string;

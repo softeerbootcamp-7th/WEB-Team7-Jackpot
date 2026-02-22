@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router';
 
 import folderIconInSignUp from '@/assets/icons/folderIconInSignUp.png';
-import { AuthIcons as AI } from '@/features/auth/icons';
-import { SharedIcons as SI } from '@/shared/icons';
+import * as AI from '@/features/auth/icons';
+import * as SI from '@/shared/icons';
 
 const SignUpCompletePage = () => {
   const navigate = useNavigate();
@@ -10,14 +10,14 @@ const SignUpCompletePage = () => {
   return (
     <div className='relative flex h-screen w-full flex-col items-center justify-center select-none'>
       <div className='absolute -z-10'>
-        <AI.SignUpBackgroundIcon />
+        <AI.SignUpBackground />
       </div>
       <div className='z-10 flex flex-col items-center'>
         <div className='mb-8'>
           <img src={folderIconInSignUp} />
         </div>
         <div className='mb-5'>
-          <SI.TitleLogoIcon />
+          <SI.TitleLogo />
         </div>
         <div className='flex flex-col gap-1'>
           <span className='text-headline-l font-bold text-gray-800'>

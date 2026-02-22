@@ -6,7 +6,7 @@ import NotificationDropdown from '@/features/notification/components/Notificatio
 import NavItem from '@/shared/components/NavItem';
 import { NAV_ITEMS } from '@/shared/constants/globalHeader';
 import { useSmartNavigate } from '@/shared/hooks/useSmartNavigate';
-import { SharedIcons as SI } from '@/shared/icons';
+import * as SI from '@/shared/icons';
 
 const PageGlobalHeader = () => {
   const smartNavigate = useSmartNavigate();
@@ -32,7 +32,7 @@ const PageGlobalHeader = () => {
             onClick={() => smartNavigate('/home')}
             aria-label='홈으로 이동'
           >
-            <SI.TitleLogoIcon width='99' height='27' />
+            <SI.TitleLogo width='99' height='27' />
           </button>
         </div>
 

@@ -1,4 +1,4 @@
-import { SharedIcons as SI } from '@/shared/icons';
+import * as SI from '@/shared/icons';
 import type { Review } from '@/shared/types/review';
 
 const CardContentSection = ({

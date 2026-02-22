@@ -1,5 +1,5 @@
 import Question from '@/shared/components/Question';
-import { SharedIcons as SI } from '@/shared/icons';
+import * as SI from '@/shared/icons';
 import type { CoverLetterQuestion } from '@/shared/types/coverLetter';
 
 interface Props {

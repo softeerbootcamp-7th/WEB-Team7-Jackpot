@@ -18,16 +18,20 @@ export const useRecruit = () => {
 
   // 2. 파생 상태 (Derived State): 날짜 계산
   const selectedDateParams = useMemo(() => {
-    if (year && month && day) {
-      if (!isValidDate(year, month, day)) {
-        const today = getISODate(new Date());
-        return { startDate: today, endDate: today };
-      }
+    // 1. 파라미터가 모두 있고 유효한 날짜일 경우
+    if (year && month && day && isValidDate(year, month, day)) {
       return {
         startDate: `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`,
         endDate: `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`,
       };
     }
+
+    // 2. 파라미터가 없거나, 유효하지 않은 날짜인 경우 (공통 기본값 처리)
+    const today = getISODate(new Date());
+    return {
+      startDate: today,
+      endDate: today,
+    };
   }, [year, month, day]);
 
   // 3. 액션 핸들러

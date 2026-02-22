@@ -1,5 +1,5 @@
 import type { TabType } from '@/features/review/types/review';
-import { SharedIcons as SI } from '@/shared/icons';
+import * as SI from '@/shared/icons';
 
 interface TabSelectorProps {
   tab: TabType;

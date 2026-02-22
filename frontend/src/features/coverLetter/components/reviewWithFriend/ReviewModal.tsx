@@ -1,6 +1,6 @@
 import Avatar from '@/features/coverLetter/components/reviewWithFriend/Avatar';
 import InvalidReviewBanner from '@/shared/components/InvalidReviewBanner';
-import { SharedIcons as SI } from '@/shared/icons';
+import * as SI from '@/shared/icons';
 import type { Review } from '@/shared/types/review';
 
 interface ReviewModalProps {

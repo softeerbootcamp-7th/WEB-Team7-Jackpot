@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 
 import CoverLetterPreview from '@/shared/components/CoverLetterPreview';
 import Pagination from '@/shared/components/Pagination';
-import { SharedIcons as SI } from '@/shared/icons';
+import * as SI from '@/shared/icons';
 import type { RecentCoverLetterType } from '@/shared/types/coverLetter';
 
 interface CoverLetterOverviewProps {

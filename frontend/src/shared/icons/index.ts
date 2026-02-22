@@ -1,3 +1,4 @@
+// 개별 import
 import { AlertIcon } from '@/shared/icons/Alert';
 import { DeleteIcon } from '@/shared/icons/Delete';
 import DropdownArrow from '@/shared/icons/DropdownArrow';
@@ -15,9 +16,11 @@ import TitleLogo from '@/shared/icons/TitleLogo';
 import UserAvatarIcon from '@/shared/icons/UserAvatarIcon';
 import { WritingCoverLetterIcon } from '@/shared/icons/WritingCoverLetter';
 
+// 개별 export (tree-shaking 가능)
 export {
   AlertIcon,
   DeleteIcon,
+  DropdownArrow,
   MoreVertIcon,
   NotFoundIllustration,
   PaginationIcon,
@@ -33,6 +36,7 @@ export {
   WritingCoverLetterIcon,
 };
 
+// 네임스페이스 export (기존 호환성)
 export const SharedIcons = {
   AlertIcon,
   DeleteIcon,
@@ -50,4 +54,4 @@ export const SharedIcons = {
   UserAvatarIcon,
   WritingCoverLetterIcon,
   DropdownArrowIcon: DropdownArrow,
-};
+} as const;

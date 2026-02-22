@@ -3,7 +3,7 @@ import { memo } from 'react';
 import { Link } from 'react-router';
 
 import { createRecruitPath } from '@/features/recruit/utils';
-import { SharedIcons as SI } from '@/shared/icons';
+import * as SI from '@/shared/icons';
 import { addMonths, formatYearMonth, subMonths } from '@/shared/utils/dates';
 
 interface Props {

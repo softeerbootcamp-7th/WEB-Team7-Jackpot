@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import { SharedIcons as SI } from '@/shared/icons';
+import * as SI from '@/shared/icons';
 import type { ReviewViewStatus } from '@/shared/types/review';
 
 const STATUS_CONFIG: Partial<

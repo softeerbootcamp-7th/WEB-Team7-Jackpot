@@ -2,7 +2,7 @@ import { Suspense, useCallback, useState } from 'react';
 
 import NewCoverLetterButton from '@/features/coverLetter/components/overview/NewCoverLetterButton';
 import OverviewSection from '@/features/coverLetter/components/overview/OverviewSection';
-import { CoverLetterPageIcons as CI } from '@/features/coverLetter/icons';
+import * as CI from '@/features/coverLetter/icons';
 import CoverLetterOverviewSkeleton from '@/features/home/components/CoverLetterOverviewSkeleton';
 import ErrorBoundary from '@/shared/components/ErrorBoundary';
 import SearchInput from '@/shared/components/SearchInput';

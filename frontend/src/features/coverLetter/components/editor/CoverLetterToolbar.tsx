@@ -1,5 +1,5 @@
-import { CoverLetterPageIcons as CI } from '@/features/coverLetter/icons';
-import { SharedIcons as SI } from '@/shared/icons';
+import * as CI from '@/features/coverLetter/icons';
+import * as SI from '@/shared/icons';
 
 type SaveProps =
   | { autoSave: true; onSave?: never; isPending?: never }
@@ -65,7 +65,7 @@ const CoverLetterToolbar = ({
           }`}
           aria-label='첨삭 링크 복사'
         >
-          <CI.LinkAngledIcon />
+          <CI.LinkAngled />
           <span>링크 복사</span>
         </button>
 

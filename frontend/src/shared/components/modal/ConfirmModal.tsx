@@ -1,7 +1,7 @@
 import BaseModal from './BaseModal';
 
 import { useFocusTrap } from '@/shared/hooks/useFocusTrap';
-import { SharedIcons as SI } from '@/shared/icons';
+import * as SI from '@/shared/icons';
 
 interface ConfirmModalProps {
   isOpen: boolean;

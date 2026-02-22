@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router';
 
-import { SharedIcons as SI } from '@/shared/icons';
+import * as SI from '@/shared/icons';
 
 const NotFoundPage = () => {
   const navigate = useNavigate();
@@ -8,7 +8,7 @@ const NotFoundPage = () => {
   return (
     <main className='flex h-screen w-full max-w-full flex-col items-center justify-center bg-white'>
       <div className='relative aspect-[810/424] w-full max-w-[1000px]'>
-        <SI.NotFoundIllustrationIcon
+        <SI.NotFoundIllustration
           className='h-full w-full'
           aria-hidden='true'
         />

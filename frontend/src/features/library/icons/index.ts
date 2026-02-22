@@ -1,3 +1,4 @@
+// 개별 import
 import { ChevronLeftIcon } from '@/features/library/icons/ChevronLeft';
 import { CompanyNameLibrary } from '@/features/library/icons/CompanyNameLibrary';
 import { EditIcon } from '@/features/library/icons/Edit';
@@ -10,6 +11,22 @@ import { QuestionIcon } from '@/features/library/icons/Question';
 import { ScrapIcon } from '@/features/library/icons/Scrap';
 import { SearchIcon } from '@/shared/icons';
 
+// 개별 export (tree-shaking 가능)
+export {
+  ChevronLeftIcon,
+  CompanyNameLibrary,
+  EditIcon,
+  FolderIcon,
+  LibraryIcon,
+  LibraryFolder,
+  QnALibrary,
+  QnASearchResultIcon,
+  QuestionIcon,
+  ScrapIcon,
+  SearchIcon,
+};
+
+// 네임스페이스 export (기존 호환성)
 export const LibraryIcons = {
   ChevronLeftIcon,
   CompanyNameLibraryIcon: CompanyNameLibrary,
@@ -22,4 +39,4 @@ export const LibraryIcons = {
   QuestionIcon,
   ScrapIcon,
   SearchIcon,
-};
+} as const;

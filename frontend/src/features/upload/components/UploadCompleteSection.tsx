@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router';
 
 import folderIconInUpload from '@/assets/icons/folderIconInUpload.png';
-import { UploadPageIcons as UI } from '@/features/upload/icons';
+import * as UI from '@/features/upload/icons';
 
 const UploadCompleteSection = () => {
   // [윤종근] - TODO: 추후 useNavigate -> Link로 변경 시 수정
@@ -10,7 +10,7 @@ const UploadCompleteSection = () => {
   return (
     <div className='relative flex w-full items-center justify-center'>
       <div className='absolute top-1/2 -z-10 -translate-x-1/2 -translate-y-1/2'>
-        <UI.UploadCompleteBackgroundIcon />
+        <UI.UploadCompleteBackground />
       </div>
       <div className='z-10 mt-24 flex flex-col items-center gap-12'>
         <img src={folderIconInUpload} />

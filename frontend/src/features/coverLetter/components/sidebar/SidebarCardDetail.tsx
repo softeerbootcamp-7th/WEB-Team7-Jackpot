@@ -1,6 +1,6 @@
-import { CoverLetterPageIcons as CI } from '@/features/coverLetter/icons';
+import * as CI from '@/features/coverLetter/icons';
 import type { ScrapItem } from '@/features/coverLetter/types/coverLetter';
-import { SharedIcons as SI } from '@/shared/icons';
+import * as SI from '@/shared/icons';
 
 interface CardDetailProps {
   scrap: ScrapItem;
@@ -21,10 +21,10 @@ const SidebarCardDetail = ({ scrap, onBack }: CardDetailProps) => {
               className='flex h-7 w-7 cursor-pointer items-center justify-center'
               aria-label='뒤로가기'
             >
-              <SI.RightArrowIcon className='rotate-180' />
+              <SI.RightArrow className='rotate-180' />
             </button>
             <div className='flex flex-1 items-center gap-2'>
-              <CI.FileDocumentIcon />
+              <CI.FileDocument />
               <div className='line-clamp-1 flex-1 text-lg leading-7 font-bold text-gray-950'>
                 {applySeason} {companyName}
               </div>

@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 
-import { SharedIcons as SI } from '@/shared/icons';
+import * as SI from '@/shared/icons';
 
 const NewCoverLetterButton = () => {
   return (

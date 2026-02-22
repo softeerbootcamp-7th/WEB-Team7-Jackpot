@@ -1,7 +1,7 @@
 import { useId } from 'react';
 
 import documentIcon from '@/assets/icons/documentIcon.svg';
-import { UploadPageIcons as UI } from '@/features/upload/icons';
+import * as UI from '@/features/upload/icons';
 import type { UploadStatus } from '@/features/upload/types/upload';
 import { formatFileSize } from '@/features/upload/utils/formatFileSize';
 

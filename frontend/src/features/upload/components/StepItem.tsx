@@ -1,6 +1,6 @@
 import StepInformation from '@/features/upload/components/StepInformation';
 import { STEP_DATA } from '@/features/upload/constants/uploadPage';
-import { UploadPageIcons as UI } from '@/features/upload/icons';
+import * as UI from '@/features/upload/icons';
 
 interface StepItemProps {
   step: string;
