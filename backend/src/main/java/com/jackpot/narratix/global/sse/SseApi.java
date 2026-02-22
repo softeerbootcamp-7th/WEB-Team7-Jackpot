@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @Tag(name = "SSE", description = "Server-Sent Events 실시간 알림 API")
@@ -29,5 +30,5 @@ public interface SseApi {
                     description = "인증 실패 - 유효하지 않은 토큰"
             )
     })
-    SseEmitter connect(@Parameter(hidden = true) String userId);
+    SseEmitter connect(@Parameter(hidden = true) HttpServletRequest request);
 }
