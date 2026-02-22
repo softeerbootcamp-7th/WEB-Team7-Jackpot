@@ -5,6 +5,7 @@ interface Props {
   name?: string;
   value?: string | Date;
   onChange: (value: string) => void;
+  upload?: boolean;
 }
 
 // 파싱 헬퍼 함수 (컴포넌트 밖)
@@ -30,7 +31,7 @@ const parseDate = (val?: string | Date) => {
   return { y: '', m: '', d: '' };
 };
 
-const Deadline = ({ label, value, onChange }: Props) => {
+const Deadline = ({ label, value, onChange, upload = false }: Props) => {
   // 초기값 세팅
   const initial = parseDate(value);
 
@@ -99,9 +100,17 @@ const Deadline = ({ label, value, onChange }: Props) => {
         {label} <span className='text-red-600'>*</span>
       </div>
 
-      <div className='flex w-full items-start justify-between gap-2'>
+      <div
+        className={
+          upload
+            ? 'grid w-full grid-cols-3 gap-2'
+            : 'flex w-full items-start justify-between gap-2'
+        }
+      >
         {/* 연도 */}
-        <div className='flex h-12 min-w-0 flex-1 items-center rounded-2xl bg-gray-50 px-3'>
+        <div
+          className={`flex h-12 ${upload ? '' : 'min-w-0 flex-1'} items-center rounded-lg bg-gray-50 px-3`}
+        >
           <input
             type='text'
             inputMode='numeric'
@@ -116,7 +125,9 @@ const Deadline = ({ label, value, onChange }: Props) => {
         </div>
 
         {/* 월 */}
-        <div className='flex h-12 min-w-0 flex-1 items-center rounded-2xl bg-gray-50 px-3'>
+        <div
+          className={`flex h-12 ${upload ? '' : 'min-w-0 flex-1'} items-center rounded-lg bg-gray-50 px-3`}
+        >
           <input
             type='text'
             inputMode='numeric'
@@ -131,7 +142,9 @@ const Deadline = ({ label, value, onChange }: Props) => {
         </div>
 
         {/* 일 */}
-        <div className='flex h-12 min-w-0 flex-1 items-center rounded-2xl bg-gray-50 px-3'>
+        <div
+          className={`flex h-12 ${upload ? '' : 'min-w-0 flex-1'} items-center rounded-lg bg-gray-50 px-3`}
+        >
           <input
             type='text'
             inputMode='numeric'
