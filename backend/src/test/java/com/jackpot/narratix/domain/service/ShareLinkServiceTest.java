@@ -49,7 +49,13 @@ class ShareLinkServiceTest {
     private ShareLinkRepository shareLinkRepository;
 
     @Mock
+    private ShareLinkLockManager shareLinkLockManager;
+
+    @Mock
     private TextDeltaService textDeltaService;
+
+    @Mock
+    private TextSyncService textSyncService;
 
     @Mock
     private ShareLinkSessionRegistry shareLinkSessionRegistry;

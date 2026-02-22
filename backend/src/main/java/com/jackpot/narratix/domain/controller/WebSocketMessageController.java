@@ -10,6 +10,7 @@ import com.jackpot.narratix.domain.exception.SerializationException;
 import com.jackpot.narratix.domain.exception.VersionConflictException;
 import com.jackpot.narratix.domain.exception.WebSocketErrorCode;
 import com.jackpot.narratix.domain.service.TextDeltaService;
+import com.jackpot.narratix.domain.service.TextSyncService;
 import com.jackpot.narratix.domain.service.WebSocketMessageSender;
 import com.jackpot.narratix.global.exception.BaseException;
 import com.jackpot.narratix.global.websocket.WebSocketSessionAttributes;
@@ -32,6 +33,7 @@ public class WebSocketMessageController {
 
     private final WebSocketMessageSender webSocketMessageSender;
     private final TextDeltaService textDeltaService;
+    private final TextSyncService textSyncService;
 
     @SubscribeMapping("/share/{shareId}/qna/{qnAId}/review/writer")
     public void subscribeWriterCoverLetter(
@@ -101,7 +103,7 @@ public class WebSocketMessageController {
         } catch (VersionConflictException e) { // delta push 미발생 — rollback 없이 현재 상태를 TEXT_REPLACE_ALL로 전송
             log.warn("버전 충돌, TEXT_REPLACE_ALL 전송: shareId={}, qnAId={}", shareId, qnAId);
             try {
-                WebSocketMessageResponse response = textDeltaService.recoverTextReplaceAll(qnAId);
+                WebSocketMessageResponse response = textSyncService.recoverTextReplaceAll(qnAId);
                 webSocketMessageSender.sendMessageToShare(shareId, response);
             } catch (Exception re) {
                 log.error("recoverTextReplaceAll 실패: shareId={}, qnAId={}", shareId, qnAId, re);
@@ -110,7 +112,7 @@ public class WebSocketMessageController {
         } catch (SerializationException e) { // delta push 미발생 — rollback 없이 현재 상태를 TEXT_REPLACE_ALL로 전송
             log.error("TextUpdateRequest 직렬화 실패, TEXT_REPLACE_ALL 전송: shareId={}, qnAId={}", shareId, qnAId, e);
             try {
-                WebSocketMessageResponse response = textDeltaService.recoverTextReplaceAll(qnAId);
+                WebSocketMessageResponse response = textSyncService.recoverTextReplaceAll(qnAId);
                 webSocketMessageSender.sendMessageToShare(shareId, response);
             } catch (Exception re) {
                 log.error("recoverTextReplaceAll 실패: shareId={}, qnAId={}", shareId, qnAId, re);
@@ -120,7 +122,7 @@ public class WebSocketMessageController {
             // delta push 이후 실패 — 마지막 push 롤백 후 TEXT_REPLACE_ALL 전송
             log.error("텍스트 업데이트 실패, rollback 후 TEXT_REPLACE_ALL 전송: shareId={}, qnAId={}", shareId, qnAId, e);
             try {
-                WebSocketMessageResponse response = textDeltaService.recoverTextReplaceAllWithRollback(qnAId);
+                WebSocketMessageResponse response = textSyncService.recoverTextReplaceAllWithRollback(qnAId);
                 webSocketMessageSender.sendMessageToShare(shareId, response);
             } catch (Exception re) {
                 log.error("recoverTextReplaceAllWithRollback 실패: shareId={}, qnAId={}", shareId, qnAId, re);

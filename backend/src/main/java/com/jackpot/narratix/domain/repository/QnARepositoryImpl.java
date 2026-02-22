@@ -80,11 +80,6 @@ public class QnARepositoryImpl implements QnARepository {
     }
 
     @Override
-    public Optional<Long> getCoverLetterIdByQnAId(Long qnAId) {
-        return qnAJpaRepository.getCoverLetterIdByQnAId(qnAId);
-    }
-
-    @Override
     public Long getCoverLetterIdByQnAIdOrElseThrow(Long qnAId) {
         return qnAJpaRepository.getCoverLetterIdByQnAId(qnAId)
                 .orElseThrow(() -> new BaseException(QnAErrorCode.QNA_NOT_FOUND));
