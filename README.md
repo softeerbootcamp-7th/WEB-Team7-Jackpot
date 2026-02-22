@@ -18,7 +18,21 @@
 
 ---
 
-## 🏠 랜딩 페이지
+## 🎯 프로젝트 소개
+
+> **Narratix는 취준생들이 흩어진 경험을 모으고, 자기소개서를 효율적으로 작성/관리할 수 있도록 돕는 플랫폼입니다.**
+
+### 해결하고자 한 문제
+
+- 자소서 초안, 문항, 경험 메모가 여러 곳에 흩어져 재활용이 어렵다
+- 지원 일정과 작성 진행도를 함께 관리하기 어렵다
+- 첨삭 과정이 메시지/문서로 분산되어 피드백 반영이 비효율적이다
+
+### 핵심 가치
+
+- `경험 아카이빙`: 업로드한 자료를 구조화해 기업/문항 단위로 재활용
+- `작성 생산성`: 문항 중심 편집 + 검색/필터로 빠른 작성 흐름 지원
+- `피드백 루프`: 공유 기반 첨삭으로 수정 사이클 단축
 
 <img 
   src="https://github.com/user-attachments/assets/1c7ebf79-c4d1-4145-9328-1e58e5c5bfe8"
@@ -26,9 +40,26 @@
   width="100%" 
 />
 
-<div align="center">
-취준생의 경험 정리부터 자기소개서 완성까지, Narratix의 핵심 가치를 랜딩에서 한눈에 보여줍니다.
-</div>
+---
+
+## 🧭 사용자 플로우
+
+1. **[나의 채용공고] 공고 등록 또는 [자료 업로드] PDF 업로드로 자기소개서 생성**
+   - 텍스트로 공고 정보와 문항 직접 작성
+   - PDF 업로드 시 AI가 자동 파싱 후 라이브러리에 저장
+
+2. **[라이브러리] 에서 자료 탐색 및 스크랩**
+   - 기업별/문항별로 아카이빙된 자료 열람
+   - 재활용할 내용 스크랩
+
+3. **[자기소개서] 에서 문항별 초안 작성 / 수정**
+   - 사이드바에서 스크랩하거나 아카이빙된 자료를 참고하며 작성
+
+4. **[자기소개서] 공유 링크 기반 실시간 첨삭 진행**
+
+5. **[나의 채용공고] 채용 캘린더로 지원 일정 관리**
+
+- IA 문서: [Narratix IA](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/Narratix-%EC%B7%A8%EC%97%85-%EC%A4%80%EB%B9%84-%EB%B0%8F-%EC%9E%90%EC%86%8C%EC%84%9C-%EA%B4%80%EB%A6%AC-%EC%84%9C%EB%B9%84%EC%8A%A4-IA)
 
 ---
 
@@ -59,36 +90,6 @@
 - `친구 첨삭`: 공유된 자기소개서 코멘트 작성 및 반영
 - `라이브러리`: 기업별/문항별 아카이빙, 스크랩 기반 재활용
 - `인증`: 로그인/회원가입 및 보호 라우팅
-
----
-
-## 🎯 프로젝트 소개
-
-> **Narratix는 취준생들이 흩어진 경험을 모으고, 자기소개서를 효율적으로 작성/관리할 수 있도록 돕는 플랫폼입니다.**
-
-### 해결하고자 한 문제
-
-- 자소서 초안, 문항, 경험 메모가 여러 곳에 흩어져 재활용이 어렵다
-- 지원 일정과 작성 진행도를 함께 관리하기 어렵다
-- 첨삭 과정이 메시지/문서로 분산되어 피드백 반영이 비효율적이다
-
-### 핵심 가치
-
-- `경험 아카이빙`: 업로드한 자료를 구조화해 기업/문항 단위로 재활용
-- `작성 생산성`: 문항 중심 편집 + 검색/필터로 빠른 작성 흐름 지원
-- `피드백 루프`: 공유 기반 첨삭으로 수정 사이클 단축
-
----
-
-## 🧭 사용자 플로우
-
-1. 자료 업로드 (파일/텍스트)
-2. AI 라벨링 및 라이브러리 저장
-3. 문항별 초안 작성/수정
-4. 공유 링크 기반 첨삭 진행
-5. 채용 캘린더와 함께 지원 일정 관리
-
-- IA 문서: [Narratix IA](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/Narratix-%EC%B7%A8%EC%97%85-%EC%A4%80%EB%B9%84-%EB%B0%8F-%EC%9E%90%EC%86%8C%EC%84%9C-%EA%B4%80%EB%A6%AC-%EC%84%9C%EB%B9%84%EC%8A%A4-IA)
 
 ---
 
@@ -203,15 +204,47 @@
 
 ## 🧑‍💻 역할 및 주요 기여
 
-| 이름   | 포지션          | 담당 도메인 | 주요 구현/기여 | 관련 문서 |
-| ------ | --------------- | ----------- | -------------- | --------- |
-| 강유진 | Frontend        | -           | -              | -         |
-| 박소민 | Frontend        | -           | -              | -         |
-| 윤종근 | Frontend        | -           | -              | -         |
-| 김승환 | Backend & Infra | -           | -              | -         |
-| 이정민 | Backend & Infra | -           | -              | -         |
+| 이름   | 포지션          | 담당 도메인                         |
+| ------ | --------------- | ----------------------------------- |
+| 강유진 | Frontend        | 실시간 텍스트 에디터 / 협업 첨삭 UI |
+| 박소민 | Frontend        | -                                   |
+| 윤종근 | Frontend        | -                                   |
+| 김승환 | Backend & Infra | -                                   |
+| 이정민 | Backend & Infra | -                                   |
 
 ---
+
+### 강유진 (Frontend)
+
+- contentEditable 기반 커스텀 에디터 구현 (Enter·Delete·Undo·Redo 직접 구현 및 트러블슈팅)
+- WebSocket 이벤트 수신 후 컴포넌트 상태 반영 설계 및 미업데이트 이슈 해결
+- 첨삭 기능 프론트엔드 데이터 구조 설계
+
+📄 관련 문서: [에디터 구현](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EA%B0%95%EC%9C%A0%EC%A7%84%5D-%E2%80%90-%EC%8B%A4%EC%8B%9C%EA%B0%84-%ED%98%91%EC%97%85-%EC%9E%90%EC%86%8C%EC%84%9C-%EC%B2%A8%EC%82%AD-%EC%84%9C%EB%B9%84%EC%8A%A4%EC%9D%98-%ED%94%84%EB%A1%A0%ED%8A%B8%EC%97%94%EB%93%9C-%EB%8D%B0%EC%9D%B4%ED%84%B0-%EA%B5%AC%EC%A1%B0-%EC%A1%B0%EC%82%AC%ED%95%98%EA%B8%B0) · [WebSocket 설계](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EA%B0%95%EC%9C%A0%EC%A7%84%5D-%E2%80%90-%EC%8B%A4%EC%8B%9C%EA%B0%84-%ED%98%91%EC%97%85-%EC%9E%90%EC%86%8C%EC%84%9C-%EC%B2%A8%EC%82%AD-%EC%84%9C%EB%B9%84%EC%8A%A4:-WebSocket-%EC%9D%B4%EB%B2%A4%ED%8A%B8-%EC%83%81%ED%83%9C-%EB%B0%98%EC%98%81-%EC%84%A4%EA%B3%84%ED%95%98%EA%B8%B0) · [WebSocket 트러블슈팅](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EA%B0%95%EC%9C%A0%EC%A7%84%5D-%E2%80%90-WebSocket-%EC%88%98%EC%8B%A0-%ED%9B%84-%EC%BB%B4%ED%8F%AC%EB%84%8C%ED%8A%B8-%EB%AF%B8%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%ED%8A%B8%EB%9F%AC%EB%B8%94%EC%8A%88%ED%8C%85) · [데이터 구조](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EA%B0%95%EC%9C%A0%EC%A7%84%5D-%E2%80%90-%EC%8B%A4%EC%8B%9C%EA%B0%84-%ED%98%91%EC%97%85-%EC%9E%90%EC%86%8C%EC%84%9C-%EC%B2%A8%EC%82%AD-%EC%84%9C%EB%B9%84%EC%8A%A4%EC%9D%98-%ED%94%84%EB%A1%A0%ED%8A%B8%EC%97%94%EB%93%9C-%EB%8D%B0%EC%9D%B4%ED%84%B0-%EA%B5%AC%EC%A1%B0-%EC%A1%B0%EC%82%AC%ED%95%98%EA%B8%B0)
+
+### 박소민 (Frontend)
+
+-
+
+📄 관련 문서:
+
+### 윤종근 (Frontend)
+
+-
+
+📄 관련 문서:
+
+### 김승환 (Backend & Infra)
+
+-
+
+📄 관련 문서:
+
+### 이정민 (Backend & Infra)
+
+-
+
+📄 관련 문서:
 
 ## 🚀 기술적 도전 (Top Picks)
 
