@@ -73,11 +73,15 @@
 
 ![Calendar Demo](https://placehold.co/1200x675?text=Recruit+Calendar)
 
-### 3) 자기소개서 작성/첨삭 에디터
+### 3) 자기소개서 작성
 
 ![Editor Demo](https://placehold.co/1200x675?text=Cover+Letter+Editor)
 
-### 4) 기업별/문항별 라이브러리 관리
+### 4) 첨삭 에디터
+
+![Review Demo](https://placehold.co/1200x675?text=Cover+Letter+Editor)
+
+### 5) 기업별/문항별 라이브러리 관리
 
 ![Library Demo](https://placehold.co/1200x675?text=Library+Management)
 
