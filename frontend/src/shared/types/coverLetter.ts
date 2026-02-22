@@ -47,3 +47,20 @@ export interface UpdateCoverLetter {
 export interface ErrorResponse {
   message: string;
 }
+
+export interface CalendarCoverLetterItem extends CoverLetterBase {
+  questionCount: number;
+}
+
+export interface FilterResponse {
+  totalCount: number;
+  coverLetters: CalendarCoverLetterItem[];
+  hasNext: boolean;
+}
+
+export interface FilterRequest {
+  startDate: string;
+  endDate: string;
+  size?: number;
+  isShared?: boolean;
+}

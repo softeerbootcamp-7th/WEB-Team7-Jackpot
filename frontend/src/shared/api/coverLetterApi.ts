@@ -5,9 +5,29 @@ import type {
   CoverLetterType,
   CreateCoverLetterRequest,
   CreateCoverLetterResponse,
+  FilterRequest,
+  FilterResponse,
   RecentCoverLetterType,
   UpdateCoverLetter,
 } from '@/shared/types/coverLetter';
+
+const ApiApplyHalfSchema = z.enum(['FIRST_HALF', 'SECOND_HALF']);
+
+const CoverLetterItemSchema = z.object({
+  coverLetterId: z.number(),
+  companyName: z.string(),
+  jobPosition: z.string(),
+  applyYear: z.number(),
+  applyHalf: ApiApplyHalfSchema,
+  deadline: z.string().date(),
+  questionCount: z.number(),
+});
+
+const FilterResponseSchema = z.object({
+  totalCount: z.number(),
+  coverLetters: z.array(CoverLetterItemSchema),
+  hasNext: z.boolean(),
+});
 
 interface SearchCoverLettersParams {
   searchWord?: string;
@@ -85,4 +105,26 @@ export const deleteCoverLetter = async (
   await apiClient.delete({
     endpoint: `/coverletter/${coverLetterId}`,
   });
+};
+
+export const fetchFilterCoverLetter = async (
+  params: FilterRequest,
+  lastIdParam?: number,
+): Promise<FilterResponse> => {
+  const queryParams = new URLSearchParams({
+    startDate: params.startDate,
+    endDate: params.endDate,
+    size: String(params.size ?? 7), //  기본값은 7로 설정
+    isShared: String(params.isShared ?? false), //  기본값은 false로 설정
+  });
+
+  if (lastIdParam !== undefined) {
+    queryParams.append('lastCoverLetterId', String(lastIdParam));
+  }
+
+  const response = await apiClient.get({
+    endpoint: `/coverletter/all?${queryParams.toString()}`,
+  });
+
+  return FilterResponseSchema.parse(response);
 };
