@@ -21,9 +21,8 @@ export const STEP_DATA: Record<string, StepDataType> = {
     Icon: I.AILabelingIcon,
     step: 'step 02',
     name: 'AI 라벨링',
-    loadingTitle: '업로드해주신 자료를 분석하는 중이에요...',
-    loadingSubTitle:
-      '잠시만 기다려주세요.\nAI가 분석을 마치면 알림을 전송해드릴게요!',
+    loadingTitle: '업로드가 완료되었어요!',
+    loadingSubTitle: '라벨링된 결과를 확인하시고 저장해주세요.',
   },
   '3': {
     className: 'left-[25.5rem]',
@@ -31,7 +30,7 @@ export const STEP_DATA: Record<string, StepDataType> = {
     step: 'step 03',
     name: '저장 완료',
     loadingTitle: '저장이 완료되었어요!',
-    loadingSubTitle: '총 3개의 문항이 라이브러리에 저장되었어요.',
+    loadingSubTitle: '사용자님의 자기소개서가 라이브러리에 저장되었어요.',
   },
 } as const;
 
@@ -50,19 +49,19 @@ export const UPLOAD_TAB_DATA: UploadTabDataType[] = [
 
 export const MAX_BYTES = 5 * 1024 * 1024;
 
-export const QUESTION_TYPE_LIST: string[] = [
-  '지원동기',
-  '협업경험',
-  '가치관',
-  '직무역량',
-  '성격의 장단점',
-  '입사 후 포부',
-  '문제해결',
-  '커리어 목표',
-  '실패경험',
-  '성장과정',
-  '사회이슈',
-  '기타',
+export const QUESTION_TYPE_LIST: Record<string, string>[] = [
+  { label: '지원동기', value: 'MOTIVATION' },
+  { label: '협업경험', value: 'TEAMWORK_EXPERIENCE' },
+  { label: '가치관', value: 'VALUES' },
+  { label: '직무역량', value: 'JOB_SKILL' },
+  { label: '성격의 장단점', value: 'PERSONALITY' },
+  { label: '입사 후 포부', value: 'FUTURE_PLAN' },
+  { label: '문제해결', value: 'PROBLEM_SOLVING' },
+  { label: '커리어 목표', value: 'CAREER_GOAL' },
+  { label: '실패경험', value: 'FAILURE_EXPERIENCE' },
+  { label: '성장과정', value: 'GROWTH_PROCESS' },
+  { label: '사회이슈', value: 'SOCIAL_TOPIC' },
+  { label: '기타', value: 'OTHER' },
 ] as const;
 
 export const MOCK_COVER_LETTER = [
