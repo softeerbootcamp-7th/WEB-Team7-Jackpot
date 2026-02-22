@@ -1,15 +1,19 @@
-import { MOCK_COVER_LETTER } from '@/features/upload/constants/uploadPage';
+import type { QnAType } from '@/features/notification/types/notification';
 import Pagination from '@/shared/components/Pagination';
 
 interface CoverLetterContentAreaProps {
   qnAState: number;
   setQnAState: (newValue: number) => void;
+  qnAs: QnAType[];
 }
 const CoverLetterContentArea = ({
   qnAState,
   setQnAState,
+  qnAs,
 }: CoverLetterContentAreaProps) => {
-  const currentContent = MOCK_COVER_LETTER[qnAState].content;
+  if (!qnAs || qnAs.length === 0) return null;
+  const currentQnA = qnAs[qnAState];
+  if (!currentQnA) return null;
 
   return (
     <div className='mb-12 flex flex-5 flex-col gap-6'>
@@ -19,15 +23,15 @@ const CoverLetterContentArea = ({
             {qnAState + 1}
           </div>
           <div className='text-lg font-bold text-gray-950 select-text'>
-            {MOCK_COVER_LETTER[qnAState].title}
+            {currentQnA.question}
           </div>
         </div>
         <div className='flex flex-col gap-3 pl-13'>
           <div className='text-sm text-gray-400'>
-            {`총 ${MOCK_COVER_LETTER[qnAState].content.length.toLocaleString('ko-KR')}자`}
+            {`총 ${currentQnA.answerSize}자`}
           </div>
           <div className='text-body-s fixed-scroll-bar h-96 overflow-y-auto whitespace-pre-wrap text-gray-600 select-text'>
-            {currentContent.split('\n').map((paragraph, index) => (
+            {currentQnA.answer.split('\n').map((paragraph, index) => (
               <p key={index} className='mb-2 min-h-[1rem] leading-relaxed'>
                 {paragraph}
               </p>
@@ -38,7 +42,7 @@ const CoverLetterContentArea = ({
       <div className='flex justify-center'>
         <Pagination
           current={qnAState}
-          total={MOCK_COVER_LETTER.length}
+          total={qnAs.length}
           onChange={setQnAState}
         />
       </div>

@@ -6,14 +6,12 @@ import type { UploadStatus } from '@/features/upload/types/upload';
 import { formatFileSize } from '@/features/upload/utils/formatFileSize';
 
 interface AddFileItemProps {
-  index: number;
   file: File | null;
   uploadStatus?: UploadStatus;
   onFileChange: (newFile: File | null) => void;
 }
 
 const AddFileItem = ({
-  index,
   file,
   uploadStatus = 'idle',
   onFileChange,
