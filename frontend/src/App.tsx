@@ -42,12 +42,11 @@ function App() {
         <Route element={<PrivateGuard />}>
           <Route element={<RootLayout />}>
             <Route path='/home' element={<HomePage />} />
-
             <Route path='/upload' element={<UploadPage />}>
               <Route index element={<Navigate to='input' replace />} />
               <Route path='input' element={<UploadInputSection />} />
               <Route
-                path='labeling/:coverLetterId?/:qnAId?'
+                path='labeling/:jobId/:coverLetterIndex?/:qnAIndex?'
                 element={<LabelingResultSection />}
               />
               <Route path='complete' element={<UploadCompleteSection />} />
