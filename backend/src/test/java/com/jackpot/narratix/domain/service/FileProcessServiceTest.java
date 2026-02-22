@@ -4,7 +4,6 @@ import com.jackpot.narratix.domain.entity.UploadFile;
 import com.jackpot.narratix.domain.entity.UploadJob;
 import com.jackpot.narratix.domain.entity.enums.UploadStatus;
 import com.jackpot.narratix.domain.exception.UploadErrorCode;
-import com.jackpot.narratix.domain.repository.LabeledQnARepository;
 import com.jackpot.narratix.domain.repository.UploadFileRepository;
 import com.jackpot.narratix.global.exception.BaseException;
 import org.junit.jupiter.api.AfterEach;
@@ -19,7 +18,6 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,9 +25,6 @@ class FileProcessServiceTest {
 
     @Mock
     private UploadFileRepository uploadFileRepository;
-
-    @Mock
-    private LabeledQnARepository labeledQnARepository;
 
     @Mock
     private NotificationService notificationService;
@@ -90,7 +85,6 @@ class FileProcessServiceTest {
 
         // then
         verify(file, times(1)).successExtract(extractedText);
-        verify(labeledQnARepository, times(1)).saveAll(anyList());
         verify(file, times(1)).successLabeling();
         verify(uploadFileRepository, times(1)).flush();
 
@@ -106,7 +100,7 @@ class FileProcessServiceTest {
         String fileId = "test-file";
         String jobId = "test-job";
         String userId = "test-user";
-        UploadFile file = setupFileAndJobMock(fileId, jobId, userId);
+        setupFileAndJobMock(fileId, jobId, userId);
 
         when(uploadFileRepository.countByUploadJobId(jobId)).thenReturn(3L);
         when(uploadFileRepository.countByUploadJobIdAndStatus(jobId, UploadStatus.FAILED)).thenReturn(0L);
@@ -138,7 +132,6 @@ class FileProcessServiceTest {
 
         // then
         verify(file, times(1)).failLabeling();
-        verify(labeledQnARepository, never()).saveAll(anyList());
         verify(uploadFileRepository, times(1)).flush();
 
         triggerAfterCommit();

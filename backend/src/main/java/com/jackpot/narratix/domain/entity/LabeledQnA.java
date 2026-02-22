@@ -7,6 +7,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Getter
@@ -18,8 +20,9 @@ public class LabeledQnA {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "upload_file_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private UploadFile uploadFile;
 
     @NotNull
@@ -42,5 +45,7 @@ public class LabeledQnA {
         this.questionCategory = questionCategory;
     }
 
-
+    public void connectUploadFile(UploadFile uploadFile) {
+        this.uploadFile = uploadFile;
+    }
 }

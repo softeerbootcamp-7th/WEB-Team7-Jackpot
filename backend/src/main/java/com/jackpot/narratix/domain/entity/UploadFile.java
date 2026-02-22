@@ -6,6 +6,11 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -19,8 +24,11 @@ public class UploadFile {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "upload_job_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private UploadJob uploadJob;
 
+    @OneToMany(mappedBy = "uploadFile", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<LabeledQnA> labeledQnAs = new ArrayList<>();
 
     @Column(nullable = false)
     private String s3Key;
@@ -51,10 +59,11 @@ public class UploadFile {
     }
 
     @Builder
-    public UploadFile(String id, String originalFileName, String s3Key) {
+    public UploadFile(String id, String s3Key) {
         this.id = id;
         this.s3Key = s3Key;
         this.status = UploadStatus.PENDING;
+        this.labeledQnAs = new ArrayList<>();
     }
 
     protected void assignToJob(UploadJob uploadJob) {
@@ -65,4 +74,10 @@ public class UploadFile {
         this.status = status;
     }
 
+    public void addLabeledQnA(List<LabeledQnA> labeledQnAs) {
+        labeledQnAs.forEach(labeledQnA -> {
+            this.labeledQnAs.add(labeledQnA);
+            labeledQnA.connectUploadFile(this);
+        });
+    }
 }

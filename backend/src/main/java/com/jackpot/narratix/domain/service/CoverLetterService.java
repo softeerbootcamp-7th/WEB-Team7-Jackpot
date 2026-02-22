@@ -270,6 +270,7 @@ public class CoverLetterService {
             if (!uploadJob.isOwner(userId)) {
                 throw new BaseException(GlobalErrorCode.FORBIDDEN);
             }
+            // cascade로 연관된 UploadFile과 LabeledQnA도 함께 삭제됨
             uploadJobRepository.deleteById(uploadJobId);
         }
 

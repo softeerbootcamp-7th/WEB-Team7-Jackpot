@@ -26,17 +26,17 @@ public class UploadJob extends BaseTimeEntity {
     private String userId;
 
     @OneToMany(mappedBy = "uploadJob", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<UploadFile> files = new ArrayList<>();
-
+    private List<UploadFile> uploadFiles = new ArrayList<>();
 
     @Builder
     public UploadJob(String id, String userId) {
         this.id = id;
         this.userId = userId;
+        this.uploadFiles = new ArrayList<>();
     }
 
     public void addFile(UploadFile file) {
-        this.files.add(file);
+        this.uploadFiles.add(file);
         file.assignToJob(this);
     }
 
