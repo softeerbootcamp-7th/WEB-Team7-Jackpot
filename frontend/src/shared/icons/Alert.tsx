@@ -10,6 +10,11 @@ export const AlertIcon = (props: SVGProps<SVGSVGElement>) => {
       viewBox='0 0 36 36'
       {...props}
     >
+      <defs>
+        <clipPath id='a'>
+          <rect width='36' height='36' />
+        </clipPath>
+      </defs>
       <g clipPath='url(#a)'>
         <path
           fill='#ED2015'

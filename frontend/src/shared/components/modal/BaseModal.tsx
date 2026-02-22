@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { createPortal } from 'react-dom';
 
-import useEscapeKey from '@/shared/hooks/useEscapeKey';
+import { useEscapeKey } from '@/shared/hooks/useEscapeKey';
 import useOutsideClick from '@/shared/hooks/useOutsideClick'; // 기존에 만든 훅 사용
 
 interface BaseModalProps {
@@ -27,8 +27,16 @@ const BaseModal = ({ isOpen, onClose, children }: BaseModalProps) => {
   if (!modalRoot) return null;
 
   return createPortal(
-    <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4'>
-      <div ref={modalRef} className='relative z-50'>
+    <div
+      className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4'
+      aria-hidden='false'
+    >
+      <div
+        ref={modalRef}
+        role='dialog'
+        aria-modal='true'
+        className='relative z-50'
+      >
         {children}
       </div>
     </div>,

@@ -4,11 +4,11 @@ import { useParams } from 'react-router';
 
 import { useDeleteCoverLetter } from '@/features/recruit/hooks/queries/useCoverLetterMutation';
 import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
-import { getISODate } from '@/shared/utils/dates';
+import { getISODate, isValidDate } from '@/shared/utils/dates';
 
 export const useRecruit = () => {
   const { year, month, day } = useParams();
-  const { mutate: deleteCoverLetter } = useDeleteCoverLetter();
+  const { mutateAsync: deleteCoverLetter } = useDeleteCoverLetter();
   const { showToast } = useToastMessageContext();
 
   // 1. 상태 관리: 폼 UI 상태
@@ -19,13 +19,15 @@ export const useRecruit = () => {
   // 2. 파생 상태 (Derived State): 날짜 계산
   const selectedDateParams = useMemo(() => {
     if (year && month && day) {
+      if (!isValidDate(year, month, day)) {
+        const today = getISODate(new Date());
+        return { startDate: today, endDate: today };
+      }
       return {
         startDate: `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`,
         endDate: `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`,
       };
     }
-    const today = getISODate(new Date());
-    return { startDate: today, endDate: today };
   }, [year, month, day]);
 
   // 3. 액션 핸들러
@@ -54,9 +56,9 @@ export const useRecruit = () => {
   }, []);
 
   // 실제 '삭제하기' 버튼을 눌렀을 때 실행될 로직
-  const confirmDelete = useCallback(() => {
+  const confirmDelete = useCallback(async () => {
     if (deletingId !== null) {
-      deleteCoverLetter({ coverLetterId: deletingId });
+      await deleteCoverLetter({ coverLetterId: deletingId });
       showToast('공고가 삭제되었습니다.', true);
       setDeletingId(null); // 완료 후 모달 닫기
     }

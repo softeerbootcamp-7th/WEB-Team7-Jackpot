@@ -2,7 +2,6 @@ import { useCallback, useId, useRef } from 'react';
 
 import { RECRUIT_SEASON_LIST } from '@/shared/constants/recruitSeason';
 import { useDropdownKeyboard } from '@/shared/hooks/useDropDownKeyboard';
-import useEscapeKey from '@/shared/hooks/useEscapeKey';
 import useOutsideClick from '@/shared/hooks/useOutsideClick'; // 잘 만들어둔 훅 활용!
 import type { ApiApplyHalf } from '@/shared/types/coverLetter';
 
@@ -42,13 +41,10 @@ const RecruitPeriodSelectInput = ({
     handleDropdown?.(false);
   }, [handleDropdown]);
 
-  // 1. 키보드 ESC 키를 누르면 닫힘
-  useEscapeKey(closeDropdown, isOpen);
-
-  // 2. 외부 영역 클릭 시 닫힘 (기존의 fixed 투명 배경 div를 대체!)
+  // 1. 외부 영역 클릭 시 닫힘 (기존의 fixed 투명 배경 div를 대체!)
   useOutsideClick(containerRef, closeDropdown, isOpen);
 
-  // 3. 키보드 상/하 네비게이션 훅
+  // 2. 키보드 상/하 네비게이션 훅 (Escape 키로 닫기 포함)
   const { highlightedIndex, setHighlightedIndex, listRef, handleKeyDown } =
     useDropdownKeyboard({
       isOpen,
@@ -68,7 +64,7 @@ const RecruitPeriodSelectInput = ({
           <button
             type='button'
             className={`relative flex w-full items-center justify-between rounded-lg bg-gray-50 px-5 py-[0.875rem] text-left ${isOpen ? 'ring-2 ring-gray-200' : ''}`}
-            onClick={() => handleDropdown?.(!isOpen)}
+            onClick={() => handleDropdown(!isOpen)}
             onKeyDown={handleKeyDown}
             aria-haspopup='listbox'
             aria-expanded={isOpen}

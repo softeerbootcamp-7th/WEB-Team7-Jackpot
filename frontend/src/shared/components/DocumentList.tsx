@@ -1,4 +1,4 @@
-import { type ReactNode, useRef } from 'react';
+import { type ReactNode, useCallback, useRef } from 'react';
 
 import useInfiniteScroll from '@/shared/hooks/useInfiniteScroll';
 
@@ -33,11 +33,13 @@ const DocumentList = <T,>({
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   // 2. 무한 스크롤 훅 연결 (감시자가 화면에 보이면 onLoadMore 실행)
+  const handleLoadMore = useCallback(() => {
+    if (onLoadMore) onLoadMore();
+  }, [onLoadMore]);
+
   useInfiniteScroll({
     sentinelRef,
-    fetchNextPage: () => {
-      if (onLoadMore) onLoadMore();
-    },
+    fetchNextPage: handleLoadMore,
     hasNextPage: !!hasNextPage,
     isFetchingNextPage: !!isFetchingNextPage,
   });

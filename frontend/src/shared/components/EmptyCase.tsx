@@ -27,7 +27,7 @@ const contentClasses = {
 const imageClasses = {
   small: 'pt-2 w-30 h-30',
   medium: 'pt-3 w-100 h-60',
-  large: 'pt-5 w-48 h-48',
+  large: 'pt-5 w-120 h-120',
 };
 
 const EmptyCase = ({
@@ -41,7 +41,6 @@ const EmptyCase = ({
     <div
       className={`mx-auto flex ${sizeClasses[size]} flex-col items-center justify-center gap-3 bg-[url(/images/Circles.png)] bg-contain bg-center ${className}`}
     >
-      {/* pt-25 삭제 */}
       <div
         className={`${titleClasses[size]} justify-start self-stretch text-center font-bold whitespace-pre-wrap text-gray-600`}
       >

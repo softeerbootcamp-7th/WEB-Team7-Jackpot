@@ -1,7 +1,6 @@
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 
 import { useDropdownKeyboard } from '@/shared/hooks/useDropDownKeyboard';
-import useEscapeKey from '@/shared/hooks/useEscapeKey';
 
 interface LabeledSelectInputProps<T extends string | number> {
   label: string;
@@ -33,12 +32,6 @@ const LabeledSelectInput = <T extends string | number>({
   }, [constantData, value]);
 
   const inputId = `labeled-select-${name}`;
-
-  const closeDropdown = useCallback(() => {
-    handleDropdown(false);
-  }, [handleDropdown]);
-
-  useEscapeKey(closeDropdown, isOpen);
 
   const { highlightedIndex, setHighlightedIndex, listRef, handleKeyDown } =
     useDropdownKeyboard({

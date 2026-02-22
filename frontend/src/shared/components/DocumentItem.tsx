@@ -59,10 +59,12 @@ const DocumentItem = ({
               {companyName}
             </span>
 
-            {/* 직무명 뱃지 (회색) */}
-            <span className='inline-flex items-center justify-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600'>
-              {applySeason}
-            </span>
+            {/* 채용시기 뱃지 (회색) */}
+            {applySeason && (
+              <span className='inline-flex items-center justify-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600'>
+                {applySeason}
+              </span>
+            )}
           </div>
 
           {/* 오른쪽: 액션 버튼 (수정/삭제 등) */}

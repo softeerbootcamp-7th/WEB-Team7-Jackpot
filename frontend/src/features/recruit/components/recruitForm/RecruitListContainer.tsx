@@ -72,22 +72,25 @@ const RecruitListContainer = ({
   const headerDate = getDate(formattedDocuments[0]?.deadline || '');
   const headerCount = formattedDocuments.length || 0;
 
-  const subHeading = (
-    <div className='inline-flex items-center justify-between self-stretch'>
-      <div className='flex items-center justify-start gap-2'>
-        <div className='relative h-8 w-8 overflow-hidden'>
-          <RCI.DateIcon />
+  const subHeading = useMemo(
+    () => (
+      <div className='inline-flex items-center justify-between self-stretch'>
+        <div className='flex items-center justify-start gap-2'>
+          <div className='relative h-8 w-8 overflow-hidden'>
+            <RCI.DateIcon />
+          </div>
+          <div className='justify-start text-xl leading-8 font-bold text-gray-950'>
+            {headerDate}
+          </div>
         </div>
-        <div className='justify-start text-xl leading-8 font-bold text-gray-950'>
-          {headerDate}
+        <div className='flex min-w-6 items-center justify-center gap-1 rounded-[10px] bg-gray-50 px-2 py-1'>
+          <div className='flex-1 justify-start text-center text-xs leading-4 font-medium text-gray-500'>
+            {headerCount}건
+          </div>
         </div>
       </div>
-      <div className='flex min-w-6 items-center justify-center gap-1 rounded-[10px] bg-gray-50 px-2 py-1'>
-        <div className='text-gray-500 flex-1 justify-start text-center text-xs leading-4 font-medium'>
-          {headerCount}건
-        </div>
-      </div>
-    </div>
+    ),
+    [headerDate, headerCount],
   );
 
   return (

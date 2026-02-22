@@ -224,7 +224,10 @@ export const getDDay = (targetDate: string | Date): number => {
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 };
 
-// 마감일을 입력할 때 "2024-02-30"과 같은 논리적으로 존재하지 않는 날짜를 방지하기 위한 유틸 함수
+/**
+ * 날짜 값을 { y, m, d } 문자열로 파싱
+ * 값의 유효성(예: 2월 31일)은 isValidDate 함수에서 별도로 검증
+ */
 // 1. 파싱 헬퍼 함수
 export const parseDate = (val?: string | Date) => {
   if (!val) return { y: '', m: '', d: '' };

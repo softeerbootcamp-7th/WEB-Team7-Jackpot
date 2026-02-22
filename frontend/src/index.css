@@ -425,8 +425,10 @@
     outline-offset: 2px;
   }
 
+  /* sr-only 라디오 버튼 전용 */
   input:focus-visible + .focusable-card {
     outline: 2px solid var(--color-blue-600);
     outline-offset: 2px;
+    transition: outline-offset 0.1s ease;
   }
 }

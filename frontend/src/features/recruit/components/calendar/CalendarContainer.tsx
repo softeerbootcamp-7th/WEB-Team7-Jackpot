@@ -12,7 +12,6 @@ const CalendarContainer = () => {
   const startDateStr = useMemo(() => getISODate(startDate), [startDate]);
   const endDateStr = useMemo(() => getISODate(endDate), [endDate]);
 
-  // 💡 수정됨: isLoading 외의 불필요한 무한 스크롤 관련 상태(hasNextPage 등) 제거
   const { data, isLoading } = useInfiniteCalendarDates({
     startDate: startDateStr,
     endDate: endDateStr,
@@ -23,7 +22,6 @@ const CalendarContainer = () => {
   const eventsByDate = useMemo(() => {
     if (!data) return {};
 
-    // 첫 페이지만 그리기
     const allItems = data.pages.flatMap((page) => page.coverLetters);
     const map: Record<string, typeof allItems> = {};
 

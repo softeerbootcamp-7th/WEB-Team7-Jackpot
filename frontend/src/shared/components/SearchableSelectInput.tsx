@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useId, useMemo, useRef, useState } from 'react';
 
 import { useDropdownKeyboard } from '@/shared/hooks/useDropDownKeyboard';
 import useOutsideClick from '@/shared/hooks/useOutsideClick';
@@ -46,10 +46,21 @@ const SearchableSelectInput = <T extends string | number>({
   // 3. 커스텀 훅 적용 (메모이제이션된 핸들러 사용)
   useOutsideClick(containerRef, handleClose, isOpen);
 
+  const listboxId = useId();
+  const getOptionId = (index: number) => `${listboxId}-option-${index}`;
+
   return (
     <div className='relative w-full' ref={containerRef}>
       <input
         type='text'
+        role='combobox'
+        aria-expanded={isOpen}
+        aria-autocomplete='list'
+        aria-controls={listboxId}
+        aria-activedescendant={
+          highlightedIndex >= 0 ? getOptionId(highlightedIndex) : undefined
+        }
+        aria-label={placeholder}
         value={value}
         onChange={(e) => {
           onChange(e.target.value);

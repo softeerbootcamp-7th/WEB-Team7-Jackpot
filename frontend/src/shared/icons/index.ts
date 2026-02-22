@@ -1,5 +1,6 @@
 import { AlertIcon } from '@/shared/icons/Alert';
 import { DeleteIcon } from '@/shared/icons/Delete';
+import DropdownArrow from '@/shared/icons/DropdownArrow';
 import MoreVertIcon from '@/shared/icons/MoreVertIcon';
 import NotFoundIllustration from '@/shared/icons/NotFoundIllustration';
 import { PaginationIcon } from '@/shared/icons/PaginationIcons';
@@ -48,4 +49,5 @@ export const SharedIcons = {
   TitleLogoIcon: TitleLogo,
   UserAvatarIcon,
   WritingCoverLetterIcon,
+  DropdownArrowIcon: DropdownArrow,
 };

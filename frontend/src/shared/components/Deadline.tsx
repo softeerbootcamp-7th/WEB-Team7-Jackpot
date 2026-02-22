@@ -10,11 +10,9 @@ interface Props {
 }
 
 const Deadline = ({ label, value, onChange }: Props) => {
-  const initial = parseDate(value);
-
-  const [localY, setLocalY] = useState(initial.y);
-  const [localM, setLocalM] = useState(initial.m);
-  const [localD, setLocalD] = useState(initial.d);
+  const [localY, setLocalY] = useState(() => parseDate(value).y);
+  const [localM, setLocalM] = useState(() => parseDate(value).m);
+  const [localD, setLocalD] = useState(() => parseDate(value).d);
 
   // ✨ 핵심 1: 부모로부터 받은 이전 value를 기억할 상태를 하나 만듭니다.
   const [prevValue, setPrevValue] = useState(value);

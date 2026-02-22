@@ -43,6 +43,7 @@ const Question = ({ displayIndex, data, onChange, onRemove }: Props) => {
       {/* 2. 카테고리 */}
       <SearchableSelectInput
         value={data.category}
+        aria-label={`질문 ${formattedIndex} 카테고리`}
         options={CATEGORY_VALUES}
         onChange={(value) => onChange('category', value)}
         placeholder='해당 문항의 유형을 입력해주세요 (예: 지원동기, 성장과정)'
