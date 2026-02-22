@@ -1,5 +1,5 @@
 import type { TabType } from '@/features/review/types/review';
-import { SharedIcons as I } from '@/shared/icons';
+import { SharedIcons as SI } from '@/shared/icons';
 
 interface TabSelectorProps {
   tab: TabType;
@@ -18,7 +18,7 @@ const TabSelector = ({ tab, onTabChange }: TabSelectorProps) => {
             : ''
         }`}
       >
-        <I.PaperChipIcon active={tab === 'suggest'} />
+        <SI.PaperChipIcon active={tab === 'suggest'} />
         <span
           className={`text-body-l ${
             tab === 'suggest'
@@ -38,7 +38,7 @@ const TabSelector = ({ tab, onTabChange }: TabSelectorProps) => {
             : ''
         }`}
       >
-        <I.PenToolIcon active={tab === 'comment'} />
+        <SI.PenToolIcon active={tab === 'comment'} />
         <span
           className={`text-body-l ${
             tab === 'comment'

@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 
-import { SharedIcons as I } from '@/shared/icons';
+import { SharedIcons as SI } from '@/shared/icons';
 
 const NewCoverLetterButton = () => {
   return (
@@ -10,7 +10,7 @@ const NewCoverLetterButton = () => {
     >
       <div className='flex items-center justify-center gap-1.5 rounded-lg bg-gray-900 py-3 pr-5 pl-4'>
         <div className='h-6 w-6'>
-          <I.PlusIcon className='text-white' />
+          <SI.PlusIcon className='text-white' />
         </div>
         <div className='text-title-s justify-start text-center font-bold text-white'>
           자기소개서 추가하기

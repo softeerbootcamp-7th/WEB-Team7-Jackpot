@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router';
 
-import { SharedIcons as I } from '@/shared/icons';
+import { SharedIcons as SI } from '@/shared/icons';
 
 const NotFoundPage = () => {
   const navigate = useNavigate();
@@ -8,7 +8,10 @@ const NotFoundPage = () => {
   return (
     <main className='flex h-screen w-full max-w-full flex-col items-center justify-center bg-white'>
       <div className='relative aspect-[810/424] w-full max-w-[1000px]'>
-        <I.NotFoundIllustration className='h-full w-full' aria-hidden='true' />
+        <SI.NotFoundIllustrationIcon
+          className='h-full w-full'
+          aria-hidden='true'
+        />
         <div className='absolute top-1/4 left-1/2 inline-flex w-96 max-w-full -translate-x-1/2 flex-col items-center justify-start gap-3'>
           <h1 className='self-stretch text-center text-2xl font-bold text-gray-950'>
             페이지를 찾을 수 없습니다.

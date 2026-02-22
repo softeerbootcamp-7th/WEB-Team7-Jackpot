@@ -1,7 +1,7 @@
 import { type ReactNode, useMemo } from 'react';
 
 import { useInfiniteCalendarDates } from '@/features/recruit/hooks/queries/useCalendarQuery';
-import { RecruitIcons as I } from '@/features/recruit/icons';
+import { RecruitIcons as RCI } from '@/features/recruit/icons';
 import type { CalendarRequest } from '@/features/recruit/types';
 import DocumentItem from '@/shared/components/DocumentItem';
 import DocumentList from '@/shared/components/DocumentList';
@@ -56,7 +56,7 @@ const RecruitListContainer = ({
         onClick={() => onEdit?.(id)}
         aria-label='수정'
       >
-        <I.EditIcon />
+        <RCI.EditIcon />
       </button>
       <button
         type='button'
@@ -64,7 +64,7 @@ const RecruitListContainer = ({
         onClick={() => onDelete?.(id)}
         aria-label='삭제'
       >
-        <I.DeleteIcon />
+        <RCI.DeleteIcon />
       </button>
     </div>
   );
@@ -76,7 +76,7 @@ const RecruitListContainer = ({
     <div className='inline-flex items-center justify-between self-stretch'>
       <div className='flex items-center justify-start gap-2'>
         <div className='relative h-8 w-8 overflow-hidden'>
-          <I.DateIcon />
+          <RCI.DateIcon />
         </div>
         <div className='justify-start text-xl leading-8 font-bold text-gray-950'>
           {headerDate}

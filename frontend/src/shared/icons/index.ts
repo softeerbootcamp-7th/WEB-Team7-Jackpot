@@ -14,7 +14,8 @@ import TitleLogo from '@/shared/icons/TitleLogo';
 import UserAvatarIcon from '@/shared/icons/UserAvatarIcon';
 import { WritingCoverLetterIcon } from '@/shared/icons/WritingCoverLetter';
 
-export const SharedIcons = {
+export {
+  AlertIcon,
   DeleteIcon,
   MoreVertIcon,
   NotFoundIllustration,
@@ -29,5 +30,22 @@ export const SharedIcons = {
   TitleLogo,
   UserAvatarIcon,
   WritingCoverLetterIcon,
+};
+
+export const SharedIcons = {
   AlertIcon,
+  DeleteIcon,
+  MoreVertIcon,
+  NotFoundIllustrationIcon: NotFoundIllustration,
+  PaginationIcon,
+  PaperChipIcon,
+  PenToolIcon,
+  PlusIcon,
+  ReviewMessageIcon,
+  RightArrowIcon: RightArrow,
+  SaveCheckIcon,
+  SearchIcon,
+  TitleLogoIcon: TitleLogo,
+  UserAvatarIcon,
+  WritingCoverLetterIcon,
 };

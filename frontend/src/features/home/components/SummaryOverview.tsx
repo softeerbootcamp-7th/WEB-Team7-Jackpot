@@ -9,7 +9,7 @@ import {
   SUMMARY_OVERVIEW_SEASON_COUNT,
 } from '@/features/home/constants';
 import { useHomeCount } from '@/features/home/hooks/queries/useHomeQueries';
-import { HomePageIcons as I } from '@/features/home/icons';
+import { HomePageIcons as HI } from '@/features/home/icons';
 
 const SummaryOverview = () => {
   const { data } = useHomeCount();
@@ -27,7 +27,7 @@ const SummaryOverview = () => {
     <div className='inline-flex w-full items-center justify-start gap-3'>
       <div className='flex h-28 flex-1 items-center justify-start gap-5 rounded-2xl px-10 py-5 outline outline-1 outline-offset-[-1px] outline-gray-100'>
         <div className='relative h-10 w-10'>
-          <I.ThoughtIcon />
+          <HI.ThoughtIcon />
         </div>
         <div className='inline-flex flex-col items-start justify-start'>
           <div className='text-title-s font-medium text-gray-400'>
@@ -42,7 +42,7 @@ const SummaryOverview = () => {
       </div>
       <div className='flex h-28 flex-1 items-center justify-start gap-5 rounded-2xl px-10 py-5 outline outline-1 outline-offset-[-1px] outline-gray-100'>
         <div className='relative h-10 w-10'>
-          <I.BooksIcon />
+          <HI.BooksIcon />
         </div>
         <div className='inline-flex flex-col items-start justify-start'>
           <div className='text-title-s justify-start font-medium text-gray-400'>
@@ -56,7 +56,7 @@ const SummaryOverview = () => {
       </div>
       <div className='flex h-28 flex-1 items-center justify-start gap-5 rounded-2xl px-10 py-5 outline outline-1 outline-offset-[-1px] outline-gray-100'>
         <div className='relative h-10 w-10'>
-          <I.ScrollIcon />
+          <HI.ScrollIcon />
         </div>
         <div className='inline-flex flex-col items-start justify-start'>
           <div className='text-title-s justify-start font-medium text-gray-400'>

@@ -5,7 +5,7 @@ import CoverLetterList from '@/features/upload/components/CoverLetterList';
 import LabeledSelectInput from '@/features/upload/components/LabeledSelectInput';
 import { QUESTION_TYPE_LIST } from '@/features/upload/constants/uploadPage';
 import useCoverLetterState from '@/features/upload/hooks/useCoverLetterState';
-import { UploadPageIcons as I } from '@/features/upload/icons';
+import { UploadPageIcons as UI } from '@/features/upload/icons';
 import { yearList } from '@/features/upload/utils/generateAboutDate';
 import RecruitPeriodSelectInput from '@/shared/components/RecruitPeriodSelectInput';
 import type { DropdownStateType } from '@/shared/types/dropdown';
@@ -93,7 +93,9 @@ const LabelingResultItem = ({
                   yearDropdown: isOpen,
                 }));
               }}
-              icon={<I.DropdownArrow isOpen={isDropdownOpen.yearDropdown} />}
+              icon={
+                <UI.DropdownArrowIcon isOpen={isDropdownOpen.yearDropdown} />
+              }
               isOpen={isDropdownOpen.yearDropdown}
               dropdownDirection='bottom'
             />

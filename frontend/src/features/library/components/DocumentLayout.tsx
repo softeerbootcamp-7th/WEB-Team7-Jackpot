@@ -2,7 +2,7 @@ import { type ReactNode } from 'react';
 
 import { NavLink } from 'react-router';
 
-import { LibraryIcons as LI } from '@/features/library/icons';
+import { LibraryIcons as LII } from '@/features/library/icons';
 
 interface Props {
   title: string;
@@ -22,11 +22,11 @@ const DocumentLayout = ({
       {/* 헤더 영역 공통화 */}
       <div className='mb-4 inline-flex items-center justify-start gap-1 self-stretch px-3'>
         <NavLink to={backUrl} aria-label='뒤로 가기'>
-          <LI.ChevronLeftIcon />
+          <LII.ChevronLeftIcon />
         </NavLink>
         <div className='flex flex-1 items-center justify-start gap-2'>
           <div className='h-7 w-7'>
-            <LI.FolderIcon />
+            <LII.FolderIcon />
           </div>
           <h1 className='text-title-m line-clamp-1 flex-1 justify-start font-bold text-gray-950'>
             {title}

@@ -1,5 +1,5 @@
 import Avatar from '@/features/coverLetter/components/reviewWithFriend/Avatar';
-import { SharedIcons as I } from '@/shared/icons';
+import { SharedIcons as SI } from '@/shared/icons';
 import type { Review } from '@/shared/types/review';
 import { getKoreanDate, getKoreanTime } from '@/shared/utils/dates';
 
@@ -64,7 +64,7 @@ const ReviewCard = ({
         <div className='inline-flex items-center justify-start gap-1.5'>
           {hasSuggestion && (
             <div className='flex items-center justify-start gap-1 rounded-[100px] bg-red-50 py-[5px] pr-2.5 pl-2'>
-              <I.PaperChipIcon />
+              <SI.PaperChipIcon />
               <div className='justify-start text-xs leading-5 font-medium text-red-600'>
                 수정
               </div>
@@ -72,7 +72,7 @@ const ReviewCard = ({
           )}
           {hasComment && (
             <div className='flex items-center justify-start gap-1 rounded-[100px] bg-blue-50 py-[5px] pr-2.5 pl-2'>
-              <I.PenToolIcon />
+              <SI.PenToolIcon />
               <div className='justify-start text-xs leading-5 font-medium text-blue-600'>
                 코멘트
               </div>

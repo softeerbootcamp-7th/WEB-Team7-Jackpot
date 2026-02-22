@@ -10,7 +10,7 @@ import {
 } from '@/features/home/constants';
 import { useUpcomingSchedules } from '@/features/home/hooks/useUpcomingSchedules';
 import { HomePageIcons as HI } from '@/features/home/icons';
-import { SharedIcons as I } from '@/shared/icons';
+import { SharedIcons as SI } from '@/shared/icons';
 
 const UpcomingSchedules = () => {
   // 훅에서 가공된 데이터와 상태만 가져옴
@@ -29,7 +29,7 @@ const UpcomingSchedules = () => {
           </h2>
         </div>
         <Link to={'/recruit'} aria-label={UPCOMING_SCHEDULES_ARIA_LABEL}>
-          <I.RightArrow size='lg' aria-hidden='true' />
+          <SI.RightArrowIcon size='lg' aria-hidden='true' />
         </Link>
       </div>
 

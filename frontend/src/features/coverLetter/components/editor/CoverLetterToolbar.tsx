@@ -1,5 +1,5 @@
 import { CoverLetterPageIcons as CI } from '@/features/coverLetter/icons';
-import { SharedIcons as I } from '@/shared/icons';
+import { SharedIcons as SI } from '@/shared/icons';
 
 type SaveProps =
   | { autoSave: true; onSave?: never; isPending?: never }
@@ -50,7 +50,7 @@ const CoverLetterToolbar = ({
               : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
           }`}
         >
-          <I.ReviewMessageIcon className='h-5 w-5' />
+          <SI.ReviewMessageIcon className='h-5 w-5' />
           <span>{isReviewActive ? '첨삭 비활성화' : '첨삭 활성화'}</span>
         </button>
 
@@ -65,7 +65,7 @@ const CoverLetterToolbar = ({
           }`}
           aria-label='첨삭 링크 복사'
         >
-          <CI.LinkAngled />
+          <CI.LinkAngledIcon />
           <span>링크 복사</span>
         </button>
 
@@ -85,7 +85,7 @@ const CoverLetterToolbar = ({
                 : 'cursor-pointer bg-gray-800 hover:bg-gray-900'
             }`}
           >
-            <I.SaveCheckIcon />
+            <SI.SaveCheckIcon />
             <span>{isPending ? '저장 중...' : '저장하기'}</span>
           </button>
         )}

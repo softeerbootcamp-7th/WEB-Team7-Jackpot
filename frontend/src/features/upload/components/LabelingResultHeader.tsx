@@ -1,4 +1,4 @@
-import { UploadPageIcons as I } from '@/features/upload/icons';
+import { UploadPageIcons as UI } from '@/features/upload/icons';
 
 interface LabelingResultHeaderProps {
   nextStep?: (step: string) => void;
@@ -11,7 +11,7 @@ const LabelingResultHeader = ({
     <div>
       <div className='flex items-center justify-between select-none'>
         <div className='flex gap-[0.625rem]'>
-          <I.AILabelingIcon size='32' />
+          <UI.AILabelingIcon size='32' />
           <div className='text-2xl font-bold'>
             <span className='text-purple-500'>두 번째</span> 자기소개서는 총
             <span className='text-purple-500'> 3개</span>의 문항으로

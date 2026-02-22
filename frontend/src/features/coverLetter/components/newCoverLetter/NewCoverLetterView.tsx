@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 
 import NewCoverLetterDetail from '@/features/coverLetter/components/newCoverLetter/NewCoverLetterDetail';
-import { CoverLetterPageIcons as I } from '@/features/coverLetter/icons';
+import { CoverLetterPageIcons as CI } from '@/features/coverLetter/icons';
 import QuestionsSection from '@/shared/components/QuestionsSection';
 import type { CreateCoverLetterRequest } from '@/shared/types/coverLetter';
 import { isQuestionsValid } from '@/shared/utils/coverLetter';
@@ -51,7 +51,7 @@ const NewCoverLetterView = ({ formData, onChange, onSubmit }: Props) => {
       <div className='flex items-center justify-between self-stretch'>
         <div className='flex items-center justify-start gap-2'>
           <div className='m-auto h-8 w-8 overflow-hidden'>
-            <I.NewCoverLetterIcon />
+            <CI.NewCoverLetterIcon />
           </div>
           <div className='text-title-m justify-start font-bold text-gray-950'>
             새 자기소개서 등록

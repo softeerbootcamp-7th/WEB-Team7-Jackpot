@@ -6,7 +6,7 @@ import NotificationDropdown from '@/features/notification/components/Notificatio
 import NavItem from '@/shared/components/NavItem';
 import { NAV_ITEMS } from '@/shared/constants/globalHeader';
 import { useSmartNavigate } from '@/shared/hooks/useSmartNavigate';
-import { SharedIcons as I } from '@/shared/icons';
+import { SharedIcons as SI } from '@/shared/icons';
 
 const PageGlobalHeader = () => {
   const smartNavigate = useSmartNavigate();
@@ -32,7 +32,7 @@ const PageGlobalHeader = () => {
             onClick={() => smartNavigate('/home')}
             aria-label='홈으로 이동'
           >
-            <I.TitleLogo width='99' height='27' />
+            <SI.TitleLogoIcon width='99' height='27' />
           </button>
         </div>
 
@@ -62,7 +62,7 @@ const PageGlobalHeader = () => {
             className='flex cursor-pointer items-center gap-2'
             onClick={() => setIsProfileOpen(!isProfileOpen)}
           >
-            <I.UserAvatarIcon />
+            <SI.UserAvatarIcon />
             <span className='text-base font-medium text-gray-600'>
               {userInfo?.nickname || '사용자'}
             </span>

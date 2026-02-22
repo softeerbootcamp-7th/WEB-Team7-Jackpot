@@ -7,12 +7,12 @@ import {
 } from '@/features/home/constants';
 import { useRecentCoverLetters } from '@/features/home/hooks/queries/useHomeQueries';
 import CoverLetterOverview from '@/shared/components/CoverLetterOverview';
-import { SharedIcons as I } from '@/shared/icons';
+import { SharedIcons as SI } from '@/shared/icons';
 
 const LinkToCoverLetter = () => {
   return (
     <Link to={'/cover-letter'} aria-label='자기소개서 작성 페이지로 이동'>
-      <I.RightArrow />
+      <SI.RightArrowIcon />
     </Link>
   );
 };

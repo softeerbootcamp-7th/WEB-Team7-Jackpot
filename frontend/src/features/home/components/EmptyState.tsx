@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 
-import { HomePageIcons as I } from '@/features/home/icons';
+import { HomePageIcons as HI } from '@/features/home/icons';
 
 interface EmptyStateProps {
   className?: string;
@@ -14,7 +14,7 @@ const EmptyState = ({ title, description, to, className }: EmptyStateProps) => {
     <div
       className={`flex flex-col items-center justify-center gap-5 self-stretch rounded-2xl bg-gray-50/50 ${className ? className : 'h-full'}`}
     >
-      <I.PlusIcon />
+      <HI.PlusIcon />
       <div className='flex flex-col items-start justify-start self-stretch'>
         <div className='justify-start self-stretch text-center text-2xl leading-9 font-bold text-gray-400'>
           {title}

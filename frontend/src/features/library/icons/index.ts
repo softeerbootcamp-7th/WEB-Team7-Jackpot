@@ -8,18 +8,18 @@ import { QnALibrary } from '@/features/library/icons/QnALibrary';
 import { QnASearchResultIcon } from '@/features/library/icons/QnASearchResult';
 import { QuestionIcon } from '@/features/library/icons/Question';
 import { ScrapIcon } from '@/features/library/icons/Scrap';
-import { SharedIcons } from '@/shared/icons';
+import { SearchIcon } from '@/shared/icons';
 
 export const LibraryIcons = {
   ChevronLeftIcon,
-  CompanyNameLibrary,
+  CompanyNameLibraryIcon: CompanyNameLibrary,
   EditIcon,
   FolderIcon,
   LibraryIcon,
-  LibraryFolder,
-  QnALibrary,
+  LibraryFolderIcon: LibraryFolder,
+  QnALibraryIcon: QnALibrary,
   QnASearchResultIcon,
   QuestionIcon,
   ScrapIcon,
-  SearchIcon: SharedIcons.SearchIcon,
+  SearchIcon,
 };

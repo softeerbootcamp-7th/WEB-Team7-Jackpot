@@ -4,7 +4,7 @@ import ActionButtons from '@/features/review/components/review/ActionButtons';
 import CardContentSection from '@/features/review/components/review/CardContentSection';
 import CardUserInfo from '@/features/review/components/review/CardUserInfo';
 import ChipRow from '@/features/review/components/review/ChipRow';
-import { ReviewPageIcons as I } from '@/features/review/icons';
+import { ReviewPageIcons as RVI } from '@/features/review/icons';
 import InvalidReviewBanner from '@/shared/components/InvalidReviewBanner';
 import type { Review } from '@/shared/types/review';
 
@@ -44,7 +44,7 @@ const ReviewCard = ({
             />
           </div>
           <div className='py-0.5'>
-            <I.ChevronIcon
+            <RVI.ChevronIcon
               isDetail={isDetail}
               handleShowDetail={() => setIsDetail((prev) => !prev)}
             />

@@ -1,7 +1,7 @@
 import loginBackground from '/images/loginBackgroundImage.png';
 
 import LogoAndSubTitle from '@/features/auth/components/LogoAndSubTitle';
-import { SharedIcons as I } from '@/shared/icons';
+import { SharedIcons as SI } from '@/shared/icons';
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -23,7 +23,7 @@ const AuthLayout = ({
       />
       <div className='flex h-[24.5rem] w-[24.5rem] flex-col items-center justify-center gap-6'>
         <LogoAndSubTitle
-          TitleLogoComponent={I.TitleLogo}
+          TitleLogoComponent={SI.TitleLogoIcon}
           subTitle={subTitle}
           subTitleColor={subTitleColor}
         />

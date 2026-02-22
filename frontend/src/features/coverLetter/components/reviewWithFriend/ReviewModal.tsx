@@ -1,6 +1,6 @@
 import Avatar from '@/features/coverLetter/components/reviewWithFriend/Avatar';
 import InvalidReviewBanner from '@/shared/components/InvalidReviewBanner';
-import { SharedIcons as I } from '@/shared/icons';
+import { SharedIcons as SI } from '@/shared/icons';
 import type { Review } from '@/shared/types/review';
 
 interface ReviewModalProps {
@@ -53,7 +53,7 @@ const ReviewModal = ({
         <div className='flex flex-col items-start justify-start gap-4 self-stretch'>
           <div className='flex flex-col items-start justify-start gap-1 self-stretch'>
             <div className='inline-flex items-center justify-center gap-1.5'>
-              <I.PaperChipIcon />
+              <SI.PaperChipIcon />
               <div className='text-Semantic-text-headline justify-start text-base leading-6 font-bold'>
                 수정
               </div>
@@ -66,7 +66,7 @@ const ReviewModal = ({
           </div>
           <div className='flex flex-col items-start justify-start gap-1 self-stretch'>
             <div className='inline-flex items-center justify-center gap-1.5'>
-              <I.PenToolIcon />
+              <SI.PenToolIcon />
               <div className='text-Semantic-text-headline justify-start text-base leading-6 font-bold'>
                 코멘트
               </div>
@@ -82,10 +82,10 @@ const ReviewModal = ({
       <div className='inline-flex items-center justify-between self-stretch'>
         <div className='flex items-center justify-start gap-1.5'>
           <div className='flex h-7 w-7 items-center justify-center gap-1 rounded-[100px] bg-red-50 px-2 py-[5px]'>
-            <I.PaperChipIcon />
+            <SI.PaperChipIcon />
           </div>
           <div className='flex h-7 w-7 items-center justify-center gap-1 rounded-[100px] bg-blue-50 px-2 py-[5px]'>
-            <I.PenToolIcon />
+            <SI.PenToolIcon />
           </div>
         </div>
         <div className='flex items-center justify-start gap-2'>

@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 
 import PaginationButton from '@/features/recruit/components/recruitForm/PaginationButton';
 import RecruitDetail from '@/features/recruit/components/recruitForm/RecruitDetail';
-import { RecruitIcons as I } from '@/features/recruit/icons';
+import { RecruitIcons as RCI } from '@/features/recruit/icons';
 import QuestionsSection from '@/shared/components/QuestionsSection';
 import type { CreateCoverLetterRequest } from '@/shared/types/coverLetter';
 import { isQuestionsValid } from '@/shared/utils/coverLetter';
@@ -74,13 +74,13 @@ const RecruitFormView = ({
       {/* 헤더 영역 */}
       <div className='flex w-full flex-row items-center justify-between'>
         <div className='inline-flex flex-row items-center gap-2'>
-          {mode === 'EDIT' ? <I.RecruitEditIcon /> : <I.NewRecruitIcon />}
+          {mode === 'EDIT' ? <RCI.RecruitEditIcon /> : <RCI.NewRecruitIcon />}
           <h2 className='text-xl font-bold'>
             {mode === 'EDIT' ? '공고 수정' : '공고 등록'}
           </h2>
         </div>
         <button type='button' className='cursor-pointer' onClick={onClose}>
-          <I.DeleteIcon />
+          <RCI.DeleteIcon />
         </button>
       </div>
 

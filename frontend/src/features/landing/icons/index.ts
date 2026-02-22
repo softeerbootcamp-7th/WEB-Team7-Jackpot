@@ -6,10 +6,10 @@ import ThirdCardIcon from '@/features/landing/icons/ThirdCardIcon';
 import TypographyCursor from '@/features/landing/icons/TypographyCursor';
 
 export const LandingPageIcon = {
-  CheckIcon: CheckIcon,
-  FirstCardIcon: FirstCardIcon,
-  SecondCardIcon: SecondCardIcon,
-  ThirdCardIcon: ThirdCardIcon,
-  RightArrowIcon: RightArrowIcon,
-  TypographyCursor: TypographyCursor,
+  CheckIcon,
+  FirstCardIcon,
+  RightArrowIcon,
+  SecondCardIcon,
+  ThirdCardIcon,
+  TypographyCursorIcon: TypographyCursor,
 };

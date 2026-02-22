@@ -1,7 +1,7 @@
 import BaseModal from './BaseModal';
 
 import { useFocusTrap } from '@/shared/hooks/useFocusTrap';
-import { SharedIcons as I } from '@/shared/icons';
+import { SharedIcons as SI } from '@/shared/icons';
 
 interface ConfirmModalProps {
   isOpen: boolean;
@@ -34,7 +34,7 @@ const ConfirmModal = ({
           {/* 경고 아이콘 */}
           <div className='relative h-9 w-9'>
             <div className='absolute top-0 left-0 h-9 w-9 overflow-hidden'>
-              <I.AlertIcon />
+              <SI.AlertIcon />
             </div>
           </div>
 

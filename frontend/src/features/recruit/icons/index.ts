@@ -3,13 +3,13 @@ import { EditIcon } from '@/features/recruit/icons/Edit';
 import { NewRecruitIcon } from '@/features/recruit/icons/NewRecruit';
 import { RecruitIcon } from '@/features/recruit/icons/Recruit';
 import { RecruitEditIcon } from '@/features/recruit/icons/RecruitEdit';
-import { SharedIcons } from '@/shared/icons';
+import { DeleteIcon } from '@/shared/icons';
 
 export const RecruitIcons = {
-  DeleteIcon: SharedIcons.DeleteIcon,
+  DateIcon,
   EditIcon,
   NewRecruitIcon,
   RecruitIcon,
   RecruitEditIcon,
-  DateIcon: DateIcon,
+  DeleteIcon,
 };

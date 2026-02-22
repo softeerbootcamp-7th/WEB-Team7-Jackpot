@@ -8,7 +8,7 @@ import {
 import { useMyApplicationCalendar } from '@/features/home/hooks/useMyApplicationCalendar';
 import { HomePageIcons as HI } from '@/features/home/icons';
 import { WEEK_LIST } from '@/shared/constants/dates';
-import { SharedIcons as I } from '@/shared/icons';
+import { SharedIcons as SI } from '@/shared/icons';
 
 const MyApplicationCalendar = () => {
   const { weeks } = useMyApplicationCalendar();
@@ -26,7 +26,7 @@ const MyApplicationCalendar = () => {
           </h2>
         </div>
         <Link to={'/recruit'} aria-label={MY_APPLICATION_CALENDAR_ARIA_LABEL}>
-          <I.RightArrow size='lg' aria-hidden='true' />
+          <SI.RightArrowIcon size='lg' aria-hidden='true' />
         </Link>
       </div>
 
