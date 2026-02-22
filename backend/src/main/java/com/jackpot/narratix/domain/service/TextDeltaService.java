@@ -7,7 +7,6 @@ import com.jackpot.narratix.domain.repository.TextDeltaRedisRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -68,13 +67,13 @@ public class TextDeltaService {
 
         if (pendingSize >= FLUSH_THRESHOLD) {
             log.info("flush 임계값 도달: qnAId={}", qnAId);
-            textSyncService.flushToDb(qnAId);
+            List<TextUpdateRequest> deltas = textSyncService.getPendingDeltas(qnAId);
+            textSyncService.flushDeltasToDb(qnAId, deltas, deltas.size());
         }
 
         return request.version();
     }
 
-    @Transactional(readOnly = true)
     protected void recoverVersionFromDb(Long qnAId) {
         log.warn("버전 카운터 유실 감지, DB에서 재초기화: qnAId={}", qnAId);
         QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);

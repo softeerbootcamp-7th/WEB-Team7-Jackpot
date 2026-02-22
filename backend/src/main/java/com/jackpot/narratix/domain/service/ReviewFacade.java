@@ -42,7 +42,8 @@ public class ReviewFacade {
 
     public void createReview(String reviewerId, Long qnAId, ReviewCreateRequest request) {
         // 1. Transaction 밖에서 pending 델타를 DB에 먼저 적용
-        textSyncService.flushToDb(qnAId);
+        List<TextUpdateRequest> deltas = textSyncService.getPendingDeltas(qnAId);
+        textSyncService.flushDeltasToDb(qnAId, deltas, deltas.size());
 
         // 2. QnA 조회 및 컨텍스트 준비
         QnA qnA = qnAService.findByIdOrElseThrow(qnAId);
@@ -103,7 +104,8 @@ public class ReviewFacade {
 
     public void deleteReview(String userId, Long qnAId, Long reviewId) {
         // 1. flush: pending 델타를 DB에 먼저 적용 (트랜잭션 밖)
-        textSyncService.flushToDb(qnAId);
+        List<TextUpdateRequest> deltas = textSyncService.getPendingDeltas(qnAId);
+        textSyncService.flushDeltasToDb(qnAId, deltas, deltas.size());
 
         // 2. QnA, Review 조회
         QnA qnA = qnAService.findByIdOrElseThrow(qnAId);
@@ -142,7 +144,8 @@ public class ReviewFacade {
      */
     public void approveReview(String userId, Long qnAId, Long reviewId) {
         // 1. flush: pending 델타를 DB에 먼저 적용 (트랜잭션 밖)
-        textSyncService.flushToDb(qnAId);
+        List<TextUpdateRequest> deltas = textSyncService.getPendingDeltas(qnAId);
+        textSyncService.flushDeltasToDb(qnAId, deltas, deltas.size());
 
         // 2. QnA, Review 조회
         QnA qnA = qnAService.findByIdOrElseThrow(qnAId);
