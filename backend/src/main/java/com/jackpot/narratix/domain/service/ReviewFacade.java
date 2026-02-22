@@ -12,8 +12,6 @@ import com.jackpot.narratix.domain.event.ReviewCreatedEvent;
 import com.jackpot.narratix.domain.event.ReviewDeleteEvent;
 import com.jackpot.narratix.domain.event.ReviewEditEvent;
 import com.jackpot.narratix.domain.exception.ReviewErrorCode;
-import com.jackpot.narratix.domain.repository.QnARepository;
-import com.jackpot.narratix.domain.repository.ReviewRepository;
 import com.jackpot.narratix.global.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
