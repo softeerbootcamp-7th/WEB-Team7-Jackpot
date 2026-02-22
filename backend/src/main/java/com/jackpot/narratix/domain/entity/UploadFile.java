@@ -74,4 +74,10 @@ public class UploadFile {
         this.status = status;
     }
 
+    public void addLabeledQnA(List<LabeledQnA> labeledQnAs) {
+        labeledQnAs.forEach(labeledQnA -> {
+            this.labeledQnAs.add(labeledQnA);
+            labeledQnA.connectUploadFile(this);
+        });
+    }
 }
