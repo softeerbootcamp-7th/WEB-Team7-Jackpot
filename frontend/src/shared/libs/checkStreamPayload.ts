@@ -4,7 +4,6 @@ import type { NotificationSSEPayload } from '@/shared/types/sse';
 export const isNotificationPayload = (
   data: unknown,
 ): data is NotificationSSEPayload => {
-  console.log(data);
   return (
     typeof data === 'object' &&
     data !== null &&

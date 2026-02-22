@@ -5,9 +5,10 @@ import LabelingResultItem from '@/features/upload/components/LabelingResultItem'
 
 const LabelingResultSection = () => {
   const navigate = useNavigate();
-  const { coverLetterId, qnAId } = useParams<{
-    coverLetterId: string;
-    qnAId: string;
+  const { jobId, coverLetterIndex, qnAIndex } = useParams<{
+    jobId: string;
+    coverLetterIndex: string;
+    qnAIndex: string;
   }>();
 
   // NaN || 0 -> 0 (비숫자 입력에 대한 방어 처리)
@@ -18,11 +19,11 @@ const LabelingResultSection = () => {
     navigate('/upload/complete', { replace: true });
   };
 
-  const handleCoverLetterIdChange = (newId: number) =>
-    navigate(`/upload/labeling/${newId}/0`, { replace: true });
+  const handleCoverLetterIdxChange = (newIdx: number) =>
+    navigate(`/upload/labeling/${jobId}/${newIdx}/0`, { replace: true });
 
-  const handleQnAIdChange = (newId: number) =>
-    navigate(`/upload/labeling/${currentCoverLetterId}/${newId}`, {
+  const handleQnAIdxChange = (newIdx: number) =>
+    navigate(`/upload/labeling/${jobId}/${currentCoverLetterIdx}/${newIdx}`, {
       replace: true,
     });
 
