@@ -7,7 +7,6 @@ import com.jackpot.narratix.domain.entity.LabeledQnA;
 import com.jackpot.narratix.domain.entity.UploadFile;
 import com.jackpot.narratix.domain.entity.UploadJob;
 import com.jackpot.narratix.domain.entity.enums.UploadStatus;
-import com.jackpot.narratix.domain.repository.LabeledQnARepository;
 import com.jackpot.narratix.domain.repository.UploadFileRepository;
 import com.jackpot.narratix.domain.service.dto.LabeledQnARequest;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +23,6 @@ public class FileProcessService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final UploadFileRepository uploadFileRepository;
-    private final LabeledQnARepository labeledQnARepository;
     private final NotificationService notificationService;
 
     private static final int MAX_QNA_SIZE = 10;
@@ -43,7 +41,7 @@ public class FileProcessService {
             return;
         }
 
-        List<LabeledQnARequest> qnARequests = List.of();
+        List<LabeledQnARequest> qnARequests;
 
         try {
             qnARequests = objectMapper.readValue(labelingJson, new TypeReference<>() {
@@ -55,7 +53,7 @@ public class FileProcessService {
             return;
         }
 
-        List<LabeledQnA> qnAs = qnARequests.stream()
+        List<LabeledQnA> labeledQnAs = qnARequests.stream()
                 .limit(MAX_QNA_SIZE)
                 .map(dto -> LabeledQnA.builder()
                         .uploadFile(file)
@@ -64,11 +62,10 @@ public class FileProcessService {
                         .questionCategory(dto.questionCategory())
                         .build())
                 .toList();
-        labeledQnARepository.saveAll(qnAs);
-
+        file.addLabeledQnA(labeledQnAs);
         file.successLabeling();
 
-        log.info("Successfully saved {} labeling items for file: {}", qnAs.size(), fileId);
+        log.info("Successfully saved {} labeling items for file: {}", labeledQnAs.size(), fileId);
 
         checkJobCompletionAndNotify(file.getUploadJob());
     }

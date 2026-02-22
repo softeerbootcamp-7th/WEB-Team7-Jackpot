@@ -4,7 +4,11 @@ import com.jackpot.narratix.domain.entity.UploadFile;
 import com.jackpot.narratix.domain.entity.enums.UploadStatus;
 import com.jackpot.narratix.domain.exception.UploadErrorCode;
 import com.jackpot.narratix.global.exception.BaseException;
+import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import java.util.List;
 
 public interface UploadFileRepository extends JpaRepository<UploadFile, String> {
 
@@ -15,4 +19,7 @@ public interface UploadFileRepository extends JpaRepository<UploadFile, String> 
     long countByUploadJobIdAndStatus(String uploadJobId, UploadStatus status);
 
     long countByUploadJobId(String uploadJobId);
+
+    @Query("SELECT DISTINCT f FROM UploadFile f LEFT JOIN FETCH f.labeledQnAs WHERE f.uploadJob.id = :uploadJobId")
+    List<UploadFile> findAllWithQnAsByUploadJobId(@Param("uploadJobId") String uploadJobId);
 }

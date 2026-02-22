@@ -5,11 +5,10 @@ import com.jackpot.narratix.domain.controller.request.JobCreateRequest;
 import com.jackpot.narratix.domain.controller.request.PresignedUrlRequest;
 import com.jackpot.narratix.domain.controller.response.LabeledQnAListResponse;
 import com.jackpot.narratix.domain.controller.response.PresignedUrlResponse;
-import com.jackpot.narratix.domain.entity.LabeledQnA;
 import com.jackpot.narratix.domain.entity.UploadFile;
 import com.jackpot.narratix.domain.entity.UploadJob;
 import com.jackpot.narratix.domain.exception.UploadErrorCode;
-import com.jackpot.narratix.domain.repository.LabeledQnARepository;
+import com.jackpot.narratix.domain.repository.UploadFileRepository;
 import com.jackpot.narratix.domain.repository.UploadJobRepository;
 import com.jackpot.narratix.global.exception.BaseException;
 import com.jackpot.narratix.global.exception.GlobalErrorCode;
@@ -35,11 +34,10 @@ import java.util.Map;
 public class UploadService {
 
     private final S3Presigner s3Presigner;
-
-    private final UploadJobRepository uploadJobRepository;
     private final LambdaCallService lambdaCallService;
 
-    private final LabeledQnARepository labeledQnARepository;
+    private final UploadJobRepository uploadJobRepository;
+    private final UploadFileRepository uploadFileRepository;
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
@@ -138,8 +136,8 @@ public class UploadService {
             throw new BaseException(GlobalErrorCode.FORBIDDEN);
         }
 
-        List<LabeledQnA> labeledQnAs = labeledQnARepository.findAllByUploadJobId(uploadJobId);
+        List<UploadFile> uploadFiles = uploadFileRepository.findAllWithQnAsByUploadJobId(uploadJobId);
 
-        return LabeledQnAListResponse.of(labeledQnAs);
+        return LabeledQnAListResponse.of(uploadFiles);
     }
 }

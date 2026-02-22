@@ -45,5 +45,7 @@ public class LabeledQnA {
         this.questionCategory = questionCategory;
     }
 
-
+    public void connectUploadFile(UploadFile uploadFile) {
+        this.uploadFile = uploadFile;
+    }
 }
