@@ -1,6 +1,6 @@
 import { type ChangeEvent } from 'react';
 
-import { SearchIcon } from '@/shared/icons/Search';
+import * as SI from '@/shared/icons';
 
 interface SearchInputProps {
   placeholder: string;
@@ -33,7 +33,7 @@ const SearchInput = ({
           className='text-body-s flex-1 justify-start bg-transparent font-normal outline-none placeholder:text-gray-400'
         />
         <div className='flex h-6 w-6 items-center justify-center text-gray-400'>
-          <SearchIcon />
+          <SI.SearchIcon />
         </div>
       </search>
 

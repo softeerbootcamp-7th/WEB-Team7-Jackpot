@@ -6,8 +6,8 @@ interface Props {
 
 const CalendarDaySkeleton = ({ tagCount = 2 }: Props) => {
   return (
-    // CalendarDay와 동일한 외부 컨테이너 스타일 (이전 w-32 h-32 p-[5px])
-    <div className='inline-flex h-28 w-28 flex-col items-start justify-start gap-3.5 rounded-lg border border-transparent p-1'>
+    // CalendarDay와 동일한 외부 컨테이너 스타일
+    <div className='inline-flex h-26 w-26 flex-col items-start justify-start gap-2 rounded-lg border border-transparent p-1'>
       {/* 날짜 표시 영역 (상단) */}
       <div className='inline-flex items-center justify-start self-stretch'>
         <div className='flex flex-1 items-center justify-between gap-2.5'>

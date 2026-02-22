@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 
 import CoverLetterPreview from '@/shared/components/CoverLetterPreview';
 import Pagination from '@/shared/components/Pagination';
-import WritingCoverLetterIcon from '@/shared/icons/WritingCoverLetter';
+import * as SI from '@/shared/icons';
 import type { RecentCoverLetterType } from '@/shared/types/coverLetter';
 
 interface CoverLetterOverviewProps {
@@ -29,7 +29,7 @@ const CoverLetterOverview = ({
       <div className='inline-flex items-center justify-between self-stretch'>
         <div className='flex items-center justify-start gap-2.5'>
           <div className='h-7 w-7'>
-            <WritingCoverLetterIcon />
+            <SI.WritingCoverLetterIcon />
           </div>
           <div className='text-title-l justify-start font-bold text-gray-950'>
             작성 중인 자기소개서

@@ -5,6 +5,7 @@ interface DropdownArrowProps {
 const DropdownArrow = ({ isOpen }: DropdownArrowProps) => {
   return (
     <svg
+      aria-hidden='true'
       width='12'
       height='7'
       viewBox='0 0 12 7'

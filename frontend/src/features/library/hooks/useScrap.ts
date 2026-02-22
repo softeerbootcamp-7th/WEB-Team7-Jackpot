@@ -41,9 +41,8 @@ export const useScrap = ({ qnAId, initialScrapState }: Props) => {
         showToast('스크랩 목록에 추가되었습니다.', true);
       }
       // 성공하면 뮤테이션 훅의 onSuccess가 동작하여 자동으로 invalidateQueries를 실행합니다.
-    } catch (error) {
+    } catch {
       // 2. 에러 로깅 및 롤백
-      console.error('스크랩 토글 에러:', error);
       setIsScraped(previousState);
       showToast('처리에 실패했습니다. 다시 시도해주세요.', false);
     }

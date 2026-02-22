@@ -103,7 +103,6 @@ export const useSignUp = ({ handleSuccess }: UseSignUpProps) => {
       if (error instanceof Error) {
         setIsSignUpFailed(true);
       } else {
-        console.error('SignUp or Auto-Login Error', error);
         showToast('회원가입 또는 로그인 중 오류가 발생했습니다.', false);
       }
     }

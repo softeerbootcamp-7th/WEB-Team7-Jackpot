@@ -2,7 +2,7 @@ import { Suspense, useCallback, useState } from 'react';
 
 import NewCoverLetterButton from '@/features/coverLetter/components/overview/NewCoverLetterButton';
 import OverviewSection from '@/features/coverLetter/components/overview/OverviewSection';
-import { ReviewWithFriendIcon } from '@/features/coverLetter/icons/ReviewWithFriend';
+import * as CI from '@/features/coverLetter/icons';
 import CoverLetterOverviewSkeleton from '@/features/home/components/CoverLetterOverviewSkeleton';
 import ErrorBoundary from '@/shared/components/ErrorBoundary';
 import SearchInput from '@/shared/components/SearchInput';
@@ -65,7 +65,7 @@ const CoverLetterLandingPage = () => {
                 : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
-            <ReviewWithFriendIcon className='h-5 w-5' />
+            <CI.ReviewWithFriendIcon className='h-5 w-5' />
             <span className='text-body-s font-medium whitespace-nowrap'>
               친구와 함께 첨삭
             </span>

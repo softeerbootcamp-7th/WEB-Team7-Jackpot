@@ -13,9 +13,6 @@ export const useCreateScrapMutation = () => {
       queryClient.invalidateQueries({ queryKey: scrapNumKeys.all });
       queryClient.invalidateQueries({ queryKey: ['qna', qnAId] });
     },
-    onError: (error) => {
-      console.error('스크랩 생성 실패:', error);
-    },
   });
 };
 
@@ -28,9 +25,6 @@ export const useDeleteScrapMutation = () => {
     onSuccess: (_data, qnAId) => {
       queryClient.invalidateQueries({ queryKey: scrapNumKeys.all });
       queryClient.invalidateQueries({ queryKey: ['qna', qnAId] });
-    },
-    onError: (error) => {
-      console.error('스크랩 삭제 실패:', error);
     },
   });
 };

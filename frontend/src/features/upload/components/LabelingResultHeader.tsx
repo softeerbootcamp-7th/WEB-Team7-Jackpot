@@ -6,7 +6,7 @@ import {
   TAB_STATE,
 } from '@/features/upload/constants/uploadPage';
 import { useSaveCoverLetter } from '@/features/upload/hooks/useUploadQueries';
-import { UploadPageIcons as I } from '@/features/upload/icons';
+import * as UI from '@/features/upload/icons';
 import type { ContentStateType } from '@/features/upload/types/upload';
 
 interface LabelingResultHeaderProps {
@@ -85,7 +85,7 @@ const LabelingResultHeader = ({
     <div>
       <div className='flex items-center justify-between select-none'>
         <div className='flex gap-[0.625rem]'>
-          <I.AILabelingIcon size='32' />
+          <UI.AILabelingIcon size='32' />
           <div className='text-2xl font-bold'>
             <span className='text-purple-500'>
               {TAB_STATE[Number(tabState)]?.label || '첫 번째'}

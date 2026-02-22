@@ -49,7 +49,6 @@ const LoginForm = () => {
 
       showToast('로그인 되었습니다.', true);
     } catch (error) {
-      console.error('Login Failed:', error);
       if (error instanceof Error) {
         setIsLoginFailed(true);
       } else {

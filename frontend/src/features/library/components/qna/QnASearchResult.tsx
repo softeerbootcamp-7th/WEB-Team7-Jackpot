@@ -1,8 +1,6 @@
 import { NavLink } from 'react-router';
 
-import { FolderIcon } from '@/features/library/icons/Folder';
-import { LibraryFolder } from '@/features/library/icons/LibraryFolder';
-import { QnASearchResultIcon } from '@/features/library/icons/QnASearchResult';
+import * as LII from '@/features/library/icons';
 import type { QnASearchResponse } from '@/features/library/types';
 
 interface QnASearchResultProps {
@@ -49,7 +47,7 @@ const QnASearchResult = ({
             <div className='flex items-center justify-start gap-2 pl-3'>
               <div className='relative h-6 w-6 overflow-hidden'>
                 <div className='absolute top-0 left-0 h-6 w-6'>
-                  <FolderIcon />
+                  <LII.FolderIcon />
                 </div>
               </div>
               <div className='flex items-center justify-start gap-1'>
@@ -76,7 +74,7 @@ const QnASearchResult = ({
                   className='inline-flex w-28 shrink-0 flex-col items-center justify-center gap-2.5 px-3 pt-5 pb-4'
                 >
                   <div className='relative flex flex-col items-center'>
-                    <LibraryFolder />
+                    <LII.LibraryFolder />
                   </div>
                   {/* 라이브러리 이름 */}
                   <div className='line-clamp-1 w-24 text-center text-xs leading-5 font-medium text-gray-900'>
@@ -95,7 +93,7 @@ const QnASearchResult = ({
           <div className='inline-flex h-7 w-full items-center justify-start px-3'>
             <div className='flex items-center justify-start gap-2 pl-3'>
               <div className='relative h-6 w-6 overflow-hidden'>
-                <QnASearchResultIcon />
+                <LII.QnASearchResultIcon />
               </div>
               <div className='flex items-center justify-start gap-1'>
                 <div className='text-base leading-6 font-bold text-gray-950'>

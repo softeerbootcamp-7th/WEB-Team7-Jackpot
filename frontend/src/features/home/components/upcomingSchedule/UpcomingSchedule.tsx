@@ -1,16 +1,18 @@
-import RightArrow from '@/shared/icons/RightArrow';
+import UpcomingScheduleItem from '@/features/home/components/upcomingSchedule/UpcomingScheduleItem';
+import { UPCOMING_SCHEDULES_URGENT_THRESHOLD } from '@/features/home/constants';
 
-interface UpcomingScheduleProps {
+interface Props {
   date: string;
   dDay: number;
-  schedules: Array<{
+  schedules: {
     company: string;
     position: string;
-  }>;
+    coverLetterId: number;
+  }[];
 }
 
-const UpcomingSchedule = ({ date, dDay, schedules }: UpcomingScheduleProps) => {
-  const isUrgent = dDay <= 3;
+const UpcomingSchedule = ({ date, dDay, schedules }: Props) => {
+  const isUrgent = dDay <= UPCOMING_SCHEDULES_URGENT_THRESHOLD;
 
   // root 태그에 w-72
   return (
@@ -37,27 +39,15 @@ const UpcomingSchedule = ({ date, dDay, schedules }: UpcomingScheduleProps) => {
           </div>
         </div>
       </div>
-      <div className='flex flex-col items-start justify-start gap-2 self-stretch px-1.5'>
+      <div className='flex h-96 flex-col items-start justify-start gap-2 self-stretch px-1.5'>
         {schedules.map((schedule, index) => (
-          <div
+          <UpcomingScheduleItem
             key={index}
-            className='inline-flex items-center justify-start gap-3.5 self-stretch py-0.5'
-          >
-            <div
-              className={`h-14 w-2 rounded-[3px] ${
-                isUrgent ? 'bg-purple-100' : 'bg-gray-100'
-              }`}
-            />
-            <div className='inline-flex h-11 flex-1 flex-col items-start justify-center'>
-              <div className='line-clamp-1 justify-start text-base leading-6 font-bold text-gray-700'>
-                {schedule.company}
-              </div>
-              <div className='text-caption-l line-clamp-1 justify-start self-stretch font-medium text-gray-400'>
-                {schedule.position}
-              </div>
-            </div>
-            <RightArrow size='sm' />
-          </div>
+            isUrgent={isUrgent}
+            companyName={schedule.company}
+            position={schedule.position}
+            coverLetterId={schedule.coverLetterId}
+          />
         ))}
       </div>
     </div>

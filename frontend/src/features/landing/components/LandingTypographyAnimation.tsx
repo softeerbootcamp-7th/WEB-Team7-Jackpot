@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { LandingPageIcon as I } from '@/features/landing/icons';
+import * as LAI from '@/features/landing/icons';
 
 const LandingTypographyAnimation = () => {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -41,7 +41,7 @@ const LandingTypographyAnimation = () => {
         <div
           className={`absolute -right-4 transition-opacity delay-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
         >
-          <I.TypographyCursor />
+          <LAI.TypographyCursor />
         </div>
       </h1>
       <div className='relative -mt-2 w-fit text-6xl font-bold tracking-tighter md:-mt-6 md:text-[140px] lg:text-[180px]'>

@@ -3,7 +3,7 @@ import { memo } from 'react';
 import { Link } from 'react-router';
 
 import { createRecruitPath } from '@/features/recruit/utils';
-import { PaginationIcon } from '@/shared/icons/PaginationIcons';
+import * as SI from '@/shared/icons';
 import { addMonths, formatYearMonth, subMonths } from '@/shared/utils/dates';
 
 interface Props {
@@ -34,7 +34,7 @@ const CalendarHeader = ({ day }: Props) => {
           to={createRecruitPath(prevDate)}
           className='flex items-center justify-center'
         >
-          <PaginationIcon size={36} direction='left' />
+          <SI.PaginationIcon size={36} direction='left' />
         </Link>
 
         <div className='flex items-center justify-start gap-1'>
@@ -47,7 +47,7 @@ const CalendarHeader = ({ day }: Props) => {
           to={createRecruitPath(nextDate)}
           className='flex items-center justify-center'
         >
-          <PaginationIcon size={36} direction='right' />
+          <SI.PaginationIcon size={36} direction='right' />
         </Link>
       </div>
 

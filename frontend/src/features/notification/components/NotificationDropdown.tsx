@@ -3,7 +3,7 @@ import {
   useGetNotificationCount,
   useReadAllNotification,
 } from '@/features/notification/hooks/useNotification';
-import { NotificationDropdownIcon as I } from '@/features/notification/icons';
+import * as NI from '@/features/notification/icons';
 
 interface NotificationDropdownProps {
   handleDropdown: (isOpen: boolean) => void;
@@ -26,7 +26,7 @@ const NotificationDropdown = ({
         onClick={() => handleDropdown(!isOpen)}
         className={`relative cursor-pointer p-1 ${isOpen ? 'z-20' : 'z-0'}`}
       >
-        <I.HeaderNotificationIcon />
+        <NI.HeaderNotificationIcon />
         {safeCount > 0 && (
           <span className='absolute -top-0.5 -right-0.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white ring-2 ring-white'>
             {safeCount > 99 ? '99+' : safeCount}
@@ -42,7 +42,7 @@ const NotificationDropdown = ({
           <div className='fixed-scroll-bar absolute right-0 z-20 mt-2 flex max-h-100 w-90 flex-col gap-2 overflow-y-scroll rounded-lg bg-white py-6 shadow-[0_0_20px_rgba(0,0,0,0.1)] select-none'>
             <div className='flex items-center justify-between px-4'>
               <div className='flex items-center gap-2'>
-                <I.NotificationIcon />
+                <NI.NotificationIcon />
                 <span className='text-body-l font-bold text-gray-950'>
                   최근 도착한 알림
                 </span>

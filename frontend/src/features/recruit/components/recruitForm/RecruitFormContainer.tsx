@@ -2,12 +2,10 @@ import { useEffect } from 'react';
 
 import RecruitFormView from '@/features/recruit/components/recruitForm/RecruitFormView';
 import { useUpdateRecruit } from '@/features/recruit/hooks/queries/useCalendarQuery';
-import {
-  useCreateCoverLetter,
-  useUpdateCoverLetter,
-} from '@/features/recruit/hooks/queries/useCoverLetterMutation';
+import { useUpdateCoverLetter } from '@/features/recruit/hooks/queries/useCoverLetterMutation';
 import { DEFAULT_DATA } from '@/shared/constants/createCoverLetter';
 import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
+import { useCreateCoverLetter } from '@/shared/hooks/useCoverLetterQueries';
 import { useRecruitForm } from '@/shared/hooks/useRecruitForm';
 
 interface Props {
@@ -73,8 +71,7 @@ const RecruitFormContainer = ({ recruitId, onClose }: Props) => {
       }
 
       onClose();
-    } catch (error) {
-      console.error('작업 실패:', error);
+    } catch {
       showToast('저장에 실패했습니다. 다시 시도해주세요.', false);
     }
   };

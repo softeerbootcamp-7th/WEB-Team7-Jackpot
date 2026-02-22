@@ -59,10 +59,12 @@ const DocumentItem = ({
               {companyName}
             </span>
 
-            {/* 직무명 뱃지 (회색) */}
-            <span className='inline-flex items-center justify-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600'>
-              {jobPosition}
-            </span>
+            {/* 채용시기 뱃지 (회색) */}
+            {applySeason && (
+              <span className='inline-flex items-center justify-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600'>
+                {applySeason}
+              </span>
+            )}
           </div>
 
           {/* 오른쪽: 액션 버튼 (수정/삭제 등) */}
@@ -79,7 +81,7 @@ const DocumentItem = ({
         {/* 하단 영역: 제목 + 메타 정보 */}
         <div className='flex flex-col gap-1'>
           <h3 className='line-clamp-1 text-lg font-bold text-gray-950'>
-            {applySeason}
+            {jobPosition ? `${companyName} - ${jobPosition}` : companyName}
           </h3>
 
           <div className='flex items-center gap-1 text-xs text-gray-500'>

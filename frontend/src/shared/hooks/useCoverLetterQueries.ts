@@ -1,12 +1,20 @@
+import { useCallback } from 'react';
+
 import {
+  useMutation,
   useQuery,
+  useQueryClient,
   useSuspenseQueries,
   useSuspenseQuery,
 } from '@tanstack/react-query';
 
-import { getCoverLetter } from '@/shared/api/coverLetterApi';
+import { createCoverLetter, getCoverLetter } from '@/shared/api/coverLetterApi';
 import { getQnAIdList } from '@/shared/api/qnaApi';
 import { coverLetterQueryKeys } from '@/shared/hooks/queries/coverLetterQueryKeys';
+import type {
+  CreateCoverLetterRequest,
+  CreateCoverLetterResponse,
+} from '@/shared/types/coverLetter';
 
 // 1. 통합된 단건 조회 훅 (Safe Version)
 // - ID가 없거나 유효하지 않으면 요청을 보내지 않음
@@ -52,4 +60,34 @@ export const useCoverLetterWithQnAIds = (coverLetterId: number) => {
     coverLetter: results[0].data,
     qnaIds: results[1].data,
   };
+};
+
+// 공통으로 사용할 성공 핸들러
+// 생성/수정/삭제 후에는 무조건 목록과 상세 데이터를 모두 갱신합니다.
+export const useInvalidateCoverLetters = () => {
+  const queryClient = useQueryClient();
+
+  return useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: coverLetterQueryKeys.all });
+    queryClient.invalidateQueries({ queryKey: ['coverletter'] }); // 추가 [박소민] TODO: API 합치기
+    queryClient.invalidateQueries({ queryKey: ['home'] });
+    queryClient.invalidateQueries({ queryKey: ['libraries'] });
+  }, [queryClient]);
+};
+
+// 💡 공고 등록 훅
+export const useCreateCoverLetter = () => {
+  // 위에서 만든 무효화 로직을 가져옵니다.
+  const invalidateAllRelatedQueries = useInvalidateCoverLetters();
+
+  return useMutation<
+    CreateCoverLetterResponse,
+    Error,
+    CreateCoverLetterRequest
+  >({
+    mutationFn: createCoverLetter,
+    onSuccess: () => {
+      invalidateAllRelatedQueries();
+    },
+  });
 };

@@ -4,16 +4,20 @@
 const cloneDate = (date: Date): Date => new Date(date.getTime());
 
 /**
- * 날짜를 YYYY-MM-DD 형태의 문자열로 변환 (UTC 기준)
- * ISO datetime 문자열("2025-01-25T09:41:00Z")을 받아도 UTC 날짜로 정확히 추출
+ * 날짜를 YYYY-MM-DD 형태의 문자열로 변환 (로컬 타임존 기준)
+ * 기존 toISOString()의 타임존 오차 버그 수정
  */
 export const getISODate = (date: Date | string | null | undefined): string => {
   if (!date) return '';
   const d = typeof date === 'string' ? new Date(date) : date;
   if (isNaN(d.getTime())) return '';
 
-  // UTC 기준으로 날짜 추출
-  return d.toISOString().split('T')[0];
+  // 브라우저가 실행되는 로컬 환경(KST) 기준으로 날짜를 가져옵니다.
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
 };
 
 /**
@@ -27,6 +31,14 @@ export const getTodayISODate = (): string => getISODate(new Date());
 export const getDate = (date: Date | string): string => {
   const isoDate = getISODate(date);
   return isoDate ? isoDate.replace(/-/g, '.') : '';
+};
+
+/**
+ * YYYY/MM/DD 형태로 변환 (getISODate 재사용)
+ */
+export const getLinkDate = (date: Date | string): string => {
+  const isoDate = getISODate(date);
+  return isoDate ? isoDate.replace(/-/g, '/') : '';
 };
 
 /**
@@ -191,4 +203,82 @@ export const createRecruitPath = (date: Date) => {
 export const generateYearList = (year: number) => {
   // Array.from을 사용하여 더 깔끔하게 생성
   return Array.from({ length: 100 }, (_, i) => year - i);
+};
+
+/**
+ * 목표 날짜까지 남은 D-Day를 계산합니다.
+ * getISODate를 활용해 시분초 및 타임존 오차를 완전히 제거한 순수 날짜로 비교합니다.
+ */
+export const getDDay = (targetDate: string | Date): number => {
+  if (!targetDate) return 0;
+
+  // "YYYY-MM-DD" 문자열을 다시 Date 객체로 만들어 시분초 00:00:00 UTC 상태로 통일
+  // (양쪽 모두 UTC 자정이므로 차이는 정확히 정수 일(day) 단위가 됨)
+  const today = new Date(getTodayISODate());
+
+  const targetISO = getISODate(targetDate);
+  if (!targetISO) return 0; // invalid Date 또는 빈 문자열 처리
+  const target = new Date(targetISO);
+
+  const diffTime = target.getTime() - today.getTime();
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+};
+
+/**
+ * 날짜 값을 { y, m, d } 문자열로 파싱
+ * 값의 유효성(예: 2월 31일)은 isValidDate 함수에서 별도로 검증
+ */
+// 1. 파싱 헬퍼 함수
+export const parseDate = (val?: string | Date) => {
+  if (!val) return { y: '', m: '', d: '' };
+
+  if (typeof val === 'string') {
+    const parts = val.split('-');
+    return parts.length === 3
+      ? { y: parts[0], m: parts[1], d: parts[2] }
+      : { y: '', m: '', d: '' };
+  }
+
+  if (val instanceof Date) {
+    if (isNaN(val.getTime())) return { y: '', m: '', d: '' };
+    return {
+      y: String(val.getFullYear()),
+      m: String(val.getMonth() + 1).padStart(2, '0'),
+      d: String(val.getDate()).padStart(2, '0'),
+    };
+  }
+
+  return { y: '', m: '', d: '' };
+};
+
+// 2. 특정 연도와 월의 최대 일수를 구하는 함수 (윤년 완벽 처리)
+export const getDaysInMonth = (year: string, month: string): number => {
+  const y = parseInt(year, 10);
+  const m = parseInt(month, 10);
+
+  // 연도나 월이 아직 다 입력되지 않았다면 기본 최대일인 31 반환
+  if (isNaN(y) || isNaN(m)) return 31;
+
+  // 자바스크립트 Date 객체의 특징 활용: 일(Day) 자리에 0을 넣으면 이전 달의 마지막 날을 반환함
+  return new Date(y, m, 0).getDate();
+};
+
+// 3. 2월 31일과 같은 논리적 오류를 잡아내는 최종 검증 함수
+export const isValidDate = (
+  year: string,
+  month: string,
+  day: string,
+): boolean => {
+  const y = parseInt(year, 10);
+  const m = parseInt(month, 10);
+  const d = parseInt(day, 10);
+
+  if (isNaN(y) || isNaN(m) || isNaN(d)) return false;
+
+  const date = new Date(y, m - 1, d);
+  return (
+    date.getFullYear() === y &&
+    date.getMonth() === m - 1 &&
+    date.getDate() === d
+  );
 };

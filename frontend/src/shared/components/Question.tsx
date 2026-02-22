@@ -1,18 +1,15 @@
+import SearchableSelectInput from '@/shared/components/SearchableSelectInput';
+import { CATEGORY_VALUES } from '@/shared/constants/createCoverLetter';
 import type { CoverLetterQuestion } from '@/shared/types/coverLetter';
 
-interface QuestionProps {
+interface Props {
   displayIndex: number;
   data: CoverLetterQuestion;
   onChange: (key: keyof CoverLetterQuestion, value: string) => void;
   onRemove?: () => void;
 }
 
-const Question = ({
-  displayIndex,
-  data,
-  onChange,
-  onRemove,
-}: QuestionProps) => {
+const Question = ({ displayIndex, data, onChange, onRemove }: Props) => {
   const formattedIndex = String(displayIndex).padStart(2, '0');
 
   return (
@@ -44,12 +41,11 @@ const Question = ({
       </div>
 
       {/* 2. 카테고리 */}
-      <input
-        type='text'
+      <SearchableSelectInput
         value={data.category}
         aria-label={`질문 ${formattedIndex} 카테고리`}
-        onChange={(e) => onChange('category', e.target.value)}
-        className='text-caption-m inline-flex h-9 w-full items-center justify-start rounded-lg bg-white px-4 font-normal text-gray-950 ring-1 ring-gray-200 outline-none placeholder:text-gray-400 focus:ring-blue-500'
+        options={CATEGORY_VALUES}
+        onChange={(value) => onChange('category', value)}
         placeholder='해당 문항의 유형을 입력해주세요 (예: 지원동기, 성장과정)'
       />
     </div>

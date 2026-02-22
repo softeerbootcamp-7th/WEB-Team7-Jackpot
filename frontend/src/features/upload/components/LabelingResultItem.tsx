@@ -9,7 +9,6 @@ import {
   useGetCompanies,
   useGetJobPositions,
 } from '@/features/upload/hooks/useUploadQueries';
-import { UploadPageIcons as I } from '@/features/upload/icons';
 import type {
   ContentItemType,
   ContentStateType,
@@ -17,6 +16,7 @@ import type {
 import { yearList } from '@/features/upload/utils/generateAboutDate';
 import Deadline from '@/shared/components/Deadline';
 import RecruitPeriodSelectInput from '@/shared/components/RecruitPeriodSelectInput';
+import * as SI from '@/shared/icons';
 import type { DropdownStateType } from '@/shared/types/dropdown';
 
 interface CoverLetterTabProps {
@@ -127,7 +127,7 @@ const LabelingResultItem = ({
                   yearDropdown: isOpen,
                 }));
               }}
-              icon={<I.DropdownArrow isOpen={isDropdownOpen.yearDropdown} />}
+              icon={<SI.DropdownArrow isOpen={isDropdownOpen.yearDropdown} />}
               isOpen={isDropdownOpen.yearDropdown}
               dropdownDirection='bottom'
             />

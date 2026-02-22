@@ -49,9 +49,8 @@ export const useInitAuth = () => {
         if (result?.accessToken) {
           setAccessToken(result.accessToken);
         }
-      } catch (error) {
+      } catch {
         localStorage.removeItem('isLoggedIn');
-        console.error('자동 로그인 실패 (세션 만료):', error);
       } finally {
         setIsInitialized(true);
       }

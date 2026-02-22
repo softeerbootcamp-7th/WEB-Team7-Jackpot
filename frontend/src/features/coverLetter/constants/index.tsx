@@ -1,7 +1,7 @@
-import { CoverLetterIcon } from '@/features/coverLetter/icons/CoverLetter';
+import * as CI from '@/features/coverLetter/icons';
 
 export const coverLetterHeaderText = {
-  icon: <CoverLetterIcon />,
+  icon: <CI.CoverLetterIcon />,
   title: '자기소개서 작성',
   content: '자기소개서를 작성하고 링크를 공유해 지인들과 첨삭할 수 있어요',
 };

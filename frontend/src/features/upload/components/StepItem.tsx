@@ -1,17 +1,18 @@
 import StepInformation from '@/features/upload/components/StepInformation';
 import { STEP_DATA } from '@/features/upload/constants/uploadPage';
-import { UploadPageIcons as I } from '@/features/upload/icons';
+import * as UI from '@/features/upload/icons';
 
 interface StepItemProps {
   step: string;
 }
 
 const StepItem = ({ step }: StepItemProps) => {
-  const generateStepIcon = () => {
-    if (step === '1') return <I.UploadInputIcon />;
-    else if (step === '2') return <I.LabelingResultIcon />;
-    else if (step === '3') return <I.UploadCompleteIcon />;
+  const STEP_ICONS: Record<string, React.ReactNode> = {
+    '1': <UI.UploadInputIcon />,
+    '2': <UI.LabelingResultIcon />,
+    '3': <UI.UploadCompleteIcon />,
   };
+  const generateStepIcon = () => STEP_ICONS[step] ?? null;
 
   return (
     <div className='flex flex-col items-center justify-center gap-7 select-none'>

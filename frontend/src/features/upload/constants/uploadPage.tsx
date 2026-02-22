@@ -1,4 +1,4 @@
-import { UploadPageIcons as I } from '@/features/upload/icons';
+import * as UI from '@/features/upload/icons';
 import type {
   StepDataType,
   TabDataType,
@@ -8,7 +8,7 @@ import type {
 export const STEP_DATA: Record<string, StepDataType> = {
   '1': {
     className: 'left-[4.6875rem]',
-    Icon: I.UploadIcon,
+    Icon: UI.UploadIcon,
     step: 'step 01',
     name: '자료 업로드',
     loadingTitle:
@@ -18,7 +18,7 @@ export const STEP_DATA: Record<string, StepDataType> = {
   },
   '2': {
     className: 'left-[15.125rem]',
-    Icon: I.AILabelingIcon,
+    Icon: UI.AILabelingIcon,
     step: 'step 02',
     name: 'AI 라벨링',
     loadingTitle: '업로드가 완료되었어요!',
@@ -26,7 +26,7 @@ export const STEP_DATA: Record<string, StepDataType> = {
   },
   '3': {
     className: 'left-[25.5rem]',
-    Icon: I.CompleteSavedIcon,
+    Icon: UI.CompleteSavedIcon,
     step: 'step 03',
     name: '저장 완료',
     loadingTitle: '저장이 완료되었어요!',
@@ -43,7 +43,7 @@ export const TAB_DATA: TabDataType[] = [
 export const UPLOAD_TAB_DATA: UploadTabDataType[] = [
   {
     label: '파일 업로드하기',
-    icon: <I.FileUploadIcon />,
+    icon: <UI.FileUploadIcon />,
   },
 ] as const;
 

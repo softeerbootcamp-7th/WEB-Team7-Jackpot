@@ -1,6 +1,6 @@
 import TabButton from '@/features/upload/components/TabButton';
 import { UPLOAD_TAB_DATA } from '@/features/upload/constants/uploadPage';
-import { UploadPageIcons as I } from '@/features/upload/icons';
+import * as UI from '@/features/upload/icons';
 
 interface UploadInputHeaderProps {
   isContent: boolean;
@@ -24,7 +24,7 @@ const UploadInputHeader = ({ isContent, nextStep }: UploadInputHeaderProps) => {
           onClick={nextStep}
           disabled={!canLabeling}
         >
-          <I.AILabelingIcon
+          <UI.AILabelingIcon
             color={canLabeling ? 'white' : 'var(--color-gray-300)'}
             size='24'
           />

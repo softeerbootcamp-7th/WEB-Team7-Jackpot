@@ -2,11 +2,10 @@ package com.jackpot.narratix.domain.service;
 
 import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
 import com.jackpot.narratix.domain.controller.request.EditCoverLetterRequest;
-import com.jackpot.narratix.domain.controller.response.CoverLetterResponse;
-import com.jackpot.narratix.domain.controller.response.CoverLettersDateRangeResponse;
-import com.jackpot.narratix.domain.controller.response.CreateCoverLetterResponse;
-import com.jackpot.narratix.domain.controller.response.TotalCoverLetterCountResponse;
+import com.jackpot.narratix.domain.controller.request.QnAEditRequest;
+import com.jackpot.narratix.domain.controller.response.*;
 import com.jackpot.narratix.domain.entity.CoverLetter;
+import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import com.jackpot.narratix.domain.exception.CoverLetterErrorCode;
 import com.jackpot.narratix.domain.repository.CoverLetterRepository;
@@ -115,5 +114,65 @@ public class CoverLetterService {
                         qnaCountMap.getOrDefault(coverLetter.getId(), 0L)
                 ))
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<UpcomingCoverLetterResponse> getUpcomingCoverLetters(
+            String userId, LocalDate date, Integer maxDeadLineSize, Integer maxCoverLetterSizePerDeadLine
+    ) {
+        Map<LocalDate, List<CoverLetter>> groupedCoverLetters =
+                coverLetterRepository.findUpcomingCoverLettersGroupedByDeadline(
+                        userId, date, maxDeadLineSize, maxCoverLetterSizePerDeadLine
+                );
+
+        return groupedCoverLetters.entrySet().stream()
+                .map(UpcomingCoverLetterResponse::of)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Long> getQnAIdsByCoverLetterId(String userId, Long coverLetterId) {
+        CoverLetter coverLetter = coverLetterRepository.findByIdWithQnAsOrElseThrow(coverLetterId);
+
+        if (!coverLetter.isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
+
+        return coverLetter.getQnAs().stream().map(QnA::getId).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<LocalDate> findDeadlineByDateRange(String userId, LocalDate startDate, LocalDate endDate) {
+        validateDateRangeExceeded(startDate, endDate);
+
+        return coverLetterRepository.findDeadlineByUserIdBetweenDeadline(userId, startDate, endDate);
+    }
+
+    private void validateDateRangeExceeded(LocalDate startDate, LocalDate endDate) {
+        if (endDate.isBefore(startDate)) {
+            throw new BaseException(GlobalErrorCode.INVALID_INPUT_VALUE);
+        }
+
+        if (startDate.plusMonths(1).isBefore(endDate)) {
+            throw new BaseException(CoverLetterErrorCode.DATE_RANGE_EXCEEDED);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public QnAResponse getQnAById(String userId, Long qnaId) {
+        QnA qnA = qnARepository.findByIdOrElseThrow(qnaId);
+
+        if(!qnA.isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
+
+        return QnAResponse.of(qnA);
+    }
+
+    @Transactional
+    public QnAEditResponse editQnA(String userId, QnAEditRequest request) {
+        QnA qnA = qnARepository.findByIdOrElseThrow(request.qnaId());
+
+        if(!qnA.isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
+
+        qnA.editAnswer(request.answer());
+
+        return new QnAEditResponse(qnA.getId(), qnA.getModifiedAt());
     }
 }

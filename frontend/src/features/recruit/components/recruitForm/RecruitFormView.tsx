@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 
 import PaginationButton from '@/features/recruit/components/recruitForm/PaginationButton';
 import RecruitDetail from '@/features/recruit/components/recruitForm/RecruitDetail';
-import { RecruitIcons as I } from '@/features/recruit/icons';
+import * as RCI from '@/features/recruit/icons';
 import QuestionsSection from '@/shared/components/QuestionsSection';
 import type { CreateCoverLetterRequest } from '@/shared/types/coverLetter';
 import { isQuestionsValid } from '@/shared/utils/coverLetter';
@@ -69,28 +69,34 @@ const RecruitFormView = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className='inline-flex h-full w-96 flex-col items-center justify-start gap-7 py-6'
+      className='inline-flex min-h-full w-full flex-col items-center justify-start gap-7 px-3 py-6'
     >
       {/* 헤더 영역 */}
       <div className='flex w-full flex-row items-center justify-between'>
         <div className='inline-flex flex-row items-center gap-2'>
-          {mode === 'EDIT' ? <I.RecruitEditIcon /> : <I.NewRecruitIcon />}
+          {mode === 'EDIT' ? <RCI.RecruitEditIcon /> : <RCI.NewRecruitIcon />}
           <h2 className='text-xl font-bold'>
             {mode === 'EDIT' ? '공고 수정' : '공고 등록'}
           </h2>
         </div>
         <button type='button' className='cursor-pointer' onClick={onClose}>
-          <I.DeleteIcon />
+          <RCI.DeleteIcon />
         </button>
       </div>
 
       {/* Step 1: 상세 정보 입력 */}
-      <div style={{ display: step === 1 ? 'block' : 'none', width: '100%' }}>
+      <div
+        style={{ display: step === 1 ? 'block' : 'none', width: '100%' }}
+        className='flex-1'
+      >
         <RecruitDetail formData={formData} onUpdate={onChange} />
       </div>
 
       {/* Step 2: 질문 목록 입력 */}
-      <div style={{ display: step === 2 ? 'block' : 'none', width: '100%' }}>
+      <div
+        style={{ display: step === 2 ? 'block' : 'none', width: '100%' }}
+        className='flex-1'
+      >
         <QuestionsSection
           questions={formData.questions ?? []}
           onQuestionsChange={(newQuestions) =>
@@ -100,13 +106,15 @@ const RecruitFormView = ({
       </div>
 
       {/* 하단 버튼 */}
-      <PaginationButton
-        onClick={handlePrevStep}
-        step={step}
-        isSubmitting={isSubmitting}
-        mode={mode}
-        isValid={isValid}
-      />
+      <div className='w-full'>
+        <PaginationButton
+          onClick={handlePrevStep}
+          step={step}
+          isSubmitting={isSubmitting}
+          mode={mode}
+          isValid={isValid}
+        />
+      </div>
     </form>
   );
 };

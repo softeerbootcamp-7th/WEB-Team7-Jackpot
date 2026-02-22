@@ -1,7 +1,5 @@
-import LinkAngled from '@/features/coverLetter/icons/LinkAngled';
-import TrashIcon from '@/features/coverLetter/icons/TrashIcon';
-import { ReviewMessageIcon } from '@/shared/icons/ReviewMessageIcon';
-import SaveCheckIcon from '@/shared/icons/SaveCheckIcon';
+import * as CI from '@/features/coverLetter/icons';
+import * as SI from '@/shared/icons';
 
 type SaveProps =
   | { autoSave: true; onSave?: never; isPending?: never }
@@ -52,7 +50,7 @@ const CoverLetterToolbar = ({
               : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
           }`}
         >
-          <ReviewMessageIcon className='h-5 w-5' />
+          <SI.ReviewMessageIcon className='h-5 w-5' />
           <span>{isReviewActive ? '첨삭 비활성화' : '첨삭 활성화'}</span>
         </button>
 
@@ -67,7 +65,7 @@ const CoverLetterToolbar = ({
           }`}
           aria-label='첨삭 링크 복사'
         >
-          <LinkAngled />
+          <CI.LinkAngled />
           <span>링크 복사</span>
         </button>
 
@@ -87,7 +85,7 @@ const CoverLetterToolbar = ({
                 : 'cursor-pointer bg-gray-800 hover:bg-gray-900'
             }`}
           >
-            <SaveCheckIcon />
+            <SI.SaveCheckIcon />
             <span>{isPending ? '저장 중...' : '저장하기'}</span>
           </button>
         )}
@@ -97,7 +95,7 @@ const CoverLetterToolbar = ({
           onClick={onDelete}
           className='flex cursor-pointer items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600'
         >
-          <TrashIcon />
+          <CI.TrashIcon />
           <span>삭제하기</span>
         </button>
       </div>

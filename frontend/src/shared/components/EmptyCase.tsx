@@ -7,27 +7,27 @@ export interface EmptyCaseProps {
 }
 
 const sizeClasses = {
-  small: 'h-96 w-96',
-  medium: 'h-140 w-140',
-  large: 'h-180 w-180',
+  small: 'h-96 w-full max-w-96',
+  medium: 'h-140 w-full max-w-140',
+  large: 'h-180 w-full max-w-180',
 };
 
 const titleClasses = {
-  small: 'text-title-m',
+  small: 'text-title-s',
   medium: 'text-title-l',
   large: 'text-title-xl',
 };
 
 const contentClasses = {
-  small: 'text-title-xs',
+  small: 'text-body-s',
   medium: 'text-title-s',
   large: 'text-title-m',
 };
 
 const imageClasses = {
-  small: 'pt-5',
-  medium: 'pt-0',
-  large: 'pt-20',
+  small: 'pt-2 w-30 h-30',
+  medium: 'pt-3 w-100 h-60',
+  large: 'pt-5 w-120 h-120',
 };
 
 const EmptyCase = ({
@@ -39,9 +39,8 @@ const EmptyCase = ({
 }: EmptyCaseProps) => {
   return (
     <div
-      className={`mx-auto inline-flex ${sizeClasses[size]} flex-col items-center justify-center gap-3 bg-[url(/images/Circles.png)] bg-cover bg-center ${className}`}
+      className={`mx-auto flex ${sizeClasses[size]} flex-col items-center justify-center gap-3 bg-[url(/images/Circles.png)] bg-contain bg-center ${className}`}
     >
-      {/* pt-25 삭제 */}
       <div
         className={`${titleClasses[size]} justify-start self-stretch text-center font-bold whitespace-pre-wrap text-gray-600`}
       >
@@ -53,7 +52,7 @@ const EmptyCase = ({
         {content}
       </div>
       <img
-        className={imageClasses[size]}
+        className={`${imageClasses[size]} object-contain`}
         src={`${icon ? icon : '/images/EmptyFiles.png'}`}
         alt=''
         aria-hidden='true'

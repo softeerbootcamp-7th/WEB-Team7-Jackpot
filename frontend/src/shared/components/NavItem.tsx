@@ -1,15 +1,18 @@
 import type { ReactNode } from 'react';
-import { NavLink } from 'react-router';
+
+import { ReplaceNavLink } from '@/shared/components/ReplaceNavLink';
 
 interface NavItemProps {
   to: string;
+  end?: boolean; // NavLink의 end 속성 (기본값: true)
   children: ReactNode;
 }
 
-const NavItem = ({ to, children }: NavItemProps) => {
+const NavItem = ({ to, end = true, children }: NavItemProps) => {
   return (
-    <NavLink
+    <ReplaceNavLink
       to={to}
+      end={end}
       className={({ isActive }) =>
         `text-body-l cursor-pointer ${
           isActive
@@ -19,7 +22,7 @@ const NavItem = ({ to, children }: NavItemProps) => {
       }
     >
       {children}
-    </NavLink>
+    </ReplaceNavLink>
   );
 };
 

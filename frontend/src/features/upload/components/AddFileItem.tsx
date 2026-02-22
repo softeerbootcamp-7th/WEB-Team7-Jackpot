@@ -1,7 +1,7 @@
 import { useId, useState } from 'react';
 
 import documentIcon from '@/assets/icons/documentIcon.svg';
-import { UploadPageIcons as I } from '@/features/upload/icons';
+import * as UI from '@/features/upload/icons';
 import type { UploadStatus } from '@/features/upload/types/upload';
 import { formatFileSize } from '@/features/upload/utils/formatFileSize';
 
@@ -91,7 +91,7 @@ const AddFileItem = ({
             onClick={handleRemove}
             className='absolute top-5 right-5 z-10 cursor-pointer p-2'
           >
-            <I.FileRemoveIcon />
+            <UI.FileRemoveIcon />
           </button>
 
           <div className='flex w-full flex-col items-center justify-center gap-5 select-none'>
@@ -120,7 +120,7 @@ const AddFileItem = ({
                 </span>
                 {uploadStatus === 'uploading' ? (
                   <div className='delay-show flex items-center gap-2 text-gray-400'>
-                    <I.LoadingSpinnerIcon />
+                    <UI.LoadingSpinnerIcon />
                     <span>업로드 중...</span>
                   </div>
                 ) : (
@@ -147,7 +147,7 @@ const AddFileItem = ({
             key='empty-content'
             className='animate-enter flex flex-col items-center gap-5'
           >
-            <I.AddFileIcon />
+            <UI.AddFileIcon />
             <div className='animate-enter flex flex-col gap-2 text-center text-gray-400 select-none'>
               <div className='text-2xl font-bold'>
                 이곳을 클릭하시거나,
