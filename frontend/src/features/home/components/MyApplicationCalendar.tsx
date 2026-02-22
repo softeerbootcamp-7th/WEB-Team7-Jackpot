@@ -6,9 +6,9 @@ import {
   MY_APPLICATION_CALENDAR_TITLE,
 } from '@/features/home/constants';
 import { useMyApplicationCalendar } from '@/features/home/hooks/useMyApplicationCalendar';
-import CalendarIcon from '@/features/home/icons/CalendarIcon';
+import { HomePageIcons as HI } from '@/features/home/icons';
 import { WEEK_LIST } from '@/shared/constants/dates';
-import RightArrow from '@/shared/icons/RightArrow';
+import { SharedIcons as SI } from '@/shared/icons';
 
 const MyApplicationCalendar = () => {
   const { weeks } = useMyApplicationCalendar();
@@ -19,14 +19,14 @@ const MyApplicationCalendar = () => {
       <div className='inline-flex items-center justify-between self-stretch'>
         <div className='flex items-center justify-start gap-2.5'>
           <div className='h-7 w-7'>
-            <CalendarIcon />
+            <HI.CalendarIcon />
           </div>
           <h2 className='justify-start text-xl leading-9 font-bold text-gray-950'>
             {MY_APPLICATION_CALENDAR_TITLE}
           </h2>
         </div>
         <Link to={'/recruit'} aria-label={MY_APPLICATION_CALENDAR_ARIA_LABEL}>
-          <RightArrow size='lg' aria-hidden='true' />
+          <SI.RightArrowIcon size='lg' aria-hidden='true' />
         </Link>
       </div>
 

@@ -1,6 +1,6 @@
 import StepInformation from '@/features/upload/components/StepInformation';
 import { STEP_DATA } from '@/features/upload/constants/uploadPage';
-import { UploadPageIcons as I } from '@/features/upload/icons';
+import { UploadPageIcons as UI } from '@/features/upload/icons';
 
 interface StepItemProps {
   step: string;
@@ -8,9 +8,9 @@ interface StepItemProps {
 
 const StepItem = ({ step }: StepItemProps) => {
   const generateStepIcon = () => {
-    if (step === '1') return <I.UploadInputIcon />;
-    else if (step === '2') return <I.LabelingResultIcon />;
-    else if (step === '3') return <I.UploadCompleteIcon />;
+    if (step === '1') return <UI.UploadInputIcon />;
+    else if (step === '2') return <UI.LabelingResultIcon />;
+    else if (step === '3') return <UI.UploadCompleteIcon />;
   };
 
   return (

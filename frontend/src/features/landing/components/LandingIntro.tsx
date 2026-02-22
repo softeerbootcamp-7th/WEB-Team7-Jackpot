@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import LandingIntroBackground from '@/features/landing/components/LandingIntroBackground';
 import LandingTypographyAnimation from '@/features/landing/components/LandingTypographyAnimation';
-import { LandingPageIcon as I } from '@/features/landing/icons';
+import { LandingPageIcon as LAI } from '@/features/landing/icons';
 
 interface LandingIntroProps {
   onEnter: () => void;
@@ -36,7 +36,7 @@ const LandingIntro = ({ onEnter }: LandingIntroProps) => {
           </span>
 
           <div className='relative z-10 flex h-16 w-16 items-center justify-center rounded-full bg-gray-950'>
-            <I.RightArrowIcon />
+            <LAI.RightArrowIcon />
           </div>
         </button>
       </div>

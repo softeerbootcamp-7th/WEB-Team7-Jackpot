@@ -1,5 +1,4 @@
-// [박소민] TODO: 무한 스크롤 확인하기
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 
 import Calendar from '@/features/recruit/components/calendar/Calendar';
 import { useInfiniteCalendarDates } from '@/features/recruit/hooks/queries/useCalendarQuery';
@@ -13,29 +12,23 @@ const CalendarContainer = () => {
   const startDateStr = useMemo(() => getISODate(startDate), [startDate]);
   const endDateStr = useMemo(() => getISODate(endDate), [endDate]);
 
-  const { data, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } =
-    useInfiniteCalendarDates({
-      startDate: startDateStr,
-      endDate: endDateStr,
-      size: 100,
-      isShared: false,
-    });
-
-  useEffect(() => {
-    if (hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
-    }
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  // 💡 수정됨: isLoading 외의 불필요한 무한 스크롤 관련 상태(hasNextPage 등) 제거
+  const { data, isLoading } = useInfiniteCalendarDates({
+    startDate: startDateStr,
+    endDate: endDateStr,
+    size: 100, // 한 달 치 데이터로는 충분히 넉넉한 사이즈
+    isShared: false,
+  });
 
   const eventsByDate = useMemo(() => {
     if (!data) return {};
 
+    // 첫 페이지만 그리기
     const allItems = data.pages.flatMap((page) => page.coverLetters);
     const map: Record<string, typeof allItems> = {};
 
     allItems.forEach((item) => {
       const dateKey = getISODate(item.deadline);
-
       if (!dateKey) return;
 
       if (!map[dateKey]) {

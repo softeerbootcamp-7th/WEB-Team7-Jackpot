@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router';
 
 import { LANDING_CARD_DATA } from '@/features/landing/constants/landing';
-import { LandingPageIcon as I } from '@/features/landing/icons';
+import { LandingPageIcon as LAI } from '@/features/landing/icons';
 
 interface LandingInformationProps {
   isAnimating: boolean;
@@ -22,7 +22,7 @@ const LandingInformation = ({ isAnimating }: LandingInformationProps) => {
               가능성
             </span>
             <div className='mx-1'>
-              <I.CheckIcon />
+              <LAI.CheckIcon />
             </div>
             을 증명하듯,
           </span>

@@ -4,8 +4,8 @@ import NotificationIcon from '@/features/notification/icons/NotificationIcon';
 import ProfileIcon from '@/features/notification/icons/ProfileIcon';
 
 export const NotificationDropdownIcon = {
-  CardFileBoxIcon: CardFileBoxIcon,
-  HeaderNotificationIcon: HeaderNotificationIcon,
-  NotificationIcon: NotificationIcon,
-  ProfileIcon: ProfileIcon,
+  CardFileBoxIcon,
+  HeaderNotificationIcon,
+  NotificationIcon,
+  ProfileIcon,
 };

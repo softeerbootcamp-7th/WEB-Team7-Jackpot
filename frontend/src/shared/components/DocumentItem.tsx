@@ -61,7 +61,7 @@ const DocumentItem = ({
 
             {/* 직무명 뱃지 (회색) */}
             <span className='inline-flex items-center justify-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600'>
-              {jobPosition}
+              {applySeason}
             </span>
           </div>
 
@@ -79,7 +79,7 @@ const DocumentItem = ({
         {/* 하단 영역: 제목 + 메타 정보 */}
         <div className='flex flex-col gap-1'>
           <h3 className='line-clamp-1 text-lg font-bold text-gray-950'>
-            {applySeason}
+            {companyName} - {jobPosition}
           </h3>
 
           <div className='flex items-center gap-1 text-xs text-gray-500'>
