@@ -21,8 +21,6 @@ import com.jackpot.narratix.domain.fixture.ReviewFixture;
 import com.jackpot.narratix.domain.fixture.UserFixture;
 import com.jackpot.narratix.global.exception.BaseException;
 import com.jackpot.narratix.global.exception.GlobalErrorCode;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -132,7 +130,7 @@ class ReviewFacadeTest {
         reviewFacade.createReview(reviewerId, qnaId, request);
 
         // then
-        verify(textSyncService, times(1)).flushToDb(qnaId);
+        verify(textSyncService, times(1)).getPendingDeltas(qnaId);
         verify(otTransformer, never()).transformRange(anyInt(), anyInt(), any());
         verify(reviewService, times(1)).createReview(reviewerId, qnaId, request);
         verify(qnATextService, times(1)).updateAnswerAndPublishEvent(eq(qnaId), eq(coverLetterId), anyString());
@@ -200,7 +198,7 @@ class ReviewFacadeTest {
         reviewFacade.createReview(reviewerId, qnaId, request);
 
         // then
-        verify(textSyncService, times(1)).flushToDb(qnaId);
+        verify(textSyncService, times(1)).getPendingDeltas(qnaId);
         verify(textDeltaService, times(1)).getOtDeltasSince(qnaId, 5L);
         verify(otTransformer, times(1)).transformRange(10, 12, otDeltas);
         verify(reviewService, times(1)).createReview(reviewerId, qnaId, request);
@@ -285,7 +283,7 @@ class ReviewFacadeTest {
                 .hasFieldOrPropertyWithValue("errorCode", GlobalErrorCode.FORBIDDEN);
 
         verify(reviewService, never()).createReview(any(), any(), any());
-        verify(textSyncService, times(1)).flushToDb(qnaId);
+        verify(textSyncService, times(1)).getPendingDeltas(qnaId);
     }
 
     @Test
@@ -558,7 +556,7 @@ class ReviewFacadeTest {
         reviewFacade.deleteReview(reviewerId, qnAId, reviewId);
 
         // then
-        verify(textSyncService, times(1)).flushToDb(qnAId);
+        verify(textSyncService, times(1)).getPendingDeltas(qnAId);
         verify(reviewService, times(1)).deleteReview(reviewId);
         verify(eventPublisher, times(1)).publishEvent(any(ReviewDeleteEvent.class));
     }
@@ -597,7 +595,7 @@ class ReviewFacadeTest {
         reviewFacade.deleteReview(writerId, qnAId, reviewId);
 
         // then
-        verify(textSyncService, times(1)).flushToDb(qnAId);
+        verify(textSyncService, times(1)).getPendingDeltas(qnAId);
         verify(reviewService, times(1)).deleteReview(reviewId);
         verify(eventPublisher, times(1)).publishEvent(any(ReviewDeleteEvent.class));
     }
