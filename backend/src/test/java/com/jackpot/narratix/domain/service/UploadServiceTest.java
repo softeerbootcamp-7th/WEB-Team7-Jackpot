@@ -6,7 +6,7 @@ import com.jackpot.narratix.domain.entity.UploadFile;
 import com.jackpot.narratix.domain.entity.UploadJob;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
 import com.jackpot.narratix.domain.exception.UploadErrorCode;
-import com.jackpot.narratix.domain.repository.LabeledQnARepository;
+import com.jackpot.narratix.domain.repository.UploadFileRepository;
 import com.jackpot.narratix.domain.repository.UploadJobRepository;
 import com.jackpot.narratix.global.exception.BaseException;
 import com.jackpot.narratix.global.exception.GlobalErrorCode;
@@ -16,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 
@@ -30,7 +31,7 @@ class UploadServiceTest {
     private UploadJobRepository uploadJobRepository;
 
     @Mock
-    private LabeledQnARepository labeledQnARepository;
+    private UploadFileRepository uploadFileRepository;
 
     @InjectMocks
     private UploadService uploadService;
@@ -63,7 +64,8 @@ class UploadServiceTest {
                 .uploadFile(uploadFile)
                 .build();
 
-        when(labeledQnARepository.findAllByUploadJobId(uploadJobId)).thenReturn(List.of(qna1, qna2));
+        ReflectionTestUtils.setField(uploadFile, "labeledQnAs", List.of(qna1, qna2));
+        when(uploadFileRepository.findAllWithQnAsByUploadJobId(uploadJobId)).thenReturn(List.of(uploadFile));
 
         // when
         LabeledQnAListResponse response = uploadService.findLabeledCoverLetterByUploadJobId(userId, uploadJobId);
@@ -79,7 +81,7 @@ class UploadServiceTest {
                 });
 
         verify(uploadJobRepository, times(1)).findByIdOrElseThrow(uploadJobId);
-        verify(labeledQnARepository, times(1)).findAllByUploadJobId(uploadJobId);
+        verify(uploadFileRepository, times(1)).findAllWithQnAsByUploadJobId(uploadJobId);
     }
 
     @Test
@@ -110,7 +112,9 @@ class UploadServiceTest {
                 .uploadFile(uploadFile2)
                 .build();
 
-        when(labeledQnARepository.findAllByUploadJobId(uploadJobId)).thenReturn(List.of(qna1, qna2));
+        ReflectionTestUtils.setField(uploadFile1, "labeledQnAs", List.of(qna1));
+        ReflectionTestUtils.setField(uploadFile2, "labeledQnAs", List.of(qna2));
+        when(uploadFileRepository.findAllWithQnAsByUploadJobId(uploadJobId)).thenReturn(List.of(uploadFile1, uploadFile2));
 
         // when
         LabeledQnAListResponse response = uploadService.findLabeledCoverLetterByUploadJobId(userId, uploadJobId);
@@ -131,7 +135,7 @@ class UploadServiceTest {
         UploadJob uploadJob = mock(UploadJob.class);
         when(uploadJob.isOwner(userId)).thenReturn(true);
         when(uploadJobRepository.findByIdOrElseThrow(uploadJobId)).thenReturn(uploadJob);
-        when(labeledQnARepository.findAllByUploadJobId(uploadJobId)).thenReturn(List.of());
+        when(uploadFileRepository.findAllWithQnAsByUploadJobId(uploadJobId)).thenReturn(List.of());
 
         // when
         LabeledQnAListResponse response = uploadService.findLabeledCoverLetterByUploadJobId(userId, uploadJobId);
@@ -139,7 +143,7 @@ class UploadServiceTest {
         // then
         assertThat(response.coverLetters()).isEmpty();
         verify(uploadJobRepository, times(1)).findByIdOrElseThrow(uploadJobId);
-        verify(labeledQnARepository, times(1)).findAllByUploadJobId(uploadJobId);
+        verify(uploadFileRepository, times(1)).findAllWithQnAsByUploadJobId(uploadJobId);
     }
 
     @Test
@@ -158,7 +162,7 @@ class UploadServiceTest {
                 .hasFieldOrPropertyWithValue("errorCode", UploadErrorCode.UPLOAD_JOB_NOT_FOUND);
 
         verify(uploadJobRepository, times(1)).findByIdOrElseThrow(uploadJobId);
-        verify(labeledQnARepository, never()).findAllByUploadJobId(any());
+        verify(uploadFileRepository, never()).findAllWithQnAsByUploadJobId(any());
     }
 
     @Test
@@ -178,6 +182,6 @@ class UploadServiceTest {
                 .hasFieldOrPropertyWithValue("errorCode", GlobalErrorCode.FORBIDDEN);
 
         verify(uploadJobRepository, times(1)).findByIdOrElseThrow(uploadJobId);
-        verify(labeledQnARepository, never()).findAllByUploadJobId(any());
+        verify(uploadFileRepository, never()).findAllWithQnAsByUploadJobId(any());
     }
 }

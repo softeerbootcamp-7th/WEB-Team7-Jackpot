@@ -1,12 +1,10 @@
 package com.jackpot.narratix.domain.controller.response;
 
 import com.jackpot.narratix.domain.entity.LabeledQnA;
+import com.jackpot.narratix.domain.entity.UploadFile;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 public record LabeledQnAListResponse(
         List<CoverLetterResponse> coverLetters
@@ -14,6 +12,13 @@ public record LabeledQnAListResponse(
     public record CoverLetterResponse(
             List<LabeledQnAResponse> qnAs
     ) {
+        public static CoverLetterResponse of(UploadFile uploadFile) {
+            return new CoverLetterResponse(
+                    uploadFile.getLabeledQnAs().stream()
+                            .map(LabeledQnAResponse::of)
+                            .toList()
+            );
+        }
     }
 
     public record LabeledQnAResponse(
@@ -33,23 +38,17 @@ public record LabeledQnAListResponse(
         }
     }
 
-    public static LabeledQnAListResponse of(List<LabeledQnA> allQnAs) {
-        if (allQnAs == null || allQnAs.isEmpty()) {
+    public static LabeledQnAListResponse of(List<UploadFile> uploadFiles) {
+        if (uploadFiles == null || uploadFiles.isEmpty()) {
             return new LabeledQnAListResponse(List.of());
         }
-        
-        Map<String, List<LabeledQnAResponse>> map = new LinkedHashMap<>();
 
-        for (LabeledQnA qna : allQnAs) {
-            String fileId = qna.getUploadFile().getId();
-            map.computeIfAbsent(fileId, k -> new ArrayList<>())
-                    .add(LabeledQnAResponse.of(qna));
-        }
-
-        List<CoverLetterResponse> coverLetters = map.values().stream()
-                .map(CoverLetterResponse::new)
+        List<CoverLetterResponse> coverLetters = uploadFiles.stream()
+                .map(CoverLetterResponse::of)
                 .toList();
 
         return new LabeledQnAListResponse(coverLetters);
     }
+
+
 }
