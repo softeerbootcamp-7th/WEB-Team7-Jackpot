@@ -50,7 +50,7 @@ export const useScrapCoverLetters = (searchWord = '', size = 9) => {
     getNextPageParam: (lastPage) => {
       const lastScrap = lastPage.scraps.at(-1);
       if (!lastPage.hasNext || !lastScrap) return undefined;
-      return lastScrap.questionId;
+      return lastScrap.id;
     },
     staleTime: 5 * 60 * 1000,
   });

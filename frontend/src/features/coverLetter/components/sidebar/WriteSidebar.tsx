@@ -1,6 +1,6 @@
-import { Suspense, useCallback } from 'react';
+import { Suspense } from 'react';
 
-import { useLocation, useNavigate, useSearchParams } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 
 import SidebarCardSection from '@/features/coverLetter/components/sidebar/SidebarCardSection';
 import ErrorBoundary from '@/shared/components/ErrorBoundary';
@@ -8,7 +8,8 @@ import SearchInput from '@/shared/components/SearchInput';
 import SectionError from '@/shared/components/SectionError';
 import { SidebarSkeleton } from '@/shared/components/SidebarSkeleton';
 import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
-import { validateSearchKeyword } from '@/shared/utils/validation';
+import { useDeleteScrapMutation } from '@/shared/hooks/useScrapQueries';
+import useSearch from '@/shared/hooks/useSearch';
 
 const WriteSidebar = ({
   currentSidebarTab,
@@ -19,40 +20,36 @@ const WriteSidebar = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [searchParams] = useSearchParams();
+  const { showToast } = useToastMessageContext();
 
   const isScrap = currentSidebarTab === 'scrap';
-  const searchWord = searchParams.get('search') ?? '';
 
-  const { showToast } = useToastMessageContext();
+  const { keyword, handleChange, currentQueryParam } = useSearch({
+    queryKey: 'search',
+  });
+
+  // 삭제 API 훅 가져오기
+  const { mutate: deleteScrapMutation } = useDeleteScrapMutation();
 
   const handleTabChange = (tab: 'scrap' | 'library') => {
     onTabChange(tab);
     const params = new URLSearchParams(location.search);
     params.set('tab', tab);
-    // 탭 전환 시 기존 검색어를 유지하고 싶지 않다면 params.delete('search')를 추가하세요.
+    params.delete('search');
     navigate({ search: params.toString() });
   };
 
-  const handleSearch = useCallback(
-    (keyword: string) => {
-      const { isValid, message } = validateSearchKeyword(keyword);
-      if (!isValid && message) {
-        showToast(message);
-        return;
-      }
-
-      const params = new URLSearchParams(location.search);
-      params.set('tab', currentSidebarTab);
-      params.set('search', keyword);
-      navigate({ search: params.toString() }, { replace: true });
-    },
-    [currentSidebarTab, navigate, location.search, showToast],
-  );
-
+  // 스크랩 삭제 함수 구현
   const deleteScrap = (id: number) => {
-    // TODO: Scrap 취소 api 연결 필요 (전달받은 id 활용)
-    console.log(`삭제 요청 ID: ${id}`);
+    deleteScrapMutation(id, {
+      onSuccess: () => {
+        showToast('스크랩이 삭제되었습니다.');
+      },
+      onError: (error) => {
+        showToast('처리에 실패했습니다. 다시 시도해주세요.');
+        console.error(error);
+      },
+    });
   };
 
   return (
@@ -99,23 +96,18 @@ const WriteSidebar = ({
           </div>
         </div>
         <SearchInput
-          onChange={(event) => handleSearch(event.currentTarget.value)}
+          onChange={handleChange}
           placeholder={
             isScrap
               ? '질문 또는 답변을 입력해주세요'
               : '문항 유형을 입력해주세요'
           }
-          keyword={searchWord}
-          errorMessage={
-            validateSearchKeyword(searchWord).isValid
-              ? null
-              : validateSearchKeyword(searchWord).message
-          }
+          keyword={keyword}
         />
       </div>
 
       <ErrorBoundary
-        key={`${currentSidebarTab}-${searchWord}`}
+        key={`${currentSidebarTab}-${currentQueryParam}`}
         fallback={(reset) => (
           <SectionError
             onRetry={reset}
@@ -129,7 +121,7 @@ const WriteSidebar = ({
       >
         <Suspense fallback={<SidebarSkeleton />}>
           <SidebarCardSection
-            searchWord={searchWord}
+            searchWord={currentQueryParam}
             isScrap={isScrap}
             deleteScrap={deleteScrap}
           />

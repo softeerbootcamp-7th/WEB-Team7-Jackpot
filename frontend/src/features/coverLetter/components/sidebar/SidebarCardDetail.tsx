@@ -69,7 +69,7 @@ const SidebarCardDetail = ({ scrap, onBack }: CardDetailProps) => {
 
             <div className='inline-flex items-center gap-0.5'>
               <div className='text-sm leading-5 font-medium text-gray-400'>
-                {answer.length}자
+                {answer && `${answer.length}자`}
               </div>
             </div>
           </div>

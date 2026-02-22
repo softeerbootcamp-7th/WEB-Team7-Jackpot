@@ -31,7 +31,7 @@ const LibrarySideBar = ({ folderList }: LibrarySideBarProps) => {
     isLoading,
   } = useSearch({
     queryKey: 'keyword',
-    fetchAction: searchLibrary,
+    fetchAction: searchLibrary, // [박소민] TODO: use훅 사용 후 삭제
     // 기업 탭일 땐 useSearch 기능을 꺼버려서 URL 깜빡임 원천 차단
     isEnabled: currentTab === 'QUESTION',
   });
