@@ -35,6 +35,7 @@ public class ShareLinkService {
     private final ShareLinkLockManager shareLinkLockManager;
     private final ShareLinkSessionRegistry shareLinkSessionRegistry;
     private final TextDeltaService textDeltaService;
+    private final TextSyncService textSyncService;
 
     @Transactional
     public ShareLinkActiveResponse updateShareLinkStatus(String userId, Long coverLetterId, boolean active) {
@@ -73,7 +74,7 @@ public class ShareLinkService {
     private ShareLinkActiveResponse deactivateShareLink(Long coverLetterId) {
         shareLinkRepository.findById(coverLetterId).ifPresent(ShareLink::deactivate);
         List<Long> qnAIds = qnARepository.findIdsByCoverLetterId(coverLetterId);
-        qnAIds.forEach(textDeltaService::flushToDb);     // pending 델타를 DB에 저장 후
+        qnAIds.forEach(textSyncService::flushToDb);     // pending 델타를 DB에 저장 후
 
         // Redis 델타 키를 트랜잭션 커밋 후에 삭제해 세션 중 데이터 유실 방지
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
@@ -94,7 +95,7 @@ public class ShareLinkService {
     public void flushPendingDeltasByShareId(String shareId) {
         shareLinkRepository.findByShareId(shareId).ifPresent(shareLink -> {
             List<Long> qnAIds = qnARepository.findIdsByCoverLetterId(shareLink.getCoverLetterId());
-            qnAIds.forEach(textDeltaService::flushToDb);
+            qnAIds.forEach(textSyncService::flushToDb);
             log.info("Writer disconnect: pending 델타 flush 완료. shareId={}, qnACount={}", shareId, qnAIds.size());
         });
     }
