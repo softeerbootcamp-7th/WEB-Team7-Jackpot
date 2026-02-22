@@ -81,7 +81,7 @@ const CoverLetterEditor = ({
     qnaId: null,
     selection: null,
   });
-  const [composingLength, setComposingLength] = useState<number | null>(null);
+
   const [lastTextUpdateAt, setLastTextUpdateAt] = useState<string | undefined>(
     undefined,
   );
@@ -99,19 +99,22 @@ const CoverLetterEditor = ({
   const clearUIState = useCallback(() => {
     setSelectedReviewState({ qnaId: currentQnaId, reviewId: null });
     setSelectionState({ qnaId: currentQnaId, selection: null });
+    setLastTextUpdateAt(undefined);
   }, [currentQnaId]);
 
   const onDeleteReview = useCallback(
     (reviewId: number) => {
-      if (!currentQna?.qnAId) return;
+      if (!currentQnaId) return;
       deleteReviewApi(reviewId, {
-        onSuccess: clearUIState,
+        onSuccess: () => {
+          clearUIState();
+        },
         onError: () => {
           showToast('리뷰 삭제에 실패했습니다.');
         },
       });
     },
-    [currentQna?.qnAId, deleteReviewApi, clearUIState, showToast],
+    [currentQnaId, deleteReviewApi, clearUIState, showToast],
   );
 
   const onToggleApproval = useCallback(
@@ -127,6 +130,16 @@ const CoverLetterEditor = ({
     [currentQna?.qnAId, updateReviewMutation, clearUIState, showToast],
   );
 
+  const handleDeleteReviewsByText = useCallback(
+    (reviewIds: number[]) => {
+      for (const reviewId of reviewIds) {
+        onDeleteReview(reviewId);
+      }
+    },
+    [onDeleteReview],
+  );
+
+  // 에디터 내부(useTextSelection): composition 중 안정적인 범위 유지 → IME 보호
   const editingReview = useMemo(
     () =>
       selectedReviewId !== null
@@ -207,7 +220,6 @@ const CoverLetterEditor = ({
               onReviewClick={handleReviewClick}
               onTextChange={onTextChange}
               onReserveNextVersion={onReserveNextVersion}
-              onComposingLengthChange={setComposingLength}
               isConnected={isConnected}
               sendMessage={sendMessage}
               shareId={shareId}
@@ -215,11 +227,12 @@ const CoverLetterEditor = ({
               currentVersion={currentVersion}
               replaceAllSignal={currentReplaceAllSignal}
               onTextUpdateSent={setLastTextUpdateAt}
+              onDeleteReviewsByText={handleDeleteReviewsByText}
             />
           </div>
 
           <CoverLetterFooter
-            charCount={composingLength ?? currentText.length}
+            charCount={currentText.length}
             currentPageIndex={currentPageIndex}
             totalPages={totalPages}
             onPageChange={onPageChange}
@@ -236,7 +249,7 @@ const CoverLetterEditor = ({
       </div>
 
       {isReviewActive && (
-        <aside className='h-full min-h-0 w-[248px] overflow-y-auto border-l border-gray-100'>
+        <aside className='h-full min-h-0 w-[248px] overflow-hidden border-l border-gray-100'>
           <ReviewCardList
             reviews={currentReviews}
             selectedReviewId={selectedReviewId}

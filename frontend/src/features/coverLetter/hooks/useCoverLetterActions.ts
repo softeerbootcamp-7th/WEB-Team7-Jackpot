@@ -1,3 +1,5 @@
+import { useRef } from 'react';
+
 import {
   useSharedLink,
   useSharedLinkToggle,
@@ -30,8 +32,11 @@ const useCoverLetterActions = ({
   const { data: sharedLink, isLoading } = useSharedLink(coverLetterId);
   const { mutate: toggleLink } = useSharedLinkToggle();
 
+  const isSavingRef = useRef(false);
+
   const saveCurrentAnswer = async (showSuccessToast = true) => {
-    if (isPending) return false;
+    if (isPending || isSavingRef.current) return false;
+    isSavingRef.current = true;
 
     const qnAId = currentQna?.qnAId;
     const editedText = qnAId !== undefined ? editedAnswers[qnAId] : null;
@@ -59,8 +64,10 @@ const useCoverLetterActions = ({
         error instanceof Error
           ? error.message
           : '알 수 없는 오류가 발생했습니다.';
-      showToast(`저장에 실패했습니다: ${message}`);
+      showToast(`저장에 실패했습니다: ${message}`, false);
       return false;
+    } finally {
+      isSavingRef.current = false;
     }
   };
 
