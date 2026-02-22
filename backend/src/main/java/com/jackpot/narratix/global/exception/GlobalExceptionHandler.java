@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -24,22 +25,24 @@ import java.io.IOException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final String SSE_ERROR_EVENT_PREFIX = "event: error\ndata: ";
+    private static final String SSE_EVENT_SUFFIX = "\n\n";
+
     @ExceptionHandler(SseException.class)
-    protected SseEmitter handleSseException(SseException e) {
+    protected ResponseEntity<String> handleSseException(SseException e) {
         ErrorCode errorCode = e.getErrorCode();
         log.warn("SSE connection error: {}", errorCode.getMessage());
 
-        // SSE 에러 이벤트를 전송하고 즉시 완료
-        SseEmitter emitter = new SseEmitter(0L);
-        try {
-            emitter.send(SseEmitter.event()
-                    .name("error")
-                    .data(errorCode.getMessage()));
-            emitter.complete();
-        } catch (IOException ex) {
-            log.error("Failed to send SSE error event: {}", errorCode.getMessage(), ex);
-        }
-        return emitter;
+        return ResponseEntity
+                .status(errorCode.getStatus())
+                .contentType(MediaType.TEXT_EVENT_STREAM)
+                .body(SSE_ERROR_EVENT_PREFIX + errorCode.getMessage() + SSE_EVENT_SUFFIX); // SSE 이벤트 스트림의 표준 규격에 맞게 에러 메시지 작성
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
+    protected ResponseEntity<Void> handleMediaTypeNotAcceptableException(HttpMediaTypeNotAcceptableException e) {
+        log.warn("Client requested an unsupported media type: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build();
     }
 
     @ExceptionHandler(JwtException.class)
