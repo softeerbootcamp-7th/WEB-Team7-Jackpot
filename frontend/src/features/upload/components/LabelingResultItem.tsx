@@ -24,13 +24,21 @@ interface CoverLetterTabProps {
   setTabState: (newValue: number) => void;
   qnAState: number;
   setQnAState: (newValue: number) => void;
-  data: LabeledQnAListResponse;
+  data: LabeledQnAListResponse | undefined;
   contents: ContentStateType;
   updateContents: (
     key: number,
     field: keyof ContentItemType | 'year' | 'season',
     value: string | number,
   ) => void;
+  updateQnA: (
+    tabIndex: number,
+    qnaIndex: number,
+    field: 'question' | 'answer',
+    value: string,
+  ) => void;
+  isInitialQuestionFailure: boolean;
+  isInitialAnswerFailure: boolean;
 }
 
 const LabelingResultItem = ({
@@ -41,6 +49,9 @@ const LabelingResultItem = ({
   data,
   contents,
   updateContents,
+  updateQnA,
+  isInitialQuestionFailure,
+  isInitialAnswerFailure,
 }: CoverLetterTabProps) => {
   const {
     data: companyList,
@@ -67,7 +78,13 @@ const LabelingResultItem = ({
   if (isGetCompanyListError || isGetJobPositionListError) {
     return <div>데이터를 찾을 수 없습니다.</div>;
   }
-  const currentCoverLetterQnAs = data.coverLetters[tabState]?.qnAs || [];
+  if (!data || !data.coverLetters) {
+    console.error('저장할 데이터가 없습니다.');
+    return;
+  }
+  const currentCoverLetterQnAs = data.coverLetters[tabState]?.qnAs;
+  const currentQnA = currentCoverLetterQnAs[qnAState];
+
   // [윤종근] - 추후 리팩토링 예정
   return (
     <div className='flex flex-col gap-6'>
@@ -156,6 +173,10 @@ const LabelingResultItem = ({
               }
               isOpen={isDropdownOpen.questionTypeDropdown}
               dropdownDirection='top'
+              isError={
+                !currentQnA?.questionCategory ||
+                currentQnA.questionCategory.trim() === ''
+              }
             />
           </div>
         </div>
@@ -163,6 +184,11 @@ const LabelingResultItem = ({
           qnAState={qnAState}
           setQnAState={setQnAState}
           qnAs={currentCoverLetterQnAs}
+          onChangeQnA={(index, field, value) =>
+            updateQnA(tabState, index, field, value)
+          }
+       isInitialQuestionFailure={isInitialQuestionFailure}
+        isInitialAnswerFailure={isInitialAnswerFailure}
         />
       </div>
     </div>

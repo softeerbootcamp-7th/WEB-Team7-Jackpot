@@ -1,9 +1,12 @@
+import { useEffect } from 'react';
+
 import { useNavigate, useParams } from 'react-router';
 
 import { useLabeledQnAList } from '@/features/notification/hooks/useNotification';
 import LabelingResultHeader from '@/features/upload/components/LabelingResultHeader';
 import LabelingResultItem from '@/features/upload/components/LabelingResultItem';
 import useCoverLetterState from '@/features/upload/hooks/useCoverLetterState';
+import useEditableQnA from '@/features/upload/hooks/useEditableQnA';
 
 const LabelingResultSection = () => {
   const navigate = useNavigate();
@@ -20,6 +23,30 @@ const LabelingResultSection = () => {
 
   const { data: labeledData, isLoading } = useLabeledQnAList(jobId!);
   const { contents, updateContents } = useCoverLetterState();
+
+  const { editedData, handleUpdateQnA } = useEditableQnA(labeledData);
+
+  const originalCoverLetter =
+    labeledData?.coverLetters?.[currentCoverLetterIdx];
+  const originalQnA = originalCoverLetter?.qnAs?.[currentQnAIdx];
+
+  const isInitialQuestionFailure =
+    originalQnA && originalQnA.question.trim() === '';
+
+  const isInitialAnswerFailure =
+    originalQnA && originalQnA.answer.trim() === '';
+
+  const isInitialTotalFailure =
+    isInitialAnswerFailure && isInitialQuestionFailure;
+
+  useEffect(() => {
+    if (isInitialTotalFailure) {
+      navigate('/upload/complete', {
+        state: { isFailed: true },
+        replace: true,
+      });
+    }
+  }, [isInitialTotalFailure, navigate]);
 
   const handleNextStep = () => {
     navigate('/upload/complete', { replace: true });
@@ -40,15 +67,17 @@ const LabelingResultSection = () => {
   if (!labeledData) {
     return <div>데이터를 찾을 수 없습니다.</div>;
   }
-  const currentCoverLetter = labeledData?.coverLetters?.[currentCoverLetterIdx];
-  const qnACount = currentCoverLetter?.qnAs?.length ?? 0;
+
+  if (isInitialTotalFailure) return null;
+
+  const qnACount = originalCoverLetter?.qnAs?.length ?? 0;
 
   return (
     <div className='flex flex-col gap-6'>
       <LabelingResultHeader
         nextStep={handleNextStep}
         tabState={coverLetterIndex}
-        data={labeledData}
+        data={editedData}
         qnACount={qnACount}
         contents={contents}
       />
@@ -57,9 +86,12 @@ const LabelingResultSection = () => {
         setTabState={handleCoverLetterIdxChange}
         qnAState={currentQnAIdx}
         setQnAState={handleQnAIdxChange}
-        data={labeledData}
+        data={editedData}
         contents={contents}
         updateContents={updateContents}
+        updateQnA={handleUpdateQnA}
+        isInitialQuestionFailure={isInitialQuestionFailure || false}
+        isInitialAnswerFailure={isInitialAnswerFailure || false}
       />
     </div>
   );
