@@ -70,9 +70,6 @@ public class AiLabelingService {
         if (extractedText == null || extractedText.isBlank()) {
             throw new AiLabelingException("AI labeling input text is blank.");
         }
-        if (extractedText.length() > 30000) {
-            throw new AiLabelingException("입력된 텍스트가 너무 깁니다. 최대 30,000자까지 가능합니다.");
-        }
     }
 
     private AiLabelingResponse requestLabeling(AiLabelingRequest requestBody) {
