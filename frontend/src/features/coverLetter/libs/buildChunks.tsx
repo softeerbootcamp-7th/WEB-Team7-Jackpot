@@ -22,13 +22,21 @@ export const buildChunks = (
     );
 
   const renderText = (text: string, keyPrefix: string, isDimmed = false) => {
+    // trailing \n은 브라우저가 텍스트 노드 끝에서 시각적으로 무시한다.
+    // \u200B를 뒤에 붙이면:
+    //   1) \n 뒤에 내용이 생겨 줄바꿈이 시각적으로 표시됨 (다음 줄에 커서 이동)
+    //   2) 커서가 \n과 \u200B 사이에 위치 → IME가 커서를 \n 앞으로 당기지 않음 (한글 조합 정상화)
+    // collectText / restoreCaret은 이미 \u200B를 필터링·건너뜀 처리한다.
+    // <br> 사용 시 Chrome이 contentEditable DOM을 재구조화해 React removeChild 에러가 발생하므로
+    // <br> 대신 이 방식을 사용한다.
+    const displayText = text.endsWith('\n') ? `${text}\u200B` : text;
     return (
       <span
         key={`${keyPrefix}-wrapper`}
         className={isDimmed ? 'opacity-30' : ''}
         data-chunk='true'
       >
-        {text}
+        {displayText}
       </span>
     );
   };
@@ -49,6 +57,7 @@ export const buildChunks = (
 
     const isSelected = selectedReviewId === matchingReview.id;
     const reviewClassName = [
+      'outline-none',
       isReviewActive && 'cursor-pointer font-bold',
       isSelected && 'rounded-sm bg-red-100 ring-1 ring-red-200',
     ]
@@ -59,6 +68,7 @@ export const buildChunks = (
       <span
         key={`review-group-${matchingReview.id}-${i}`}
         data-chunk='true'
+        data-review-group={matchingReview.id}
         contentEditable={false}
       >
         <span

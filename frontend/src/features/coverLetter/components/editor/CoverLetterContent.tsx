@@ -1,4 +1,5 @@
 import {
+  type FormEvent,
   memo,
   useCallback,
   useEffect,
@@ -7,6 +8,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { flushSync } from 'react-dom';
 
 import { useCoverLetterCompositionFlow } from '@/features/coverLetter/hooks/useCoverLetterCompositionFlow';
 import { useCoverLetterDeleteFlow } from '@/features/coverLetter/hooks/useCoverLetterDeleteFlow';
@@ -94,6 +96,7 @@ const CoverLetterContent = ({
   const composingFlushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
+  const enterDuringCompositionRef = useRef(false);
 
   const handleSelectionChange = useCallback(
     (newSelection: SelectionInfo | null) => {
@@ -374,10 +377,11 @@ const CoverLetterContent = ({
 
   const normalizeCaretAtReviewBoundary = useCallback((): boolean => {
     if (!contentRef.current) return false;
-    return normalizeCaretAtReviewBoundaryUtil({
+    const result = normalizeCaretAtReviewBoundaryUtil({
       contentEl: contentRef.current,
       reviews: reviewsRef.current,
     });
+    return result;
   }, []);
 
   const { applyDeleteByDirection } = useCoverLetterDeleteFlow({
@@ -397,23 +401,23 @@ const CoverLetterContent = ({
     (insertStr: string) => {
       if (!contentRef.current) return;
 
-      syncDOMToState();
       const { start, end } = getCaretPosition(contentRef.current);
 
+      // latestTextRef를 DOM보다 우선 신뢰한다.
+      // IME 조합 중 Enter 시 브라우저가 compositionEnd 직후 DOM에 확정 문자를 물리적으로 삽입하므로
+      // DOM을 재독하면 이미 처리된 문자가 이중으로 잡힌다.
+      // handleCompositionEnd → processInput 경로에서 이미 latestTextRef를 최신화했으므로 DOM 재독 불필요.
       const currentText = latestTextRef.current;
       const newText =
         currentText.slice(0, start) + insertStr + currentText.slice(end);
       caretOffsetRef.current = start + insertStr.length;
 
-      updateText(newText);
-
-      // 여기서 바로 DOM에 caret 복원
-      window.requestAnimationFrame(() => {
-        if (!contentRef.current) return;
-        restoreCaret(contentRef.current, caretOffsetRef.current);
+      // flushSync: Enter 직후 한글 입력 시 React re-render가 IME 조합 중에 발생해 조합이 깨지는 문제를 방지한다.
+      flushSync(() => {
+        updateText(newText);
       });
     },
-    [syncDOMToState, updateText],
+    [updateText],
   );
 
   // caret 복원
@@ -483,18 +487,52 @@ const CoverLetterContent = ({
     normalizeCaretAtReviewBoundary,
   });
 
-  const handleInput = useCallback(() => {
-    if (isComposingRef.current && contentRef.current) {
-      onComposingLengthChange?.(collectText(contentRef.current).length);
-      return;
-    }
-    rawHandleInput();
-  }, [rawHandleInput, onComposingLengthChange]);
+  const handleInput = useCallback(
+    (e: FormEvent<HTMLDivElement>) => {
+      // Chrome + 한글 IME에서 첫 글자 입력 시 input 이벤트가 compositionStart보다
+      // 먼저 발화하는 경우가 있다. nativeEvent.isComposing으로 이를 감지해
+      // processInput 호출을 막는다 (DOM을 건드리지 않아 IME 조합이 유지됨).
+      const nativeIsComposing = (e.nativeEvent as InputEvent).isComposing;
+
+      if (isComposingRef.current || nativeIsComposing) {
+        if (nativeIsComposing && !isComposingRef.current) {
+          // compositionStart가 input보다 늦게 발화 → ref를 미리 설정해
+          // useLayoutEffect cleanup이 IME DOM 노드를 삭제하는 것을 막는다.
+          isComposingRef.current = true;
+        }
+        if (contentRef.current) {
+          onComposingLengthChange?.(collectText(contentRef.current).length);
+        }
+        return;
+      }
+      rawHandleInput();
+    },
+    [rawHandleInput, onComposingLengthChange],
+  );
 
   const handleCompositionEnd = useCallback(() => {
     rawHandleCompositionEnd();
     onComposingLengthChange?.(null);
-  }, [rawHandleCompositionEnd, onComposingLengthChange]);
+
+    if (enterDuringCompositionRef.current) {
+      enterDuringCompositionRef.current = false;
+      normalizeCaretAtReviewBoundary();
+      insertTextAtCaret('\n');
+      window.requestAnimationFrame(() => {
+        if (!contentRef.current || isComposingRef.current) return;
+        restoreCaret(contentRef.current, caretOffsetRef.current);
+        window.requestAnimationFrame(() => {
+          if (!contentRef.current || isComposingRef.current) return;
+          restoreCaret(contentRef.current, caretOffsetRef.current);
+        });
+      });
+    }
+  }, [
+    rawHandleCompositionEnd,
+    onComposingLengthChange,
+    normalizeCaretAtReviewBoundary,
+    insertTextAtCaret,
+  ]);
 
   useLayoutEffect(() => {
     if (!contentRef.current) return;
@@ -517,7 +555,6 @@ const CoverLetterContent = ({
       contentRef.current.blur();
       rafId = window.requestAnimationFrame(() => {
         if (!contentRef.current) return;
-        contentRef.current.focus();
         restoreCaret(contentRef.current, boundedOffset);
       });
     }
@@ -556,7 +593,7 @@ const CoverLetterContent = ({
     applyDeleteByDirection,
     contentRef,
     caretOffsetRef,
-    handleCompositionEnd,
+    enterDuringCompositionRef,
   });
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -613,7 +650,7 @@ const CoverLetterContent = ({
     <div className='relative ml-12 min-h-0 flex-1'>
       <div
         ref={containerRef}
-        className='absolute inset-0 overflow-y-auto rounded-xl border border-gray-200 bg-white px-4 transition-colors focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-100 hover:border-gray-300'
+        className='absolute inset-0 overflow-y-auto rounded-xl border border-gray-200 bg-white px-4 transition-colors hover:border-gray-300'
         style={{
           whiteSpace: 'pre-wrap',
           overflowY: selection ? 'hidden' : 'auto',

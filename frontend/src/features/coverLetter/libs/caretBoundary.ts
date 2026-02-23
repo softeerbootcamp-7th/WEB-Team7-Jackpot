@@ -32,45 +32,6 @@ const setCaretRelativeTo = (
   selection.addRange(range);
 };
 
-const ensureEditableTextAnchorAfter = (
-  node: Node,
-  createSpan = true,
-): Text | null => {
-  const parent = node.parentNode;
-  if (!parent) return null;
-
-  let next = node.nextSibling;
-  while (next) {
-    if (next.nodeType === Node.TEXT_NODE) return next as Text;
-    if (
-      next.nodeType === Node.ELEMENT_NODE &&
-      (next as HTMLElement).getAttribute('contenteditable') !== 'false'
-    ) {
-      if (isBoundaryElement(next)) {
-        next = next.nextSibling;
-        continue;
-      }
-      const first = document
-        .createTreeWalker(next, NodeFilter.SHOW_TEXT)
-        .nextNode() as Text | null;
-      if (first) return first;
-    }
-    next = next.nextSibling;
-  }
-
-  if (!createSpan) {
-    const anchor = document.createTextNode('');
-    parent.insertBefore(anchor, node.nextSibling);
-    return anchor;
-  }
-
-  const span = document.createElement('span');
-  const anchor = document.createTextNode('');
-  span.appendChild(anchor);
-  parent.insertBefore(span, node.nextSibling);
-  return anchor;
-};
-
 const ensureEditableTextAnchorInNode = (node: Node): Text | null => {
   if (node.nodeType === Node.TEXT_NODE) return node as Text;
   if (node.nodeType !== Node.ELEMENT_NODE) return null;
@@ -125,6 +86,105 @@ const findBoundaryAtCaret = (
   }
 
   return null;
+};
+
+export const moveCaretIntoAdjacentReview = ({
+  contentEl,
+  direction,
+}: {
+  contentEl: HTMLDivElement;
+  direction: 'left' | 'right';
+}): boolean => {
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount === 0 || !selection.isCollapsed) {
+    return false;
+  }
+
+  const range = selection.getRangeAt(0);
+  if (!contentEl.contains(range.startContainer)) return false;
+
+  const { startContainer, startOffset } = range;
+
+  const isReviewGroup = (node: Node | null): node is HTMLElement =>
+    Boolean(
+      node &&
+      node.nodeType === Node.ELEMENT_NODE &&
+      (node as HTMLElement).hasAttribute('data-review-group'),
+    );
+
+  let reviewGroupEl: HTMLElement | null = null;
+
+  if (startContainer.nodeType === Node.ELEMENT_NODE) {
+    const candidate =
+      direction === 'left'
+        ? ((startContainer as Element).childNodes[startOffset - 1] ?? null)
+        : ((startContainer as Element).childNodes[startOffset] ?? null);
+    if (isReviewGroup(candidate)) {
+      reviewGroupEl = candidate;
+    }
+  } else if (startContainer.nodeType === Node.TEXT_NODE) {
+    const text = startContainer as Text;
+    if (direction === 'left' && startOffset === 0) {
+      // 텍스트 노드의 부모(span[data-chunk]) 앞 형제가 review-group인지 확인
+      const parent = text.parentNode;
+      const prev = parent ? (parent as Element).previousSibling : null;
+      if (isReviewGroup(prev)) {
+        reviewGroupEl = prev;
+      }
+    } else if (direction === 'right' && startOffset === text.length) {
+      // 텍스트 노드의 부모(span[data-chunk]) 뒤 형제가 review-group인지 확인
+      const parent = text.parentNode;
+      const next = parent ? (parent as Element).nextSibling : null;
+      if (isReviewGroup(next)) {
+        reviewGroupEl = next;
+      }
+    }
+  }
+
+  if (!reviewGroupEl) return false;
+
+  const reviewContentEl =
+    reviewGroupEl.querySelector<HTMLElement>('[data-review-id]');
+  if (!reviewContentEl) return false;
+
+  const newRange = document.createRange();
+  const walker = document.createTreeWalker(
+    reviewContentEl,
+    NodeFilter.SHOW_TEXT,
+  );
+
+  if (direction === 'left') {
+    // 리뷰 텍스트 끝으로 진입
+    let lastText: Text | null = null;
+    let node: Node | null;
+    while ((node = walker.nextNode())) lastText = node as Text;
+    if (lastText) {
+      const txt = lastText.textContent ?? '';
+      let offset = txt.length;
+      while (
+        offset > 0 &&
+        (txt[offset - 1] === '\u200B' || txt[offset - 1] === '\u2060')
+      ) {
+        offset--;
+      }
+      newRange.setStart(lastText, offset);
+    } else {
+      newRange.setStart(reviewContentEl, reviewContentEl.childNodes.length);
+    }
+  } else {
+    // 리뷰 텍스트 처음으로 진입
+    const firstText = walker.nextNode() as Text | null;
+    if (firstText) {
+      newRange.setStart(firstText, 0);
+    } else {
+      newRange.setStart(reviewContentEl, 0);
+    }
+  }
+
+  newRange.collapse(true);
+  selection.removeAllRanges();
+  selection.addRange(newRange);
+  return true;
 };
 
 export const moveCaretAcrossReviewBoundaryMarker = ({
@@ -195,32 +255,27 @@ export const normalizeCaretAtReviewBoundary = ({
     );
     if (!wrapper) return false;
 
+    // outer contentEditable=false group wrapper를 기준으로 커서를 이동한다.
+    // inner review-wrap(data-review-id)의 sibling은 모두 outer wrapper 내부에 있어
+    // outer wrapper 밖의 editable 영역을 찾지 못하는 문제가 있다.
+    const reviewGroupWrapper =
+      wrapper.closest<HTMLElement>('[data-review-group]') ?? wrapper;
+
     const range = document.createRange();
     if (direction === 'start') {
-      range.setStartBefore(wrapper);
+      range.setStartBefore(reviewGroupWrapper);
     } else {
-      let boundary = wrapper.nextElementSibling as HTMLElement | null;
-      if (boundary?.hasAttribute('data-review-boundary')) {
-        if (boundary.nextElementSibling?.hasAttribute('data-review-tail')) {
-          boundary = boundary.nextElementSibling as HTMLElement;
-        }
-        // IME 시작 안정성을 위해, 가능하면 "노드 경계"가 아니라
-        // 실제 텍스트 노드 내부(0)로 캐럿을 둔다.
-        const nextSibling = getNextEditableSibling(boundary.nextSibling);
-        const nextText = nextSibling
-          ? ensureEditableTextAnchorInNode(nextSibling)
-          : null;
-        if (nextText) {
-          range.setStart(nextText, 0);
-        } else {
-          const anchor = ensureEditableTextAnchorAfter(boundary);
-          if (!anchor) {
-            return false;
-          }
-          range.setStart(anchor, 0);
-        }
+      // outer wrapper의 다음 editable sibling에서 텍스트 노드를 찾는다.
+      const nextSibling = getNextEditableSibling(
+        reviewGroupWrapper.nextSibling,
+      );
+      const nextText = nextSibling
+        ? ensureEditableTextAnchorInNode(nextSibling)
+        : null;
+      if (nextText) {
+        range.setStart(nextText, 0);
       } else {
-        range.setStartAfter(wrapper);
+        range.setStartAfter(reviewGroupWrapper);
       }
     }
     range.collapse(true);
@@ -246,28 +301,7 @@ export const normalizeCaretAtReviewBoundary = ({
       absoluteCaretOffset === review.range.end,
   );
   if (endBoundaryReview) {
-    // 커서가 이미 리뷰 외부(예: trailing-cursor-target)에 있으면 정규화 불필요.
-    // review-group 외부의 editable 영역에 클릭한 경우 그 위치를 그대로 유지한다.
-    const isCaretInsideReviewEl = (() => {
-      let cur: Node | null = currentRange.startContainer;
-      while (cur && cur !== contentEl) {
-        if (cur.nodeType === Node.ELEMENT_NODE) {
-          const el = cur as HTMLElement;
-          if (
-            el.hasAttribute('data-review-id') ||
-            el.hasAttribute('data-review-boundary') ||
-            el.hasAttribute('data-review-tail')
-          ) {
-            return true;
-          }
-        }
-        cur = cur.parentNode;
-      }
-      return false;
-    })();
-    if (isCaretInsideReviewEl) {
-      if (moveCaretOutsideReview(endBoundaryReview.id, 'end')) return true;
-    }
+    if (moveCaretOutsideReview(endBoundaryReview.id, 'end')) return true;
   }
 
   const findReviewWrapper = (node: Node): HTMLElement | null => {
@@ -310,82 +344,15 @@ export const normalizeCaretAtReviewBoundary = ({
   const trailingTextLength = collectText(trailingRange.cloneContents()).length;
   const isAtStartBoundary = leadingTextLength === 0;
   const isAtEndBoundary = trailingTextLength === 0;
-  const findLastTextNode = (root: Node): Text | null => {
-    if (root.nodeType === Node.TEXT_NODE) return root as Text;
-    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-    let last: Text | null = null;
-    let current: Node | null;
-    while ((current = walker.nextNode())) {
-      last = current as Text;
-    }
-    return last;
-  };
-
   if (isAtStartBoundary) {
-    const prevRange = document.createRange();
-    const prevSibling = reviewWrapper.previousSibling;
-    const prevTextNode = prevSibling ? findLastTextNode(prevSibling) : null;
-
-    if (prevTextNode) {
-      prevRange.setStart(prevTextNode, prevTextNode.textContent?.length ?? 0);
-      prevRange.collapse(true);
-    } else {
-      // DOM에 placeholder(\u200B)를 삽입하면 Backspace가 보이지 않는 문자만
-      // 지우는 문제가 생길 수 있어, 노드 경계 위치로 직접 이동한다.
-      prevRange.setStartBefore(reviewWrapper);
-      prevRange.collapse(true);
-    }
-
-    selection.removeAllRanges();
-    selection.addRange(prevRange);
-    return true;
+    if (moveCaretOutsideReview(reviewId, 'start')) return true;
+    return false;
   }
 
   if (!isAtEndBoundary) {
     return false;
   }
 
-  const nextRange = document.createRange();
-  const findFirstTextNode = (root: Node): Text | null => {
-    if (root.nodeType === Node.TEXT_NODE) return root as Text;
-    if (
-      root.nodeType === Node.ELEMENT_NODE &&
-      (root as HTMLElement).getAttribute('contenteditable') === 'false'
-    ) {
-      return null;
-    }
-    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-    return walker.nextNode() as Text | null;
-  };
-
-  const nextEditableSibling = getNextEditableSibling(reviewWrapper.nextSibling);
-  const nextTextNode = nextEditableSibling
-    ? findFirstTextNode(nextEditableSibling)
-    : null;
-
-  if (nextTextNode) {
-    nextRange.setStart(nextTextNode, 0);
-    nextRange.collapse(true);
-  } else {
-    // 다음 텍스트 노드가 없으면, 단순히 경계 요소 뒤로 커서를 이동시킵니다.
-    // 요소들이 contentEditable=false이므로 브라우저가 알아서 그 뒤에 입력을 처리합니다.
-    let target = reviewWrapper as Node;
-    const nextEl = reviewWrapper.nextElementSibling as HTMLElement | null;
-    if (nextEl?.hasAttribute('data-review-boundary')) {
-      target = nextEl;
-      if (nextEl.nextElementSibling?.hasAttribute('data-review-tail')) {
-        target = nextEl.nextElementSibling as HTMLElement;
-      }
-    }
-    const anchor = ensureEditableTextAnchorAfter(target);
-    if (!anchor) {
-      return false;
-    }
-    nextRange.setStart(anchor, 0);
-    nextRange.collapse(true);
-  }
-
-  selection.removeAllRanges();
-  selection.addRange(nextRange);
-  return true;
+  if (moveCaretOutsideReview(reviewId, 'end')) return true;
+  return false;
 };
