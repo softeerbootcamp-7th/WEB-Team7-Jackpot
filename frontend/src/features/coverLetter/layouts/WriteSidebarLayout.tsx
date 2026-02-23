@@ -19,7 +19,7 @@ const WriteSidebarLayout = () => {
   return (
     <div className='flex min-h-0 w-full flex-1 flex-col'>
       <div className='flex min-h-0 w-full flex-1'>
-        <aside className='h-full w-[427px] flex-1 flex-none overflow-hidden'>
+        <aside className='h-full w-[427px] flex-none overflow-hidden'>
           <WriteSidebar
             currentSidebarTab={currentSidebarTab}
             onTabChange={setCurrentSidebarTab}

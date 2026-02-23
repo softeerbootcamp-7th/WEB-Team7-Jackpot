@@ -345,14 +345,12 @@ export const normalizeCaretAtReviewBoundary = ({
   const isAtStartBoundary = leadingTextLength === 0;
   const isAtEndBoundary = trailingTextLength === 0;
   if (isAtStartBoundary) {
-    if (moveCaretOutsideReview(reviewId, 'start')) return true;
-    return false;
+    return moveCaretOutsideReview(reviewId, 'start');
   }
 
   if (!isAtEndBoundary) {
     return false;
   }
 
-  if (moveCaretOutsideReview(reviewId, 'end')) return true;
-  return false;
+  return moveCaretOutsideReview(reviewId, 'end');
 };
