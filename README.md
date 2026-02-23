@@ -237,7 +237,8 @@
               </td>
               <td align="center" width="200">
                 <a href="https://github.com/hi2242">
-                  <img src="https://github.com/hi2242.png" alt="윤종근" width="120" style="border-radius: 50%;" />
+                  
+                  <img src="https://github.com/user-attachments/assets/76d2ad57-3d3e-443b-a68c-88b939bb62b7" alt="윤종근" width="120" style="border-radius: 50%;" />
                   <br />
                   <sub><b>윤종근</b></sub>
                 </a>
