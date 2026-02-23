@@ -158,14 +158,28 @@
 ## 📁 프로젝트 구조
 
 ```text
-.
 ├─ frontend/   # React + TypeScript + Vite
 │  ├─ src/pages                # 페이지 라우트 진입점
 │  ├─ src/features             # 도메인별 기능 모듈
 │  └─ src/shared               # 공통 컴포넌트/API/훅/유틸
 └─ backend/    # Spring Boot
-   ├─ src/main/java            # API/도메인 로직
-   └─ script                   # 배포 스크립트
+ └─ src/main/java/com/jackpot/narratix/
+   ├─ domain/              # 도메인별 비즈니스 로직
+   │  ├─ controller/       # REST API 엔드포인트, WebSocket 메시지 핸들러
+   │  ├─ service/          # 비즈니스 로직
+   │  ├─ repository/       # 데이터 접근
+   │  ├─ entity/           # JPA 엔티티
+   │  ├─ event/            # 도메인 이벤트 (WebSocket, Notification)
+   │  └─ exception/        # 도메인별 예외 및 에러 코드
+   │
+   └─ global/              # 공통 인프라 및 횡단 관심사
+      ├─ auth/             # JWT 인증
+      ├─ config/           # 설정
+      ├─ interceptor/      # STOMP 채널 인터셉터
+      ├─ websocket/        # WebSocket 인프라
+      ├─ sse/              # SSE 구독 및 발송
+      └─ exception/        # 전역 예외 처리 핸들러 및 공통 에러 코드
+ 
 ```
 
 ---
@@ -300,10 +314,11 @@
 
 ### 김승환 (Backend & Infra)
 
-- [[고민] - WebSocket vs. SSE](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EA%B9%80%EC%8A%B9%ED%99%98%5D-%E2%80%90-Websocket-vs.-SSE)
-	- 실시간 문서 첨삭 기능 구현 시 SSE와 WebSocket의 트레이드오프를 분석하고, 인프라 통합과 향후 기능 확장성을 고려해 STOMP 기반의 WebSocket으로 통신 아키텍처를 통일한 과정입니다.
-
-:page_facing_up: 관련 문서:
+- **WebSocket/STOMP 기반 실시간 자소서 첨삭 기능 구현**: WebSocket과 STOMP를 사용해 작성자(Writer)와 첨삭자(Reviewer) 간 실시간 자소서 첨삭 기능 구현
+- **Operational Transformation 알고리즘을 사용한 중앙 집중 동시 편집 기능 구현**: Writer(자기소개서 작성자)와 Reviewer(첨삭자)가 자기소개서 동시 편집 시 충돌 없이 일관된 상태를 유지하도록 Operational Transformation 알고리즘을 도입하여 모든 사용자가 동일한 결과를 보도록 구현
+- **Write Back 패턴을 사용하여 실시간 저장 로직 최적화**: 매 텍스트 변경마다 DB IO를 발생시키지 않고, Redis에 Delta(변경분)를 임시 저장하고, 임계값 도달 시 DB에 Delta를 Flush하는 Write Back 캐싱 전략 구현
+- **Redis 분산 락을 이용한 웹소켓 접속 유저 제한 정책 구현**: 하나의 첨삭 링크에 Writer와 Reviewer 각 1명만 동시 접속이 가능하도록 Redis 분산 락 기반 제한 정책 구현, Lock의 TTL을 10초로 설정하여 비정상 종료 시에도 락이 자동 해제되도록 구현, Lock 갱신 로직에서 Pipeline과 Lua Script를 조합해 단일 네트워크 IO로 모든 세션의 Lock TTL을 4초마다 갱신하도록 구현
+- **SSE 기반 알림 발송 로직 구축**: Server-Sent Events를 활용하여 서버에서 클라이언트로 단방향 실시간 알림을 전송하는 시스템 구현
 
 ### 이정민 (Backend & Infra)
 
@@ -366,11 +381,4 @@ VITE_API_BASE_URL=<YOUR_API_BASE_URL>
 VITE_SOCKET_URL=<YOUR_SOCKET_URL>
 VITE_SERVICE_BASE_URL=<YOUR_SERVICE_BASE_URL>
 VITE_DEV_BASE_URL=<YOUR_DEV_BASE_URL>
-```
-
-### Backend
-
-```bash
-cd backend
-./gradlew bootRun
 ```
