@@ -21,7 +21,7 @@ export const STEP_DATA: Record<string, StepDataType> = {
     Icon: UI.AILabelingIcon,
     step: 'step 02',
     name: 'AI 라벨링',
-    loadingTitle: '업로드가 완료되었어요!',
+    loadingTitle: '라벨링이 완료되었어요!',
     loadingSubTitle: '라벨링된 결과를 확인하시고 저장해주세요.',
   },
   '3': {
@@ -36,8 +36,8 @@ export const STEP_DATA: Record<string, StepDataType> = {
     className: 'left-[25.5rem]',
     Icon: UI.CompleteSavedIcon,
     step: 'step 03',
-    name: '저장 실패',
-    loadingTitle: '저장이 실패했습니다.',
+    name: '라벨링 실패',
+    loadingTitle: '라벨링이 실패했습니다.',
     loadingSubTitle: '업로드한 파일의 라벨링이 모두 실패했어요.',
   },
 } as const;
