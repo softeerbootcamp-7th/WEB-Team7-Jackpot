@@ -11,7 +11,7 @@ import {
 } from '@/shared/api/coverLetterApi';
 import { getQnAIdList } from '@/shared/api/qnaApi';
 import { CATEGORY_VALUES } from '@/shared/constants/createCoverLetter';
-import { coverLetterQueryKeys } from '@/shared/hooks/queries/coverLetterQueryKeys';
+import { coverLetterQueryKeys } from '@/shared/hooks/queries/coverLetterKeys';
 import type {
   ApiApplyHalf,
   Category,
@@ -58,7 +58,7 @@ export interface RecruitFormViewModel {
   }[];
 }
 
-// 2. 통합 데이터 패칭 훅
+// 2. 공고 수정을 위한 조회
 export const useUpdateRecruit = (coverLetterId: number) => {
   const isValidId =
     !!coverLetterId && !Number.isNaN(coverLetterId) && coverLetterId > 0;
@@ -98,6 +98,5 @@ export const useUpdateRecruit = (coverLetterId: number) => {
       };
     },
     enabled: isValidId,
-    staleTime: 5 * 60 * 1000,
   });
 };

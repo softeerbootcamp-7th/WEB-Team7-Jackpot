@@ -10,7 +10,9 @@ import {
 
 import { createCoverLetter, getCoverLetter } from '@/shared/api/coverLetterApi';
 import { getQnAIdList } from '@/shared/api/qnaApi';
-import { coverLetterQueryKeys } from '@/shared/hooks/queries/coverLetterQueryKeys';
+import { coverLetterQueryKeys } from '@/shared/hooks/queries/coverLetterKeys';
+import { homeKeys } from '@/shared/hooks/queries/homeKeys';
+import { libraryKeys } from '@/shared/hooks/queries/libraryKeys';
 import type {
   CreateCoverLetterRequest,
   CreateCoverLetterResponse,
@@ -70,12 +72,12 @@ export const useInvalidateCoverLetters = () => {
   return useCallback(() => {
     queryClient.invalidateQueries({ queryKey: coverLetterQueryKeys.all });
     queryClient.invalidateQueries({ queryKey: ['coverletter'] }); // 추가 [박소민] TODO: API 합치기
-    queryClient.invalidateQueries({ queryKey: ['home'] });
-    queryClient.invalidateQueries({ queryKey: ['libraries'] });
+    queryClient.invalidateQueries({ queryKey: homeKeys.all });
+    queryClient.invalidateQueries({ queryKey: libraryKeys.all });
   }, [queryClient]);
 };
 
-// 💡 공고 등록 훅
+// 공고(자기소개서) 등록 훅
 export const useCreateCoverLetter = () => {
   // 위에서 만든 무효화 로직을 가져옵니다.
   const invalidateAllRelatedQueries = useInvalidateCoverLetters();
@@ -91,3 +93,6 @@ export const useCreateCoverLetter = () => {
     },
   });
 };
+
+
+// 자기소개서(공고) 삭제 훅
