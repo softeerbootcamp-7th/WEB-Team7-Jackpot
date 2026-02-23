@@ -22,7 +22,6 @@ public class TextMerger {
         StringBuilder sb = new StringBuilder(dbText != null ? dbText : "");
 
         for (TextUpdateRequest delta : deltas) {
-            // TODO: OT 알고리즘 적용 지점 — delta.version()을 이용해 transform 수행
             sb.replace(delta.startIdx(), delta.endIdx(), delta.replacedText());
         }
 

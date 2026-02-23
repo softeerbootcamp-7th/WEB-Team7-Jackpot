@@ -10,7 +10,6 @@ import com.jackpot.narratix.domain.service.dto.WebSocketTextReplaceAllMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -32,101 +31,109 @@ public class TextSyncService {
     private final TextMerger textMerger;
 
     /**
-     * pending 델타를 즉시 DB에 flush한다.
-     * 리뷰 생성 등 최신 DBText가 필요한 경우 직접 호출된다.
+     * pending 델타를 Redis에서 조회한다.
+     * 리뷰 생성 등 최신 DBText가 필요한 경우 flushToDbInternal과 함께 호출된다.
+     *
+     * @return pending 델타 리스트 (비어있을 수 있음)
      */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED) // Redis 조회를 트랜잭션 밖에서 수행하여 DB 커넥션 점유 시간을 최소화하기 위함
-    public void flushToDb(Long qnAId) {
-        List<TextUpdateRequest> deltas = textDeltaRedisRepository.getPending(qnAId);
-        if (deltas.isEmpty()) {
-            log.debug("flush 대상 pending 델타 없음: qnAId={}", qnAId);
-            return;
+    public List<TextUpdateRequest> getPendingDeltas(Long qnAId) {
+        try {
+            return textDeltaRedisRepository.getPending(qnAId);
+        } catch (Exception e) {
+            log.error("pending 델타 조회 실패: qnAId={}", qnAId, e);
+            return Collections.emptyList();
         }
-
-        long readCount = deltas.size();
-        flushToDbInternal(qnAId, deltas, readCount);
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    protected void flushToDbInternal(Long qnAId, List<TextUpdateRequest> deltas, long readCount) {
+    /**
+     * pending 델타를 DB에 flush한다.
+     */
+    @Transactional
+    public void flushDeltasToDb(Long qnAId, List<TextUpdateRequest> deltas, long readCount) {
+        if (deltas.isEmpty()) return;
+
         QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
         List<TextUpdateRequest> applicableDeltas = getApplicableDeltas(deltas, qnA.getVersion());
 
-        // getPending()으로 읽은 항목 수를 commit()에 전달해 그 이후 유입된 델타를 보존한다.
         String newAnswer = textMerger.merge(qnA.getAnswer(), applicableDeltas);
         qnA.editAnswer(newAnswer);
         qnARepository.incrementVersion(qnAId, applicableDeltas.size());
 
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                commitSilently(qnAId, readCount);
-            }
-        });
+        // 정합성을 위해 DB 커밋과 Redis 커밋을 같은 트랜잭션 경계 내에서 실행한다.
+        movePendingDeltasToCommitDeltas(qnAId, readCount);
     }
 
-    private void commitSilently(Long qnAId, long readCount) {
-        try {
-            long committedDeltaCount = textDeltaRedisRepository.commit(qnAId, readCount);
-            log.info("DB flush 완료: qnAId={}, committed 수={}", qnAId, committedDeltaCount);
-        } catch (Exception e) {
-            log.error("Redis commit 실패 (DB는 이미 커밋됨), pending 강제 삭제 시도: qnAId={}", qnAId, e);
-            clearPendingSilently(qnAId);
-        }
-    }
-
-    private void clearPendingSilently(Long qnAId) {
-        try {
-            textDeltaRedisRepository.clearPending(qnAId);
-        } catch (Exception e) {
-            log.error("pending 강제 삭제 실패 (다음 flush에서 버전 필터링으로 재처리됨): qnAId={}", qnAId, e);
-        }
+    // getPending()으로 읽은 항목 수인 readCount를 commit()에 전달해 그 이후 유입된 델타를 보존한다.
+    public void movePendingDeltasToCommitDeltas(Long qnAId, long readCount) {
+        long committedDeltaCount = textDeltaRedisRepository.commit(qnAId, readCount);
+        log.info("redis flush 완료: qnAId={}, committed 수={}", qnAId, committedDeltaCount);
     }
 
     /**
-     * saveAndMaybeFlush에서 버전 충돌 발생 시 Writer와 Reviewer의 텍스트 상태를 동기화하기 위한 메시지를 반환한다.
+     * QnA answer를 업데이트하고 pending/committed delta를 모두 삭제한다.
+     * Review 생성 시 사용되며, Reviewer를 위한 OT 히스토리가 더 이상 필요 없으므로 모두 정리한다.
      *
-     * <p>버전 충돌은 Lua 스크립트에서 push가 발생하기 전에 감지되므로 Redis 롤백이 필요 없다.
-     * DB 텍스트와 현재 pending 델타를 병합한 결과를 담은 TEXT_REPLACE_ALL 메시지를 반환한다.</p>
+     * @param qnAId QnA ID
+     * @param newAnswer 새로운 answer (이미 pending delta가 병합되고 마커가 추가된 상태)
+     * @param pendingDeltaCount pending delta 개수 (version 증가량)
+     * @return 새로운 version
      */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public WebSocketMessageResponse recoverTextReplaceAll(Long qnAId) {
-        List<TextUpdateRequest> deltas;
-        try {
-            deltas = textDeltaRedisRepository.getPending(qnAId);
-        } catch (Exception e) {
-            log.error("pending 델타 조회 실패, DB 텍스트로 대체: qnAId={}", qnAId, e);
-            deltas = Collections.emptyList();
-        }
-        return buildTextReplaceAllResponse(qnAId, deltas);
+    @Transactional
+    public long updateAnswerAndClearDeltas(Long qnAId, String newAnswer, long pendingDeltaCount) {
+        QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
+        qnA.editAnswer(newAnswer);
+        long newVersion = qnARepository.incrementVersion(qnAId, (int) pendingDeltaCount);
+
+        textDeltaRedisRepository.clearDeltasAndSetVersion(qnAId, newVersion);
+        return newVersion;
     }
 
     /**
-     * saveAndMaybeFlush에서 push 이후 실제 오류(예: flushToDb 실패) 발생 시 텍스트 상태를 동기화하기 위한 메시지를 반환한다.
+     * QnA answer를 업데이트하고 pending을 committed로 이동하며 기존 committed는 모두 삭제한다.
+     * Review 삭제/승인 시 사용되며, 기존 OT 히스토리를 정리하고 새로운 히스토리로 교체한다.
      *
-     * <p>push가 완료된 마지막 델타를 Redis에서 롤백한 뒤
-     * DB 텍스트와 나머지 pending 델타를 병합한 결과를 담은 TEXT_REPLACE_ALL 메시지를 반환한다.</p>
+     * @param qnAId QnA ID
+     * @param newAnswer 새로운 answer
+     * @param pendingDeltaCount pending delta 개수 (version 증가량)
+     * @return 새로운 version
      */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public WebSocketMessageResponse recoverTextReplaceAllWithRollback(Long qnAId) {
+    @Transactional
+    public long updateAnswerCommitAndClearOldCommitted(Long qnAId, String newAnswer, long pendingDeltaCount) {
+        QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
+        qnA.editAnswer(newAnswer);
+        long newVersion = qnARepository.incrementVersion(qnAId, (int) pendingDeltaCount);
+
+        // pending을 committed로 이동하고 기존 committed는 삭제 및 redis 버전 카운터 업데이트
+        textDeltaRedisRepository.commitAndClearOldCommitted(qnAId, pendingDeltaCount, newVersion);
+
+        return newVersion;
+    }
+
+    /**
+     * saveAndMaybeFlush에서 push 이후 실패 발생 시 마지막 push를 롤백하고 pending 델타를 조회한다.
+     *
+     * <p>push가 완료된 마지막 델타를 Redis에서 롤백한 뒤 나머지 pending 델타를 조회한다.
+     * 조회한 델타는 buildTextReplaceAllResponse와 함께 사용하여 TEXT_REPLACE_ALL 메시지를 생성한다.</p>
+     *
+     * @return pending 델타 리스트 (조회 실패 시 빈 리스트)
+     */
+    public List<TextUpdateRequest> recoverFlushedDeltas(Long qnAId) {
         try {
             textDeltaRedisRepository.rollbackLastPush(qnAId);
         } catch (Exception e) {
             log.error("rollbackLastPush 실패: qnAId={}", qnAId, e);
         }
 
-        List<TextUpdateRequest> deltas;
         try {
-            deltas = textDeltaRedisRepository.getPending(qnAId);
+            return textDeltaRedisRepository.getPending(qnAId);
         } catch (Exception e) {
             log.error("pending 델타 조회 실패, DB 텍스트로 대체: qnAId={}", qnAId, e);
-            deltas = Collections.emptyList();
+            return Collections.emptyList();
         }
-        return buildTextReplaceAllResponse(qnAId, deltas);
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    protected WebSocketMessageResponse buildTextReplaceAllResponse(Long qnAId, List<TextUpdateRequest> deltas) {
+    @Transactional
+    public WebSocketMessageResponse buildTextReplaceAllResponse(Long qnAId, List<TextUpdateRequest> deltas) {
         QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
         List<TextUpdateRequest> applicableDeltas = getApplicableDeltas(deltas, qnA.getVersion());
 
@@ -143,7 +150,7 @@ public class TextSyncService {
      * delta.version()은 클라이언트가 보낸 다음 버전(push 후 Redis 버전)이므로,
      * delta.version() <= dbVersion인 것은 이미 DB에 반영됨
      */
-    private List<TextUpdateRequest> getApplicableDeltas(List<TextUpdateRequest> deltas, long dbVersion) {
+    public List<TextUpdateRequest> getApplicableDeltas(List<TextUpdateRequest> deltas, long dbVersion) {
         return deltas.stream()
                 .filter(d -> d.version() > dbVersion)
                 .toList();

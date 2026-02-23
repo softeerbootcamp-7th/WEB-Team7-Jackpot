@@ -1,5 +1,6 @@
 package com.jackpot.narratix.domain.service;
 
+import com.jackpot.narratix.domain.controller.request.TextUpdateRequest;
 import com.jackpot.narratix.domain.controller.response.CoverLetterAndQnAIdsResponse;
 import com.jackpot.narratix.domain.controller.response.QnAVersionResponse;
 import com.jackpot.narratix.domain.controller.response.ShareLinkActiveResponse;
@@ -74,7 +75,12 @@ public class ShareLinkService {
     private ShareLinkActiveResponse deactivateShareLink(Long coverLetterId) {
         shareLinkRepository.findById(coverLetterId).ifPresent(ShareLink::deactivate);
         List<Long> qnAIds = qnARepository.findIdsByCoverLetterId(coverLetterId);
-        qnAIds.forEach(textSyncService::flushToDb);     // pending 델타를 DB에 저장 후
+
+        // pending 델타를 DB에 저장
+        qnAIds.forEach(qnAId -> {
+            List<TextUpdateRequest> deltas = textSyncService.getPendingDeltas(qnAId);
+            textSyncService.flushDeltasToDb(qnAId, deltas, deltas.size());
+        });
 
         // Redis 델타 키를 트랜잭션 커밋 후에 삭제해 세션 중 데이터 유실 방지
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
@@ -95,7 +101,10 @@ public class ShareLinkService {
     public void flushPendingDeltasByShareId(String shareId) {
         shareLinkRepository.findByShareId(shareId).ifPresent(shareLink -> {
             List<Long> qnAIds = qnARepository.findIdsByCoverLetterId(shareLink.getCoverLetterId());
-            qnAIds.forEach(textSyncService::flushToDb);
+            qnAIds.forEach(qnAId -> {
+                List<TextUpdateRequest> deltas = textSyncService.getPendingDeltas(qnAId);
+                textSyncService.flushDeltasToDb(qnAId, deltas, deltas.size());
+            });
             log.info("Writer disconnect: pending 델타 flush 완료. shareId={}, qnACount={}", shareId, qnAIds.size());
         });
     }

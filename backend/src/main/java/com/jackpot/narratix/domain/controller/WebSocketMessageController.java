@@ -24,6 +24,7 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.stereotype.Controller;
 
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -103,7 +104,8 @@ public class WebSocketMessageController {
         } catch (VersionConflictException e) { // delta push 미발생 — rollback 없이 현재 상태를 TEXT_REPLACE_ALL로 전송
             log.warn("버전 충돌, TEXT_REPLACE_ALL 전송: shareId={}, qnAId={}", shareId, qnAId);
             try {
-                WebSocketMessageResponse response = textSyncService.recoverTextReplaceAll(qnAId);
+                List<TextUpdateRequest> deltas = textSyncService.getPendingDeltas(qnAId);
+                WebSocketMessageResponse response = textSyncService.buildTextReplaceAllResponse(qnAId, deltas);
                 webSocketMessageSender.sendMessageToShare(shareId, response);
             } catch (Exception re) {
                 log.error("recoverTextReplaceAll 실패: shareId={}, qnAId={}", shareId, qnAId, re);
@@ -112,7 +114,8 @@ public class WebSocketMessageController {
         } catch (SerializationException e) { // delta push 미발생 — rollback 없이 현재 상태를 TEXT_REPLACE_ALL로 전송
             log.error("TextUpdateRequest 직렬화 실패, TEXT_REPLACE_ALL 전송: shareId={}, qnAId={}", shareId, qnAId, e);
             try {
-                WebSocketMessageResponse response = textSyncService.recoverTextReplaceAll(qnAId);
+                List<TextUpdateRequest> deltas = textSyncService.getPendingDeltas(qnAId);
+                WebSocketMessageResponse response = textSyncService.buildTextReplaceAllResponse(qnAId, deltas);
                 webSocketMessageSender.sendMessageToShare(shareId, response);
             } catch (Exception re) {
                 log.error("recoverTextReplaceAll 실패: shareId={}, qnAId={}", shareId, qnAId, re);
@@ -122,7 +125,8 @@ public class WebSocketMessageController {
             // delta push 이후 실패 — 마지막 push 롤백 후 TEXT_REPLACE_ALL 전송
             log.error("텍스트 업데이트 실패, rollback 후 TEXT_REPLACE_ALL 전송: shareId={}, qnAId={}", shareId, qnAId, e);
             try {
-                WebSocketMessageResponse response = textSyncService.recoverTextReplaceAllWithRollback(qnAId);
+                List<TextUpdateRequest> deltas = textSyncService.recoverFlushedDeltas(qnAId);
+                WebSocketMessageResponse response = textSyncService.buildTextReplaceAllResponse(qnAId, deltas);
                 webSocketMessageSender.sendMessageToShare(shareId, response);
             } catch (Exception re) {
                 log.error("recoverTextReplaceAllWithRollback 실패: shareId={}, qnAId={}", shareId, qnAId, re);

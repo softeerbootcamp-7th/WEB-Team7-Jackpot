@@ -7,7 +7,6 @@ import com.jackpot.narratix.domain.repository.TextDeltaRedisRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -22,7 +21,7 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class TextDeltaService {
 
-    private static final int FLUSH_THRESHOLD = 20;
+    private static final int FLUSH_THRESHOLD = 100;
 
     private final TextDeltaRedisRepository textDeltaRedisRepository;
     private final QnARepository qnARepository;
@@ -68,13 +67,13 @@ public class TextDeltaService {
 
         if (pendingSize >= FLUSH_THRESHOLD) {
             log.info("flush 임계값 도달: qnAId={}", qnAId);
-            textSyncService.flushToDb(qnAId);
+            List<TextUpdateRequest> deltas = textSyncService.getPendingDeltas(qnAId);
+            textSyncService.flushDeltasToDb(qnAId, deltas, deltas.size());
         }
 
         return request.version();
     }
 
-    @Transactional(readOnly = true)
     protected void recoverVersionFromDb(Long qnAId) {
         log.warn("버전 카운터 유실 감지, DB에서 재초기화: qnAId={}", qnAId);
         QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
@@ -102,7 +101,15 @@ public class TextDeltaService {
         List<TextUpdateRequest> committed = textDeltaRedisRepository.getCommitted(qnAId);
         List<TextUpdateRequest> pending = textDeltaRedisRepository.getPending(qnAId);
         return Stream.concat(committed.stream(), pending.stream()) // version asc
-                .filter(d -> d.version() >= fromVersion)
+                .filter(d -> d.version() > fromVersion)
                 .toList();
+    }
+
+    /**
+     * committed 델타를 가져온다.
+     * Review 생성 시 OT 변환을 위해 사용한다.
+     */
+    public List<TextUpdateRequest> getCommittedDeltas(Long qnAId) {
+        return textDeltaRedisRepository.getCommitted(qnAId);
     }
 }

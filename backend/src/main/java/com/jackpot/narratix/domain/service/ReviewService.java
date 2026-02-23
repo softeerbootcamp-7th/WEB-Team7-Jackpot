@@ -103,9 +103,30 @@ public class ReviewService {
                 + currentAnswer.substring(end);
     }
 
-    public String removeReviewMarker(String currentAnswer, Long reviewId, String originText) {
-        String marker = markerOpen(reviewId) + originText + MARKER_CLOSE;
-        return currentAnswer.replace(marker, originText);
+    public String removeReviewMarker(String currentAnswer, Long reviewId) {
+        String markerOpen = markerOpen(reviewId);
+        int markerOpenIndex = currentAnswer.indexOf(markerOpen);
+
+        if (markerOpenIndex == -1) {
+            // 마커가 없으면 원본 반환
+            return currentAnswer;
+        }
+
+        int contentStartIndex = markerOpenIndex + markerOpen.length();
+        int markerCloseIndex = currentAnswer.indexOf(MARKER_CLOSE, contentStartIndex);
+
+        if (markerCloseIndex == -1) {
+            // MARKER_CLOSE가 없으면 markerOpen만이라도 제거
+            String content = currentAnswer.substring(contentStartIndex);
+            return currentAnswer.substring(0, markerOpenIndex) + content;
+        }
+
+        String content = currentAnswer.substring(contentStartIndex, markerCloseIndex);
+
+        // markerOpen과 MARKER_CLOSE 제거
+        return currentAnswer.substring(0, markerOpenIndex)
+                + content
+                + currentAnswer.substring(markerCloseIndex + MARKER_CLOSE.length());
     }
 
     public String replaceMarkerContent(String currentAnswer, Long reviewId, String oldContent, String newContent) {
