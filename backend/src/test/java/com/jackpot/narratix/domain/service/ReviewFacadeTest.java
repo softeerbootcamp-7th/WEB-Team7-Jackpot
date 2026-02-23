@@ -146,7 +146,7 @@ class ReviewFacadeTest {
         given(reviewService.createReview(reviewerId, qnaId, request)).willReturn(savedReview);
         given(reviewService.addMarkerToReviewedSection(originText, 0, 6, 1L, originText))
                 .willReturn("⟦r:1⟧원본 텍스트⟦/r⟧");
-        given(textSyncService.updateAnswerAndClearDeltas(qnaId, eq("⟦r:1⟧원본 텍스트⟦/r⟧"), eq(0L)))
+        given(textSyncService.updateAnswerAndClearDeltas(eq(qnaId), eq("⟦r:1⟧원본 텍스트⟦/r⟧"), eq(0L)))
                 .willReturn(1L);
         doNothing().when(notificationService).sendFeedbackNotificationToWriter(any(), any(), any(), any(), any(), any());
 
@@ -222,7 +222,7 @@ class ReviewFacadeTest {
         given(reviewService.createReview(reviewerId, qnaId, request)).willReturn(savedReview);
         given(reviewService.addMarkerToReviewedSection("AB원본CDEF", 2, 4, 1L, originText))
                 .willReturn("AB⟦r:1⟧원본⟦/r⟧CDEF");
-        given(textSyncService.updateAnswerAndClearDeltas(qnaId, eq("AB⟦r:1⟧원본⟦/r⟧CDEF"), eq(0L)))
+        given(textSyncService.updateAnswerAndClearDeltas(eq(qnaId), eq("AB⟦r:1⟧원본⟦/r⟧CDEF"), eq(0L)))
                 .willReturn(7L);
         doNothing().when(notificationService).sendFeedbackNotificationToWriter(any(), any(), any(), any(), any(), any());
 
@@ -274,7 +274,7 @@ class ReviewFacadeTest {
         given(reviewService.createReview(reviewerId, qnaId, request)).willReturn(savedReview);
         given(reviewService.addMarkerToReviewedSection("AB원본CD", 2, 4, 99L, originText))
                 .willReturn("AB⟦r:99⟧원본⟦/r⟧CD");
-        given(textSyncService.updateAnswerAndClearDeltas(qnaId, eq("AB⟦r:99⟧원본⟦/r⟧CD"), eq(0L)))
+        given(textSyncService.updateAnswerAndClearDeltas(eq(qnaId), eq("AB⟦r:99⟧원본⟦/r⟧CD"), eq(0L)))
                 .willReturn(1L);
         doNothing().when(notificationService).sendFeedbackNotificationToWriter(any(), any(), any(), any(), any(), any());
 
