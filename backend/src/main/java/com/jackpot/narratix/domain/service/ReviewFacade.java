@@ -159,13 +159,11 @@ public class ReviewFacade {
 
         // Transaction: 모든 작업을 하나의 트랜잭션에서 처리
         transactionTemplate.executeWithoutResult(status -> {
-            // QnA, Review 조회 및 검증
+            // QnA, Review 조회 및 웹소켓 유저 검증
+            Review review = reviewService.getReview(reviewId);
             QnA qnA = qnAService.findByIdOrElseThrow(qnAId);
             Long coverLetterId = qnA.getCoverLetter().getId();
-
             reviewService.validateWebSocketConnected(userId, coverLetterId, ReviewRoleType.WRITER);
-
-            Review review = reviewService.getReview(reviewId);
 
             // 검증
             reviewService.validateReviewBelongsToQnA(review, qnAId);
@@ -174,20 +172,19 @@ public class ReviewFacade {
             // pending delta를 병합
             String mergedAnswer = textMerger.merge(qnA.getAnswer(), pendingDeltas);
 
+            // 마커 교체 (항상 originText를 suggest로 변경해야 한다.)
+            String oldContent = review.getOriginText();
+            String newContent = review.getSuggest();
+            String approvedAnswer = reviewService.replaceMarkerContent(mergedAnswer, reviewId, oldContent, newContent);
+
             // 승인/취소 토글
             reviewService.toggleApproval(review);
 
-            // 마커 교체
-            String oldContent = review.isApproved() ? review.getOriginText() : review.getSuggest();
-            String newContent = review.isApproved() ? review.getSuggest() : review.getOriginText();
-
-            String newAnswer = reviewService.replaceMarkerContent(mergedAnswer, reviewId, oldContent, newContent);
-
             // QnA 업데이트 & pending을 committed로 이동 & pending 조회 이후 유입된 delta는 제거
-            long newVersion = textSyncService.updateAnswerCommitAndClearOldCommitted(qnAId, newAnswer, pendingDeltaCount);
+            long newVersion = textSyncService.updateAnswerCommitAndClearOldCommitted(qnAId, approvedAnswer, pendingDeltaCount);
 
             // 트랜잭션 커밋 후 이벤트 발행
-            eventPublisher.publishEvent(new TextReplaceAllEvent(coverLetterId, qnAId, newVersion, newAnswer));
+            eventPublisher.publishEvent(new TextReplaceAllEvent(coverLetterId, qnAId, newVersion, approvedAnswer));
             eventPublisher.publishEvent(ReviewEditEvent.of(coverLetterId, qnAId, review));
         });
     }
