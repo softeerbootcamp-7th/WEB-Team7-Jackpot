@@ -2,14 +2,14 @@ import { type ReactNode, useMemo } from 'react';
 
 import { useInfiniteCalendarDates } from '@/features/recruit/hooks/queries/useCalendarQuery';
 import * as RCI from '@/features/recruit/icons';
-import type { CalendarRequest } from '@/features/recruit/types';
 import DocumentItem from '@/shared/components/DocumentItem';
 import DocumentList from '@/shared/components/DocumentList';
+import type { FilterRequest } from '@/shared/types/coverLetter';
 import { getDate } from '@/shared/utils/dates';
 import { mapApplyHalf } from '@/shared/utils/recruitSeason';
 
 interface Props {
-  dateParams: CalendarRequest;
+  dateParams: FilterRequest;
   onEdit?: (id: number) => void;
   onDelete?: (id: number) => void;
   emptyComponent?: ReactNode; // 빈 화면 커스텀
