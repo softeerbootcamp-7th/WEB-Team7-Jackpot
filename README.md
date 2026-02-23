@@ -164,8 +164,22 @@
 │  ├─ src/features             # 도메인별 기능 모듈
 │  └─ src/shared               # 공통 컴포넌트/API/훅/유틸
 └─ backend/    # Spring Boot
-   ├─ src/main/java            # API/도메인 로직
-   └─ script                   # 배포 스크립트
+   └─ src/main/java/com/jackpot/narratix/
+     ├─ domain/              # 도메인별 비즈니스 로직
+     │  ├─ controller/       # REST API 엔드포인트, WebSocket 메시지 핸들러
+     │  ├─ service/          # 비즈니스 로직
+     │  ├─ repository/       # 데이터 접근
+     │  ├─ entity/           # JPA 엔티티
+     │  ├─ event/            # 도메인 이벤트 (WebSocket, Notification)
+     │  └─ exception/        # 도메인별 예외 및 에러 코드
+     │
+     └─ global/              # 공통 인프라 및 횡단 관심사
+        ├─ auth/             # JWT 인증
+        ├─ config/           # 설정
+        ├─ interceptor/      # STOMP 채널 인터셉터
+        ├─ websocket/        # WebSocket 인프라
+        ├─ sse/              # SSE 구독 및 발송
+        └─ exception/        # 전역 예외 처리 핸들러 및 공통 에러 코드
 ```
 
 ---
@@ -260,13 +274,13 @@
 
 ## 🧑‍💻 역할 및 주요 기여
 
-| 이름   | 포지션          | 담당 도메인 |
-| ------ | --------------- | ----------- |
-| 강유진 | Frontend        | 실시간 텍스트 에디터 / 협업 첨삭 UI |
-| 박소민 | Frontend        | 라이브러리(기업·문항) / 나의 채용공고(캘린더) |
-| 윤종근 | Frontend        | 실시간 첨삭, 실시간 알림, 자료 업로드   |
+| 이름   | 포지션          | 담당 도메인                             |
+| ------ | --------------- |------------------------------------|
+| 강유진 | Frontend        | 실시간 텍스트 에디터 / 협업 첨삭 UI             |
+| 박소민 | Frontend        | 라이브러리(기업·문항) / 나의 채용공고(캘린더)        |
+| 윤종근 | Frontend        | 실시간 첨삭, 실시간 알림, 자료 업로드             |
 | 김승환 | Backend & Infra | WebSocket 실시간 첨삭, SSE 알림, 자기소개서, 첨삭 링크 관리 |
-| 이정민 | Backend & Infra | 자료 업로드, 검색   |
+| 이정민 | Backend & Infra | 자료 업로드, 라이브러리, 검색                  |
 ---
 
 ### 강유진 (Frontend)
@@ -300,16 +314,21 @@
 
 ### 김승환 (Backend & Infra)
 
-- [[고민] - WebSocket vs. SSE](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EA%B9%80%EC%8A%B9%ED%99%98%5D-%E2%80%90-Websocket-vs.-SSE)
-	- 실시간 문서 첨삭 기능 구현 시 SSE와 WebSocket의 트레이드오프를 분석하고, 인프라 통합과 향후 기능 확장성을 고려해 STOMP 기반의 WebSocket으로 통신 아키텍처를 통일한 과정입니다.
-
-:page_facing_up: 관련 문서:
+- **WebSocket/STOMP 기반 실시간 자소서 첨삭 기능 구현**: WebSocket과 STOMP를 사용해 작성자(Writer)와 첨삭자(Reviewer) 간 실시간 자소서 첨삭 기능 구현
+- **Operational Transformation 알고리즘을 사용한 중앙 집중 동시 편집 기능 구현**: Writer(자기소개서 작성자)와 Reviewer(첨삭자)가 자기소개서 동시 편집 시 충돌 없이 일관된 상태를 유지하도록 Operational Transformation 알고리즘을 도입하여 모든 사용자가 동일한 결과를 보도록 구현
+- **Write Back 패턴을 사용하여 실시간 저장 로직 최적화**: 매 텍스트 변경마다 DB IO를 발생시키지 않고, Redis에 Delta(변경분)를 임시 저장하고, 임계값 도달 시 DB에 Delta를 Flush하는 Write Back 캐싱 전략 구현
+- **Redis 분산 락을 이용한 웹소켓 접속 유저 제한 정책 구현**: 하나의 첨삭 링크에 Writer와 Reviewer 각 1명만 동시 접속이 가능하도록 Redis 분산 락 기반 제한 정책 구현, Lock의 TTL을 10초로 설정하여 비정상 종료 시에도 락이 자동 해제되도록 구현, Lock 갱신 로직에서 Pipeline과 Lua Script를 조합해 단일 네트워크 IO로 모든 세션의 Lock TTL을 4초마다 갱신하도록 구현
+- **SSE 기반 알림 발송 로직 구축**: Server-Sent Events를 활용하여 서버에서 클라이언트로 단방향 실시간 알림을 전송하는 시스템 구현
 
 ### 이정민 (Backend & Infra)
 
-- **[pdf업로드 및 AI 라벨링 기능을 위한 이벤트 기반 비동기 파이프라인](<https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EB%B0%95%EC%86%8C%EB%AF%BC%5D-%E2%80%90-TypeScript-%EC%A0%9C%EB%84%88%EB%A6%AD(Generic)%EC%9D%84-%ED%99%9C%EC%9A%A9%ED%95%9C-%ED%83%80%EC%9E%85-%EC%95%88%EC%A0%84%EC%84%B1-%EB%86%92%EC%9D%80-%EC%9E%AC%EC%82%AC%EC%9A%A9-%ED%83%AD-%EC%BB%B4%ED%8F%AC%EB%84%8C%ED%8A%B8-%EA%B5%AC%ED%98%84>)**
+- **자료 업로드 관련 기능 및 인프라 구축**:  AWS S3, Lambda, SQS를 조합한 비동기 아키텍처 설계, (S3업로드 -> lambda 호출 -> pdf 추출 -> ai라벨링 -> SSE 실시간 알림) 로직 구현
+- **라이브러리 & 스크랩 기능**: 라이브러리, 문항 스크랩 기능의 비즈니스 로직을 구현
+- **검색 기능**: 자기소개서 및 문항 대상 검색 기능 구현 및 최적화
+- **Auth 로직 구현**: JWT 기반 로그인, 로그아웃 등 전반적인 사용자 인증 관련 로직을 구현
 
-:page_facing_up: 관련 문서:
+:page_facing_up: 관련 문서: **[pdf업로드 및 AI 라벨링 기능을 위한 이벤트 기반 비동기 파이프라인](<https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EA%B3%A0%EB%AF%BC%5D-pdf%EC%97%85%EB%A1%9C%EB%93%9C-%EB%B0%8F-AI-%EB%9D%BC%EB%B2%A8%EB%A7%81-%EA%B8%B0%EB%8A%A5%EC%9D%84-%EC%9C%84%ED%95%9C-%EC%9D%B4%EB%B2%A4%ED%8A%B8-%EA%B8%B0%EB%B0%98-%EB%B9%84%EB%8F%99%EA%B8%B0-%ED%8C%8C%EC%9D%B4%ED%94%84%EB%9D%BC%EC%9D%B8>)**
+
 
 ## 🚀 기술적 도전 (Top Picks)
 
@@ -326,11 +345,13 @@
 
 - **[[고민] Refresh Token Rotation (RTR) 및 보안 전략](<https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9D%B4%EC%A0%95%EB%AF%BC%5D-%E2%80%90-Refresh-Token-Rotation-(RTR)-%EB%B0%8F-%EB%B3%B4%EC%95%88-%EC%A0%84%EB%9E%B5>)**
   - 토큰 탈취 공격에 대응하기 위해 RTR 전략을 도입하고, 동시 요청 시 발생하는 Race Condition 문제를 해결하며 시스템 보안을 강화했습니다.
-- **[[고민] 비동기 이벤트 아키텍처 개선기](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EA%B9%80%EC%8A%B9%ED%99%98%5D-%EB%B9%84%EB%8F%99%EA%B8%B0-%EC%9D%B4%EB%B2%A4%ED%8A%B8-%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98-%EA%B0%9C%EC%84%A0%EA%B8%B0)**
-  - 시스템 간 결합도를 낮추고 확장성을 높이기 위해 이벤트 기반 비동기 처리 방식을 도입하고, 메시지 큐(SQS)를 활용하여 안정성을 확보한 과정입니다.
 - [[고민] - WebSocket vs. SSE](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EA%B9%80%EC%8A%B9%ED%99%98%5D-%E2%80%90-Websocket-vs.-SSE)
 	- 실시간 문서 첨삭 기능 구현 시 SSE와 WebSocket의 트레이드오프를 분석하고, 인프라 통합과 향후 기능 확장성을 고려해 STOMP 기반의 WebSocket으로 통신 아키텍처를 통일한 과정입니다.
- - **[pdf업로드 및 AI 라벨링 기능을 위한 이벤트 기반 비동기 파이프라인](<https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EB%B0%95%EC%86%8C%EB%AF%BC%5D-%E2%80%90-TypeScript-%EC%A0%9C%EB%84%88%EB%A6%AD(Generic)%EC%9D%84-%ED%99%9C%EC%9A%A9%ED%95%9C-%ED%83%80%EC%9E%85-%EC%95%88%EC%A0%84%EC%84%B1-%EB%86%92%EC%9D%80-%EC%9E%AC%EC%82%AC%EC%9A%A9-%ED%83%AD-%EC%BB%B4%ED%8F%AC%EB%84%8C%ED%8A%B8-%EA%B5%AC%ED%98%84>)**
+
+- **[[정리] - pdf업로드 및 AI 라벨링 기능을 위한 이벤트 기반 비동기 파이프라인](<https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EA%B3%A0%EB%AF%BC%5D-pdf%EC%97%85%EB%A1%9C%EB%93%9C-%EB%B0%8F-AI-%EB%9D%BC%EB%B2%A8%EB%A7%81-%EA%B8%B0%EB%8A%A5%EC%9D%84-%EC%9C%84%ED%95%9C-%EC%9D%B4%EB%B2%A4%ED%8A%B8-%EA%B8%B0%EB%B0%98-%EB%B9%84%EB%8F%99%EA%B8%B0-%ED%8C%8C%EC%9D%B4%ED%94%84%EB%9D%BC%EC%9D%B8>)**
+ - 업로드 관련 로직 최종 정리 버전입니다.
+- **[[고민] 비동기 이벤트 아키텍처 개선기](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EA%B9%80%EC%8A%B9%ED%99%98%5D-%EB%B9%84%EB%8F%99%EA%B8%B0-%EC%9D%B4%EB%B2%A4%ED%8A%B8-%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98-%EA%B0%9C%EC%84%A0%EA%B8%B0)**
+  - 업로드 관련 로직 아키텍처를 구상하고 개선해나간 기록입니다.
 ---
 
 ## 📚 문서 허브
@@ -366,11 +387,4 @@ VITE_API_BASE_URL=<YOUR_API_BASE_URL>
 VITE_SOCKET_URL=<YOUR_SOCKET_URL>
 VITE_SERVICE_BASE_URL=<YOUR_SERVICE_BASE_URL>
 VITE_DEV_BASE_URL=<YOUR_DEV_BASE_URL>
-```
-
-### Backend
-
-```bash
-cd backend
-./gradlew bootRun
 ```
