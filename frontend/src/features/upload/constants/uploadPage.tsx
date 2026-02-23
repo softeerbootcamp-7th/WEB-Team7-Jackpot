@@ -21,9 +21,8 @@ export const STEP_DATA: Record<string, StepDataType> = {
     Icon: UI.AILabelingIcon,
     step: 'step 02',
     name: 'AI 라벨링',
-    loadingTitle: '업로드해주신 자료를 분석하는 중이에요...',
-    loadingSubTitle:
-      '잠시만 기다려주세요.\nAI가 분석을 마치면 알림을 전송해드릴게요!',
+    loadingTitle: '업로드가 완료되었어요!',
+    loadingSubTitle: '라벨링된 결과를 확인하시고 저장해주세요.',
   },
   '3': {
     className: 'left-[25.5rem]',
@@ -31,7 +30,15 @@ export const STEP_DATA: Record<string, StepDataType> = {
     step: 'step 03',
     name: '저장 완료',
     loadingTitle: '저장이 완료되었어요!',
-    loadingSubTitle: '총 3개의 문항이 라이브러리에 저장되었어요.',
+    loadingSubTitle: '사용자님의 자기소개서가 라이브러리에 저장되었어요.',
+  },
+  '3-error': {
+    className: 'left-[25.5rem]',
+    Icon: UI.CompleteSavedIcon,
+    step: 'step 03',
+    name: '저장 실패',
+    loadingTitle: '저장이 실패했습니다.',
+    loadingSubTitle: '업로드한 파일의 라벨링이 모두 실패했어요.',
   },
 } as const;
 
@@ -48,21 +55,21 @@ export const UPLOAD_TAB_DATA: UploadTabDataType[] = [
   },
 ] as const;
 
-export const MAX_BYTES = 10 * 1024 * 1024;
+export const MAX_BYTES = 5 * 1024 * 1024;
 
-export const QUESTION_TYPE_LIST: string[] = [
-  '지원동기',
-  '협업경험',
-  '가치관',
-  '직무역량',
-  '성격의 장단점',
-  '입사 후 포부',
-  '문제해결',
-  '커리어 목표',
-  '실패경험',
-  '성장과정',
-  '사회이슈',
-  '기타',
+export const QUESTION_TYPE_LIST: Record<string, string>[] = [
+  { label: '지원동기', value: 'MOTIVATION' },
+  { label: '협업경험', value: 'TEAMWORK_EXPERIENCE' },
+  { label: '가치관', value: 'VALUES' },
+  { label: '직무역량', value: 'JOB_SKILL' },
+  { label: '성격의 장단점', value: 'PERSONALITY' },
+  { label: '입사 후 포부', value: 'FUTURE_PLAN' },
+  { label: '문제해결', value: 'PROBLEM_SOLVING' },
+  { label: '커리어 목표', value: 'CAREER_GOAL' },
+  { label: '실패경험', value: 'FAILURE_EXPERIENCE' },
+  { label: '성장과정', value: 'GROWTH_PROCESS' },
+  { label: '사회이슈', value: 'SOCIAL_TOPIC' },
+  { label: '기타', value: 'OTHER' },
 ] as const;
 
 export const MOCK_COVER_LETTER = [
@@ -81,4 +88,10 @@ export const MOCK_COVER_LETTER = [
       '다인생에서 가장 누워서 자고 싶었던 경험은 무엇이고 어떻게 극복하셨나요?',
     content: `대학 시절, 교내 동아리의 운영진으로 활동하며 고질적인 전수 조사한 경험이 있습니다. 당시 단순 친목 도모 위주의 활동이 고학년 학생들에게는 매력적이지 않다는 점을 발견했고, 이를 보완하기 위해 '직무 스터디 세션'을 도입했습니다. 그 결과, 직전 학기 대비 이탈률을 40% 이상 감소시켰고, 이는 제가 문제를 정의하고 데이터를 기반으로 대안을 제시하는 기획자로서의 자질을 확인하는 계기가 되었습니다. 이러한 분석적인 태도는 업무를 대함에 있어 막연한 직관이 아닌 객관적인 근거를 바탕으로 최선의 결과를 도출하는 저만의 확고한 가치관이 되었습니다.\n대학 시절, 교내 동아리의 운영진으로 활동하며 고질적인 전수 조사한 경험이 있습니다. 당시 단순 친목 도모 위주의 활동이 고학년 학생들에게는 매력적이지 않다는 점을 발견했고, 이를 보완하기 위해 '직무 스터디 세션'을 도입했습니다. 그 결과, 직전 학기 대비 이탈률을 40% 이상 감소시켰고, 이는 제가 문제를 정의하고 데이터를 기반으로 대안을 제시하는 기획자로서의 자질을 확인하는 계기가 되었습니다. 이러한 분석적인 태도는 업무를 대함에 있어 막연한 직관이 아닌 객관적인 근거를 바탕으로 최선의 결과를 도출하는 저만의 확고한 가치관이 되었습니다.\n대학 시절, 교내 동아리의 운영진으로 활동하며 고질적인 전수 조사한 경험이 있습니다. 당시 단순 친목 도모 위주의 활동이 고학년 학생들에게는 매력적이지 않다는 점을 발견했고, 이를 보완하기 위해 '직무 스터디 세션'을 도입했습니다. 그 결과, 직전 학기 대비 이탈률을 40% 이상 감소시켰고, 이는 제가 문제를 정의하고 데이터를 기반으로 대안을 제시하는 기획자로서의 자질을 확인하는 계기가 되었습니다.`,
   },
+] as const;
+
+export const TAB_STATE: Record<string, string>[] = [
+  { label: '첫 번째', value: '0' },
+  { label: '두 번째', value: '1' },
+  { label: '세 번째', value: '2' },
 ] as const;

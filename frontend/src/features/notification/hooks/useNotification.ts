@@ -8,6 +8,7 @@ import {
 
 import { getAccessToken } from '@/features/auth/libs/tokenStore';
 import type {
+  LabeledQnAListResponse,
   NotificationCountResponse,
   NotificationResponse,
   NotificationType,
@@ -114,5 +115,17 @@ export const useReadAllNotification = () => {
     },
     // [윤종근] - TODO: 토스트 메시지로 수정 필요
     onError: (error) => console.error('에러입니다.', error),
+  });
+};
+
+// 라벨링 완료된 자기소개서로 리다이렉트 해주기 위한 사전 정보 수집 커스텀 훅
+export const useLabeledQnAList = (uploadJobId: string) => {
+  return useQuery({
+    queryKey: ['qnaList', uploadJobId],
+    queryFn: () =>
+      apiClient.get<LabeledQnAListResponse>({
+        endpoint: `/upload/uploaded/${uploadJobId}/qnas`,
+      }),
+    enabled: !!uploadJobId,
   });
 };

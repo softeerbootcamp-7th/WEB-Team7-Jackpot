@@ -252,6 +252,13 @@
   animation-delay: 0.4s;
 }
 
+/* Faster fade-in variant for confirmation modal */
+.delay-show-fast {
+  opacity: 0;
+  animation: fade-in 0.3s forwards;
+  animation-delay: 0.05s;
+}
+
 @keyframes enter-smooth {
   0% {
     opacity: 0;

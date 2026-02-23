@@ -1,7 +1,7 @@
 import type { NotificationType } from '@/features/notification/types/notification';
 
 export interface NotificationSSEPayload {
-  unreadNotificationCount: number;
+  // unreadNotificationCount: number;
   notification: NotificationType;
 }
 
