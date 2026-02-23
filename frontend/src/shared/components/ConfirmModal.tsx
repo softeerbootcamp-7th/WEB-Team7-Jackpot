@@ -3,7 +3,7 @@ interface ConfirmModalProps {
   type: 'success' | 'error' | 'warning' | 'info';
   title: string;
   message: string;
-  onClose: () => void;
+  onClose?: () => void;
   onConfirm: () => void;
   closeButtonText?: string;
   confirmButtonText?: string;
@@ -42,7 +42,7 @@ const ConfirmModal = ({
   message,
   onClose,
   onConfirm,
-  closeButtonText = '닫기',
+  closeButtonText,
   confirmButtonText = '확인',
 }: ConfirmModalProps) => {
   if (!isOpen) return null;
@@ -58,15 +58,19 @@ const ConfirmModal = ({
           </span>
           {title}
         </div>
-        <div className='text-body-m mb-6'>{message}</div>
+        <div className='text-body-m mb-6 leading-relaxed whitespace-pre-wrap text-gray-950'>
+          {message}
+        </div>
         <div className='flex justify-end gap-3'>
-          <button
-            type='button'
-            className='cursor-pointer rounded-md bg-gray-100 px-4 py-2 text-gray-700 hover:bg-gray-200'
-            onClick={onClose}
-          >
-            {closeButtonText}
-          </button>
+          {onClose && (
+            <button
+              type='button'
+              className='cursor-pointer rounded-md bg-gray-100 px-4 py-2 text-gray-700 hover:bg-gray-200'
+              onClick={onClose}
+            >
+              {closeButtonText || '닫기'}
+            </button>
+          )}
           <button
             type='button'
             className={`cursor-pointer rounded-md px-4 py-2 ${typeStyles.buttonColor}`}

@@ -77,9 +77,6 @@ const UploadInputSection = () => {
         type={modalType || 'info'}
         title={modalTitle}
         message={modalMessage}
-        onClose={() => {
-          setModalType(null);
-        }}
         onConfirm={() => {
           if (modalType === 'error') {
             // 리셋 동작
@@ -91,7 +88,6 @@ const UploadInputSection = () => {
             navigate('/', { replace: true });
           }
         }}
-        closeButtonText='닫기'
         confirmButtonText={modalType === 'success' ? '홈으로 이동' : '확인'}
       />
     </div>
