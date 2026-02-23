@@ -8,7 +8,11 @@ import {
   useSuspenseQuery,
 } from '@tanstack/react-query';
 
-import { createCoverLetter, getCoverLetter } from '@/shared/api/coverLetterApi';
+import {
+  createCoverLetter,
+  deleteCoverLetter,
+  getCoverLetter,
+} from '@/shared/api/coverLetterApi';
 import { getQnAIdList } from '@/shared/api/qnaApi';
 import { coverLetterQueryKeys } from '@/shared/hooks/queries/coverLetterKeys';
 import { homeKeys } from '@/shared/hooks/queries/homeKeys';
@@ -94,5 +98,12 @@ export const useCreateCoverLetter = () => {
   });
 };
 
+// 자기소개서(공고) 삭제
+export const useDeleteCoverLetter = () => {
+  const invalidate = useInvalidateCoverLetters();
 
-// 자기소개서(공고) 삭제 훅
+  return useMutation<void, Error, { coverLetterId: number }>({
+    mutationFn: (variables) => deleteCoverLetter(variables.coverLetterId),
+    onSuccess: () => invalidate(), // ['coverLetters'] 전체 무효화
+  });
+};

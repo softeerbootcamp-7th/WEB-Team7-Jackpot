@@ -16,9 +16,9 @@ import NewCoverLetterContainer from '@/features/coverLetter/components/newCoverL
 import CoverLetterLayout from '@/features/coverLetter/layouts/CoverLetterLayout';
 import WriteSidebarLayout from '@/features/coverLetter/layouts/WriteSidebarLayout';
 import CompanyDetailView from '@/features/library/components/company/CompanyDetailView';
-import LibraryLayout from '@/features/library/components/layouts/LibraryLayout';
-import LibrarySidebarLayout from '@/features/library/components/layouts/LibrarySidebarLayout';
 import QnADetailView from '@/features/library/components/qna/QnADetailView';
+import LibraryLayout from '@/features/library/layouts/LibraryLayout';
+import LibrarySidebarLayout from '@/features/library/layouts/LibrarySidebarLayout';
 import RecruitRedirect from '@/features/recruit/components/RecruitRedirect';
 import LabelingResultSection from '@/features/upload/components/LabelingResultSection';
 import UploadCompleteSection from '@/features/upload/components/UploadCompleteSection';

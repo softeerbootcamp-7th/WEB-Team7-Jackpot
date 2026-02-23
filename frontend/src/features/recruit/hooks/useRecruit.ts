@@ -2,8 +2,8 @@ import { useCallback, useMemo, useState } from 'react';
 
 import { useParams } from 'react-router';
 
-import { useDeleteCoverLetter } from '@/features/recruit/hooks/queries/useCoverLetterMutation';
 import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
+import { useDeleteCoverLetter } from '@/shared/hooks/useCoverLetterQueries';
 import { getISODate, isValidDate } from '@/shared/utils/dates';
 
 export const useRecruit = () => {
