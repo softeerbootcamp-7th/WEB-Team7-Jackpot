@@ -5,8 +5,8 @@ import { useNavigate } from 'react-router';
 import UploadFileArea from '@/features/upload/components/UploadFileArea';
 import UploadInputHeader from '@/features/upload/components/UploadInputHeader';
 import { useAiLabeling } from '@/features/upload/hooks/useUploadQueries';
-import LoadingModal from '@/shared/components/modal/LoadingModal';
 import ConfirmModal from '@/shared/components/modal/ConfirmModal';
+import LoadingModal from '@/shared/components/modal/LoadingModal';
 
 const UploadInputSection = () => {
   const navigate = useNavigate();

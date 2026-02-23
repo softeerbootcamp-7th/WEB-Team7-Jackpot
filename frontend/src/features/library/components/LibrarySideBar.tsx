@@ -2,14 +2,14 @@ import { useEffect, useRef } from 'react';
 
 import { useParams, useSearchParams } from 'react-router';
 
-import { searchLibrary } from '@/features/library/api';
 import CompanyDocumentList from '@/features/library/components/company/CompanyDocumentList';
 import FolderList from '@/features/library/components/FolderList';
 import QnADocumentList from '@/features/library/components/qna/QnADocumentList';
 import QnASearchResult from '@/features/library/components/qna/QnASearchResult';
 import { useLibraryTabs } from '@/features/library/hooks/useLibraryTabs';
+import { searchLibrary } from '@/shared/api/qnaApi';
 import SearchInput from '@/shared/components/SearchInput';
-import useSearch from '@/shared/hooks/useSearch';
+import useInfiniteSearch from '@/shared/hooks/useInfiniteSearch';
 
 interface LibrarySideBarProps {
   folderList: string[];
@@ -29,10 +29,12 @@ const LibrarySideBar = ({ folderList }: LibrarySideBarProps) => {
     handleChange,
     data: searchResults,
     isLoading,
-  } = useSearch({
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useInfiniteSearch({
     queryKey: 'keyword',
-    fetchAction: searchLibrary, // [박소민] TODO: use훅 사용 후 삭제
-    // 기업 탭일 땐 useSearch 기능을 꺼버려서 URL 깜빡임 원천 차단
+    fetchAction: searchLibrary,
     isEnabled: currentTab === 'QUESTION',
   });
 
@@ -97,6 +99,9 @@ const LibrarySideBar = ({ folderList }: LibrarySideBarProps) => {
           keyword={keyword}
           data={searchResults}
           isLoading={isLoading}
+          isFetchingNextPage={isFetchingNextPage}
+          hasNextPage={hasNextPage}
+          fetchNextPage={fetchNextPage}
           className='flex-1 overflow-y-auto'
         />
       );
