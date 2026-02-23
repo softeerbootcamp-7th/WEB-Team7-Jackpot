@@ -145,7 +145,13 @@
 
 ## 🏗 아키텍처 & ERD
 
+### 아키텍처
 <img width="5376" height="4176" alt="image" src="https://github.com/user-attachments/assets/e5f0c462-1cba-4735-9cf2-74e2d111cf87" />
+<a href="https://www.figma.com/board/WljtFzBLbDfAIAGrQK1p6K/Narratix-Architecture?node-id=21-708&t=8TZda2mGHoarFAGr-0">아키텍처 링크</a>
+
+### ERD
+<img width="1940" height="1092" alt="image" src="https://github.com/user-attachments/assets/d85899c4-7f26-49cc-8cd9-ef7fff486a51" />
+<a href="https://www.erdcloud.com/d/6JAu9hkvgYjehSFBJ">ERD 링크</a>
 
 ---
 
@@ -259,8 +265,8 @@
 | 강유진 | Frontend        | 실시간 텍스트 에디터 / 협업 첨삭 UI |
 | 박소민 | Frontend        | 라이브러리(기업·문항) / 나의 채용공고(캘린더) |
 | 윤종근 | Frontend        | 실시간 첨삭, 실시간 알림, 자료 업로드   |
-| 김승환 | Backend & Infra | -           |
-| 이정민 | Backend & Infra | -           |
+| 김승환 | Backend & Infra | WebSocket 실시간 첨삭, SSE 알림, 자기소개서, 첨삭 링크 관리 |
+| 이정민 | Backend & Infra | 자료 업로드, 검색   |
 ---
 
 ### 강유진 (Frontend)
@@ -291,17 +297,19 @@
 
 📄 관련 문서: (추가 예정)
 
+
 ### 김승환 (Backend & Infra)
 
--
+- [[고민] - WebSocket vs. SSE](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EA%B9%80%EC%8A%B9%ED%99%98%5D-%E2%80%90-Websocket-vs.-SSE)
+	- 실시간 문서 첨삭 기능 구현 시 SSE와 WebSocket의 트레이드오프를 분석하고, 인프라 통합과 향후 기능 확장성을 고려해 STOMP 기반의 WebSocket으로 통신 아키텍처를 통일한 과정입니다.
 
-📄 관련 문서:
+:page_facing_up: 관련 문서:
 
 ### 이정민 (Backend & Infra)
 
--
+- **[pdf업로드 및 AI 라벨링 기능을 위한 이벤트 기반 비동기 파이프라인](<https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EB%B0%95%EC%86%8C%EB%AF%BC%5D-%E2%80%90-TypeScript-%EC%A0%9C%EB%84%88%EB%A6%AD(Generic)%EC%9D%84-%ED%99%9C%EC%9A%A9%ED%95%9C-%ED%83%80%EC%9E%85-%EC%95%88%EC%A0%84%EC%84%B1-%EB%86%92%EC%9D%80-%EC%9E%AC%EC%82%AC%EC%9A%A9-%ED%83%AD-%EC%BB%B4%ED%8F%AC%EB%84%8C%ED%8A%B8-%EA%B5%AC%ED%98%84>)**
 
-📄 관련 문서:
+:page_facing_up: 관련 문서:
 
 ## 🚀 기술적 도전 (Top Picks)
 
@@ -320,9 +328,9 @@
   - 토큰 탈취 공격에 대응하기 위해 RTR 전략을 도입하고, 동시 요청 시 발생하는 Race Condition 문제를 해결하며 시스템 보안을 강화했습니다.
 - **[[고민] 비동기 이벤트 아키텍처 개선기](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EA%B9%80%EC%8A%B9%ED%99%98%5D-%EB%B9%84%EB%8F%99%EA%B8%B0-%EC%9D%B4%EB%B2%A4%ED%8A%B8-%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98-%EA%B0%9C%EC%84%A0%EA%B8%B0)**
   - 시스템 간 결합도를 낮추고 확장성을 높이기 위해 이벤트 기반 비동기 처리 방식을 도입하고, 메시지 큐(SQS)를 활용하여 안정성을 확보한 과정입니다.
-- **[[고민] 업로드 Timeout 처리 및 Zombie Task 방지 전략](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9D%B4%EC%A0%95%EB%AF%BC%5D-%EC%97%85%EB%A1%9C%EB%93%9C-Timeout-%EC%B2%98%EB%A6%AC-%EB%B0%8F-Zombie-Task-%EB%B0%A9%EC%A7%80-%EC%A0%84%EB%9E%B5)**
-  - 비동기 처리 중 타임아웃과 고아 작업(Zombie Task)을 방지해 운영 안정성을 높인 전략을 정리했습니다.
-
+- [[고민] - WebSocket vs. SSE](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EA%B9%80%EC%8A%B9%ED%99%98%5D-%E2%80%90-Websocket-vs.-SSE)
+	- 실시간 문서 첨삭 기능 구현 시 SSE와 WebSocket의 트레이드오프를 분석하고, 인프라 통합과 향후 기능 확장성을 고려해 STOMP 기반의 WebSocket으로 통신 아키텍처를 통일한 과정입니다.
+ - **[pdf업로드 및 AI 라벨링 기능을 위한 이벤트 기반 비동기 파이프라인](<https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EB%B0%95%EC%86%8C%EB%AF%BC%5D-%E2%80%90-TypeScript-%EC%A0%9C%EB%84%88%EB%A6%AD(Generic)%EC%9D%84-%ED%99%9C%EC%9A%A9%ED%95%9C-%ED%83%80%EC%9E%85-%EC%95%88%EC%A0%84%EC%84%B1-%EB%86%92%EC%9D%80-%EC%9E%AC%EC%82%AC%EC%9A%A9-%ED%83%AD-%EC%BB%B4%ED%8F%AC%EB%84%8C%ED%8A%B8-%EA%B5%AC%ED%98%84>)**
 ---
 
 ## 📚 문서 허브
