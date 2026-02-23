@@ -6,6 +6,7 @@ import {
 } from 'react';
 
 import { restoreCaret } from '@/features/coverLetter/libs/caret';
+import { moveCaretIntoAdjacentReview } from '@/features/coverLetter/libs/caretBoundary';
 import type { DeleteDirection } from '@/features/coverLetter/libs/deleteUtils';
 
 interface UseCoverLetterInputHandlersParams {
@@ -14,9 +15,9 @@ interface UseCoverLetterInputHandlersParams {
   normalizeCaretAtReviewBoundary: () => boolean;
   insertPlainTextAtCaret: (text: string) => void;
   applyDeleteByDirection: (direction: DeleteDirection) => void;
-  handleCompositionEnd?: () => void;
   contentRef: RefObject<HTMLDivElement | null>;
   caretOffsetRef: RefObject<number>;
+  enterDuringCompositionRef: RefObject<boolean>;
 }
 
 export const useCoverLetterInputHandlers = ({
@@ -25,9 +26,9 @@ export const useCoverLetterInputHandlers = ({
   normalizeCaretAtReviewBoundary,
   insertPlainTextAtCaret,
   applyDeleteByDirection,
-  handleCompositionEnd,
   contentRef,
   caretOffsetRef,
+  enterDuringCompositionRef,
 }: UseCoverLetterInputHandlersParams) => {
   const handleKeyDown = useCallback(
     (e: ReactKeyboardEvent<HTMLDivElement>) => {
@@ -36,20 +37,36 @@ export const useCoverLetterInputHandlers = ({
       const isImeProcessKey =
         e.key === 'Process' || native.keyCode === 229 || native.isComposing;
 
-      // OS 레벨에서 IME가 처리 중인 키는 항상 무시한다.
-      if (isImeProcessKey) return;
-
       // Enter는 조합 중이라도 줄바꿈 트리거로 처리한다.
-      // compositionend가 이미 발생했지만 isComposingRef가 아직 정리되지 않은
-      // 타이밍에도 올바르게 동작하도록 isComposingRef 가드보다 앞에 배치한다.
+      // isImeProcessKey 가드보다 앞에 배치해야 한글 조합 중 Enter가 무시되는 버그를 막는다.
+      // (조합 중 Enter: nativeEvent.isComposing=true → isImeProcessKey=true → 기존 코드에서
+      //  early return 되어 Enter가 두 번 눌러야 동작하던 문제)
       if (e.key === 'Enter') {
         e.preventDefault();
-        normalizeCaretAtReviewBoundary();
 
-        // 조합이 아직 열려 있으면 강제 종료해 latestTextRef를 확정 상태로 만든다.
-        if (isComposingRef.current) {
-          handleCompositionEnd?.();
+        // Chrome에서는 한글 등 조합 입력(IME) 중 Enter를 누르면
+        // compositionEnd 직후에 isComposing=false 상태의
+        // "에코(중복) Enter keydown" 이벤트가 한 번 더 발생한다.
+        //
+        // lastCompositionEndAtRef는 이 핸들러 안에서
+        // handleCompositionEnd가 호출될 때 설정되므로,
+        // compositionEnd 이후 30ms 이내에 발생한
+        // 에코 Enter(elapsed < 30ms)는 안전하게 무시할 수 있다.
+        const elapsed = Date.now() - lastCompositionEndAtRef.current;
+        if (!isComposingRef.current && elapsed < 30) {
+          return;
         }
+
+        if (isComposingRef.current) {
+          // 조합 중 Enter: 브라우저가 compositionEnd에서 자연스럽게 조합을 확정한다.
+          // compositionEnd 핸들러에서 '\n'을 삽입하도록 플래그를 세우고 여기서는 종료.
+          // (수동으로 compositionEnd를 호출하면 브라우저가 이후 DOM에 조합 문자를 다시 삽입해
+          //  React 상태와 DOM이 불일치하는 문제가 발생한다.)
+          enterDuringCompositionRef.current = true;
+          return;
+        }
+
+        normalizeCaretAtReviewBoundary();
 
         // 줄바꿈 삽입
         insertPlainTextAtCaret('\n');
@@ -57,10 +74,12 @@ export const useCoverLetterInputHandlers = ({
         // DOM 반영 후 caret 복원 2단계
         window.requestAnimationFrame(() => {
           if (!contentRef.current) return;
+          if (isComposingRef.current) return;
           restoreCaret(contentRef.current, caretOffsetRef.current);
 
           window.requestAnimationFrame(() => {
             if (!contentRef.current) return;
+            if (isComposingRef.current) return;
             restoreCaret(contentRef.current, caretOffsetRef.current);
           });
         });
@@ -68,7 +87,21 @@ export const useCoverLetterInputHandlers = ({
         return;
       }
 
+      // OS 레벨에서 IME가 처리 중인 키는 항상 무시한다.
+      if (isImeProcessKey) return;
+
       if (isComposingRef.current) return;
+
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        if (contentRef.current) {
+          const moved = moveCaretIntoAdjacentReview({
+            contentEl: contentRef.current,
+            direction: e.key === 'ArrowLeft' ? 'left' : 'right',
+          });
+          if (moved) e.preventDefault();
+        }
+        return;
+      }
 
       if (e.key === 'Backspace') {
         const elapsed = Date.now() - lastCompositionEndAtRef.current;
@@ -100,7 +133,7 @@ export const useCoverLetterInputHandlers = ({
       normalizeCaretAtReviewBoundary,
       caretOffsetRef,
       contentRef,
-      handleCompositionEnd,
+      enterDuringCompositionRef,
     ],
   );
 

@@ -11,7 +11,6 @@ interface ComputeDeleteEditInput {
   caretStart: number;
   caretEnd: number;
   reviews: Review[];
-  reviewRemainingChars: Record<number, number>;
   reviewLastKnownRanges: ReviewRangeMap;
 }
 
@@ -21,7 +20,6 @@ interface ComputeDeleteEditResult {
   reviewsForMapping?: Review[];
   deletedReviewIds: number[];
   deletedWholeReviewIdsForPatch: number[];
-  nextReviewRemainingChars: Record<number, number>;
   nextReviewLastKnownRanges: ReviewRangeMap;
   nextReviews: Review[];
 }
@@ -59,32 +57,19 @@ const normalizeReviewsForMapping = (
 };
 
 const collectDeletedReviewIds = (
-  reviews: Review[],
-  deleteStart: number,
-  deleteEnd: number,
-  remainingByReview: Record<number, number>,
+  beforeReviews: Review[],
+  afterReviews: Review[],
   lastKnownRanges: ReviewRangeMap,
-) => {
+): number[] => {
+  const afterById = new Map(afterReviews.map((r) => [r.id, r]));
   const deletedReviewIds: number[] = [];
-  for (const review of reviews) {
-    const reviewStart = review.range.start;
-    const reviewEnd = review.range.end;
-    if (reviewStart < 0 || reviewEnd <= reviewStart) continue;
 
-    const overlapStart = Math.max(reviewStart, deleteStart);
-    const overlapEnd = Math.min(reviewEnd, deleteEnd);
-    const removedLength = Math.max(0, overlapEnd - overlapStart);
-    if (removedLength === 0) continue;
-
-    const initialLength = reviewEnd - reviewStart;
-    const prevRemaining = remainingByReview[review.id] ?? initialLength;
-    if (prevRemaining <= 0) continue;
-    const nextRemaining = Math.max(0, prevRemaining - removedLength);
-    remainingByReview[review.id] = nextRemaining;
-
-    if (nextRemaining === 0) {
-      deletedReviewIds.push(review.id);
-      delete lastKnownRanges[review.id];
+  for (const before of beforeReviews) {
+    if (before.range.start < 0 || before.range.end <= before.range.start) continue;
+    const after = afterById.get(before.id);
+    if (!after || after.range.start < 0) {
+      deletedReviewIds.push(before.id);
+      delete lastKnownRanges[before.id];
     }
   }
 
@@ -130,7 +115,6 @@ export const computeDeleteEdit = ({
   caretStart,
   caretEnd,
   reviews,
-  reviewRemainingChars,
   reviewLastKnownRanges,
 }: ComputeDeleteEditInput): ComputeDeleteEditResult => {
   let newText = currentText;
@@ -157,7 +141,6 @@ export const computeDeleteEdit = ({
 
   if (newText === '') caretOffset = 0;
 
-  const nextReviewRemainingChars = { ...reviewRemainingChars };
   const nextReviewLastKnownRanges = { ...reviewLastKnownRanges };
   let nextReviews = reviews;
   let reviewsForMapping: Review[] | undefined;
@@ -172,11 +155,22 @@ export const computeDeleteEdit = ({
     );
     reviewsForMapping = normalizedReviewsForMapping;
 
-    deletedReviewIds = collectDeletedReviewIds(
+    // 삭제 후 정규화된 범위를 계산한다.
+    // 이 결과를 "삭제 전 vs 삭제 후" 범위 비교에 사용한다.
+    const nextNormalizedReviews = updateReviewRanges(
       normalizedReviewsForMapping,
       deleteStart,
-      deleteEnd,
-      nextReviewRemainingChars,
+      deleteEnd - deleteStart,
+      0,
+      newText,
+    );
+
+    // 삭제 전 유효했던 범위가 삭제 후 무효(-1)가 된 리뷰를 검출한다.
+    // remainingChars 카운터 방식과 달리, 리뷰 영역 안에서 타이핑한 뒤 지워도
+    // 범위 추적이 정확하게 동작한다.
+    deletedReviewIds = collectDeletedReviewIds(
+      normalizedReviewsForMapping,
+      nextNormalizedReviews,
       nextReviewLastKnownRanges,
     );
     deletedWholeReviewIdsForPatch.push(...deletedReviewIds);
@@ -189,6 +183,7 @@ export const computeDeleteEdit = ({
       nextReviewLastKnownRanges,
     );
 
+    // nextReviews는 원본 reviews 기준으로 계산해 stale 범위 부활을 막는다.
     nextReviews = updateReviewRanges(
       reviews,
       deleteStart,
@@ -204,7 +199,6 @@ export const computeDeleteEdit = ({
     reviewsForMapping,
     deletedReviewIds,
     deletedWholeReviewIdsForPatch,
-    nextReviewRemainingChars,
     nextReviewLastKnownRanges,
     nextReviews,
   };

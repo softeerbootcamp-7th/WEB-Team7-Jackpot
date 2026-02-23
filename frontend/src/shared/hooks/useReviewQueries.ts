@@ -21,7 +21,6 @@ export const useReviewsByQnaId = (
       return getReviewsByQnaId(qnaId);
     },
     enabled: (options?.enabled ?? true) && qnaId != null,
-    staleTime: 5 * 60 * 1000,
   });
 };
 

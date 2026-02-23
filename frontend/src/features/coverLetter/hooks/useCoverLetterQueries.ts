@@ -100,8 +100,6 @@ export const useSharedLinkToggle = () => {
       toast?.showToast('첨삭 링크 상태가 변경되었습니다.', true);
     },
     onError: (error: unknown) => {
-      console.error('첨삭 링크 토글 실패', error);
-
       const message =
         error instanceof Error
           ? error.message

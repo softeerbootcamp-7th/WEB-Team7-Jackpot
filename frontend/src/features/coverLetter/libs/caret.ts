@@ -112,18 +112,26 @@ export const restoreCaret = (el: HTMLElement, offset: number) => {
         let realOffset = 0;
         let virtualCount = 0;
         while (virtualCount < remaining && realOffset < nodeText.length) {
-          if (nodeText[realOffset] !== '\u200B' && nodeText[realOffset] !== '\u2060') {
+          if (
+            nodeText[realOffset] !== '\u200B' &&
+            nodeText[realOffset] !== '\u2060'
+          ) {
             virtualCount++;
           }
           realOffset++;
         }
         const range = document.createRange();
-        // 리뷰 텍스트의 끝 경계에 캐럿이 걸리면 브라우저가 다음 입력을
-        // 리뷰 span 내부로 붙이는 경우가 있어, 경계에서는 wrapper 바깥으로 이동시킨다.
+        // 리뷰 텍스트의 끝 경계에 캐럿이 걸리면, outer contentEditable=false 그룹 wrapper
+        // 바깥(부모 editable div)으로 커서를 이동시킨다.
+        // inner review-wrap(data-review-id) 뒤에 커서를 두면 outer contentEditable=false 내부에
+        // 위치하게 되어 커서가 비활성화(deactivated)되는 문제가 발생하기 때문이다.
         if (remaining === actualLength) {
           const reviewWrapper = findReviewWrapper(node);
           if (reviewWrapper) {
-            range.setStartAfter(reviewWrapper);
+            const reviewGroupWrapper =
+              reviewWrapper.closest<HTMLElement>('[data-review-group]') ??
+              reviewWrapper;
+            range.setStartAfter(reviewGroupWrapper);
             range.collapse(true);
             sel.removeAllRanges();
             sel.addRange(range);
