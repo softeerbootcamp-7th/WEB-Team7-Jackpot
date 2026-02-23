@@ -67,7 +67,17 @@
 
 ### 1) 자료 업로드 + AI 라벨링
 
-![Upload Demo](https://placehold.co/1200x675?text=Upload+Flow)
+<img 
+  src="https://github.com/user-attachments/assets/b89e39b2-7aeb-423d-a0c6-849a476570c5"
+  alt="Upload Page" 
+  width="100%" 
+/>
+
+<img 
+  src="https://github.com/user-attachments/assets/6fb535cb-c863-4d91-aa34-6ad22ac7470c"
+  alt="Labeling Page" 
+  width="100%" 
+/>
 
 ### 2) 채용 일정 캘린더 관리
 
@@ -77,21 +87,21 @@
   width="100%" 
 />
 
-### 3) 자기소개서 작성
-
-![Editor Demo](https://placehold.co/1200x675?text=Cover+Letter+Editor)
-
-### 4) 첨삭 에디터
-
-![Review Demo](https://placehold.co/1200x675?text=Cover+Letter+Editor)
-
-### 5) 기업별/문항별 라이브러리 관리
+### 3) 기업별/문항별 라이브러리 관리
 
 <img 
   src="https://github.com/user-attachments/assets/450c5d0b-44a9-4c23-b322-fb5e925b67fe"
   alt="Library Page" 
   width="100%" 
 />
+
+### 4) 자기소개서 작성
+
+![Editor Demo](https://placehold.co/1200x675?text=Cover+Letter+Editor)
+
+### 5) 첨삭 에디터
+
+![Review Demo](https://placehold.co/1200x675?text=Cover+Letter+Editor)
 
 ### 전체 기능
 
