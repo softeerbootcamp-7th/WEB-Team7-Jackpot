@@ -17,6 +17,7 @@ import { getQnAIdList } from '@/shared/api/qnaApi';
 import { coverLetterQueryKeys } from '@/shared/hooks/queries/coverLetterKeys';
 import { homeKeys } from '@/shared/hooks/queries/homeKeys';
 import { libraryKeys } from '@/shared/hooks/queries/libraryKeys';
+import { scrapNumKeys } from '@/shared/hooks/queries/scrapKeys';
 import type {
   CreateCoverLetterRequest,
   CreateCoverLetterResponse,
@@ -81,6 +82,22 @@ export const useInvalidateCoverLetters = () => {
   }, [queryClient]);
 };
 
+const useInvalidateDeleteCoverLetter = () => {
+  const queryClient = useQueryClient();
+
+  return useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: coverLetterQueryKeys.all });
+    queryClient.invalidateQueries({ queryKey: ['coverletter'] });
+    queryClient.invalidateQueries({ queryKey: homeKeys.all });
+    queryClient.invalidateQueries({ queryKey: libraryKeys.all });
+    // scrapNum 데이터를 즉시 refetch하도록 설정
+    queryClient.invalidateQueries({
+      queryKey: scrapNumKeys.all,
+      exact: true,
+    });
+  }, [queryClient]);
+};
+
 // 공고(자기소개서) 등록 훅
 export const useCreateCoverLetter = () => {
   // 위에서 만든 무효화 로직을 가져옵니다.
@@ -100,10 +117,10 @@ export const useCreateCoverLetter = () => {
 
 // 자기소개서(공고) 삭제
 export const useDeleteCoverLetter = () => {
-  const invalidate = useInvalidateCoverLetters();
+  const invalidate = useInvalidateDeleteCoverLetter();
 
   return useMutation<void, Error, { coverLetterId: number }>({
     mutationFn: (variables) => deleteCoverLetter(variables.coverLetterId),
-    onSuccess: () => invalidate(), // ['coverLetters'] 전체 무효화
+    onSuccess: () => invalidate(),
   });
 };
