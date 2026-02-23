@@ -14,7 +14,7 @@ const ReviewCardList = ({
 }: ReviewCardListProps) => {
   return (
     <div className='flex h-full min-h-0 flex-col'>
-      <div className='min-h-0 flex-1 overflow-y-auto pb-80'>
+      <div className='min-h-0 flex-1 overflow-y-auto'>
         {reviews.map((review) => (
           <ReviewCard
             key={review.id}
