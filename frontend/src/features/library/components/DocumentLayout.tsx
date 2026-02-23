@@ -3,6 +3,7 @@ import { type ReactNode } from 'react';
 import { NavLink } from 'react-router';
 
 import * as LII from '@/features/library/icons';
+import * as SI from '@/shared/icons';
 
 interface Props {
   title: string;
@@ -26,7 +27,7 @@ const DocumentLayout = ({
         </NavLink>
         <div className='flex flex-1 items-center justify-start gap-2'>
           <div className='h-7 w-7'>
-            <LII.FolderIcon />
+            <SI.FolderIcon />
           </div>
           <h1 className='text-title-m line-clamp-1 flex-1 justify-start font-bold text-gray-950'>
             {title}
