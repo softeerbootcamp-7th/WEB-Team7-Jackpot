@@ -6,7 +6,6 @@ import type {
   CreateScrapResponse,
   LibraryResponse,
   LibraryView,
-  QnASearchResponse,
   QuestionListResponse,
   ScrapCount,
 } from '@/features/library/types';
@@ -23,7 +22,7 @@ const LibraryResponseSchema = z.object({
 // 자소서(CoverLetter) 관련 스키마
 const CoverLetterSchema = z.object({
   id: z.number(),
-  applySeason: z.string().nullable(), // ✨ 타입 인터페이스(string | null)에 맞게 nullable 추가
+  applySeason: z.string().nullable(), // 타입 인터페이스(string | null)에 맞게 nullable 추가
   companyName: z.string(),
   jobPosition: z.string(),
   questionCount: z.number(),
@@ -48,7 +47,7 @@ const QuestionItemSchema = z.object({
 
 // 질문 목록 응답 스키마
 const QuestionListResponseSchema = z.object({
-  // ✨ questionCategory -> questionCategoryType 으로 이름 변경 및 안전장치 추가
+  // questionCategory -> questionCategoryType 으로 이름 변경 및 안전장치 추가
   questionCategoryType: CategoryEnum.nullable().catch(null),
   qnAs: z.array(QuestionItemSchema),
   hasNext: z.boolean(),
@@ -65,27 +64,6 @@ const CreateScrapRequestSchema = z.object({
 const CreateScrapResponseSchema = z.object({
   qnAId: z.number(),
   scrapCount: z.number(),
-});
-
-// 검색용 QnA 아이템 스키마
-const QnAsSearchSchema = z.object({
-  qnAId: z.number(),
-  companyName: z.string(),
-  jobPosition: z.string(),
-  applySeason: z.string().nullable(),
-  question: z.string(),
-  answer: z.string().nullable(),
-  coverLetterId: z.number(),
-  questionCategoryType: CategoryEnum.nullable().catch(null),
-});
-
-// 검색 응답 스키마
-export const SearchLibraryResponseSchema = z.object({
-  libraryCount: z.number(),
-  libraries: z.array(z.string()),
-  qnACount: z.number(),
-  qnAs: z.array(QnAsSearchSchema),
-  hasNext: z.boolean(),
 });
 
 /**
@@ -142,30 +120,6 @@ export const fetchDocumentList = async (
 
     return QuestionListResponseSchema.parse(response);
   }
-};
-
-/**
- * 통합 검색 (라이브러리 + 질문)
- */
-export const searchLibrary = async (
-  searchWord: string,
-  lastQnAId?: number,
-  size = 10,
-): Promise<QnASearchResponse> => {
-  const params = new URLSearchParams({
-    searchWord,
-    size: String(size),
-  });
-
-  if (lastQnAId !== undefined && lastQnAId !== null) {
-    params.append('lastQnAId', String(lastQnAId));
-  }
-
-  const response = await apiClient.get({
-    endpoint: `/search/library?${params.toString()}`,
-  });
-
-  return SearchLibraryResponseSchema.parse(response);
 };
 
 /**

@@ -2,9 +2,11 @@ import {
   useMutation,
   useQuery,
   useQueryClient,
+  useSuspenseInfiniteQuery,
   useSuspenseQueries,
 } from '@tanstack/react-query';
 
+import { searchCoverLetters } from '@/shared/api/coverLetterApi';
 import { getQnA, getQnAIdList, updateQnA } from '@/shared/api/qnaApi';
 import { libraryKeys } from '@/shared/hooks/queries/libraryKeys';
 import type { QnA } from '@/shared/types/qna';
@@ -60,5 +62,20 @@ export const useUpdateQnA = () => {
         queryKey: libraryKeys.lists('QUESTION'),
       });
     },
+  });
+};
+
+// 라이브러리 전체 검색 (무한 스크롤 버전)
+export const useInfiniteCoverLetterSearch = (searchWord = '', size = 9) => {
+  return useSuspenseInfiniteQuery({
+    queryKey: ['coverletter', 'search', 'infinite', { searchWord, size }],
+    queryFn: ({ pageParam = 1 }) =>
+      searchCoverLetters({ searchWord, size, page: pageParam as number }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const { number, totalPage } = lastPage.page;
+      return number < totalPage ? number + 1 : undefined;
+    },
+    staleTime: 5 * 60 * 1000,
   });
 };
