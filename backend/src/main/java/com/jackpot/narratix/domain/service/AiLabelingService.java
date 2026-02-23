@@ -46,18 +46,16 @@ public class AiLabelingService {
     public String generateLabelingJson(String extractedText) {
         validateInput(extractedText);
 
-        String fullPrompt = buildPrompt(extractedText);
-        AiLabelingRequest requestBody = AiLabelingRequest.of(fullPrompt);
+        AiLabelingRequest requestBody = AiLabelingRequest.of(promptTemplate, extractedText);
 
         AiLabelingResponse response = requestLabeling(requestBody);
 
-        String rawText = extractResponseText(response);
-        String normalizedJson = normalizeToJson(rawText);
+        String rawJson = extractResponseText(response);
 
-        validateJsonArray(normalizedJson);
+        validateJsonArray(rawJson);
 
-        log.info("AI labeling completed. responseLength={}", normalizedJson.length());
-        return normalizedJson;
+        log.info("AI labeling completed. responseLength={}", rawJson.length());
+        return rawJson;
     }
 
     private String loadPrompt(Resource resource) {
@@ -73,11 +71,7 @@ public class AiLabelingService {
             throw new AiLabelingException("AI labeling input text is blank.");
         }
     }
-
-    private String buildPrompt(String extractedText) {
-        return promptTemplate.replace("{{INPUT_TEXT}}", extractedText);
-    }
-
+    
     private AiLabelingResponse requestLabeling(AiLabelingRequest requestBody) {
         try {
             return restClient.post()
