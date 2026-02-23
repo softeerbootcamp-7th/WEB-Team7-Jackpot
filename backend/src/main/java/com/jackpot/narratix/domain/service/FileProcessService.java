@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
@@ -42,11 +43,19 @@ public class FileProcessService {
             return;
         }
 
-        List<LabeledQnARequest> qnARequests = objectMapper.readValue(
-                labelingJson,
-                objectMapper.getTypeFactory()
-                        .constructCollectionType(List.class, LabeledQnARequest.class)
-        );
+        List<LabeledQnARequest> qnARequests;
+
+        try {
+            qnARequests = objectMapper.readValue(
+                    labelingJson,
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, LabeledQnARequest.class)
+            );
+        } catch (JacksonException e) {
+            log.error("Failed to parse labeling result. fileId: {}, error: {}", fileId, e.getMessage());
+            file.failLabeling();
+            checkJobCompletionAndNotify(file.getUploadJob());
+            return;
+        }
 
         List<LabeledQnA> labeledQnAs = qnARequests.stream()
                 .limit(MAX_QNA_SIZE)
