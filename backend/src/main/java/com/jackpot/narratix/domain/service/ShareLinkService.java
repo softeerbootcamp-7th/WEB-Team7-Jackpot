@@ -34,6 +34,7 @@ public class ShareLinkService {
     private final QnARepository qnARepository;
     private final ShareLinkRepository shareLinkRepository;
     private final ShareLinkLockManager shareLinkLockManager;
+
     private final ShareLinkSessionRegistry shareLinkSessionRegistry;
     private final TextDeltaService textDeltaService;
     private final TextSyncService textSyncService;
@@ -157,8 +158,6 @@ public class ShareLinkService {
         // pending delta를 가져와서 DB에 flush하여 최신 QnA를 만듦
         List<TextUpdateRequest> pendingDeltas = textSyncService.getPendingDeltas(qnAId);
         if (!pendingDeltas.isEmpty()) {
-            // flush 후 최신 QnA를 다시 조회
-            qnA = qnARepository.findByIdOrElseThrow(qnAId);
             // DB의 QnA 버전 갱신, pending delta를 committed delta로 변경
             textSyncService.flushDeltasToDbAndSyncVersion(qnAId, pendingDeltas, pendingDeltas.size());
         } else {
