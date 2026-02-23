@@ -1,160 +1,90 @@
-import { NavLink } from 'react-router';
+import { useNavigate } from 'react-router';
 
-import * as LII from '@/features/library/icons';
-import type { QnASearchResponse } from '@/features/library/types';
+import type { ScrapItem } from '@/features/coverLetter/types/coverLetter';
+import type {
+  QnASearchResponse,
+  QnAsSearchResponse,
+} from '@/features/library/types';
+import SearchResultDisplay from '@/shared/components/SearchResultDisplay';
+import SidebarCard from '@/shared/components/sidebar/SidebarCard';
+import * as SI from '@/shared/icons';
 
 interface QnASearchResultProps {
   keyword: string;
   data: QnASearchResponse | null;
   isLoading: boolean;
+  fetchNextPage?: () => void;
+  hasNextPage?: boolean;
+  isFetchingNextPage?: boolean;
   className?: string;
 }
 
+/**
+ * 아키텍처 패턴 (Composition):
+ * 1. SearchResultDisplay: 공통 로직 (로딩, 데이터 상태)
+ * 2. QnASearchResult: 클릭 처리 정의 (라우팅)
+ * 3. 부모(LibrarySideBar): 검색 UI 관리
+ *
+ * 컴포넌트를 재사용하기 위해 Link가 아닌 navigate 사용
+ */
 const QnASearchResult = ({
   keyword,
   data,
   isLoading,
+  fetchNextPage,
+  hasNextPage,
+  isFetchingNextPage,
   className,
 }: QnASearchResultProps) => {
-  // 로딩 상태
-  if (isLoading) {
-    return (
-      <div
-        className={`flex items-center justify-center pt-20 ${className ?? ''}`}
-      >
-        <span className='text-gray-400'>검색 중...</span>
-      </div>
-    );
-  }
+  const navigate = useNavigate();
 
-  // 검색어 없음
-  if (!keyword) return null;
-
-  // 데이터 없음
-  if (!data || (data.libraryCount === 0 && data.qnACount === 0)) {
-    return (
-      <div className='flex flex-col items-center justify-center gap-2 pt-20 text-gray-400'>
-        <span>검색 결과가 없습니다.</span>
-      </div>
-    );
-  }
+  const toScrapItem = (qna: QnAsSearchResponse): ScrapItem => ({
+    id: qna.qnAId,
+    companyName: qna.companyName,
+    jobPosition: qna.jobPosition,
+    applySeason: qna.applySeason ?? '',
+    question: qna.question,
+    answer: qna.answer ?? '',
+    coverLetterId: qna.coverLetterId,
+  });
 
   return (
-    <div className={`flex flex-col ${className}`}>
-      {data.libraries.length > 0 && (
-        <div className='flex w-full flex-col items-start justify-start gap-3 border-b border-gray-100 pb-3'>
-          <div className='inline-flex h-7 w-full items-center justify-start px-3'>
-            <div className='flex items-center justify-start gap-2 pl-3'>
-              <div className='relative h-6 w-6 overflow-hidden'>
-                <div className='absolute top-0 left-0 h-6 w-6'>
-                  <LII.FolderIcon />
-                </div>
-              </div>
-              <div className='flex items-center justify-start gap-1'>
-                <div className='text-base leading-6 font-bold text-gray-900'>
-                  문항 유형 검색 결과
-                </div>
-                <div className='text-xs leading-5 font-bold text-gray-400'>
-                  ·
-                </div>
-                <div className='text-xs leading-5 font-bold text-gray-400'>
-                  {data.libraryCount}개
-                </div>
-              </div>
-            </div>
+    <SearchResultDisplay
+      keyword={keyword}
+      data={data}
+      isLoading={isLoading}
+      fetchNextPage={fetchNextPage}
+      hasNextPage={hasNextPage}
+      isFetchingNextPage={isFetchingNextPage}
+      className={className}
+      renderLibraryItem={(libName) => (
+        <button
+          type='button'
+          onClick={() =>
+            navigate(`/library/qna/${encodeURIComponent(libName)}`)
+          }
+          aria-label={`${libName} 폴더 열기`}
+          className='inline-flex w-28 shrink-0 flex-col items-center justify-center gap-2.5 rounded-lg px-3 pt-5 pb-4 transition-colors hover:bg-gray-50'
+        >
+          <div className='relative flex flex-col items-center'>
+            <SI.LibraryFolder />
           </div>
-
-          {/* 세로 스크롤 가능한? 폴더 리스트 영역 [박소민] TODO: 어떻게 스크롤 처리할지 결정 */}
-          <div className='flex w-full flex-col items-start justify-start'>
-            <div className='scrollbar-hide inline-flex w-full items-center justify-start overflow-y-auto px-3'>
-              {data.libraries.map((libName) => (
-                <NavLink
-                  to={`/library/qna/${encodeURIComponent(libName)}`}
-                  key={libName}
-                  className='inline-flex w-28 shrink-0 flex-col items-center justify-center gap-2.5 px-3 pt-5 pb-4'
-                >
-                  <div className='relative flex flex-col items-center'>
-                    <LII.LibraryFolder />
-                  </div>
-                  {/* 라이브러리 이름 */}
-                  <div className='line-clamp-1 w-24 text-center text-xs leading-5 font-medium text-gray-900'>
-                    {libName}
-                  </div>
-                </NavLink>
-              ))}
-            </div>
+          <div className='line-clamp-1 w-24 text-center text-xs leading-5 font-medium text-gray-900'>
+            {libName}
           </div>
-        </div>
+        </button>
       )}
-
-      {/* 단건 문항 검색 결과*/}
-      {data.qnAs.length > 0 && (
-        <div className='mt-4 flex w-full flex-col items-start justify-start gap-2'>
-          <div className='inline-flex h-7 w-full items-center justify-start px-3'>
-            <div className='flex items-center justify-start gap-2 pl-3'>
-              <div className='relative h-6 w-6 overflow-hidden'>
-                <LII.QnASearchResultIcon />
-              </div>
-              <div className='flex items-center justify-start gap-1'>
-                <div className='text-base leading-6 font-bold text-gray-950'>
-                  문항 검색 결과
-                </div>
-                <div className='text-xs leading-5 font-bold text-gray-400'>
-                  ·
-                </div>
-                <div className='text-xs leading-5 font-bold text-gray-400'>
-                  {data.qnACount}개
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className='flex w-full flex-col items-start justify-start px-3'>
-            {data.qnAs.map((qna) => (
-              <NavLink
-                key={qna.qnAId}
-                to={`/library/qna/${qna.questionCategoryType}/${qna.qnAId}`}
-                className='flex w-full cursor-pointer flex-col items-start justify-start gap-3 border-b border-gray-200 px-3 py-5 text-left transition-colors hover:bg-gray-50'
-              >
-                <div className='inline-flex w-full items-center justify-between'>
-                  <div className='flex flex-1 items-center justify-start gap-1'>
-                    <div className='flex items-center justify-center gap-1 rounded-xl bg-blue-50 px-3 py-1.5'>
-                      <div className='text-xs leading-4 font-medium text-blue-600'>
-                        {qna.companyName}
-                      </div>
-                    </div>
-                    <div className='flex items-center justify-center gap-1 rounded-xl bg-gray-100 px-3 py-1.5'>
-                      <div className='text-xs leading-4 font-medium text-gray-500'>
-                        {qna.jobPosition}
-                      </div>
-                    </div>
-
-                    {qna.applySeason && (
-                      <div className='flex items-center justify-center gap-1 rounded-xl bg-gray-100 px-3 py-1.5'>
-                        <div className='text-xs leading-4 font-medium text-gray-500'>
-                          {qna.applySeason}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className='flex w-full flex-col items-start justify-start gap-1'>
-                  <div className='inline-flex w-full items-center justify-start gap-1'>
-                    <div className='line-clamp-2 max-h-12 flex-1 justify-start text-lg leading-6 font-bold text-gray-900'>
-                      {qna.question}
-                    </div>
-                  </div>
-                  <div className='line-clamp-2 max-h-10 w-full justify-start text-xs leading-5 font-medium text-gray-500'>
-                    {qna.answer}
-                  </div>
-                </div>
-              </NavLink>
-            ))}
-          </div>
-        </div>
+      renderQnAItem={(qna) => (
+        <SidebarCard
+          item={toScrapItem(qna)}
+          isScrap
+          showDelete={false}
+          onClick={() => {
+            navigate(`/library/qna/${qna.questionCategoryType}/${qna.qnAId}`);
+          }}
+        />
       )}
-    </div>
+    />
   );
 };
 
