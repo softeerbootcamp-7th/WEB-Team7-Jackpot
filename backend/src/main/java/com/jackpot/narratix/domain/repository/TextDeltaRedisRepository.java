@@ -1,7 +1,5 @@
 package com.jackpot.narratix.domain.repository;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jackpot.narratix.domain.controller.request.TextUpdateRequest;
 import com.jackpot.narratix.domain.exception.SerializationException;
 import com.jackpot.narratix.domain.exception.VersionConflictException;
@@ -10,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Repository;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.Duration;
 import java.util.Collections;
@@ -210,7 +210,7 @@ public class TextDeltaRedisRepository {
                 throw new VersionConflictException();
             }
             return result;
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.error("TextUpdateRequest 직렬화 실패: qnAId={}", qnAId, e);
             throw new SerializationException(e);
         }
