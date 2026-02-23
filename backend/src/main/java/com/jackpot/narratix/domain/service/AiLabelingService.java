@@ -111,25 +111,6 @@ public class AiLabelingService {
         return rawText.trim();
     }
 
-    private String normalizeToJson(String rawText) {
-        String text = rawText.trim();
-
-        if (text.startsWith("```")) {
-            text = text.replaceAll("^```[a-zA-Z]*\\s*", "");
-            text = text.replaceAll("\\s*```$", "");
-            text = text.trim();
-        }
-
-        int start = text.indexOf('[');
-        int end = text.lastIndexOf(']');
-
-        if (start == -1 || end == -1 || start >= end) {
-            throw new AiLabelingException("AI labeling response does not contain a valid JSON array.");
-        }
-
-        return text.substring(start, end + 1).trim();
-    }
-
     private void validateJsonArray(String json) {
         try {
             JsonNode root = objectMapper.readTree(json);
