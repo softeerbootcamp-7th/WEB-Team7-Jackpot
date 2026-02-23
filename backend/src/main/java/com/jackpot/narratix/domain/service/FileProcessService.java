@@ -2,7 +2,6 @@ package com.jackpot.narratix.domain.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jackpot.narratix.domain.entity.LabeledQnA;
 import com.jackpot.narratix.domain.entity.UploadFile;
 import com.jackpot.narratix.domain.entity.UploadJob;
@@ -13,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
@@ -21,7 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FileProcessService {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
     private final UploadFileRepository uploadFileRepository;
     private final NotificationService notificationService;
 

@@ -30,7 +30,7 @@ import java.util.Objects;
 public class TextDeltaRedisRepository {
 
     private final RedisTemplate<String, Object> redisTemplate;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     private static final String PENDING_KEY_FORMAT = "qna:text-delta:pending:%d"; // 아직 DB에 반영되지 않은 델타
     private static final String COMMITTED_KEY_FORMAT = "qna:text-delta:committed:%d"; // DB에 반영된 델타 (OT 히스토리용)
