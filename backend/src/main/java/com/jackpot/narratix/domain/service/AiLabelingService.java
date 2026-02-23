@@ -46,25 +46,23 @@ public class AiLabelingService {
     public String generateLabelingJson(String extractedText) {
         validateInput(extractedText);
 
-        String fullPrompt = buildPrompt(extractedText);
-        AiLabelingRequest requestBody = AiLabelingRequest.of(fullPrompt);
+        AiLabelingRequest requestBody = AiLabelingRequest.of(promptTemplate, extractedText);
 
         AiLabelingResponse response = requestLabeling(requestBody);
 
-        String rawText = extractResponseText(response);
-        String normalizedJson = normalizeToJson(rawText);
+        String rawJson = extractResponseText(response);
 
-        validateJsonArray(normalizedJson);
+        validateJsonArray(rawJson);
 
-        log.info("AI labeling completed. responseLength={}", normalizedJson.length());
-        return normalizedJson;
+        log.info("AI labeling completed. responseLength={}", rawJson.length());
+        return rawJson;
     }
 
     private String loadPrompt(Resource resource) {
         try (InputStreamReader reader = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8)) {
             return FileCopyUtils.copyToString(reader);
         } catch (IOException e) {
-            throw new IllegalStateException("Failed to load AI labeling prompt template.", e);
+            throw new AiLabelingException("Failed to load AI labeling prompt template.", e);
         }
     }
 
@@ -72,10 +70,6 @@ public class AiLabelingService {
         if (extractedText == null || extractedText.isBlank()) {
             throw new AiLabelingException("AI labeling input text is blank.");
         }
-    }
-
-    private String buildPrompt(String extractedText) {
-        return promptTemplate.replace("{{INPUT_TEXT}}", extractedText);
     }
 
     private AiLabelingResponse requestLabeling(AiLabelingRequest requestBody) {
@@ -112,25 +106,6 @@ public class AiLabelingService {
         }
 
         return rawText.trim();
-    }
-
-    private String normalizeToJson(String rawText) {
-        String text = rawText.trim();
-
-        if (text.startsWith("```")) {
-            text = text.replaceAll("^```[a-zA-Z]*\\s*", "");
-            text = text.replaceAll("\\s*```$", "");
-            text = text.trim();
-        }
-
-        int start = text.indexOf('[');
-        int end = text.lastIndexOf(']');
-
-        if (start == -1 || end == -1 || start >= end) {
-            throw new AiLabelingException("AI labeling response does not contain a valid JSON array.");
-        }
-
-        return text.substring(start, end + 1).trim();
     }
 
     private void validateJsonArray(String json) {
