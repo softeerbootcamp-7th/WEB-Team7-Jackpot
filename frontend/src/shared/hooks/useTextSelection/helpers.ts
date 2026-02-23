@@ -250,9 +250,7 @@ export const isRangeOverlapping = (
 ): boolean => {
   return reviews.some((review) => {
     const h = review.range;
-    return (
-      !(rangeEnd <= h.start || rangeStart >= h.end) &&
-      (review.viewStatus === 'PENDING' || review.viewStatus === 'ACCEPTED')
-    );
+    if (h.start < 0 || h.end <= h.start) return false;
+    return !(rangeEnd <= h.start || rangeStart >= h.end);
   });
 };

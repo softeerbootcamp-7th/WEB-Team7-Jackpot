@@ -22,7 +22,6 @@ export const useQnAList = (qnaIds: number[]) => {
     queries: qnaIds.map((qnaId) => ({
       queryKey: ['qna', { qnaId }],
       queryFn: () => getQnA(qnaId),
-      staleTime: 5 * 60 * 1000,
     })),
     combine: (results) => {
       if (results.length === 0) {

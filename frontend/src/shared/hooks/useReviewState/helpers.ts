@@ -227,22 +227,12 @@ export const updateReviewRanges = <T extends Review>(
     };
   });
 
-  // 리뷰 기준 텍스트 검증. 불일치 리뷰는 range를 비활성화한다.
+  // 텍스트 일치 여부(origin/suggest)는 range 비활성화 기준으로 쓰지 않는다.
+  // range는 "태그가 달린 위치" 추적 기준으로 유지하고, 상태 표시는 applyViewStatus에서 계산한다.
   const validatedReviews = shiftedReviews.map((review) => {
     const { start, end } = review.range;
     if (start < 0 || end < 0 || start >= end)
       return { ...review, range: { start: -1, end: -1 } };
-
-    const currentText = newDocumentText.slice(start, end);
-    const hasSuggest = review.suggest != null && review.suggest.length > 0;
-    const expectedText = review.isApproved
-      ? hasSuggest
-        ? review.suggest
-        : review.originText
-      : review.originText;
-    if (currentText !== expectedText) {
-      return { ...review, range: { start: -1, end: -1 } };
-    }
     return review;
   });
 
@@ -349,13 +339,14 @@ export const reconstructTaggedText = (
   cleanedText: string,
   reviews: Review[],
 ): string => {
-  // 유효한 리뷰 필터링
+  // 유효한 리뷰 필터링 (range가 추적 가능한 모든 리뷰 포함)
+  // viewStatus는 프론트엔드가 계산하는 값이며, 서버 본문은 상태에 관계없이 모든 태그를 포함한다.
+  // OUTDATED 리뷰는 range.start === -1 이므로 아래 조건으로 자연히 제외된다.
   const validReviews = reviews.filter(
     (r) =>
       r.range.start !== -1 &&
       r.range.start < r.range.end &&
-      r.range.end <= cleanedText.length &&
-      (r.viewStatus === 'PENDING' || r.viewStatus === 'ACCEPTED'),
+      r.range.end <= cleanedText.length,
   );
 
   const sorted = [...validReviews].sort(
@@ -387,7 +378,16 @@ export const reconstructTaggedText = (
 
 const CLOSE_TAG = '⟦/r⟧';
 
-const toTaggedIndex = (taggedText: string, cleanIndex: number): number => {
+interface MapCleanRangeOptions {
+  insertionBias?: 'before' | 'after';
+  removeWholeReviewIds?: number[];
+}
+
+const toTaggedIndex = (
+  taggedText: string,
+  cleanIndex: number,
+  options?: { skipLeadingTags?: boolean },
+): number => {
   const boundedCleanIndex = Math.max(0, cleanIndex);
   let rawIndex = 0;
   let cleanCount = 0;
@@ -407,32 +407,142 @@ const toTaggedIndex = (taggedText: string, cleanIndex: number): number => {
     cleanCount += 1;
   }
 
+  if (options?.skipLeadingTags ?? true) {
+    // 루프 종료 후 현재 위치의 태그를 건너뜀.
+    // rawIndex가 태그 경계를 가리키는 경우 실제 문자 위치로 이동한다.
+    while (rawIndex < taggedText.length) {
+      if (taggedText.startsWith('⟦r:', rawIndex)) {
+        const closeBracketIndex = taggedText.indexOf('⟧', rawIndex);
+        rawIndex =
+          closeBracketIndex === -1 ? taggedText.length : closeBracketIndex + 1;
+        continue;
+      }
+      if (taggedText.startsWith(CLOSE_TAG, rawIndex)) {
+        rawIndex += CLOSE_TAG.length;
+        continue;
+      }
+      break;
+    }
+  }
+
   return rawIndex;
+};
+
+const advanceTaggedIndexByCleanLength = (
+  taggedText: string,
+  rawStart: number,
+  cleanLength: number,
+): number => {
+  let rawIndex = Math.max(0, rawStart);
+  let remaining = Math.max(0, cleanLength);
+
+  while (rawIndex < taggedText.length && remaining > 0) {
+    if (taggedText.startsWith('⟦r:', rawIndex)) {
+      const closeBracketIndex = taggedText.indexOf('⟧', rawIndex);
+      rawIndex =
+        closeBracketIndex === -1 ? taggedText.length : closeBracketIndex + 1;
+      continue;
+    }
+    if (taggedText.startsWith(CLOSE_TAG, rawIndex)) {
+      rawIndex += CLOSE_TAG.length;
+      continue;
+    }
+    rawIndex += 1;
+    remaining -= 1;
+  }
+
+  return rawIndex;
+};
+
+const findTagSpanContaining = (
+  taggedText: string,
+  rawIndex: number,
+): { start: number; end: number } | null => {
+  if (rawIndex < 0 || rawIndex > taggedText.length) return null;
+
+  const openStart = taggedText.lastIndexOf('⟦r:', rawIndex);
+  if (openStart !== -1) {
+    const openEndBracket = taggedText.indexOf('⟧', openStart);
+    if (openEndBracket !== -1) {
+      const openEnd = openEndBracket + 1;
+      if (rawIndex > openStart && rawIndex < openEnd) {
+        return { start: openStart, end: openEnd };
+      }
+    }
+  }
+
+  const closeStart = taggedText.lastIndexOf(CLOSE_TAG, rawIndex);
+  if (closeStart !== -1) {
+    const closeEnd = closeStart + CLOSE_TAG.length;
+    if (rawIndex > closeStart && rawIndex < closeEnd) {
+      return { start: closeStart, end: closeEnd };
+    }
+  }
+
+  return null;
 };
 
 export const mapCleanRangeToTaggedRange = (
   cleanedText: string,
   reviews: Review[],
   range: { start: number; end: number },
+  options?: MapCleanRangeOptions,
 ) => {
   const taggedText = reconstructTaggedText(cleanedText, reviews);
   const start = Math.max(0, range.start);
   const end = Math.min(cleanedText.length, Math.max(start, range.end));
 
   let startIdx = toTaggedIndex(taggedText, start);
-  let endIdx = toTaggedIndex(taggedText, end);
+  let endIdx = startIdx;
 
   // 순수 삽입(start === end)이고 cursor가 ⟦/r⟧ 바로 앞에 있으면 close tag 이후로 이동.
   // updateReviewRanges의 `end <= changeStart` 처리와 일관성을 유지하여
   // "리뷰 바로 뒤 삽입"이 서버에서도 리뷰 외부(태그 뒤)에 적용되도록 보장한다.
   if (start === end) {
-    while (taggedText.startsWith(CLOSE_TAG, startIdx)) {
-      startIdx += CLOSE_TAG.length;
+    if (options?.insertionBias === 'before') {
+      startIdx = toTaggedIndex(taggedText, start, { skipLeadingTags: false });
+    } else {
+      while (taggedText.startsWith(CLOSE_TAG, startIdx)) {
+        startIdx += CLOSE_TAG.length;
+      }
     }
     endIdx = startIdx;
+  } else {
+    // 삭제/치환은 clean 문자 길이만큼만 전진시켜 태그가 범위에 포함되지 않도록 한다.
+    endIdx = advanceTaggedIndexByCleanLength(taggedText, startIdx, end - start);
+
+    if ((options?.removeWholeReviewIds?.length ?? 0) > 0) {
+      const removeIds = new Set(options?.removeWholeReviewIds ?? []);
+      for (const review of reviews) {
+        if (!removeIds.has(review.id)) continue;
+        if (review.range.start < 0 || review.range.end <= review.range.start)
+          continue;
+        // 이번 변경 범위가 해당 리뷰 텍스트를 건드렸을 때만 태그 전체 제거
+        const overlaps =
+          Math.max(start, review.range.start) < Math.min(end, review.range.end);
+        if (!overlaps) continue;
+
+        const reviewRawStart = toTaggedIndex(taggedText, review.range.start, {
+          skipLeadingTags: false,
+        });
+        const reviewRawEnd = toTaggedIndex(taggedText, review.range.end);
+        let reviewRawCloseEnd = reviewRawEnd;
+        while (taggedText.startsWith(CLOSE_TAG, reviewRawCloseEnd)) {
+          reviewRawCloseEnd += CLOSE_TAG.length;
+        }
+        startIdx = Math.min(startIdx, reviewRawStart);
+        endIdx = Math.max(endIdx, reviewRawCloseEnd);
+      }
+    }
   }
 
-  const mapped = { startIdx, endIdx };
+  // 일반 편집에서는 태그 토큰 내부를 부분 삭제/부분 치환하지 않도록 경계를 정규화한다.
+  // (토큰 전체 제거는 removeWholeReviewIds 분기에서만 허용)
+  const startTagSpan = findTagSpanContaining(taggedText, startIdx);
+  if (startTagSpan) startIdx = startTagSpan.end;
+  const endTagSpan = findTagSpanContaining(taggedText, endIdx);
+  if (endTagSpan) endIdx = endTagSpan.start;
+  if (endIdx < startIdx) endIdx = startIdx;
 
-  return mapped;
+  return { startIdx, endIdx };
 };

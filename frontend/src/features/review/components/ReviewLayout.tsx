@@ -131,7 +131,7 @@ const ReviewLayout = () => {
           onReserveNextVersion={reviewState.reserveNextVersion}
         />
       </main>
-      <aside className='h-full w-[426px] flex-none'>
+      <aside className='h-full min-h-0 w-[426px] flex-none overflow-hidden'>
         <ReviewListSection
           reviews={reviewState.currentReviews}
           editingReview={reviewState.editingReview}

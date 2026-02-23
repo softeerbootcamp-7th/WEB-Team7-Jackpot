@@ -100,7 +100,7 @@ export const apiClient = {
 // 모듈 레벨에서 refresh Promise 공유 (race condition 방지)
 let refreshPromise: Promise<string> | null = null;
 
-const refreshAccessToken = async (): Promise<string> => {
+export const refreshAccessToken = async (): Promise<string> => {
   if (refreshPromise) return refreshPromise;
 
   refreshPromise = (async () => {

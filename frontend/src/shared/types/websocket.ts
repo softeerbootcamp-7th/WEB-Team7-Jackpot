@@ -66,6 +66,8 @@ export interface ReviewCreatedResponseType {
   };
 }
 
+// ShareDeactivatedResponseType은 qnAId/payload가 없는 별도 메시지이므로
+// WebSocketResponse 유니온에 포함하지 않고 isShareDeactivatedMessage로 별도 처리한다.
 export interface ShareDeactivatedResponseType {
   type: 'SHARE_DEACTIVATED';
 }
@@ -84,17 +86,19 @@ export const isShareDeactivatedMessage = (
   message !== null &&
   (message as Record<string, unknown>).type === 'SHARE_DEACTIVATED';
 
-const WEBSOCKET_TYPES = new Set<WebSocketResponse['type']>([
-  'TEXT_UPDATE',
-  'REVIEW_UPDATED',
-  'REVIEW_DELETED',
-  'REVIEW_CREATED',
-  'TEXT_REPLACE_ALL',
-]);
+// Record<WebSocketResponse['type'], true>는 유니온의 모든 멤버를 키로 요구한다.
+// WebSocketResponse에 새 타입이 추가될 때 여기서 컴파일 에러가 발생한다.
+const WEBSOCKET_TYPES = new Set<WebSocketResponse['type']>(
+  Object.keys({
+    TEXT_UPDATE: true,
+    REVIEW_UPDATED: true,
+    REVIEW_DELETED: true,
+    REVIEW_CREATED: true,
+    TEXT_REPLACE_ALL: true,
+  } satisfies Record<WebSocketResponse['type'], true>) as WebSocketResponse['type'][],
+);
 
-const isWebSocketType = (
-  type: unknown,
-): type is WebSocketResponse['type'] =>
+const isWebSocketType = (type: unknown): type is WebSocketResponse['type'] =>
   typeof type === 'string' &&
   WEBSOCKET_TYPES.has(type as WebSocketResponse['type']);
 

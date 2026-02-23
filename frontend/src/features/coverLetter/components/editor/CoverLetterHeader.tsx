@@ -20,7 +20,7 @@ const CoverLetterHeader = ({
   textUpdatedAt,
 }: CoverLetterHeaderProps) => {
   const modifiedDisplay = useMemo(() => {
-    const sourceRaw = modifiedAt ?? textUpdatedAt;
+    const sourceRaw = textUpdatedAt ?? modifiedAt;
     const source = sourceRaw
       ? new Date(sourceRaw)
       : isSaving

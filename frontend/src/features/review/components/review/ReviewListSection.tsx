@@ -30,9 +30,9 @@ const ReviewListSection = ({
   };
 
   return (
-    <div className='mx-[13px] flex h-full flex-col items-start gap-0 overflow-x-hidden overflow-y-auto bg-white'>
+    <div className='mx-[13px] flex h-full min-h-0 flex-col bg-white'>
       {reviews.length > 0 ? (
-        <div className='pb-80'>
+        <div className='min-h-0 flex-1 overflow-y-auto pb-80'>
           {reviews.map((review) => (
             <ReviewCard
               key={review.id}
@@ -44,7 +44,7 @@ const ReviewListSection = ({
           ))}
         </div>
       ) : (
-        <div className='flex h-full items-center justify-center'>
+        <div className='flex min-h-0 flex-1 items-center justify-center'>
           <EmptyReview />
         </div>
       )}

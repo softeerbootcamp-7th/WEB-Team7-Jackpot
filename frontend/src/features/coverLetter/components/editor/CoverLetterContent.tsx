@@ -1,4 +1,5 @@
 import {
+  memo,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -7,19 +8,30 @@ import {
   useState,
 } from 'react';
 
+import { useCoverLetterCompositionFlow } from '@/features/coverLetter/hooks/useCoverLetterCompositionFlow';
+import { useCoverLetterDeleteFlow } from '@/features/coverLetter/hooks/useCoverLetterDeleteFlow';
+import { useCoverLetterInputHandlers } from '@/features/coverLetter/hooks/useCoverLetterInputHandlers';
 import { buildChunks } from '@/features/coverLetter/libs/buildChunks';
 import {
   collectText,
   getCaretPosition,
   restoreCaret,
 } from '@/features/coverLetter/libs/caret';
+import { normalizeCaretAtReviewBoundary as normalizeCaretAtReviewBoundaryUtil } from '@/features/coverLetter/libs/caretBoundary';
+import { reconcileReviewTrackingState } from '@/features/coverLetter/libs/reviewTracking';
+import { createTextUpdatePayload } from '@/features/coverLetter/libs/textPatchUtils';
+import { bindUndoRedoShortcuts } from '@/features/coverLetter/libs/undoRedo';
 import type { TextChangeResult } from '@/features/coverLetter/types/coverLetter';
-import { mapCleanRangeToTaggedRange } from '@/shared/hooks/useReviewState/helpers';
+import {
+  calculateTextChange,
+  updateReviewRanges,
+} from '@/shared/hooks/useReviewState/helpers';
 import { useTextSelection } from '@/shared/hooks/useTextSelection';
 import type { Review } from '@/shared/types/review';
 import type { SelectionInfo } from '@/shared/types/selectionInfo';
 import type { WriterMessageType } from '@/shared/types/websocket';
-import { buildTextPatch } from '@/shared/utils/textDiff';
+
+const DUPLICATE_PATCH_WINDOW_MS = 150;
 
 interface CoverLetterContentProps {
   text: string;
@@ -35,7 +47,6 @@ interface CoverLetterContentProps {
     options?: { skipVersionIncrement?: boolean },
   ) => TextChangeResult | void;
   onReserveNextVersion?: () => number;
-  onComposingLengthChange?: (length: number | null) => void;
   isConnected: boolean;
   sendMessage: (destination: string, body: unknown) => void;
   shareId: string;
@@ -43,6 +54,8 @@ interface CoverLetterContentProps {
   currentVersion: number;
   replaceAllSignal: number;
   onTextUpdateSent?: (at: string) => void;
+  onDeleteReviewsByText?: (reviewIds: number[]) => void;
+  onComposingLengthChange?: (len: number | null) => void;
 }
 
 const CoverLetterContent = ({
@@ -56,7 +69,6 @@ const CoverLetterContent = ({
   onReviewClick,
   onTextChange,
   onReserveNextVersion,
-  onComposingLengthChange,
   isConnected,
   sendMessage,
   shareId,
@@ -64,15 +76,16 @@ const CoverLetterContent = ({
   currentVersion,
   replaceAllSignal,
   onTextUpdateSent,
+  onDeleteReviewsByText,
+  onComposingLengthChange,
 }: CoverLetterContentProps) => {
   const [spacerHeight, setSpacerHeight] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
   const isInputtingRef = useRef(false);
   const caretOffsetRef = useRef(0);
   const isComposingRef = useRef(false);
-  const ignoreNextInputAfterCompositionRef = useRef(false);
+  const lastCompositionEndAtRef = useRef(0);
   const composingLastSentTextRef = useRef<string | null>(null);
-  const DUPLICATE_PATCH_WINDOW_MS = 150;
   const lastSentPatchRef = useRef<{
     oldText: string;
     newText: string;
@@ -82,17 +95,42 @@ const CoverLetterContent = ({
     null,
   );
 
+  const handleSelectionChange = useCallback(
+    (newSelection: SelectionInfo | null) => {
+      if (isComposingRef.current) return;
+      onSelectionChange(newSelection);
+    },
+    [onSelectionChange],
+  );
+
   const { containerRef, before, after } = useTextSelection({
     text,
     reviews,
     editingReview,
     selection,
-    onSelectionChange,
+    onSelectionChange: handleSelectionChange,
   });
 
   const prevReplaceAllSignalRef = useRef(replaceAllSignal);
   const latestTextRef = useRef(text);
-  const onComposingLengthChangeRef = useRef(onComposingLengthChange);
+  const reviewsRef = useRef(reviews);
+  const reviewRemainingCharsRef = useRef<Record<number, number>>({});
+  const reviewLastKnownRangesRef = useRef<
+    Record<number, { start: number; end: number }>
+  >({});
+
+  useEffect(() => {
+    reviewsRef.current = reviews;
+    const { nextRemainingChars, nextLastKnownRanges } =
+      reconcileReviewTrackingState({
+        reviews,
+        prevRemainingChars: reviewRemainingCharsRef.current,
+        prevLastKnownRanges: reviewLastKnownRangesRef.current,
+      });
+    reviewRemainingCharsRef.current = nextRemainingChars;
+    reviewLastKnownRangesRef.current = nextLastKnownRanges;
+  }, [reviews]);
+
   const getFocusedCaretOffset = useCallback(() => {
     if (!contentRef.current) return caretOffsetRef.current;
     if (!contentRef.current.contains(document.activeElement)) {
@@ -106,19 +144,13 @@ const CoverLetterContent = ({
   useEffect(() => {
     // qnA 전환/버전 동기화 시 조합 상태를 항상 정리한다.
     // 포커스/커서 복원은 replaceAllSignal 경로에서만 처리한다.
-    const wasComposing = isComposingRef.current;
     isComposingRef.current = false;
     if (composingFlushTimerRef.current) {
       clearTimeout(composingFlushTimerRef.current);
       composingFlushTimerRef.current = null;
     }
-    if (wasComposing) {
-      onComposingLengthChangeRef.current?.(null);
-    }
   }, [currentVersion, qnAId]);
-  useEffect(() => {
-    onComposingLengthChangeRef.current = onComposingLengthChange;
-  }, [onComposingLengthChange]);
+
   useEffect(() => {
     const hasExternalTextUpdate = text !== latestTextRef.current;
 
@@ -128,12 +160,13 @@ const CoverLetterContent = ({
         clearTimeout(composingFlushTimerRef.current);
         composingFlushTimerRef.current = null;
       }
-      onComposingLengthChangeRef.current?.(null);
     }
 
     latestTextRef.current = text;
   }, [text, qnAId]);
+
   const onTextChangeRef = useRef(onTextChange);
+
   useEffect(() => {
     onTextChangeRef.current = onTextChange;
   }, [onTextChange]);
@@ -184,7 +217,7 @@ const CoverLetterContent = ({
   );
 
   const sendTextPatch = useCallback(
-    (oldText: string, newText: string) => {
+    (oldText: string, newText: string, reviewsForMapping?: Review[]) => {
       if (!isConnected) return false;
       if (!shareId || !qnAId) return false;
       if (!onReserveNextVersion) {
@@ -207,17 +240,27 @@ const CoverLetterContent = ({
         return false;
       }
 
-      const patch = buildTextPatch(oldText, newText);
-      const taggedRange = mapCleanRangeToTaggedRange(oldText, reviews, {
-        start: patch.startIdx,
-        end: patch.endIdx,
+      const caretAfter = (() => {
+        if (contentRef.current?.contains(document.activeElement)) {
+          const { start } = getCaretPosition(contentRef.current);
+          if (Number.isFinite(start)) return start;
+        }
+        return caretOffsetRef.current;
+      })();
+
+      const mappingReviews = reviewsForMapping ?? reviewsRef.current;
+      const payload = createTextUpdatePayload({
+        oldText,
+        newText,
+        caretAfter,
+        reviews: mappingReviews,
       });
       const nextVersion = onReserveNextVersion();
       sendMessage(`/pub/share/${shareId}/qna/${qnAId}/text-update`, {
         version: nextVersion,
-        startIdx: taggedRange.startIdx,
-        endIdx: taggedRange.endIdx,
-        replacedText: patch.replacedText,
+        startIdx: payload.startIdx,
+        endIdx: payload.endIdx,
+        replacedText: payload.replacedText,
       } as WriterMessageType);
       lastSentPatchRef.current = { oldText, newText, at: now };
       onTextUpdateSent?.(new Date().toISOString());
@@ -228,28 +271,57 @@ const CoverLetterContent = ({
       onReserveNextVersion,
       onTextUpdateSent,
       qnAId,
-      reviews,
       sendMessage,
       shareId,
     ],
   );
 
+  const sendTextPatchRef = useRef(sendTextPatch);
+
+  useEffect(() => {
+    sendTextPatchRef.current = sendTextPatch;
+  }, [sendTextPatch]);
+
   const updateText = useCallback(
     (
       newText: string,
-      options?: { skipSocket?: boolean; skipVersionIncrement?: boolean },
+      options?: {
+        skipSocket?: boolean;
+        skipVersionIncrement?: boolean;
+        reviewsForMapping?: Review[];
+        removeWholeReviewIds?: number[];
+        forceParentSync?: boolean;
+      },
     ) => {
-      if (!onTextChangeRef.current) return;
+      const handleTextChange = onTextChangeRef.current;
+      if (!handleTextChange) return;
 
       const currentText = latestTextRef.current;
-      if (newText !== currentText) {
-        const sentBySocket = !options?.skipSocket
-          ? sendTextPatch(currentText, newText)
-          : false;
-        const change = onTextChangeRef.current(newText, {
-          skipVersionIncrement: options?.skipVersionIncrement ?? sentBySocket,
-        });
-        if (change && typeof change === 'object') {
+      const hasChanged = newText !== currentText;
+
+      if (hasChanged || options?.forceParentSync) {
+        const change = calculateTextChange(currentText, newText);
+        const sentBySocket =
+          !options?.skipSocket && hasChanged && !isComposingRef.current
+            ? sendTextPatch(currentText, newText, options?.reviewsForMapping)
+            : false;
+
+        if (!isComposingRef.current || options?.forceParentSync) {
+          handleTextChange(newText, {
+            skipVersionIncrement: options?.skipVersionIncrement ?? sentBySocket,
+          });
+        }
+
+        if (hasChanged) {
+          const reviewsForNextMapping =
+            options?.reviewsForMapping ?? reviewsRef.current;
+          reviewsRef.current = updateReviewRanges(
+            reviewsForNextMapping,
+            change.changeStart,
+            change.oldLength,
+            change.newLength,
+            newText,
+          );
           undoStack.current.push({
             text: currentText,
             caret: caretOffsetRef.current,
@@ -258,7 +330,7 @@ const CoverLetterContent = ({
           if (undoStack.current.length > 100) undoStack.current.shift();
           redoStack.current = [];
           isInputtingRef.current = true;
-          latestTextRef.current = newText; // 즉시 동기 업데이트 — re-render 전 다음 입력에서도 최신 값 사용
+          latestTextRef.current = newText;
         }
       }
     },
@@ -266,8 +338,8 @@ const CoverLetterContent = ({
   );
 
   // 일반 입력 처리
-  const processInput = () => {
-    if (!contentRef.current || isComposingRef.current) return;
+  const processInput = (forceSync = false) => {
+    if (!contentRef.current) return;
 
     const newText = collectText(contentRef.current);
 
@@ -278,7 +350,10 @@ const CoverLetterContent = ({
       caretOffsetRef.current = start;
     }
 
-    updateText(newText);
+    updateText(newText, {
+      forceParentSync: forceSync,
+      skipVersionIncrement: forceSync ? true : undefined,
+    });
   };
 
   // compositionEnd 직후 등 DOM과 latestTextRef가 불일치할 수 있으므로 ref만 동기화.
@@ -297,39 +372,32 @@ const CoverLetterContent = ({
     composingFlushTimerRef.current = null;
   }, []);
 
-  const flushDOMText = useCallback(
-    (options?: { skipSocket?: boolean; skipVersionIncrement?: boolean }) => {
-      if (!contentRef.current) return;
-      const domText = collectText(contentRef.current);
-      if (domText === latestTextRef.current) return;
-      const { start } = getCaretPosition(contentRef.current);
-      caretOffsetRef.current = domText === '' ? 0 : start;
-      updateText(domText, {
-        skipSocket: options?.skipSocket,
-        skipVersionIncrement: options?.skipVersionIncrement,
-      });
-    },
-    [updateText],
-  );
-
-  const flushComposingSocketOnly = useCallback(() => {
+  const normalizeCaretAtReviewBoundary = useCallback((): boolean => {
     if (!contentRef.current) return false;
-    const domText = collectText(contentRef.current);
-    const baseText = composingLastSentTextRef.current ?? latestTextRef.current;
-    if (domText === baseText) return false;
-    const sent = sendTextPatch(baseText, domText);
-    if (!sent) return false;
-    composingLastSentTextRef.current = domText;
-    return true;
-  }, [sendTextPatch]);
+    return normalizeCaretAtReviewBoundaryUtil({
+      contentEl: contentRef.current,
+      reviews: reviewsRef.current,
+    });
+  }, []);
 
-  // 커서 위치에 텍스트 삽입 (ref 기반)
+  const { applyDeleteByDirection } = useCoverLetterDeleteFlow({
+    contentRef,
+    isComposingRef,
+    latestTextRef,
+    caretOffsetRef,
+    reviewsRef,
+    reviewRemainingCharsRef,
+    reviewLastKnownRangesRef,
+    syncDOMToState,
+    updateText,
+    onDeleteReviewsByText,
+  });
+
   const insertTextAtCaret = useCallback(
     (insertStr: string) => {
       if (!contentRef.current) return;
 
       syncDOMToState();
-
       const { start, end } = getCaretPosition(contentRef.current);
 
       const currentText = latestTextRef.current;
@@ -338,6 +406,12 @@ const CoverLetterContent = ({
       caretOffsetRef.current = start + insertStr.length;
 
       updateText(newText);
+
+      // 여기서 바로 DOM에 caret 복원
+      window.requestAnimationFrame(() => {
+        if (!contentRef.current) return;
+        restoreCaret(contentRef.current, caretOffsetRef.current);
+      });
     },
     [syncDOMToState, updateText],
   );
@@ -345,80 +419,82 @@ const CoverLetterContent = ({
   // caret 복원
   useLayoutEffect(() => {
     const el = contentRef.current;
-    const isFocused = Boolean(el?.contains(document.activeElement));
+    if (!el) return;
 
-    if (!contentRef.current) return;
+    const isFocused = Boolean(el.contains(document.activeElement));
+
     if (!isInputtingRef.current && !isFocused) return;
 
-    if (text === '') {
-      const firstSpan = contentRef.current.querySelector('span');
-      if (firstSpan) {
+    if (isComposingRef.current) return;
+
+    const children = Array.from(el.childNodes);
+    for (const child of children) {
+      if (
+        child.nodeType === Node.TEXT_NODE ||
+        (child.nodeType === Node.ELEMENT_NODE &&
+          !(child as Element).hasAttribute('data-chunk'))
+      ) {
+        if (child.nodeType === Node.ELEMENT_NODE) {
+          while (child.firstChild) {
+            el.insertBefore(child.firstChild, child);
+          }
+          el.removeChild(child);
+        } else {
+          el.removeChild(child);
+        }
+      }
+    }
+
+    const restore = () => {
+      const el = contentRef.current;
+      if (!el) return;
+
+      if (isComposingRef.current) return;
+
+      if (text === '') {
         const range = document.createRange();
         const sel = window.getSelection();
-        range.setStart(firstSpan.firstChild || firstSpan, 0);
+        range.setStart(el, 0);
         range.collapse(true);
         sel?.removeAllRanges();
         sel?.addRange(range);
+      } else {
+        const boundedOffset = Math.min(caretOffsetRef.current, text.length);
+        restoreCaret(el, boundedOffset);
       }
-    } else {
-      const boundedOffset = Math.min(caretOffsetRef.current, text.length);
-      restoreCaret(contentRef.current, boundedOffset);
-    }
+    };
 
+    restore();
     isInputtingRef.current = false;
   }, [text, qnAId]);
 
-  const handleInput = () => {
-    if (ignoreNextInputAfterCompositionRef.current && !isComposingRef.current) {
-      ignoreNextInputAfterCompositionRef.current = false;
+  const {
+    handleInput: rawHandleInput,
+    handleCompositionStart,
+    handleCompositionEnd: rawHandleCompositionEnd,
+  } = useCoverLetterCompositionFlow({
+    contentRef,
+    latestTextRef,
+    isComposingRef,
+    lastCompositionEndAtRef,
+    composingLastSentTextRef,
+    clearComposingFlushTimer,
+    processInput,
+    normalizeCaretAtReviewBoundary,
+  });
+
+  const handleInput = useCallback(() => {
+    if (isComposingRef.current && contentRef.current) {
+      onComposingLengthChange?.(collectText(contentRef.current).length);
       return;
     }
-    // 조합 중에는 텍스트 상태를 갱신하지 않지만 글자 수만 실시간 반영
-    if (isComposingRef.current) {
-      if (contentRef.current) {
-        onComposingLengthChangeRef.current?.(
-          collectText(contentRef.current).length,
-        );
-      }
-      clearComposingFlushTimer();
-      composingFlushTimerRef.current = setTimeout(() => {
-        flushComposingSocketOnly();
-        // 조합 중에도 로컬 상태를 주기적으로 동기화해,
-        // 외부 리렌더 타이밍에 조합 문자가 유실되지 않게 한다.
-        flushDOMText({ skipSocket: true });
-      }, 250);
-      return;
-    }
-    processInput();
-  };
-  const handleCompositionStart = () => {
-    ignoreNextInputAfterCompositionRef.current = false;
-    clearComposingFlushTimer();
-    composingLastSentTextRef.current = latestTextRef.current;
-    isComposingRef.current = true;
-  };
-  const handleCompositionEnd = () => {
-    isComposingRef.current = false;
-    clearComposingFlushTimer();
-    const sentBySocket = flushComposingSocketOnly();
-    onComposingLengthChangeRef.current?.(null);
-    flushDOMText({
-      skipSocket: true,
-      skipVersionIncrement: sentBySocket,
-    });
+    rawHandleInput();
+  }, [rawHandleInput, onComposingLengthChange]);
 
-    // compositionEnd 직후 브라우저가 추가 input 이벤트를 올릴 수 있어
-    // 동일 텍스트 중복 처리/중복 전송을 방지한다.
-    ignoreNextInputAfterCompositionRef.current = true;
-    composingLastSentTextRef.current = null;
-  };
-
-  useEffect(
-    () => () => {
-      clearComposingFlushTimer();
-    },
-    [clearComposingFlushTimer],
-  );
+  const handleCompositionEnd = useCallback(() => {
+    rawHandleCompositionEnd();
+    onComposingLengthChange?.(null);
+  }, [rawHandleCompositionEnd, onComposingLengthChange]);
 
   useLayoutEffect(() => {
     if (!contentRef.current) return;
@@ -434,119 +510,103 @@ const CoverLetterContent = ({
     isComposingRef.current = false;
     composingLastSentTextRef.current = null;
     clearComposingFlushTimer();
-    onComposingLengthChangeRef.current?.(null);
     latestTextRef.current = text;
 
+    let rafId: number | undefined;
     if (wasFocused) {
       contentRef.current.blur();
-      window.requestAnimationFrame(() => {
+      rafId = window.requestAnimationFrame(() => {
         if (!contentRef.current) return;
         contentRef.current.focus();
         restoreCaret(contentRef.current, boundedOffset);
       });
     }
+    return () => {
+      if (rafId !== undefined) window.cancelAnimationFrame(rafId);
+    };
   }, [replaceAllSignal, text, clearComposingFlushTimer, getFocusedCaretOffset]);
 
-  // Undo/Redo (ref 기반)
   useEffect(() => {
-    const performUndo = () => {
-      if (undoStack.current.length === 0) return;
-      const prev = undoStack.current.pop()!;
-      const currentText = latestTextRef.current;
-      redoStack.current.push({
-        text: currentText,
-        caret: caretOffsetRef.current,
-      });
-      caretOffsetRef.current = prev.caret;
-      isInputtingRef.current = true;
-      latestTextRef.current = prev.text;
-      onTextChangeRef.current?.(prev.text);
-    };
-
-    const performRedo = () => {
-      if (redoStack.current.length === 0) return;
-      const next = redoStack.current.pop()!;
-      const currentText = latestTextRef.current;
-      undoStack.current.push({
-        text: currentText,
-        caret: caretOffsetRef.current,
-      });
-      caretOffsetRef.current = next.caret;
-      isInputtingRef.current = true;
-      latestTextRef.current = next.text;
-      onTextChangeRef.current?.(next.text);
-    };
-
-    const handleKey = (e: KeyboardEvent) => {
-      // 현재 contentEditable에 포커스가 있을 때만 동작
-      if (!contentRef.current?.contains(document.activeElement)) return;
-
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
-        e.preventDefault();
-        if (e.shiftKey) performRedo();
-        else performUndo();
-      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
-        e.preventDefault();
-        performRedo();
-      }
-    };
-
-    document.addEventListener('keydown', handleKey);
-    return () => document.removeEventListener('keydown', handleKey);
+    return bindUndoRedoShortcuts({
+      contentRef,
+      undoStack,
+      redoStack,
+      getCurrentText: () => latestTextRef.current,
+      getCurrentCaret: () => caretOffsetRef.current,
+      setCurrentCaret: (caret) => {
+        caretOffsetRef.current = caret;
+      },
+      applyText: (nextText) => {
+        const prevText = latestTextRef.current;
+        isInputtingRef.current = true;
+        latestTextRef.current = nextText;
+        const sentBySocket = sendTextPatchRef.current(prevText, nextText);
+        onTextChangeRef.current?.(nextText, {
+          skipVersionIncrement: sentBySocket,
+        });
+      },
+    });
   }, []);
 
-  // Backspace / Delete / Enter 처리 (ref 기반)
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (isComposingRef.current || e.nativeEvent.isComposing) return;
-
-    if (e.key === 'Backspace' || e.key === 'Delete') {
-      e.preventDefault();
-      if (!contentRef.current) return;
-
-      syncDOMToState();
-
-      const { start, end } = getCaretPosition(contentRef.current);
-
-      const currentText = latestTextRef.current;
-      let newText = currentText;
-
-      if (start !== end) {
-        newText = currentText.slice(0, start) + currentText.slice(end);
-        caretOffsetRef.current = start;
-      } else {
-        if (e.key === 'Backspace' && start > 0) {
-          newText = currentText.slice(0, start - 1) + currentText.slice(end);
-          caretOffsetRef.current = start - 1;
-        } else if (e.key === 'Delete' && start < currentText.length) {
-          newText = currentText.slice(0, start) + currentText.slice(end + 1);
-          caretOffsetRef.current = start;
-        }
-      }
-
-      if (newText === '') caretOffsetRef.current = 0;
-
-      updateText(newText);
-    }
-
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      insertTextAtCaret('\n');
-    }
-  };
-
-  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const plainText = e.clipboardData.getData('text/plain');
-    insertTextAtCaret(plainText);
-  };
+  const { handleKeyDown, handlePaste } = useCoverLetterInputHandlers({
+    isComposingRef,
+    lastCompositionEndAtRef,
+    normalizeCaretAtReviewBoundary,
+    insertPlainTextAtCaret: insertTextAtCaret,
+    applyDeleteByDirection,
+    contentRef,
+    caretOffsetRef,
+    handleCompositionEnd,
+  });
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLElement;
-    const reviewIdStr = target.getAttribute('data-review-id');
-    if (reviewIdStr && isReviewActive) {
-      const reviewId = Number(reviewIdStr);
-      if (!isNaN(reviewId)) onReviewClick(reviewId);
+    let target = e.target as Node;
+    if (target.nodeType === Node.TEXT_NODE && target.parentElement) {
+      target = target.parentElement;
     }
+
+    if (target.nodeType !== Node.ELEMENT_NODE) {
+      return;
+    }
+
+    const reviewEl = (target as Element).closest('[data-review-id]');
+    const reviewIdStr = reviewEl?.getAttribute('data-review-id');
+    if (reviewIdStr && isReviewActive) {
+      // 클릭 좌표가 실제 텍스트를 감싸는 내부 span 위에 있을 때만 리뷰 클릭으로 처리한다.
+      // 이렇게 하면 span의 bounding box에 포함되는 빈 공간 클릭을 방지할 수 있다.
+      const textSpan = reviewEl?.querySelector('span:not([data-review-id])');
+      const checkElement = textSpan || reviewEl;
+
+      if (checkElement) {
+        const rects = Array.from(checkElement.getClientRects());
+        const isDirectlyOverReview = rects.some(
+          (rect) =>
+            e.clientX >= rect.left &&
+            e.clientX <= rect.right &&
+            e.clientY >= rect.top &&
+            e.clientY <= rect.bottom,
+        );
+
+        if (isDirectlyOverReview) {
+          const reviewId = Number(reviewIdStr);
+          if (!isNaN(reviewId)) onReviewClick(reviewId);
+        }
+      }
+    }
+    // 클릭 후 캐럿이 리뷰 끝 "내부"에 걸리면 첫 입력이 리뷰에 붙을 수 있다.
+    // selection 반영 이후 경계를 바깥으로 정규화한다.
+    window.requestAnimationFrame(() => {
+      if (isComposingRef.current) return;
+      normalizeCaretAtReviewBoundary();
+    });
+  };
+
+  const handleMouseUp = () => {
+    // 클릭/드래그 후 브라우저가 실제 캐럿 위치를 반영한 뒤 경계를 정규화한다.
+    window.requestAnimationFrame(() => {
+      if (isComposingRef.current) return;
+      normalizeCaretAtReviewBoundary();
+    });
   };
 
   return (
@@ -572,6 +632,7 @@ const CoverLetterContent = ({
           onCompositionStart={handleCompositionStart}
           onCompositionEnd={handleCompositionEnd}
           onClick={handleClick}
+          onMouseUp={handleMouseUp}
           className='w-full cursor-text py-3 text-base leading-7 font-normal text-gray-800 outline-none'
           style={{
             whiteSpace: 'pre-wrap',
@@ -579,11 +640,17 @@ const CoverLetterContent = ({
             paddingBottom: spacerHeight,
           }}
         >
-          {chunks.length > 0 ? chunks : <span>&#8203;</span>}
+          {chunks.length > 0 ? (
+            chunks
+          ) : (
+            <span aria-hidden='true' className='select-none' data-chunk='true'>
+              {'\u200B'}
+            </span>
+          )}
         </div>
       </div>
     </div>
   );
 };
 
-export default CoverLetterContent;
+export default memo(CoverLetterContent);
