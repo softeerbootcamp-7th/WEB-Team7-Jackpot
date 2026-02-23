@@ -59,7 +59,7 @@ public interface LibraryApi {
             @Parameter(description = "회사명", required = true) @RequestParam @NotBlank String companyName,
             @Parameter(description = "페이지 크기 (기본값: 10)") @RequestParam(defaultValue = "10") @Min(1) int size,
             @Parameter(description = "마지막 자기소개서 ID (다음 페이지 조회 시 사용)")
-            @RequestParam(required = false) @Positive Optional<Long> lastCoverLetterId
+            @RequestParam(required = false) Optional<@Positive Long> lastCoverLetterId
     );
 
     @Operation(summary = "질문 카테고리별 질문 목록 조회", description = "특정 질문 카테고리의 질문 목록을 페이징하여 조회합니다.")
@@ -79,6 +79,6 @@ public interface LibraryApi {
             @RequestParam @NotBlank String questionCategory,
             @Parameter(description = "페이지 크기 (기본값: 10)") @RequestParam(defaultValue = "10") @Min(1) int size,
             @Parameter(description = "마지막 질문 ID (다음 페이지 조회 시 사용)")
-            @RequestParam(required = false) Optional<Long> lastQuestionId
+            @RequestParam(required = false) Optional<@Positive Long> lastQuestionId
     );
 }

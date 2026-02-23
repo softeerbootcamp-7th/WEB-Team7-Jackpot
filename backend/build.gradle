@@ -25,32 +25,51 @@ repositories {
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	runtimeOnly 'com.mysql:mysql-connector-j'
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    runtimeOnly 'com.mysql:mysql-connector-j'
 
-	// JWT
-	implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
-	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
-	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
+    // ulid-creator for ULID
+    implementation group: 'com.github.f4b6a3', name: 'ulid-creator', version: '5.2.3'
 
-  implementation 'org.mindrot:jbcrypt:0.4'
+    // JWT
+    implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
 
-	// Swagger/OpenAPI
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.7.0'
+    implementation 'org.mindrot:jbcrypt:0.4'
 
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
+    // Swagger/OpenAPI
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:3.0.1'
 
-	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
-  testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
+    // QueryDSL
+    implementation 'io.github.openfeign.querydsl:querydsl-jpa:7.1'
+    annotationProcessor 'io.github.openfeign.querydsl:querydsl-apt:7.1:jakarta'
+    annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
+    annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
 
-	testImplementation 'org.mockito:mockito-core:5.11.0'
-	testImplementation 'org.mockito:mockito-junit-jupiter:5.11.0'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	testRuntimeOnly 'com.h2database:h2'
+    // AWS S3 SDK v2
+    implementation platform("software.amazon.awssdk:bom:2.41.31")
+    implementation "software.amazon.awssdk:s3"
+    implementation "software.amazon.awssdk:lambda"
+
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-sqs:4.0.0'
+
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
+
+    testImplementation 'org.mockito:mockito-core:5.21.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.21.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testRuntimeOnly 'com.h2database:h2'
 }
 
 tasks.named('test') {

@@ -15,7 +15,7 @@ public class TokenService {
     private final JwtTokenParser jwtTokenParser;
 
     public AccessToken reissueToken(String rawToken) {
-        Token token = jwtTokenParser.parseToken(rawToken);
+        Token token = jwtTokenParser.parseJwtToken(rawToken);
         jwtValidator.validateToken(token);
         String userId = token.getSubject();
         return jwtGenerator.generateAccessToken(userId);

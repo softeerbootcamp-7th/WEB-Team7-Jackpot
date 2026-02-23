@@ -4,7 +4,7 @@ import java.util.Date;
 
 public class RefreshToken extends Token{
 
-    public RefreshToken(String token, String subject, Date issuedAt, Date expiration) {
+    private RefreshToken(String token, String subject, Date issuedAt, Date expiration) {
         super(token, subject, issuedAt, expiration);
     }
 

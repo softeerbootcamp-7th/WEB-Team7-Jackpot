@@ -29,7 +29,7 @@ public class UserIdArgumentResolver implements HandlerMethodArgumentResolver {
                                   NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
         HttpServletRequest httpServletRequest = (HttpServletRequest) webRequest.getNativeRequest();
         String rawToken = httpServletRequest.getHeader(AuthConstants.AUTHORIZATION);
-        Token token = jwtTokenParser.parseToken(rawToken);
+        Token token = jwtTokenParser.parseBearerToken(rawToken);
         return token.getSubject();
     }
 }
