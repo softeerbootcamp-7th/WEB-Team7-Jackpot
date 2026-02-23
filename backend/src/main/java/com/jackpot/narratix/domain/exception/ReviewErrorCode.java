@@ -14,7 +14,11 @@ public enum ReviewErrorCode implements ErrorCode {
     REVIEW_SUGGEST_IS_NULL(HttpStatus.BAD_REQUEST, "해당 첨삭 댓글은 Suggest 내용이 없습니다."),
     REVIEW_TEXT_MISMATCH(HttpStatus.CONFLICT, "현재 텍스트가 리뷰 대상 텍스트와 일치하지 않습니다."),
     REVIEW_VERSION_TOO_OLD(HttpStatus.CONFLICT, "버전 이력이 너무 오래되어 OT 변환이 불가합니다."),
-    REVIEW_VERSION_AHEAD(HttpStatus.BAD_REQUEST, "Reviewer의 버전이 현재 서버 버전보다 앞서 있습니다.");
+    REVIEW_VERSION_AHEAD(HttpStatus.BAD_REQUEST, "Reviewer의 버전이 현재 서버 버전보다 앞서 있습니다."),
+    REVIEW_MARKER_CONTENT_MISMATCH(HttpStatus.BAD_REQUEST, "리뷰 마커 내부 내용이 일치하지 않습니다."),
+    REVIEW_OPEN_MARKER_NOT_FOUND(HttpStatus.BAD_REQUEST, "리뷰 OPEN 마커가 본문에서 발견되지 않았습니다."),
+    REVIEW_CLOSE_MARKER_NOT_FOUND(HttpStatus.BAD_REQUEST, "리뷰 CLOSE 마커가 본문에서 발견되지 않았습니다.");
+
 
     private final HttpStatus status;
     private final String message;
