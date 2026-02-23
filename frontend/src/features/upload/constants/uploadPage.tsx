@@ -53,6 +53,10 @@ export const UPLOAD_TAB_DATA: UploadTabDataType[] = [
     label: '파일 업로드하기',
     icon: <UI.FileUploadIcon />,
   },
+  {
+    label: '자기소개서 샘플 파일 다운로드',
+    icon: <UI.DownloadIcon />,
+  },
 ] as const;
 
 export const MAX_BYTES = 5 * 1024 * 1024;
