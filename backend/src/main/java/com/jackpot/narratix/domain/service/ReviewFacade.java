@@ -37,7 +37,6 @@ public class ReviewFacade {
 
     private final TextSyncService textSyncService;
     private final ReviewService reviewService;
-    private final TextDeltaService textDeltaService;
     private final OTTransformer otTransformer;
     private final NotificationService notificationService;
     private final ApplicationEventPublisher eventPublisher;
@@ -50,29 +49,36 @@ public class ReviewFacade {
         CoverLetterAndQnAInfo coverLetterAndQnAInfo = getCoverLetterAndQnAInfoAndValidateWebSocketConnected(qnAId, reviewerId);
 
         // delta를 가져온다.
-        List<TextUpdateRequest> committedDeltas = textDeltaService.getCommittedDeltas(qnAId);
+        List<TextUpdateRequest> committedDeltas = textSyncService.getCommittedDeltas(qnAId);
         List<TextUpdateRequest> pendingDeltas = textSyncService.getPendingDeltas(qnAId);
-        long pendingDeltaCount = pendingDeltas.size();
+        List<TextUpdateRequest> allDeltas = Stream.concat(committedDeltas.stream(), pendingDeltas.stream()).toList();
 
-        // Review 구간을 OT로 변환하기 위해 committed delta와 pending delta를 이용해 transformed range를 계산한다.
-        long reviewerVersion = request.version();
-        long currentVersion = coverLetterAndQnAInfo.qnAVersion;
         int transformedStart = request.startIdx().intValue();
         int transformedEnd = request.endIdx().intValue();
 
-        if (reviewerVersion < currentVersion) {
-            List<TextUpdateRequest> otDeltas = Stream.concat(committedDeltas.stream(), pendingDeltas.stream())
-                    .filter(d -> d.version() > reviewerVersion)
-                    .toList(); // OT 변환에 필요한 델타만 추출 (reviewerVersion 이후의 델타)
-            boolean hasOtHistorySinceReviewerVersion = !otDeltas.isEmpty() && otDeltas.get(0).version() == reviewerVersion + 1;
-            if (!hasOtHistorySinceReviewerVersion) {
-                throw new BaseException(ReviewErrorCode.REVIEW_VERSION_TOO_OLD);
+        long reviewerVersion = request.version();
+
+        if (!allDeltas.isEmpty()) {
+            long mostRecentDeltaVersion = allDeltas.get(pendingDeltas.size() - 1).version();
+            long oldestDeltaVersion = allDeltas.get(0).version();
+
+            // Review 구간을 OT로 변환하기 위해 committed delta와 pending delta를 이용해 transformed range를 계산한다.
+            if (reviewerVersion < mostRecentDeltaVersion) {
+                List<TextUpdateRequest> otDeltas = allDeltas.stream()
+                        .filter(d -> d.version() > reviewerVersion) // reviewerVersion이 1면, version 2,3,4, ... 인 델타는 OT 변환에 포함된다.
+                        .toList();
+
+                // 가장 오래된 델타의 버전이 reviewerVersion보다 크거나 같아야 OT 변환이 가능하다. (reviewerVersion 이후의 델타가 존재해야 한다.)
+                boolean hasOtHistorySinceReviewerVersion = oldestDeltaVersion >= reviewerVersion;
+                if (!hasOtHistorySinceReviewerVersion) {
+                    throw new BaseException(ReviewErrorCode.REVIEW_VERSION_TOO_OLD);
+                }
+                int[] transformed = otTransformer.transformRange(transformedStart, transformedEnd, otDeltas);
+                transformedStart = transformed[0];
+                transformedEnd = transformed[1];
+            } else if (reviewerVersion > mostRecentDeltaVersion) {
+                throw new BaseException(ReviewErrorCode.REVIEW_VERSION_AHEAD);
             }
-            int[] transformed = otTransformer.transformRange(transformedStart, transformedEnd, otDeltas);
-            transformedStart = transformed[0];
-            transformedEnd = transformed[1];
-        } else if (reviewerVersion > currentVersion) {
-            throw new BaseException(ReviewErrorCode.REVIEW_VERSION_AHEAD);
         }
 
         // pending delta까지 병합된 결과에서 리뷰 originText가 유효한지 검증한다.
@@ -83,7 +89,7 @@ public class ReviewFacade {
         // Transaction 2: Review 생성 및 QnA 업데이트 & 이벤트 발행
         Long coverLetterId = coverLetterAndQnAInfo.coverLetterId;
         createReviewAndUpdateAnswer(
-                reviewerId, qnAId, coverLetterId, request, mergedAnswer, transformedStart, transformedEnd, pendingDeltaCount
+                reviewerId, qnAId, coverLetterId, request, mergedAnswer, transformedStart, transformedEnd, pendingDeltas.size()
         );
 
         // Transaction 3: 알림 전송

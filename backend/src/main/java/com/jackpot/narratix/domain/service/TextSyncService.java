@@ -44,6 +44,14 @@ public class TextSyncService {
     }
 
     /**
+     * committed 델타를 가져온다.
+     * Review 생성 시 OT 변환을 위해 사용한다.
+     */
+    public List<TextUpdateRequest> getCommittedDeltas(Long qnAId) {
+        return textDeltaRedisRepository.getCommitted(qnAId);
+    }
+
+    /**
      * pending 델타를 DB에 flush한다.
      */
     @Transactional
