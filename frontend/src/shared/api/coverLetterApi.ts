@@ -17,9 +17,9 @@ const CoverLetterItemSchema = z.object({
   coverLetterId: z.number(),
   companyName: z.string(),
   jobPosition: z.string(),
-  applyYear: z.number(),
-  applyHalf: ApiApplyHalfSchema,
-  deadline: z.string().date(),
+  applyYear: z.number().optional(),
+  applyHalf: ApiApplyHalfSchema.optional(),
+  deadline: z.string().optional(),
   questionCount: z.number(),
 });
 
@@ -60,7 +60,6 @@ export const searchCoverLetters = async ({
 
   if (searchWord) params.append('searchWord', searchWord);
   params.append('size', size.toString());
-  // API는 0-based 페이지 번호를 기대하므로, 클라이언트에서 1-based 페이지 번호를 전달받아 0-based로 변환
   params.append('page', page.toString());
 
   return apiClient.get<CoverLetterSearchResponse>({

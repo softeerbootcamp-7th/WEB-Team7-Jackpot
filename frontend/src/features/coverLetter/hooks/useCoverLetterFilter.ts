@@ -12,8 +12,7 @@ export const useInfiniteCoverLetterFilter = (params: FilterRequest) => {
     getNextPageParam: (lastPage) => {
       const lastItem = lastPage.coverLetters?.at(-1);
       // 데이터가 없거나, 받아온 데이터 수가 요청한 size보다 작으면 마지막 페이지
-      if (!lastItem || lastPage.coverLetters.length < (params.size ?? 7))
-        return undefined;
+      if (!lastItem || !lastPage.hasNext) return undefined;
       return lastItem.coverLetterId;
     },
     staleTime: 5 * 60 * 1000,

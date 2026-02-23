@@ -10,7 +10,7 @@ interface Props {
 }
 
 const DetailButtons = ({ coverLetterId, qnAId, initialScrapState }: Props) => {
-  const { isScraped, handleToggleScrap } = useScrap({
+  const { isScraped, handleToggleScrap, isLoading } = useScrap({
     qnAId,
     initialScrapState: initialScrapState,
   });
@@ -20,6 +20,7 @@ const DetailButtons = ({ coverLetterId, qnAId, initialScrapState }: Props) => {
       <button
         type='button'
         onClick={handleToggleScrap}
+        disabled={isLoading}
         // [박소민] TODO: 스크랩 상태에 따라 버튼 스타일 변경
         className={`flex cursor-pointer items-center gap-1.5 rounded-xl border border-purple-50 bg-purple-50 px-3 py-1.5 text-sm font-bold text-purple-600 transition-colors hover:bg-purple-100`}
       >

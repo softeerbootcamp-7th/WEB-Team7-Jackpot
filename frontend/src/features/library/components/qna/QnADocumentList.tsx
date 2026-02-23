@@ -33,7 +33,7 @@ const QnADocumentList = ({ className }: Props) => {
     <DocumentLayout
       title={qnAName ?? '제목 없음'}
       backUrl='/library/qna'
-      className={`${className} pt-6`}
+      className={`${className ?? ''} pt-6`}
     >
       <DocumentList
         items={questions}

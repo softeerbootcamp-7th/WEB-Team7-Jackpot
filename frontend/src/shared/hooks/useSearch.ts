@@ -1,4 +1,10 @@
-import { type ChangeEvent, useCallback, useEffect, useState } from 'react';
+import {
+  type ChangeEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import { useSearchParams } from 'react-router';
 
@@ -29,6 +35,15 @@ export const useSearch = <T>({
 
   const [data, setData] = useState<T | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // 💡 포인트: fetchAction의 최신 참조를 유지하기 위한 ref
+  const fetchActionRef = useRef(fetchAction);
+
+  // fetchAction이 변경될 때마다 ref 값을 최신화합니다.
+  // 이 동작은 렌더링에 영향을 주지 않습니다.
+  useEffect(() => {
+    fetchActionRef.current = fetchAction;
+  }, [fetchAction]);
 
   useEffect(() => {
     if (!isEnabled) {
@@ -107,7 +122,8 @@ export const useSearch = <T>({
   ]);
 
   useEffect(() => {
-    if (!isEnabled || !currentQueryParam || !fetchAction) {
+    // 💡 포인트: 의존성 배열에서 fetchAction을 제거하고, fetchActionRef.current를 사용합니다.
+    if (!isEnabled || !currentQueryParam || !fetchActionRef.current) {
       setData(null);
       return;
     }
@@ -117,7 +133,11 @@ export const useSearch = <T>({
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const result = await fetchAction(currentQueryParam, currentPageParam);
+        // fetchActionRef.current는 존재함이 위에서 보장됨
+        const result = await fetchActionRef.current!(
+          currentQueryParam,
+          currentPageParam,
+        );
         if (isMounted) {
           setData(result);
         }
@@ -135,7 +155,7 @@ export const useSearch = <T>({
     return () => {
       isMounted = false;
     };
-  }, [currentQueryParam, currentPageParam, fetchAction, isEnabled]);
+  }, [currentQueryParam, currentPageParam, isEnabled]); // 의존성 배열에서 fetchAction 제거됨
 
   return {
     keyword,
@@ -144,7 +164,7 @@ export const useSearch = <T>({
     isLoading,
     page: currentPageParam,
     handlePageChange,
-    currentQueryParam, // 부모에서 이 값을 기준으로 검색 결과 렌더링 여부 판단 가능
+    currentQueryParam,
   };
 };
 
