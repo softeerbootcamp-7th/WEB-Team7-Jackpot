@@ -118,6 +118,7 @@
 ## 🏗 아키텍처
 
 ![System Architecture](https://placehold.co/1200x500?text=Architecture+Diagram)
+<img width="5376" height="4176" alt="image" src="https://github.com/user-attachments/assets/e5f0c462-1cba-4735-9cf2-74e2d111cf87" />
 
 ---
 
