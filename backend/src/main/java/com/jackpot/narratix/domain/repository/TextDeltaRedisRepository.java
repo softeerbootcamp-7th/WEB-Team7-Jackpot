@@ -355,7 +355,7 @@ public class TextDeltaRedisRepository {
                 .map(raw -> {
                     try {
                         return objectMapper.readValue((String) raw, TextUpdateRequest.class);
-                    } catch (JsonProcessingException e) {
+                    } catch (JacksonException e) {
                         log.error("TextUpdateRequest 역직렬화 실패: qnAId={}, raw={}", qnAId, raw, e);
                         return null;
                     }
