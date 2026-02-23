@@ -223,7 +223,7 @@
             <tr>
               <td align="center" width="200">
                 <a href="https://github.com/using2">
-                  <img src="https://github.com/using2.png" alt="강유진" width="120" style="border-radius: 50%;" />
+                  <img src="https://github.com/user-attachments/assets/8c03c0d6-9ecc-423f-8126-74c2c2e81ec0" alt="강유진" width="120" style="border-radius: 50%;" />
                   <br />
                   <sub><b>강유진</b></sub>
                 </a>
