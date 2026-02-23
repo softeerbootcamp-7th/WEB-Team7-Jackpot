@@ -69,12 +69,12 @@ public class TextDeltaRedisRepository {
 
     /**
      * pending → committed 원자적 이동 Lua 스크립트.
-     * LRANGE pending → RPUSH committed → LTRIM(>MAX) → EXPIRE committed → DEL pending
+     * LRANGE pending → RPUSH committed → LTRIM(>MAX) → EXPIRE committed → LTRIM pending → SET version
      * 반환값: 이동한 델타 수
      * 자세한 설명은 <a href="https://www.notion.so/jackpot-narratix/Server-OT-Flow-30b14885339b8096a06dcf3a9805ad4e#30b14885339b80ac96fff934e91160c2">COMMIT_SCRIPT Description</a> 참조
      *
-     * KEYS: [pendingKey, committedKey]
-     * ARGV: [maxCommittedSize, ttlSeconds, deltaCount]
+     * KEYS: [pendingKey, committedKey, versionKey]
+     * ARGV: [maxCommittedSize, ttlSeconds, deltaCount, newVersion]
      * deltaCount: getPending()으로 읽은 항목 수. 그 이후에 유입된 델타는 pending에 보존된다.
      */
     private static final String COMMIT_SCRIPT = """
@@ -90,6 +90,8 @@ public class TextDeltaRedisRepository {
             end
             redis.call('expire', KEYS[2], ARGV[2])
             redis.call('ltrim', KEYS[1], count, -1)
+            redis.call('set', KEYS[3], ARGV[4])
+            redis.call('expire', KEYS[3], ARGV[2])
             return #items
             """;
 
@@ -265,23 +267,25 @@ public class TextDeltaRedisRepository {
      * pending 앞부분을 LTRIM으로 제거한다. deltaCount 이후에 유입된 델타는 pending에 보존된다.
      * committed는 {@value MAX_COMMITTED_SIZE}개를 초과하면 오래된 것부터 제거된다.
      * committed 키의 TTL은 {@link #KEY_TTL}으로 갱신된다.
+     * 버전 카운터를 newVersion으로 원자적으로 설정한다.
      *
      * @param deltaCount getPending()으로 읽은 항목 수 (그 이후 유입 델타 보존을 위해 필요)
+     * @param newVersion DB에서 증가된 새로운 버전
      * @return 이동된 델타 수
      */
-    public long commit(Long qnAId, long deltaCount) {
-        if (deltaCount <= 0) {
-            log.debug("commit 대상 델타 없음: qnAId={}, deltaCount={}", qnAId, deltaCount);
+    public long commit(Long qnAId, long deltaCount, long newVersion) {
+        if (deltaCount < 0) {
+            log.debug("유효하지 않은 deltaCount: qnAId={}, deltaCount={}", qnAId, deltaCount);
             return 0L;
         }
 
         Long moved = redisTemplate.execute(
                 COMMIT_REDIS_SCRIPT,
-                List.of(pendingKey(qnAId), committedKey(qnAId)),
-                String.valueOf(MAX_COMMITTED_SIZE), String.valueOf(KEY_TTL_SECONDS), String.valueOf(deltaCount)
+                List.of(pendingKey(qnAId), committedKey(qnAId), versionKey(qnAId)),
+                String.valueOf(MAX_COMMITTED_SIZE), String.valueOf(KEY_TTL_SECONDS), String.valueOf(deltaCount), String.valueOf(newVersion)
         );
         long count = moved != null ? moved : 0L;
-        log.debug("commit 완료: qnAId={}, 이동된 델타 수={}", qnAId, count);
+        log.debug("commit 완료: qnAId={}, 이동된 델타 수={}, newVersion={}", qnAId, count, newVersion);
         return count;
     }
 

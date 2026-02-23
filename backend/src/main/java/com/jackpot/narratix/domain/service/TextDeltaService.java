@@ -68,7 +68,7 @@ public class TextDeltaService {
         if (pendingSize >= FLUSH_THRESHOLD) {
             log.info("flush 임계값 도달: qnAId={}", qnAId);
             List<TextUpdateRequest> deltas = textSyncService.getPendingDeltas(qnAId);
-            textSyncService.flushDeltasToDb(qnAId, deltas, deltas.size());
+            textSyncService.flushDeltasToDbAndSyncVersion(qnAId, deltas, deltas.size());
         }
 
         return request.version();
