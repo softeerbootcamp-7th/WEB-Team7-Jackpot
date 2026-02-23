@@ -14,6 +14,7 @@ import com.jackpot.narratix.domain.entity.enums.ReviewRoleType;
 import com.jackpot.narratix.domain.event.ReviewCreatedEvent;
 import com.jackpot.narratix.domain.event.ReviewDeleteEvent;
 import com.jackpot.narratix.domain.event.ReviewEditEvent;
+import com.jackpot.narratix.domain.event.TextReplaceAllEvent;
 import com.jackpot.narratix.domain.exception.ReviewErrorCode;
 import com.jackpot.narratix.domain.fixture.CoverLetterFixture;
 import com.jackpot.narratix.domain.fixture.QnAFixture;
@@ -21,6 +22,7 @@ import com.jackpot.narratix.domain.fixture.ReviewFixture;
 import com.jackpot.narratix.domain.fixture.UserFixture;
 import com.jackpot.narratix.global.exception.BaseException;
 import com.jackpot.narratix.global.exception.GlobalErrorCode;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,7 +31,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.support.TransactionTemplate;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,7 +43,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class ReviewFacadeTest {
@@ -52,9 +58,6 @@ class ReviewFacadeTest {
 
     @Mock
     private ReviewService reviewService;
-
-    @Mock
-    private QnATextService qnATextService;
 
     @Mock
     private TextDeltaService textDeltaService;
@@ -70,6 +73,22 @@ class ReviewFacadeTest {
 
     @Mock
     private QnAService qnAService;
+
+    @Mock
+    private TransactionTemplate transactionTemplate;
+
+    @Mock
+    private TextMerger textMerger;
+
+    @BeforeEach
+    void setUp() {
+        // TransactionTemplate mock: execute the callback immediately
+        // Use lenient() to avoid UnnecessaryStubbingException in tests that don't use transactions
+        lenient().when(transactionTemplate.execute(any())).thenAnswer(invocation -> {
+            org.springframework.transaction.support.TransactionCallback<?> callback = invocation.getArgument(0);
+            return callback.doInTransaction(null);
+        });
+    }
 
     // ─────────────────────────────────────────────────────────────
     // createReview
@@ -119,21 +138,26 @@ class ReviewFacadeTest {
 
         given(qnAService.findByIdOrElseThrow(qnaId)).willReturn(qnA);
         doNothing().when(reviewService).validateWebSocketConnected(reviewerId, coverLetterId, ReviewRoleType.REVIEWER);
+        given(textDeltaService.getCommittedDeltas(qnaId)).willReturn(Collections.emptyList());
+        given(textSyncService.getPendingDeltas(qnaId)).willReturn(Collections.emptyList());
+        given(textMerger.merge(originText, Collections.emptyList())).willReturn(originText);
         doNothing().when(reviewService).validateOriginText(originText, originText, 0, 6);
         given(reviewService.createReview(reviewerId, qnaId, request)).willReturn(savedReview);
         given(reviewService.addMarkerToReviewedSection(originText, 0, 6, 1L, originText))
                 .willReturn("⟦r:1⟧원본 텍스트⟦/r⟧");
-        doNothing().when(qnATextService).updateAnswerAndPublishEvent(eq(qnaId), eq(coverLetterId), anyString());
+        given(textSyncService.updateAnswerAndClearDeltas(eq(qnaId), eq("⟦r:1⟧원본 텍스트⟦/r⟧"), eq(0L)))
+                .willReturn(1L);
         doNothing().when(notificationService).sendFeedbackNotificationToWriter(any(), any(), any(), any(), any(), any());
 
         // when
         reviewFacade.createReview(reviewerId, qnaId, request);
 
         // then
+        verify(textDeltaService, times(1)).getCommittedDeltas(qnaId);
         verify(textSyncService, times(1)).getPendingDeltas(qnaId);
         verify(otTransformer, never()).transformRange(anyInt(), anyInt(), any());
         verify(reviewService, times(1)).createReview(reviewerId, qnaId, request);
-        verify(qnATextService, times(1)).updateAnswerAndPublishEvent(eq(qnaId), eq(coverLetterId), anyString());
+        verify(eventPublisher, times(1)).publishEvent(any(TextReplaceAllEvent.class));
         verify(eventPublisher, times(1)).publishEvent(any(ReviewCreatedEvent.class));
         verify(notificationService, times(1))
                 .sendFeedbackNotificationToWriter(reviewerId, writerId, "테스트기업 2024 상반기", coverLetterId, qnaId, originText);
@@ -167,13 +191,17 @@ class ReviewFacadeTest {
         QnA qnA = QnAFixture.createQnAWithId(
                 qnaId, coverLetter, writerId, "질문", QuestionCategoryType.MOTIVATION
         );
-        // server version=6, answer에서 OT 변환 후 [3, 5)에 originText가 위치
+        // server version=6, answer에서 OT 변환 후 [2, 4)에 originText가 위치
         ReflectionTestUtils.setField(qnA, "version", 6L);
         ReflectionTestUtils.setField(qnA, "answer", "AB" + originText + "CDEF");  // "AB원본CDEF"
 
         // OT 결과: transformedStart=2, transformedEnd=4
+        List<TextUpdateRequest> committedDeltas = List.of(
+                new TextUpdateRequest(6L, 0, 0, "AB")  // version=6인 델타
+        );
+        List<TextUpdateRequest> pendingDeltas = Collections.emptyList();
         List<TextUpdateRequest> otDeltas = List.of(
-                new TextUpdateRequest(5L, 0, 0, "AB")  // version=5인 델타
+                new TextUpdateRequest(6L, 0, 0, "AB")  // reviewerVersion(5) 이후 델타
         );
 
         Review savedReview = ReviewFixture.builder()
@@ -185,24 +213,27 @@ class ReviewFacadeTest {
 
         given(qnAService.findByIdOrElseThrow(qnaId)).willReturn(qnA);
         doNothing().when(reviewService).validateWebSocketConnected(reviewerId, coverLetterId, ReviewRoleType.REVIEWER);
-        given(textDeltaService.getOtDeltasSince(qnaId, 5L)).willReturn(otDeltas);
+        given(textDeltaService.getCommittedDeltas(qnaId)).willReturn(committedDeltas);
+        given(textSyncService.getPendingDeltas(qnaId)).willReturn(pendingDeltas);
         given(otTransformer.transformRange(10, 12, otDeltas)).willReturn(new int[]{2, 4});
+        given(textMerger.merge("AB원본CDEF", pendingDeltas)).willReturn("AB원본CDEF");
         doNothing().when(reviewService).validateOriginText(originText, "AB원본CDEF", 2, 4);
         given(reviewService.createReview(reviewerId, qnaId, request)).willReturn(savedReview);
         given(reviewService.addMarkerToReviewedSection("AB원본CDEF", 2, 4, 1L, originText))
                 .willReturn("AB⟦r:1⟧원본⟦/r⟧CDEF");
-        doNothing().when(qnATextService).updateAnswerAndPublishEvent(eq(qnaId), eq(coverLetterId), anyString());
+        given(textSyncService.updateAnswerAndClearDeltas(eq(qnaId), eq("AB⟦r:1⟧원본⟦/r⟧CDEF"), eq(0L)))
+                .willReturn(7L);
         doNothing().when(notificationService).sendFeedbackNotificationToWriter(any(), any(), any(), any(), any(), any());
 
         // when
         reviewFacade.createReview(reviewerId, qnaId, request);
 
         // then
+        verify(textDeltaService, times(1)).getCommittedDeltas(qnaId);
         verify(textSyncService, times(1)).getPendingDeltas(qnaId);
-        verify(textDeltaService, times(1)).getOtDeltasSince(qnaId, 5L);
         verify(otTransformer, times(1)).transformRange(10, 12, otDeltas);
         verify(reviewService, times(1)).createReview(reviewerId, qnaId, request);
-        verify(qnATextService, times(1)).updateAnswerAndPublishEvent(eq(qnaId), eq(coverLetterId), anyString());
+        verify(eventPublisher, times(1)).publishEvent(any(TextReplaceAllEvent.class));
         verify(eventPublisher, times(1)).publishEvent(any(ReviewCreatedEvent.class));
     }
 
@@ -235,22 +266,24 @@ class ReviewFacadeTest {
 
         given(qnAService.findByIdOrElseThrow(qnaId)).willReturn(qnA);
         doNothing().when(reviewService).validateWebSocketConnected(reviewerId, coverLetterId, ReviewRoleType.REVIEWER);
+        given(textDeltaService.getCommittedDeltas(qnaId)).willReturn(Collections.emptyList());
+        given(textSyncService.getPendingDeltas(qnaId)).willReturn(Collections.emptyList());
+        given(textMerger.merge("AB원본CD", Collections.emptyList())).willReturn("AB원본CD");
         doNothing().when(reviewService).validateOriginText(originText, "AB원본CD", 2, 4);
         given(reviewService.createReview(reviewerId, qnaId, request)).willReturn(savedReview);
         given(reviewService.addMarkerToReviewedSection("AB원본CD", 2, 4, 99L, originText))
                 .willReturn("AB⟦r:99⟧원본⟦/r⟧CD");
-        doAnswer(invocation -> {
-            String newAnswer = invocation.getArgument(2);
-            ReflectionTestUtils.setField(qnA, "answer", newAnswer);
-            return null;
-        }).when(qnATextService).updateAnswerAndPublishEvent(eq(qnaId), eq(coverLetterId), anyString());
+        given(textSyncService.updateAnswerAndClearDeltas(eq(qnaId), eq("AB⟦r:99⟧원본⟦/r⟧CD"), eq(0L)))
+                .willReturn(1L);
         doNothing().when(notificationService).sendFeedbackNotificationToWriter(any(), any(), any(), any(), any(), any());
 
         // when
         reviewFacade.createReview(reviewerId, qnaId, request);
 
         // then
-        assertThat(qnA.getAnswer()).isEqualTo("AB⟦r:99⟧원본⟦/r⟧CD");
+        // Note: qnA.getAnswer() won't change because we're using a transaction mock that doesn't actually update the entity
+        // The real assertion should verify the event was published with correct data
+        verify(textSyncService, times(1)).updateAnswerAndClearDeltas(qnaId, "AB⟦r:99⟧원본⟦/r⟧CD", 0L);
     }
 
     @Test
@@ -283,7 +316,6 @@ class ReviewFacadeTest {
                 .hasFieldOrPropertyWithValue("errorCode", GlobalErrorCode.FORBIDDEN);
 
         verify(reviewService, never()).createReview(any(), any(), any());
-        verify(textSyncService, times(1)).getPendingDeltas(qnaId);
     }
 
     @Test
@@ -309,6 +341,8 @@ class ReviewFacadeTest {
 
         given(qnAService.findByIdOrElseThrow(qnaId)).willReturn(qnA);
         doNothing().when(reviewService).validateWebSocketConnected(reviewerId, coverLetterId, ReviewRoleType.REVIEWER);
+        given(textDeltaService.getCommittedDeltas(qnaId)).willReturn(Collections.emptyList());
+        given(textSyncService.getPendingDeltas(qnaId)).willReturn(Collections.emptyList());
 
         // when & then
         assertThatThrownBy(() -> reviewFacade.createReview(reviewerId, qnaId, request))
@@ -339,10 +373,11 @@ class ReviewFacadeTest {
         );
         ReflectionTestUtils.setField(qnA, "version", 6L);
 
-        // getOtDeltasSince가 빈 목록 반환 → hasOtHistorySinceReviewerVersion = false
+        // committed + pending 델타가 빈 목록 반환 → hasOtHistorySinceReviewerVersion = false
         given(qnAService.findByIdOrElseThrow(qnaId)).willReturn(qnA);
         doNothing().when(reviewService).validateWebSocketConnected(reviewerId, coverLetterId, ReviewRoleType.REVIEWER);
-        given(textDeltaService.getOtDeltasSince(qnaId, 3L)).willReturn(List.of());
+        given(textDeltaService.getCommittedDeltas(qnaId)).willReturn(Collections.emptyList());
+        given(textSyncService.getPendingDeltas(qnaId)).willReturn(Collections.emptyList());
 
         // when & then
         assertThatThrownBy(() -> reviewFacade.createReview(reviewerId, qnaId, request))
@@ -373,14 +408,15 @@ class ReviewFacadeTest {
         );
         ReflectionTestUtils.setField(qnA, "version", 6L);
 
-        // 가장 오래된 델타의 version이 reviewerVersion(3)보다 큼 → 공백 존재
-        List<TextUpdateRequest> otDeltas = List.of(
-                new TextUpdateRequest(4L, 0, 0, "X")  // version=4 > reviewerVersion=3
+        // 가장 오래된 델타의 version이 reviewerVersion+1(4)보다 큼 → 공백 존재
+        List<TextUpdateRequest> committedDeltas = List.of(
+                new TextUpdateRequest(5L, 0, 0, "X")  // version=5 > reviewerVersion+1=4
         );
 
         given(qnAService.findByIdOrElseThrow(qnaId)).willReturn(qnA);
         doNothing().when(reviewService).validateWebSocketConnected(reviewerId, coverLetterId, ReviewRoleType.REVIEWER);
-        given(textDeltaService.getOtDeltasSince(qnaId, 3L)).willReturn(otDeltas);
+        given(textDeltaService.getCommittedDeltas(qnaId)).willReturn(committedDeltas);
+        given(textSyncService.getPendingDeltas(qnaId)).willReturn(Collections.emptyList());
 
         // when & then
         assertThatThrownBy(() -> reviewFacade.createReview(reviewerId, qnaId, request))
@@ -414,6 +450,9 @@ class ReviewFacadeTest {
 
         given(qnAService.findByIdOrElseThrow(qnaId)).willReturn(qnA);
         doNothing().when(reviewService).validateWebSocketConnected(reviewerId, coverLetterId, ReviewRoleType.REVIEWER);
+        given(textDeltaService.getCommittedDeltas(qnaId)).willReturn(Collections.emptyList());
+        given(textSyncService.getPendingDeltas(qnaId)).willReturn(Collections.emptyList());
+        given(textMerger.merge("HELLO WORLD", Collections.emptyList())).willReturn("HELLO WORLD");
         doThrow(new BaseException(ReviewErrorCode.REVIEW_TEXT_MISMATCH))
                 .when(reviewService).validateOriginText("원본", "HELLO WORLD", 0, 5);
 
@@ -531,10 +570,11 @@ class ReviewFacadeTest {
         Long qnAId = 1L;
         Long reviewId = 1L;
         Long coverLetterId = 1L;
+        String originText = "원본";
 
         Review review = ReviewFixture.builder()
                 .id(reviewId).reviewerId(reviewerId).qnaId(qnAId)
-                .suggest("수정 제안 텍스트").comment("코멘트").build();
+                .originText(originText).suggest("수정 제안 텍스트").comment("코멘트").build();
 
         CoverLetter coverLetter = CoverLetterFixture.builder()
                 .id(coverLetterId).userId(writerId).companyName("카카오")
@@ -543,14 +583,18 @@ class ReviewFacadeTest {
         QnA qnA = QnAFixture.createQnAWithId(
                 qnAId, coverLetter, writerId, "지원동기는 무엇인가요?", QuestionCategoryType.MOTIVATION
         );
+        ReflectionTestUtils.setField(qnA, "answer", "텍스트");
 
+        given(textSyncService.getPendingDeltas(qnAId)).willReturn(Collections.emptyList());
         given(qnAService.findByIdOrElseThrow(qnAId)).willReturn(qnA);
         doNothing().when(reviewService).validateWebSocketConnected(reviewerId, coverLetterId, ReviewRoleType.REVIEWER);
         given(reviewService.findById(reviewId)).willReturn(Optional.of(review));
         doNothing().when(reviewService).validateReviewBelongsToQnA(review, qnAId);
         doNothing().when(reviewService).validateIsReviewOwnerOrQnAOwner(reviewerId, review, qnA);
-        given(reviewService.containsMarker(anyString(), eq(reviewId), any())).willReturn(false);
+        given(textMerger.merge("텍스트", Collections.emptyList())).willReturn("텍스트");
+        given(reviewService.removeReviewMarker("텍스트", reviewId)).willReturn("텍스트");
         doNothing().when(reviewService).deleteReview(reviewId);
+        given(textSyncService.updateAnswerCommitAndClearOldCommitted(qnAId, "텍스트", 0L)).willReturn(1L);
 
         // when
         reviewFacade.deleteReview(reviewerId, qnAId, reviewId);
@@ -558,6 +602,7 @@ class ReviewFacadeTest {
         // then
         verify(textSyncService, times(1)).getPendingDeltas(qnAId);
         verify(reviewService, times(1)).deleteReview(reviewId);
+        verify(eventPublisher, times(1)).publishEvent(any(TextReplaceAllEvent.class));
         verify(eventPublisher, times(1)).publishEvent(any(ReviewDeleteEvent.class));
     }
 
@@ -570,10 +615,11 @@ class ReviewFacadeTest {
         Long qnAId = 1L;
         Long reviewId = 1L;
         Long coverLetterId = 1L;
+        String originText = "원본";
 
         Review review = ReviewFixture.builder()
                 .id(reviewId).reviewerId(reviewerId).qnaId(qnAId)
-                .suggest("수정 제안 텍스트").comment("코멘트").build();
+                .originText(originText).suggest("수정 제안 텍스트").comment("코멘트").build();
 
         CoverLetter coverLetter = CoverLetterFixture.builder()
                 .id(coverLetterId).userId(writerId).companyName("토스")
@@ -582,14 +628,18 @@ class ReviewFacadeTest {
         QnA qnA = QnAFixture.createQnAWithId(
                 qnAId, coverLetter, writerId, "지원동기는 무엇인가요?", QuestionCategoryType.MOTIVATION
         );
+        ReflectionTestUtils.setField(qnA, "answer", "텍스트");
 
+        given(textSyncService.getPendingDeltas(qnAId)).willReturn(Collections.emptyList());
         given(qnAService.findByIdOrElseThrow(qnAId)).willReturn(qnA);
         doNothing().when(reviewService).validateWebSocketConnected(writerId, coverLetterId, ReviewRoleType.WRITER);
         given(reviewService.findById(reviewId)).willReturn(Optional.of(review));
         doNothing().when(reviewService).validateReviewBelongsToQnA(review, qnAId);
         doNothing().when(reviewService).validateIsReviewOwnerOrQnAOwner(writerId, review, qnA);
-        given(reviewService.containsMarker(anyString(), eq(reviewId), any())).willReturn(false);
+        given(textMerger.merge("텍스트", Collections.emptyList())).willReturn("텍스트");
+        given(reviewService.removeReviewMarker("텍스트", reviewId)).willReturn("텍스트");
         doNothing().when(reviewService).deleteReview(reviewId);
+        given(textSyncService.updateAnswerCommitAndClearOldCommitted(qnAId, "텍스트", 0L)).willReturn(1L);
 
         // when
         reviewFacade.deleteReview(writerId, qnAId, reviewId);
@@ -597,6 +647,7 @@ class ReviewFacadeTest {
         // then
         verify(textSyncService, times(1)).getPendingDeltas(qnAId);
         verify(reviewService, times(1)).deleteReview(reviewId);
+        verify(eventPublisher, times(1)).publishEvent(any(TextReplaceAllEvent.class));
         verify(eventPublisher, times(1)).publishEvent(any(ReviewDeleteEvent.class));
     }
 
@@ -624,25 +675,23 @@ class ReviewFacadeTest {
         // answer에 마커 포함
         ReflectionTestUtils.setField(qnA, "answer", "시작⟦r:1⟧원본⟦/r⟧끝");
 
+        given(textSyncService.getPendingDeltas(qnAId)).willReturn(Collections.emptyList());
         given(qnAService.findByIdOrElseThrow(qnAId)).willReturn(qnA);
         doNothing().when(reviewService).validateWebSocketConnected(reviewerId, coverLetterId, ReviewRoleType.REVIEWER);
         given(reviewService.findById(reviewId)).willReturn(Optional.of(review));
         doNothing().when(reviewService).validateReviewBelongsToQnA(review, qnAId);
         doNothing().when(reviewService).validateIsReviewOwnerOrQnAOwner(reviewerId, review, qnA);
-        given(reviewService.containsMarker("시작⟦r:1⟧원본⟦/r⟧끝", reviewId, "원본")).willReturn(true);
-        given(reviewService.removeReviewMarker("시작⟦r:1⟧원본⟦/r⟧끝", reviewId, "원본")).willReturn("시작원본끝");
-        doAnswer(invocation -> {
-            String newAnswer = invocation.getArgument(2);
-            ReflectionTestUtils.setField(qnA, "answer", newAnswer);
-            return null;
-        }).when(qnATextService).updateAnswerAndPublishEvent(eq(qnAId), eq(coverLetterId), anyString());
+        given(textMerger.merge("시작⟦r:1⟧원본⟦/r⟧끝", Collections.emptyList())).willReturn("시작⟦r:1⟧원본⟦/r⟧끝");
+        given(reviewService.removeReviewMarker("시작⟦r:1⟧원본⟦/r⟧끝", reviewId)).willReturn("시작원본끝");
         doNothing().when(reviewService).deleteReview(reviewId);
+        given(textSyncService.updateAnswerCommitAndClearOldCommitted(qnAId, "시작원본끝", 0L)).willReturn(1L);
 
         // when
         reviewFacade.deleteReview(reviewerId, qnAId, reviewId);
 
         // then
-        assertThat(qnA.getAnswer()).isEqualTo("시작원본끝");
+        verify(reviewService, times(1)).removeReviewMarker("시작⟦r:1⟧원본⟦/r⟧끝", reviewId);
+        verify(eventPublisher, times(1)).publishEvent(any(TextReplaceAllEvent.class));
         verify(eventPublisher, times(1)).publishEvent(any(ReviewDeleteEvent.class));
     }
 
@@ -669,19 +718,22 @@ class ReviewFacadeTest {
         // answer에 마커 없음
         ReflectionTestUtils.setField(qnA, "answer", "마커없는텍스트");
 
+        given(textSyncService.getPendingDeltas(qnAId)).willReturn(Collections.emptyList());
         given(qnAService.findByIdOrElseThrow(qnAId)).willReturn(qnA);
         doNothing().when(reviewService).validateWebSocketConnected(reviewerId, coverLetterId, ReviewRoleType.REVIEWER);
         given(reviewService.findById(reviewId)).willReturn(Optional.of(review));
         doNothing().when(reviewService).validateReviewBelongsToQnA(review, qnAId);
         doNothing().when(reviewService).validateIsReviewOwnerOrQnAOwner(reviewerId, review, qnA);
-        given(reviewService.containsMarker("마커없는텍스트", reviewId, "원본")).willReturn(false);
+        given(textMerger.merge("마커없는텍스트", Collections.emptyList())).willReturn("마커없는텍스트");
+        given(reviewService.removeReviewMarker("마커없는텍스트", reviewId)).willReturn("마커없는텍스트");
         doNothing().when(reviewService).deleteReview(reviewId);
+        given(textSyncService.updateAnswerCommitAndClearOldCommitted(qnAId, "마커없는텍스트", 0L)).willReturn(1L);
 
         // when
         reviewFacade.deleteReview(reviewerId, qnAId, reviewId);
 
         // then
-        assertThat(qnA.getAnswer()).isEqualTo("마커없는텍스트");  // answer 변경 없음
+        verify(eventPublisher, times(1)).publishEvent(any(TextReplaceAllEvent.class));
         verify(eventPublisher, times(1)).publishEvent(any(ReviewDeleteEvent.class));
     }
 
@@ -702,6 +754,7 @@ class ReviewFacadeTest {
                 qnAId, coverLetter, writerId, "지원동기는 무엇인가요?", QuestionCategoryType.MOTIVATION
         );
 
+        given(textSyncService.getPendingDeltas(qnAId)).willReturn(Collections.emptyList());
         given(qnAService.findByIdOrElseThrow(qnAId)).willReturn(qnA);
         doThrow(new BaseException(GlobalErrorCode.FORBIDDEN))
                 .when(reviewService).validateWebSocketConnected(reviewerId, coverLetterId, ReviewRoleType.REVIEWER);
@@ -813,20 +866,32 @@ class ReviewFacadeTest {
         QnA qnA = QnAFixture.createQnAWithId(
                 qnAId, coverLetter, writerId, "지원동기는 무엇인가요?", QuestionCategoryType.MOTIVATION
         );
+        ReflectionTestUtils.setField(qnA, "answer", "답변텍스트");
 
+        given(textSyncService.getPendingDeltas(qnAId)).willReturn(Collections.emptyList());
         given(qnAService.findByIdOrElseThrow(qnAId)).willReturn(qnA);
         doNothing().when(reviewService).validateWebSocketConnected(writerId, coverLetterId, ReviewRoleType.WRITER);
         given(reviewService.getReview(reviewId)).willReturn(review);
         doNothing().when(reviewService).validateReviewBelongsToQnA(review, qnAId);
         doNothing().when(reviewService).validateIsQnAOwner(writerId, qnA);
-        doNothing().when(reviewService).toggleApproval(review);
-        given(reviewService.containsMarker(anyString(), eq(reviewId), any())).willReturn(false);
+        given(textMerger.merge("답변텍스트", Collections.emptyList())).willReturn("답변텍스트");
+        // Simulate toggleApproval changing the review state
+        willAnswer(invocation -> {
+            review.approve(); // Actually change the review state
+            return null;
+        }).given(reviewService).toggleApproval(review);
+        // After toggleApproval, review.isApproved() = true
+        // But the actual call shows oldContent = suggest, newContent = originText (swapped after approval)
+        given(reviewService.replaceMarkerContent("답변텍스트", reviewId, suggestedText, originalText))
+                .willReturn("업데이트된답변");
+        given(textSyncService.updateAnswerCommitAndClearOldCommitted(qnAId, "업데이트된답변", 0L)).willReturn(1L);
 
         // when
         reviewFacade.approveReview(writerId, qnAId, reviewId);
 
         // then
         verify(reviewService, times(1)).toggleApproval(review);
+        verify(eventPublisher, times(1)).publishEvent(any(TextReplaceAllEvent.class));
         verify(eventPublisher, times(1)).publishEvent(any(ReviewEditEvent.class));
     }
 
@@ -857,26 +922,25 @@ class ReviewFacadeTest {
         // 승인 상태: 마커 내 텍스트 = originText(수정된 텍스트)
         ReflectionTestUtils.setField(qnA, "answer", "시작⟦r:1⟧수정된 텍스트⟦/r⟧끝");
 
+        given(textSyncService.getPendingDeltas(qnAId)).willReturn(Collections.emptyList());
         given(qnAService.findByIdOrElseThrow(qnAId)).willReturn(qnA);
         doNothing().when(reviewService).validateWebSocketConnected(writerId, coverLetterId, ReviewRoleType.WRITER);
         given(reviewService.getReview(reviewId)).willReturn(review);
         doNothing().when(reviewService).validateReviewBelongsToQnA(review, qnAId);
         doNothing().when(reviewService).validateIsQnAOwner(writerId, qnA);
+        given(textMerger.merge("시작⟦r:1⟧수정된 텍스트⟦/r⟧끝", Collections.emptyList())).willReturn("시작⟦r:1⟧수정된 텍스트⟦/r⟧끝");
         doNothing().when(reviewService).toggleApproval(review);
-        given(reviewService.containsMarker("시작⟦r:1⟧수정된 텍스트⟦/r⟧끝", reviewId, currentOriginText)).willReturn(true);
+        // After toggleApproval (already approved -> restore), isApproved() = false, so oldContent = suggest, newContent = originText
         given(reviewService.replaceMarkerContent("시작⟦r:1⟧수정된 텍스트⟦/r⟧끝", reviewId, currentOriginText, currentSuggestText))
                 .willReturn("시작⟦r:1⟧기존 텍스트⟦/r⟧끝");
-        doAnswer(invocation -> {
-            String newAnswer = invocation.getArgument(2);
-            ReflectionTestUtils.setField(qnA, "answer", newAnswer);
-            return null;
-        }).when(qnATextService).updateAnswerAndPublishEvent(eq(qnAId), eq(coverLetterId), anyString());
+        given(textSyncService.updateAnswerCommitAndClearOldCommitted(qnAId, "시작⟦r:1⟧기존 텍스트⟦/r⟧끝", 0L)).willReturn(1L);
 
         // when
         reviewFacade.approveReview(writerId, qnAId, reviewId);
 
         // then — restore() 후 originText = 기존 텍스트, 마커도 원복
-        assertThat(qnA.getAnswer()).isEqualTo("시작⟦r:1⟧기존 텍스트⟦/r⟧끝");
+        verify(reviewService, times(1)).replaceMarkerContent("시작⟦r:1⟧수정된 텍스트⟦/r⟧끝", reviewId, currentOriginText, currentSuggestText);
+        verify(eventPublisher, times(1)).publishEvent(any(TextReplaceAllEvent.class));
         verify(eventPublisher, times(1)).publishEvent(any(ReviewEditEvent.class));
     }
 
