@@ -127,14 +127,18 @@ export const moveCaretIntoAdjacentReview = ({
     if (direction === 'left' && startOffset === 0) {
       // 텍스트 노드의 부모(span[data-chunk]) 앞 형제가 review-group인지 확인
       const parent = text.parentNode;
-      const prev = parent ? (parent as Element).previousSibling : null;
+      const prev =
+        parent && parent !== contentEl
+          ? (parent as Element).previousSibling
+          : null;
       if (isReviewGroup(prev)) {
         reviewGroupEl = prev;
       }
     } else if (direction === 'right' && startOffset === text.length) {
       // 텍스트 노드의 부모(span[data-chunk]) 뒤 형제가 review-group인지 확인
       const parent = text.parentNode;
-      const next = parent ? (parent as Element).nextSibling : null;
+      const next =
+        parent && parent !== contentEl ? (parent as Element).nextSibling : null;
       if (isReviewGroup(next)) {
         reviewGroupEl = next;
       }
@@ -157,7 +161,9 @@ export const moveCaretIntoAdjacentReview = ({
     // 리뷰 텍스트 끝으로 진입
     let lastText: Text | null = null;
     let node: Node | null;
-    while ((node = walker.nextNode())) lastText = node as Text;
+    while ((node = walker.nextNode())) {
+      lastText = node as Text;
+    }
     if (lastText) {
       const txt = lastText.textContent ?? '';
       let offset = txt.length;
