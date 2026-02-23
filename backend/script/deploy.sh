@@ -46,7 +46,7 @@ sudo docker rm "${TARGET_CONTAINER_NAME}" 2>/dev/null || true
 
 sudo docker run -d \
     --name "${TARGET_CONTAINER_NAME}" \
-    --restart always \
+    --restart on-failure:2 \
     -p "${TARGET_PORT}:8080" \
     -e SPRING_PROFILES_ACTIVE=prod \
     "${DOCKER_IMAGE}"
@@ -54,11 +54,18 @@ sudo docker run -d \
 # 4. Health Check
 echo "Waiting for health check on http://localhost:${TARGET_PORT}/api/v1/health ..."
 RETRY_COUNT=0
-MAX_RETRIES=15 # 5초 * 15 = 75초
+MAX_RETRIES=10 # 5초 * 10 = 50초
 SLEEP_TIME=5
 HEALTH_SUCCESS=false
 
 while [ ${RETRY_COUNT} -lt ${MAX_RETRIES} ]; do
+    # 컨테이너가 종료된 경우 즉시 실패 처리 (재시작 2회 소진 후 빠른 감지)
+    CONTAINER_STATUS=$(sudo docker inspect --format='{{.State.Status}}' "${TARGET_CONTAINER_NAME}" 2>/dev/null || echo "not_found")
+    if [ "${CONTAINER_STATUS}" = "exited" ] || [ "${CONTAINER_STATUS}" = "not_found" ]; then
+        echo "Container exited unexpectedly after retries. Aborting health check."
+        break
+    fi
+
     if curl -sf "http://localhost:${TARGET_PORT}/api/v1/health" > /dev/null 2>&1; then
         echo "Health check passed!"
         HEALTH_SUCCESS=true
@@ -89,6 +96,11 @@ if [ "${HEALTH_SUCCESS}" != true ]; then
     echo "========== Deployment FAILED =========="
     exit 1
 fi
+
+# 헬스체크 통과 후 재시작 정책을 always로 전환
+# 운영 중 크래시 시 자동 재시작 보장
+echo "Applying restart policy to ${TARGET_CONTAINER_NAME}..."
+sudo docker update --restart=always "${TARGET_CONTAINER_NAME}"
 
 CONF_FILE="/etc/nginx/conf.d/site-url.inc"
 

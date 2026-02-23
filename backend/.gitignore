@@ -15,6 +15,7 @@
 .gradle
 build
 out
+generated/
 
 # Mac OS
 .DS_Store

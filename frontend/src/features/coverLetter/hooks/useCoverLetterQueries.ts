@@ -33,8 +33,8 @@ export const useInfiniteCoverLetterSearch = (searchWord = '', size = 9) => {
       searchCoverLetters({ searchWord, size, page: pageParam as number }),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
-      const { number, totalPages } = lastPage.page;
-      return number < totalPages ? number + 1 : undefined;
+      const { number, totalPage } = lastPage.page;
+      return number < totalPage ? number + 1 : undefined;
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -50,7 +50,7 @@ export const useScrapCoverLetters = (searchWord = '', size = 9) => {
     getNextPageParam: (lastPage) => {
       const lastScrap = lastPage.scraps.at(-1);
       if (!lastPage.hasNext || !lastScrap) return undefined;
-      return lastScrap.questionId;
+      return lastScrap.id;
     },
     staleTime: 5 * 60 * 1000,
   });

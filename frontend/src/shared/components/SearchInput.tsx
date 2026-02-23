@@ -1,3 +1,4 @@
+// src/shared/components/SearchInput.tsx
 import { type ChangeEvent } from 'react';
 
 import * as SI from '@/shared/icons';
@@ -6,24 +7,12 @@ interface SearchInputProps {
   placeholder: string;
   keyword: string;
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
-  errorMessage: string | null;
 }
 
-const SearchInput = ({
-  placeholder,
-  keyword,
-  onChange,
-  errorMessage,
-}: SearchInputProps) => {
+const SearchInput = ({ placeholder, keyword, onChange }: SearchInputProps) => {
   return (
-    <div className='mb-6 w-full max-w-[25rem]'>
-      <search
-        className={`inline-flex h-12 w-full items-center justify-between rounded-lg px-5 py-3.5 transition-colors ${
-          errorMessage
-            ? 'border border-red-200 bg-red-50'
-            : 'border border-transparent bg-gray-50 focus-within:border-gray-300'
-        }`}
-      >
+    <div className='w-full max-w-[25rem]'>
+      <search className='inline-flex h-12 w-full items-center justify-between rounded-lg border border-transparent bg-gray-50 px-5 py-3.5 transition-colors focus-within:border-gray-300'>
         <input
           aria-label='검색어 입력'
           type='search'
@@ -36,12 +25,6 @@ const SearchInput = ({
           <SI.SearchIcon />
         </div>
       </search>
-
-      {errorMessage && (
-        <p className='mt-1 ml-1 text-xs font-medium text-red-500'>
-          {errorMessage}
-        </p>
-      )}
     </div>
   );
 };

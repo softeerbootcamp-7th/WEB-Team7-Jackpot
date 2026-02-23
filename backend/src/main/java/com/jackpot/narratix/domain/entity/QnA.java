@@ -1,13 +1,11 @@
 package com.jackpot.narratix.domain.entity;
 
-import com.jackpot.narratix.domain.controller.request.CreateQuestionRequest;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
+import com.jackpot.narratix.domain.entity.enums.ReviewRoleType;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -15,6 +13,8 @@ import java.util.Objects;
 @Entity
 @Getter
 @Table(name = "qna")
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 public class QnA extends BaseTimeEntity {
 
@@ -45,21 +45,34 @@ public class QnA extends BaseTimeEntity {
     @Column(name = "answer", nullable = true, columnDefinition = "TEXT")
     private String answer;
 
-    public static QnA newQnA(CoverLetter coverLetter, CreateQuestionRequest request) {
-        QnA qna = new QnA();
-        qna.coverLetter = coverLetter;
-        qna.questionCategory = request.category();
-        qna.question = request.question();
-        qna.userId = coverLetter.getUserId();
-        return qna;
+    @NotNull
+    @Builder.Default
+    @Column(name = "version", nullable = false)
+    private Long version = 0L;
+
+    public void connectCoverLetter(CoverLetter coverLetter) {
+        this.coverLetter = coverLetter;
     }
 
-    public boolean isOwner(String userId){
+    public boolean isOwner(String userId) {
         return Objects.equals(this.userId, userId);
     }
 
     public void editAnswer(String answer) {
         this.answer = answer;
         updateModifiedAt(LocalDateTime.now());
+    }
+
+    public void editQuestion(String question, QuestionCategoryType category) {
+        this.question = question;
+        this.questionCategory = category;
+        updateModifiedAt(LocalDateTime.now());
+    }
+
+    public ReviewRoleType determineReviewRole(String userId) {
+        if (isOwner(userId)) {
+            return ReviewRoleType.WRITER;
+        }
+        return ReviewRoleType.REVIEWER;
     }
 }
