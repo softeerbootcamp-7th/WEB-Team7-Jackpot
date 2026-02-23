@@ -1,11 +1,9 @@
-import { emptyCaseText } from '@/features/coverLetter/constants';
-import { useCoverLetterSearch } from '@/features/coverLetter/hooks/useCoverLetterQueries';
-import CoverLetterOverview from '@/shared/components/CoverLetterOverview';
-import EmptyCase from '@/shared/components/EmptyCase';
+import CoverLetterSearchResult from '@/features/coverLetter/components/overview/CoverLetterSearchResult';
+import SharedCoverLetterResult from '@/features/coverLetter/components/overview/SharedCoverLetterResult';
 
-interface CoverLetterSectionProps {
+interface OverviewSectionProps {
   searchWord: string;
-  isFilterActive: boolean;
+  isFilterActive?: boolean;
   page: number;
   onPageChange: (page: number) => void;
 }
@@ -15,26 +13,16 @@ const OverviewSection = ({
   isFilterActive,
   page,
   onPageChange,
-}: CoverLetterSectionProps) => {
-  // TODO: isFilterActive가 true일 때 첨삭 active 필터링 API로 교체
-  const { data } = useCoverLetterSearch(
-    isFilterActive ? '' : searchWord,
-    9,
-    page + 1,
-  );
-  const coverLetters = data.coverLetters ?? [];
-  const overviewEmptyText = emptyCaseText['overview'];
-
-  if (coverLetters.length === 0) {
-    return <EmptyCase {...overviewEmptyText} />;
+}: OverviewSectionProps) => {
+  // useSuspenseQuery 제약 때문에 컴포넌트를 분리해서 마운트
+  if (isFilterActive) {
+    return <SharedCoverLetterResult />;
   }
 
   return (
-    <CoverLetterOverview
-      coverLetters={coverLetters}
-      isCoverLetter
-      currentPage={page}
-      totalPages={data.page.totalPages}
+    <CoverLetterSearchResult
+      searchWord={searchWord}
+      page={page}
       onPageChange={onPageChange}
     />
   );

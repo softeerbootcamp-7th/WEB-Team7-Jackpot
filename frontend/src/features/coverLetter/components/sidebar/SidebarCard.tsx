@@ -47,7 +47,7 @@ const SidebarCard = ({ item, isScrap, deleteScrap, onClick }: CardProps) => {
                 className='inline-flex h-6 w-6 cursor-pointer items-center justify-center'
                 onClick={(e) => {
                   e.stopPropagation();
-                  deleteScrap(scrapItem.questionId);
+                  deleteScrap(scrapItem.id);
                 }}
               >
                 <SI.DeleteIcon />

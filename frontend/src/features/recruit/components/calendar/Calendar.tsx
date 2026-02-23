@@ -5,7 +5,7 @@ import CalendarHeader from '@/features/recruit/components/calendar/CalendarHeade
 import CalendarWeekday from '@/features/recruit/components/calendar/CalendarWeekday';
 import CalendarDaySkeleton from '@/features/recruit/components/calendar/skeleton/CalendarDaySkeleton';
 import CalendarHeaderSkeleton from '@/features/recruit/components/calendar/skeleton/CalendarHeaderSkeleton';
-import type { CalendarCoverLetterItem } from '@/features/recruit/types';
+import type { CalendarCoverLetterItem } from '@/shared/types/coverLetter';
 import { getISODate } from '@/shared/utils/dates';
 
 interface Props {

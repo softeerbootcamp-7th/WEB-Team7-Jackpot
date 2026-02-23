@@ -11,7 +11,7 @@ interface CoverLetterOverviewProps {
   isCoverLetter?: boolean;
   isHome?: boolean;
   currentPage?: number;
-  totalPages?: number;
+  totalPage?: number;
   onPageChange?: (page: number) => void;
 }
 
@@ -21,7 +21,7 @@ const CoverLetterOverview = ({
   isCoverLetter = false,
   isHome = false,
   currentPage = 0,
-  totalPages,
+  totalPage,
   onPageChange,
 }: CoverLetterOverviewProps) => {
   return (
@@ -46,11 +46,11 @@ const CoverLetterOverview = ({
           />
         ))}
       </div>
-      {!isHome && totalPages !== undefined && onPageChange && (
+      {!isHome && totalPage !== undefined && onPageChange && (
         <div className='flex w-full justify-center'>
           <Pagination
             current={currentPage}
-            total={totalPages}
+            total={totalPage}
             onChange={onPageChange}
           />
         </div>

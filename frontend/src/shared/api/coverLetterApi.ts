@@ -5,9 +5,29 @@ import type {
   CoverLetterType,
   CreateCoverLetterRequest,
   CreateCoverLetterResponse,
+  FilterRequest,
+  FilterResponse,
   RecentCoverLetterType,
   UpdateCoverLetter,
 } from '@/shared/types/coverLetter';
+
+const ApiApplyHalfSchema = z.enum(['FIRST_HALF', 'SECOND_HALF']);
+
+const CoverLetterItemSchema = z.object({
+  coverLetterId: z.number(),
+  companyName: z.string(),
+  jobPosition: z.string(),
+  applyYear: z.number().optional(),
+  applyHalf: ApiApplyHalfSchema.optional(),
+  deadline: z.string().optional(),
+  questionCount: z.number(),
+});
+
+const FilterResponseSchema = z.object({
+  totalCount: z.number(),
+  coverLetters: z.array(CoverLetterItemSchema),
+  hasNext: z.boolean(),
+});
 
 interface SearchCoverLettersParams {
   searchWord?: string;
@@ -18,11 +38,11 @@ interface SearchCoverLettersParams {
 interface PageInfo {
   number: number;
   size: number;
-  totalElements: number;
-  totalPages: number;
+  totalElement: number;
+  totalPage: number;
 }
 
-interface CoverLetterSearchResponse {
+export interface CoverLetterSearchResponse {
   coverLetters: RecentCoverLetterType[];
   page: PageInfo;
 }
@@ -84,4 +104,29 @@ export const deleteCoverLetter = async (
   await apiClient.delete({
     endpoint: `/coverletter/${coverLetterId}`,
   });
+};
+
+export const fetchFilterCoverLetter = async (
+  params: FilterRequest,
+  lastIdParam?: number,
+): Promise<FilterResponse> => {
+  const queryParams = new URLSearchParams({
+    startDate: params.startDate,
+    endDate: params.endDate,
+    size: String(params.size ?? 7),
+  });
+
+  // params.isShared가 명시적으로 존재할 때만 파라미터에 추가
+  if (params.isShared !== undefined) {
+    queryParams.append('isShared', String(params.isShared));
+  }
+  if (lastIdParam !== undefined) {
+    queryParams.append('lastCoverLetterId', String(lastIdParam));
+  }
+
+  const response = await apiClient.get({
+    endpoint: `/coverletter/all?${queryParams.toString()}`,
+  });
+
+  return FilterResponseSchema.parse(response);
 };

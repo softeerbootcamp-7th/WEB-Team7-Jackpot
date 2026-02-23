@@ -4,23 +4,29 @@ import {
   useQuery,
 } from '@tanstack/react-query';
 
-import { fetchCalendarDates, fetchQnAList } from '@/features/recruit/api';
-import type { CalendarRequest } from '@/features/recruit/types';
-import { getCoverLetter } from '@/shared/api/coverLetterApi';
+import { fetchQnAList } from '@/features/recruit/api';
+import {
+  fetchFilterCoverLetter,
+  getCoverLetter,
+} from '@/shared/api/coverLetterApi';
 import { getQnAIdList } from '@/shared/api/qnaApi';
 import { CATEGORY_VALUES } from '@/shared/constants/createCoverLetter';
 import { coverLetterQueryKeys } from '@/shared/hooks/queries/coverLetterQueryKeys';
-import type { ApiApplyHalf, Category } from '@/shared/types/coverLetter';
+import type {
+  ApiApplyHalf,
+  Category,
+  FilterRequest,
+} from '@/shared/types/coverLetter';
 
 // 1. 달력 조회
-export const useInfiniteCalendarDates = (params: CalendarRequest) => {
+export const useInfiniteCalendarDates = (params: FilterRequest) => {
   return useInfiniteQuery({
     queryKey: coverLetterQueryKeys.calendar(params),
 
     // 초기 커서 값
     initialPageParam: undefined as number | undefined,
 
-    queryFn: ({ pageParam }) => fetchCalendarDates(params, pageParam),
+    queryFn: ({ pageParam }) => fetchFilterCoverLetter(params, pageParam),
 
     getNextPageParam: (lastPage) => {
       if (!lastPage.hasNext) {

@@ -1,10 +1,11 @@
 export interface ScrapItem {
-  questionId: number;
+  id: number;
   companyName: string;
   jobPosition: string;
   applySeason: string; // "2025년 하반기"
   question: string;
   answer: string;
+  coverLetterId: number;
 }
 
 export interface GetScrapsResponse {

@@ -28,7 +28,8 @@ const LibraryList = ({ searchWord, onSelect }: LibraryListProps) => {
 
   const handleLibraryClick = (letter: RecentCoverLetterType) => {
     const mappedData: ScrapItem = {
-      questionId: letter.coverLetterId,
+      id: letter.coverLetterId, // [박소민] TODO: 실제로는 스크랩 ID가 없지만, onSelect에서 ScrapItem 타입을 기대하기 때문에 임시로 coverLetterId를 사용
+      coverLetterId: letter.coverLetterId,
       companyName: letter.companyName,
       jobPosition: letter.jobPosition,
       applySeason: `${letter.applyYear} ${letter.applyHalf === 'FIRST_HALF' ? '상반기' : '하반기'}`,

@@ -6,26 +6,24 @@ interface NotificationBaseType {
   createdAt: string;
 }
 
-interface FeedbackNotificationType extends NotificationBaseType {
+export interface FeedbackNotificationType extends NotificationBaseType {
   type: 'FEEDBACK';
   meta: {
     sender: {
       id: string;
       nickname: string;
     };
+    coverLetterId: number;
     qnAId: number;
   };
 }
 
-interface CoverLetterType {
-  coverLetterId: number;
-  questionIds: (number | null)[];
-}
-
-interface LabelingNotificationType extends NotificationBaseType {
+export interface LabelingNotificationType extends NotificationBaseType {
   type: 'LABELING_COMPLETE';
   meta: {
-    coverLetters: CoverLetterType[];
+    jobId: string;
+    successFileCount: number;
+    failFileCount: number;
   };
 }
 
@@ -40,4 +38,19 @@ export interface NotificationResponse {
 
 export interface NotificationCountResponse {
   unreadNotificationCount: number;
+}
+
+export interface QnAType {
+  question: string;
+  answer: string;
+  questionCategory: string;
+  answerSize: number;
+}
+
+export interface CoverLetterType {
+  qnAs: QnAType[];
+}
+
+export interface LabeledQnAListResponse {
+  coverLetters: CoverLetterType[];
 }

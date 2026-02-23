@@ -17,7 +17,6 @@ const CalendarContainer = () => {
       startDate: startDateStr,
       endDate: endDateStr,
       size: 100, // 한 달 치 데이터로는 충분히 넉넉한 사이즈
-      isShared: false,
     });
 
   useEffect(() => {
