@@ -1,3 +1,7 @@
+import { useEffect } from 'react';
+
+import { useNavigate } from 'react-router';
+
 import NotificationItem from '@/features/notification/components/NotificationItem';
 import {
   useGetAllNotification,
@@ -23,6 +27,9 @@ const NotificationList = ({ handleDropdown }: NotificationListProps) => {
     enabled: !!hasNextPage && !isFetchingNextPage,
     onIntersect: () => fetchNextPage(),
   });
+  const navigate = useNavigate();
+
+  useEffect(() => {});
 
   if (isLoading) {
     return (
@@ -60,6 +67,14 @@ const NotificationList = ({ handleDropdown }: NotificationListProps) => {
               type='button'
               onClick={() => {
                 readEachNotification(Number(each.id));
+                if (each.type === 'FEEDBACK') {
+                  navigate(
+                    `/cover-letter/edit/${each.meta.coverLetterId}?qnAId=${each.meta.qnAId}`,
+                  );
+                } else {
+                  // 라벨링 완료 페이지로 이동
+                  navigate(`/upload/labeling/${each.meta.jobId}/0/0`);
+                }
                 handleDropdown(false);
               }}
               key={each.id}

@@ -18,6 +18,7 @@ const useCoverLetterState = () => {
             year: 2026,
             season: halfInfo,
           },
+          deadline: '',
           questionType: '',
         },
       }),
