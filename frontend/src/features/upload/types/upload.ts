@@ -96,12 +96,13 @@ export interface StartAiLabelingRequest {
   files: BeforeLabelingFileType[];
 }
 
-type QuestionCategoryType = typeof QUESTION_TYPE_LIST[number]['value']
+type QuestionCategoryType = (typeof QUESTION_TYPE_LIST)[number]['value'];
 interface QnAInSaveCoverLetter {
   question: string;
   answer: string;
-  questionCategory: QuestionCategoryType;
+  questionCategory?: QuestionCategoryType;
 }
+
 
 interface EachCoverLetterInSaveCoverLetter {
   companyName: string;
