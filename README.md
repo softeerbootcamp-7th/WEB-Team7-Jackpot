@@ -259,9 +259,13 @@
 
 ### 윤종근 (Frontend)
 
--
+- **STOMP/SockJS 기반 실시간 자소서 첨삭 기능 구축**: useStompClient 커스텀 훅을 설계하여 웹소켓 연결 생명주기를 안정적으로 관리, 첨삭 모드 활성화 여부에 따른 연결/해제 로직을 구현
+- **웹소켓 이벤트 및 TanStack Query 연동 데이터 동기화**: useSocketMessage 핸들러를 분리하여 이벤트(TEXT_UPDATE, REVIEW_CREATED 등) 수신 시 invalidateQueries로 실시간 UI를 갱신하고 서버로부터 TEXT_REPLACE_ALL 이벤트 수신 시  프론트엔드 캐시의 텍스트와 버전을 즉시 동기화하여 협업 중 발생할 수 있는 버전 꼬임 현상 
+- **SSE(Server-Sent Events) 기반 실시간 알림 파이프라인 최적화**: useSSE 커스텀 훅을 도입해 브라우저 포커싱 상태에 따른 연결 제어 및 다중 탭 환경에서의 연결 초과(400 에러) 방지 로직을 구현하고 수신된 알림 데이터를 TanStack Query 캐시 동기화하여 실시간 배지 및 리스트 갱신 처리
+- **자료 업로드 기능**: 자기소개서 PDF 자동 파싱 기능을 위해 PDF 파일 업로드 관련 로직과 사용자의 입력 검증 로직을 구현
+- **인메모리 기반 토큰 관리 및 Silent Refresh 구현**: 보안 강화를 위해 Access Token을 JS 변수(인메모리)에 저장하여 XSS 공격을 원천 차단하고 silentRefresh 로직을 구축하여 새로고침 시에도 사용자 세션이 끊기지 않도록 구현
 
-📄 관련 문서:
+📄 관련 문서: (추가 예정)
 
 ### 김승환 (Backend & Infra)
 
