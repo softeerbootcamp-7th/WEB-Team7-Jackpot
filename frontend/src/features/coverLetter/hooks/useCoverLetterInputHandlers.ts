@@ -8,7 +8,6 @@ import {
 import { restoreCaret } from '@/features/coverLetter/libs/caret';
 import { moveCaretIntoAdjacentReview } from '@/features/coverLetter/libs/caretBoundary';
 import type { DeleteDirection } from '@/features/coverLetter/libs/deleteUtils';
-import type { Review } from '@/shared/types/review';
 
 interface UseCoverLetterInputHandlersParams {
   isComposingRef: RefObject<boolean>;
@@ -19,7 +18,6 @@ interface UseCoverLetterInputHandlersParams {
   contentRef: RefObject<HTMLDivElement | null>;
   caretOffsetRef: RefObject<number>;
   enterDuringCompositionRef: RefObject<boolean>;
-  reviewsRef: RefObject<Review[]>;
 }
 
 export const useCoverLetterInputHandlers = ({
@@ -31,7 +29,6 @@ export const useCoverLetterInputHandlers = ({
   contentRef,
   caretOffsetRef,
   enterDuringCompositionRef,
-  reviewsRef,
 }: UseCoverLetterInputHandlersParams) => {
   const handleKeyDown = useCallback(
     (e: ReactKeyboardEvent<HTMLDivElement>) => {
