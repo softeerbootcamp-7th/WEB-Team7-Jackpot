@@ -80,15 +80,11 @@ public class ReviewFacade {
         String mergedAnswer = textMerger.merge(currentAnswer, pendingDeltas);
         reviewService.validateOriginText(request.originText(), mergedAnswer, transformedStart, transformedEnd);
 
-        // Transaction 2: Review 생성 및 QnA 업데이트
-        ReviewCreationResult result = createReviewAndUpdateAnswer(
-                reviewerId, qnAId, request, mergedAnswer, transformedStart, transformedEnd, pendingDeltaCount
-        );
-
-        // 이벤트 발행
+        // Transaction 2: Review 생성 및 QnA 업데이트 & 이벤트 발행
         Long coverLetterId = coverLetterAndQnAInfo.coverLetterId;
-        eventPublisher.publishEvent(new TextReplaceAllEvent(coverLetterId, qnAId, result.newVersion(), result.wrappedAnswer()));
-        eventPublisher.publishEvent(ReviewCreatedEvent.of(coverLetterId, qnAId, result.review()));
+        createReviewAndUpdateAnswer(
+                reviewerId, qnAId, coverLetterId, request, mergedAnswer, transformedStart, transformedEnd, pendingDeltaCount
+        );
 
         // Transaction 3: 알림 전송
         String notificationTitle = coverLetterAndQnAInfo.companyName() + " " + coverLetterAndQnAInfo.applyYear() + " " + coverLetterAndQnAInfo.applyHalf().getDescription();
@@ -111,7 +107,7 @@ public class ReviewFacade {
         long pendingDeltaCount = pendingDeltas.size();
 
         // Transaction: 모든 작업을 하나의 트랜잭션에서 처리
-        ReviewDeletionResult result = transactionTemplate.execute(status -> {
+        transactionTemplate.executeWithoutResult(status -> {
             // QnA, Review 조회 및 검증
             QnA qnA = qnAService.findByIdOrElseThrow(qnAId);
             CoverLetter coverLetter = qnA.getCoverLetter();
@@ -121,7 +117,7 @@ public class ReviewFacade {
             reviewService.validateWebSocketConnected(userId, coverLetterId, role);
 
             Optional<Review> reviewOptional = reviewService.findById(reviewId);
-            if (reviewOptional.isEmpty()) return null;
+            if (reviewOptional.isEmpty()) return;
             Review review = reviewOptional.get();
 
             // 검증
@@ -140,21 +136,11 @@ public class ReviewFacade {
             // QnA 업데이트 & pending을 committed로 이동 & pending 조회 이후 유입된 delta는 제거
             long newVersion = textSyncService.updateAnswerCommitAndClearOldCommitted(qnAId, answerWithoutMarker, pendingDeltaCount);
 
-            return new ReviewDeletionResult(coverLetterId, newVersion, answerWithoutMarker);
+            // 트랜잭션 커밋 후 이벤트 발행
+            eventPublisher.publishEvent(new TextReplaceAllEvent(coverLetterId, qnAId, newVersion, answerWithoutMarker));
+            eventPublisher.publishEvent(new ReviewDeleteEvent(coverLetterId, qnAId, reviewId));
         });
-
-        // 트랜잭션 밖에서 이벤트 발행
-        if (result != null) {
-            eventPublisher.publishEvent(new TextReplaceAllEvent(result.coverLetterId(), qnAId, result.newVersion(), result.answerWithoutMarker()));
-            eventPublisher.publishEvent(new ReviewDeleteEvent(result.coverLetterId(), qnAId, reviewId));
-        }
     }
-
-    private record ReviewDeletionResult(
-            Long coverLetterId,
-            long newVersion,
-            String answerWithoutMarker
-    ) {}
 
     /**
      * 리뷰 승인/취소
@@ -165,7 +151,7 @@ public class ReviewFacade {
         long pendingDeltaCount = pendingDeltas.size();
 
         // Transaction: 모든 작업을 하나의 트랜잭션에서 처리
-        ReviewApprovalResult result = transactionTemplate.execute(status -> {
+        transactionTemplate.executeWithoutResult(status -> {
             // QnA, Review 조회 및 검증
             QnA qnA = qnAService.findByIdOrElseThrow(qnAId);
             Long coverLetterId = qnA.getCoverLetter().getId();
@@ -187,28 +173,17 @@ public class ReviewFacade {
             // 마커 교체
             String oldContent = review.isApproved() ? review.getOriginText() : review.getSuggest();
             String newContent = review.isApproved() ? review.getSuggest() : review.getOriginText();
-            
+
             String newAnswer = reviewService.replaceMarkerContent(mergedAnswer, reviewId, oldContent, newContent);
 
             // QnA 업데이트 & pending을 committed로 이동 & pending 조회 이후 유입된 delta는 제거
             long newVersion = textSyncService.updateAnswerCommitAndClearOldCommitted(qnAId, newAnswer, pendingDeltaCount);
 
-            return new ReviewApprovalResult(coverLetterId, newVersion, newAnswer, review);
+            // 트랜잭션 커밋 후 이벤트 발행
+            eventPublisher.publishEvent(new TextReplaceAllEvent(coverLetterId, qnAId, newVersion, newAnswer));
+            eventPublisher.publishEvent(ReviewEditEvent.of(coverLetterId, qnAId, review));
         });
-
-        // 트랜잭션 밖에서 이벤트 발행
-        if (result != null) {
-            eventPublisher.publishEvent(new TextReplaceAllEvent(result.coverLetterId(), qnAId, result.newVersion(), result.newAnswer()));
-            eventPublisher.publishEvent(ReviewEditEvent.of(result.coverLetterId(), qnAId, result.review()));
-        }
     }
-
-    private record ReviewApprovalResult(
-            Long coverLetterId,
-            long newVersion,
-            String newAnswer,
-            Review review
-    ) {}
 
     public ReviewsGetResponse getAllReviews(String userId, Long qnAId) {
         return reviewService.getAllReviews(userId, qnAId);
@@ -245,36 +220,32 @@ public class ReviewFacade {
     ) {
     }
 
-    private ReviewCreationResult createReviewAndUpdateAnswer(
+    private void createReviewAndUpdateAnswer(
             String reviewerId,
             Long qnAId,
+            Long coverLetterId,
             ReviewCreateRequest request,
             String mergedAnswer,
             int transformedStart,
             int transformedEnd,
             long pendingDeltaCount
     ) {
-        return transactionTemplate.execute(transactionStatus -> {
+        transactionTemplate.executeWithoutResult(transactionStatus -> {
             // Review 생성
-            Review newReview = reviewService.createReview(reviewerId, qnAId, request);
+            Review review = reviewService.createReview(reviewerId, qnAId, request);
 
             // 최신 answer에 마커 추가
             String wrappedAnswer = reviewService.addMarkerToReviewedSection(
                     mergedAnswer, transformedStart, transformedEnd,
-                    newReview.getId(), newReview.getOriginText()
+                    review.getId(), review.getOriginText()
             );
 
             // QnA 업데이트 및 pending/committed delta 삭제 (Reviewer를 위한 OT 히스토리 정리)
             long newVersion = textSyncService.updateAnswerAndClearDeltas(qnAId, wrappedAnswer, pendingDeltaCount);
 
-            return new ReviewCreationResult(newReview, newVersion, wrappedAnswer);
+            // 트랜잭션 커밋 후 이벤트 발행
+            eventPublisher.publishEvent(new TextReplaceAllEvent(coverLetterId, qnAId, newVersion, wrappedAnswer));
+            eventPublisher.publishEvent(ReviewCreatedEvent.of(coverLetterId, qnAId, review));
         });
     }
-
-    private record ReviewCreationResult(
-            Review review,
-            long newVersion,
-            String wrappedAnswer
-    ) {}
-
 }
