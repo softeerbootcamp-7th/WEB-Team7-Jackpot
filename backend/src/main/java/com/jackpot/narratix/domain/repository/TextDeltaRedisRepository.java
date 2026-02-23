@@ -334,16 +334,6 @@ public class TextDeltaRedisRepository {
     }
 
     /**
-     * pending 키만 삭제한다.
-     * DB 커밋 후 committed 이동(commit())이 실패했을 때 dirty 데이터를 제거하는 Fallback으로 사용된다.
-     * committed 히스토리는 보존되지 않는다.
-     */
-    public void clearPending(Long qnAId) {
-        redisTemplate.delete(pendingKey(qnAId));
-        log.warn("pending 키 강제 삭제 (committed 히스토리 미보존): qnAId={}", qnAId);
-    }
-
-    /**
      * 세 Redis 키(pending, committed, version)를 모두 삭제한다.
      * 공유 링크 비활성화 등 세션 종료 시 명시적으로 호출해 메모리를 회수한다.
      */
