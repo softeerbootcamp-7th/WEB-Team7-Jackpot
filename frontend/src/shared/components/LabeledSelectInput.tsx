@@ -63,7 +63,7 @@ const LabeledSelectInput = <T extends string | number>({
           aria-haspopup='listbox'
           aria-autocomplete='list'
           onClick={() => handleDropdown(!isOpen)}
-          // autoComplete='off'
+          autoComplete='off'
           className='w-full rounded-lg bg-gray-50 px-5 py-[0.875rem] text-gray-950 placeholder:text-gray-400 focus:ring-2 focus:ring-gray-200 focus:outline-none'
           placeholder={`${label}을(를) 입력해주세요`}
         />

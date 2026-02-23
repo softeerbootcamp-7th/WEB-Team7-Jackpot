@@ -29,10 +29,9 @@ const LibrarySideBar = ({ folderList }: LibrarySideBarProps) => {
     handleChange,
     data: searchResults,
     isLoading,
-    errorMessage,
   } = useSearch({
     queryKey: 'keyword',
-    fetchAction: searchLibrary,
+    fetchAction: searchLibrary, // [박소민] TODO: use훅 사용 후 삭제
     // 기업 탭일 땐 useSearch 기능을 꺼버려서 URL 깜빡임 원천 차단
     isEnabled: currentTab === 'QUESTION',
   });
@@ -122,12 +121,11 @@ const LibrarySideBar = ({ folderList }: LibrarySideBarProps) => {
   return (
     <div className='flex h-full w-107 flex-col overflow-hidden pr-5'>
       {currentTab === 'QUESTION' && (
-        <div className='flex-none shrink-0'>
+        <div className='flex-none shrink-0 pb-6'>
           <SearchInput
             placeholder='문항 유형을 입력해주세요'
             keyword={keyword}
             onChange={handleChange}
-            errorMessage={errorMessage}
           />
         </div>
       )}

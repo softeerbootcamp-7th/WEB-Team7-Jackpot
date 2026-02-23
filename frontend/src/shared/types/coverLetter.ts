@@ -9,9 +9,9 @@ export interface CoverLetterBase {
   coverLetterId: number;
   companyName: string;
   jobPosition: string;
-  applyYear?: number; // [박소민] 방어 로직 추가로 인해 optional 처리
+  applyYear?: number; // 방어 로직 추가로 인해 optional 처리
   applyHalf?: ApiApplyHalf;
-  deadline?: ISODateString; // [박소민] 마감일 달라고 하기 (라이브러리) (API에서 아직 안 줌) - ISODateString 형식으로 가정
+  deadline?: ISODateString; // 마감일 달라고 하기 (라이브러리) (API에서 아직 안 줌) - ISODateString 형식으로 가정
 }
 
 export interface CoverLetterQuestion {
@@ -46,4 +46,21 @@ export interface UpdateCoverLetter {
 
 export interface ErrorResponse {
   message: string;
+}
+
+export interface CalendarCoverLetterItem extends CoverLetterBase {
+  questionCount: number;
+}
+
+export interface FilterResponse {
+  totalCount: number;
+  coverLetters: CalendarCoverLetterItem[];
+  hasNext: boolean;
+}
+
+export interface FilterRequest {
+  startDate: string;
+  endDate: string;
+  size?: number;
+  isShared?: boolean;
 }

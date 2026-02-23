@@ -3,7 +3,7 @@ import { memo } from 'react';
 
 import { Link } from 'react-router';
 
-import type { CalendarCoverLetterItem } from '@/features/recruit/types';
+import type { CalendarCoverLetterItem } from '@/shared/types/coverLetter';
 import { isBeforeDay } from '@/shared/utils/dates';
 
 interface Props {
