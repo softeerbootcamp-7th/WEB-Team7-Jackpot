@@ -11,6 +11,7 @@ const StepItem = ({ step }: StepItemProps) => {
     '1': <UI.UploadInputIcon />,
     '2': <UI.LabelingResultIcon />,
     '3': <UI.UploadCompleteIcon />,
+    '3-error': <UI.UploadCompleteIcon />,
   };
   const generateStepIcon = () => STEP_ICONS[step] ?? null;
 
@@ -22,16 +23,21 @@ const StepItem = ({ step }: StepItemProps) => {
         </div>
         <div className='absolute inset-0 z-10 flex select-none'>
           {['1', '2', '3'].map((each) => {
-            const currentStepData = STEP_DATA[each];
-            const CurrentIconComponent = currentStepData.Icon;
+            const isErrorStep = each === '3' && step === '3-error';
+            const currentKey = isErrorStep ? '3-error' : each;
+            const currentStepData = STEP_DATA[currentKey] ?? STEP_DATA['3'];
+
+            const isActive = each === step || isErrorStep;
+            const CurrentIconComponent = currentStepData?.Icon;
+
             return (
               <StepInformation
                 key={each}
-                className={`${currentStepData.className} transition-colors duration-300 ${each === step ? 'text-white' : 'text-gray-300'}`}
+                className={`${currentStepData.className} transition-colors duration-300 ${isActive ? 'text-white' : 'text-gray-300'}`}
                 icon={
                   CurrentIconComponent && (
                     <CurrentIconComponent
-                      color={each === step ? 'white' : 'var(--color-gray-200)'}
+                      color={isActive ? 'white' : 'var(--color-gray-200)'}
                     />
                   )
                 }
@@ -47,10 +53,10 @@ const StepItem = ({ step }: StepItemProps) => {
         className='animate-soft-pop flex flex-col gap-1 text-center'
       >
         <div className='text-xl font-bold text-gray-600'>
-          {STEP_DATA[step].loadingTitle}
+          {STEP_DATA[step]?.loadingTitle ?? STEP_DATA['3'].loadingTitle}
         </div>
         <div className='text-base font-normal text-gray-400'>
-          {STEP_DATA[step].loadingSubTitle}
+          {STEP_DATA[step]?.loadingSubTitle ?? STEP_DATA['3'].loadingSubTitle}
         </div>
       </div>
     </div>
