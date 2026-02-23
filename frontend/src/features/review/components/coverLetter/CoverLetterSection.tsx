@@ -9,6 +9,7 @@ import {
   useUpdateReview,
 } from '@/shared/hooks/useReviewQueries';
 import { mapCleanRangeToTaggedRange } from '@/shared/hooks/useReviewState/helpers';
+import { isRangeOverlapping } from '@/shared/hooks/useTextSelection/helpers';
 import type { Review } from '@/shared/types/review';
 import type { SelectionInfo } from '@/shared/types/selectionInfo';
 
@@ -75,17 +76,31 @@ const CoverLetterSection = ({
         },
       );
     } else {
-      const nextVersion = onReserveNextVersion
+      const overlapsExistingReview = isRangeOverlapping(
+        selection.range.start,
+        selection.range.end,
+        reviews,
+      );
+
+      if (overlapsExistingReview) {
+        showToast('이미 리뷰가 있는 구간에는 새 리뷰를 달 수 없습니다.');
+        resetSelection();
+        return;
+      }
+
+      const reservedVersion = onReserveNextVersion
         ? onReserveNextVersion()
-        : currentVersion;
+        : currentVersion + 1;
+
       const taggedRange = mapCleanRangeToTaggedRange(
         text,
         reviews,
         selection.range,
       );
+
       createReview(
         {
-          version: nextVersion - 1,
+          version: Math.max(0, reservedVersion - 1),
           startIdx: taggedRange.startIdx,
           endIdx: taggedRange.endIdx,
           originText: selection.selectedText,

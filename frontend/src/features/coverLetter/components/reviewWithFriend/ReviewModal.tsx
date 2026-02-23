@@ -21,8 +21,10 @@ const ReviewModal = ({
   const viewStatus = review?.viewStatus ?? 'PENDING';
   const isPending = viewStatus === 'PENDING';
   const isAccepted = viewStatus === 'ACCEPTED';
-  const canToggle =
-    !!review?.suggest && !!onToggleApproval && (isPending || isAccepted);
+  const hasToggleAction = !!review?.suggest && !!onToggleApproval;
+  const canApply = hasToggleAction && isPending;
+  const canRevert =
+    hasToggleAction && isAccepted && review?.isApproved === true;
   const displayOriginText = isAccepted
     ? (review?.suggest ?? review?.originText ?? '')
     : (review?.originText ?? '');
@@ -100,14 +102,14 @@ const ReviewModal = ({
               </span>
             </button>
           )}
-          {canToggle && (
+          {(canApply || canRevert) && (
             <button
               type='button'
               className='flex cursor-pointer items-center justify-start gap-1 rounded-xl bg-gray-900 px-3 py-1.5 text-white'
               onClick={() => review && onToggleApproval?.(review.id)}
             >
               <span className='text-center text-sm leading-5 font-bold'>
-                {isPending ? '적용하기' : '되돌리기'}
+                {canApply ? '적용하기' : '되돌리기'}
               </span>
             </button>
           )}

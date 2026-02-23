@@ -27,7 +27,7 @@ export const collectText = (root: Node): string => {
     node.childNodes.forEach(walk);
   };
   root.childNodes.forEach(walk);
-  return result.replace(/\u200B/g, '');
+  return result.replace(/[\u200B\u2060]/g, '');
 };
 
 /**
@@ -68,6 +68,20 @@ export const restoreCaret = (el: HTMLElement, offset: number) => {
   const sel = window.getSelection();
   if (!sel) return;
 
+  const findReviewWrapper = (node: Node): HTMLElement | null => {
+    let current: Node | null = node;
+    while (current && current !== el) {
+      if (
+        current.nodeType === Node.ELEMENT_NODE &&
+        (current as HTMLElement).hasAttribute('data-review-id')
+      ) {
+        return current as HTMLElement;
+      }
+      current = current.parentNode;
+    }
+    return null;
+  };
+
   const walker = document.createTreeWalker(
     el,
     NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
@@ -91,17 +105,31 @@ export const restoreCaret = (el: HTMLElement, offset: number) => {
 
     if (node.nodeType === Node.TEXT_NODE) {
       const nodeText = node.textContent || '';
-      const zwspCount = (nodeText.match(/\u200B/g) || []).length;
-      const actualLength = nodeText.length - zwspCount;
+      const hiddenCount = (nodeText.match(/[\u200B\u2060]/g) || []).length;
+      const actualLength = nodeText.length - hiddenCount;
 
       if (remaining <= actualLength) {
         let realOffset = 0;
         let virtualCount = 0;
         while (virtualCount < remaining && realOffset < nodeText.length) {
-          if (nodeText[realOffset] !== '\u200B') virtualCount++;
+          if (nodeText[realOffset] !== '\u200B' && nodeText[realOffset] !== '\u2060') {
+            virtualCount++;
+          }
           realOffset++;
         }
         const range = document.createRange();
+        // 리뷰 텍스트의 끝 경계에 캐럿이 걸리면 브라우저가 다음 입력을
+        // 리뷰 span 내부로 붙이는 경우가 있어, 경계에서는 wrapper 바깥으로 이동시킨다.
+        if (remaining === actualLength) {
+          const reviewWrapper = findReviewWrapper(node);
+          if (reviewWrapper) {
+            range.setStartAfter(reviewWrapper);
+            range.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(range);
+            return;
+          }
+        }
         range.setStart(node, realOffset);
         range.collapse(true);
         sel.removeAllRanges();

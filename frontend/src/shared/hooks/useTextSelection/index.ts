@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 
+import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
 import {
   buildTextChunks,
   findLineEndIndex,
@@ -75,6 +76,7 @@ export const useTextSelection = ({
   selection,
   onSelectionChange,
 }: UseTextSelectionProps) => {
+  const { showToast } = useToastMessageContext();
   const containerRef = useRef<HTMLDivElement>(null);
   const selectionTimeoutRef = useRef<number | null>(null);
 
@@ -149,9 +151,7 @@ export const useTextSelection = ({
   const highlights = useMemo(
     () => [
       ...reviews
-        .filter(
-          (r) => r.viewStatus === 'PENDING' || r.viewStatus === 'ACCEPTED',
-        )
+        .filter((r) => r.range.start >= 0 && r.range.end > r.range.start)
         .map((r) => r.range),
       ...(selection && !editingReview ? [selection.range] : []),
     ],
@@ -179,7 +179,7 @@ export const useTextSelection = ({
 
     if (isRangeOverlapping(start, end, reviews)) {
       sel.removeAllRanges();
-      alert('이미 첨삭이 등록된 영역입니다.');
+      showToast('이미 첨삭이 등록된 영역입니다.');
       return;
     }
 
@@ -228,7 +228,7 @@ export const useTextSelection = ({
       );
       if (modalInfo) onSelectionChange(modalInfo);
     }
-  }, [reviews, onSelectionChange]);
+  }, [reviews, onSelectionChange, showToast]);
 
   const { before, after } = useMemo(() => {
     if (!selection) {

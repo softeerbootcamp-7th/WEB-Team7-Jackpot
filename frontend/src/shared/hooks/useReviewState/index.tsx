@@ -134,13 +134,26 @@ export const useReviewState = ({
   const currentReplaceAllSignal =
     qnaId !== undefined ? (replaceAllSignalByQnaId[qnaId] ?? 0) : 0;
 
+  const reviewsForCurrentQna =
+    qnaId !== undefined ? reviewsByQnaId[qnaId] : undefined;
+
   const currentReviews = useMemo(() => {
     if (qnaId === undefined) return [];
-    if (reviewsByQnaId[qnaId]) return reviewsByQnaId[qnaId];
-    if (!apiReviews) return [];
 
-    return buildReviewsFromApi(parsed.cleaned, parsed.taggedRanges, apiReviews);
-  }, [qnaId, apiReviews, parsed, reviewsByQnaId]);
+    const baseReviews = (() => {
+      if (reviewsForCurrentQna) return reviewsForCurrentQna;
+      if (!apiReviews) return [];
+      return buildReviewsFromApi(
+        parsed.cleaned,
+        parsed.taggedRanges,
+        apiReviews,
+      );
+    })();
+
+    // 입력 경로별 로컬 상태 업데이트 타이밍 차이가 있어도
+    // 현재 본문 기준으로 viewStatus를 항상 최신으로 유지한다.
+    return applyViewStatus(baseReviews, currentText);
+  }, [qnaId, apiReviews, parsed, reviewsForCurrentQna, currentText]);
 
   const currentReviewsRef = useRef(currentReviews);
   useEffect(() => {
@@ -167,12 +180,23 @@ export const useReviewState = ({
   const socketEventQueueRef = useRef<Array<() => void>>([]);
   const isSocketQueueScheduledRef = useRef(false);
 
-  const flushSocketEventQueue = useCallback(() => {
-    while (socketEventQueueRef.current.length > 0) {
-      const job = socketEventQueueRef.current.shift();
-      job?.();
+  const flushSocketEventQueue = useCallback(function flushQueuedSocketEvents() {
+    try {
+      while (socketEventQueueRef.current.length > 0) {
+        const job = socketEventQueueRef.current.shift();
+        try {
+          job?.();
+        } catch (e) {
+          console.error('[useReviewState] socket event handler error:', e);
+        }
+      }
+    } finally {
+      isSocketQueueScheduledRef.current = false;
+      if (socketEventQueueRef.current.length > 0) {
+        isSocketQueueScheduledRef.current = true;
+        queueMicrotask(flushQueuedSocketEvents);
+      }
     }
-    isSocketQueueScheduledRef.current = false;
   }, []);
 
   const enqueueSocketEvent = useCallback(
@@ -222,9 +246,7 @@ export const useReviewState = ({
 
   const getApiReviewSource = useCallback(
     (targetQnaId: number, baseReviews: Review[]): ApiReview[] => {
-      if (targetQnaId === qnaId && apiReviews) return apiReviews;
-
-      return baseReviews.map((review) => ({
+      const baseAsApi = baseReviews.map((review) => ({
         id: review.id,
         sender: review.sender ?? { id: '', nickname: '' },
         originText: review.originText,
@@ -233,6 +255,17 @@ export const useReviewState = ({
         createdAt: review.createdAt ?? '',
         isApproved: Boolean(review.isApproved),
       }));
+
+      if (targetQnaId === qnaId && apiReviews) {
+        // API 스냅샷이 늦게 갱신되는 동안(예: 방금 소켓으로 생성/수정된 리뷰)
+        // baseReviews를 잃지 않도록 id 기준으로 병합한다.
+        const mergedById = new Map<number, ApiReview>();
+        for (const review of baseAsApi) mergedById.set(review.id, review);
+        for (const review of apiReviews) mergedById.set(review.id, review);
+        return Array.from(mergedById.values());
+      }
+
+      return baseAsApi;
     },
     [qnaId, apiReviews],
   );
@@ -246,10 +279,8 @@ export const useReviewState = ({
 
   const handleTextUpdateEvent = useCallback(
     (targetQnaId: number, payload: TextUpdateResponseType['payload']) => {
-      console.log('[useReviewState:event] TEXT_UPDATE', {
-        targetQnaId,
-        payload,
-      });
+      if (targetQnaId !== qnaId) return;
+
       const { startIdx, endIdx, replacedText, version } = payload;
       const currentVersionForQna = getCurrentVersionByQnaId(targetQnaId);
       if (version <= currentVersionForQna) return;
@@ -260,13 +291,16 @@ export const useReviewState = ({
         editedAnswersRef.current[targetQnaId] ??
         originalTextByQnaIdRef.current[targetQnaId] ??
         '';
-      const reviewsForTagging =
-        targetQnaId === qnaId ? currentReviewsRef.current : [];
+      const reviewsForTagging = currentReviewsRef.current;
 
-      const taggedText = reconstructTaggedText(currentCleanText, reviewsForTagging);
+      const taggedText = reconstructTaggedText(
+        currentCleanText,
+        reviewsForTagging,
+      );
       const newTaggedText =
         taggedText.slice(0, startIdx) + replacedText + taggedText.slice(endIdx);
-      const { cleaned: newCleanText, taggedRanges } = parseTaggedText(newTaggedText);
+      const { cleaned: newCleanText, taggedRanges } =
+        parseTaggedText(newTaggedText);
 
       // 다음 소켓 이벤트가 render 이전에 와도 최신 기준으로 계산되도록 ref를 즉시 동기화한다.
       editedAnswersRef.current = {
@@ -287,33 +321,33 @@ export const useReviewState = ({
         const sourceReviews = getApiReviewSource(targetQnaId, baseReviews);
         return {
           ...prevReviews,
-          [targetQnaId]: buildReviewsFromApi(newCleanText, taggedRanges, sourceReviews),
+          [targetQnaId]: buildReviewsFromApi(
+            newCleanText,
+            taggedRanges,
+            sourceReviews,
+          ),
         };
       });
 
-      if (targetQnaId === qnaId) {
-        const change = calculateTextChange(currentCleanText, newCleanText);
-        setSelection((prev) => {
-          if (!prev) return null;
-          return updateSelectionForTextChange(
-            prev,
-            change.changeStart,
-            change.oldLength,
-            change.newLength,
-            newCleanText,
-          );
-        });
-      }
+      const change = calculateTextChange(currentCleanText, newCleanText);
+      setSelection((prev) => {
+        if (!prev) return null;
+        return updateSelectionForTextChange(
+          prev,
+          change.changeStart,
+          change.oldLength,
+          change.newLength,
+          newCleanText,
+        );
+      });
     },
     [getCurrentVersionByQnaId, getLatestReviews, getApiReviewSource, qnaId],
   );
 
   const handleTextReplaceAllEvent = useCallback(
     (targetQnaId: number, payload: TextReplaceAllResponseType['payload']) => {
-      console.log('[useReviewState:event] TEXT_REPLACE_ALL', {
-        targetQnaId,
-        payload,
-      });
+      if (targetQnaId !== qnaId) return;
+
       const { version, content } = payload;
       // TEXT_REPLACE_ALL은 서버의 전체 상태 스냅샷이므로 버전 비교 없이 항상 적용한다.
       // Writer가 투기적으로 올린 로컬 버전이 서버 버전보다 높더라도 덮어쓴다.
@@ -360,9 +394,7 @@ export const useReviewState = ({
         };
       });
 
-      if (targetQnaId === qnaId) {
-        setSelection(null);
-      }
+      setSelection(null);
       setVersionByQnaId((prev) => ({ ...prev, [targetQnaId]: version }));
       setReplaceAllSignalByQnaId((prev) => ({
         ...prev,
@@ -374,10 +406,8 @@ export const useReviewState = ({
 
   const handleReviewCreatedEvent = useCallback(
     (targetQnaId: number, payload: ReviewCreatedResponseType['payload']) => {
-      console.log('[useReviewState:event] REVIEW_CREATED', {
-        targetQnaId,
-        payload,
-      });
+      if (targetQnaId !== qnaId) return;
+
       const { reviewId, originText, suggest, comment, sender, createdAt } =
         payload;
       const taggedRange = lastTaggedRangesRef.current[targetQnaId]?.find(
@@ -409,35 +439,28 @@ export const useReviewState = ({
         };
       });
     },
-    [getCurrentTextByQnaId, getLatestReviews],
+    [getCurrentTextByQnaId, getLatestReviews, qnaId],
   );
 
   const handleReviewDeletedEvent = useCallback(
     (targetQnaId: number, payload: ReviewDeletedResponseType['payload']) => {
-      console.log('[useReviewState:event] REVIEW_DELETED', {
-        targetQnaId,
-        payload,
-      });
+      if (targetQnaId !== qnaId) return;
+
       setReviewsByQnaId((prevReviews) => ({
         ...prevReviews,
         [targetQnaId]: getLatestReviews(prevReviews, targetQnaId).filter(
           (review) => review.id !== payload.reviewId,
         ),
       }));
-
-      if (targetQnaId === qnaId) {
-        setEditingId((prev) => (prev === payload.reviewId ? null : prev));
-      }
+      setEditingId((prev) => (prev === payload.reviewId ? null : prev));
     },
     [getLatestReviews, qnaId],
   );
 
   const handleReviewUpdatedEvent = useCallback(
     (targetQnaId: number, payload: ReviewUpdatedResponseType['payload']) => {
-      console.log('[useReviewState:event] REVIEW_UPDATED', {
-        targetQnaId,
-        payload,
-      });
+      if (targetQnaId !== qnaId) return;
+
       const currentDocumentText = getCurrentTextByQnaId(targetQnaId);
 
       setReviewsByQnaId((prevReviews) => {
@@ -459,16 +482,15 @@ export const useReviewState = ({
             incomingOriginText === previousSuggest &&
             incomingSuggest === previousOriginText;
 
-          const nextIsApproved =
-            payload.isApproved !== undefined
-              ? payload.isApproved
-              : isSwapToggleEvent
-                ? !review.isApproved
-                : start >= 0 &&
-                    end >= 0 &&
-                    currentDocumentText.slice(start, end) === incomingOriginText
-                  ? Boolean(review.isApproved)
-                  : false;
+          const nextIsApproved = (() => {
+            if (payload.isApproved !== undefined) return payload.isApproved;
+            if (isSwapToggleEvent) return !review.isApproved;
+            const rangeMatchesOrigin =
+              start >= 0 &&
+              end >= 0 &&
+              currentDocumentText.slice(start, end) === incomingOriginText;
+            return rangeMatchesOrigin ? Boolean(review.isApproved) : false;
+          })();
 
           return {
             ...review,
@@ -490,7 +512,12 @@ export const useReviewState = ({
         };
       });
     },
-    [getCurrentTextByQnaId, getLatestReviews, revalidateReviewsByCurrentText],
+    [
+      getCurrentTextByQnaId,
+      getLatestReviews,
+      qnaId,
+      revalidateReviewsByCurrentText,
+    ],
   );
 
   const handleTextChange = useCallback(
@@ -502,6 +529,12 @@ export const useReviewState = ({
 
       const oldText = getCurrentTextByQnaId(qnaId);
       const change = calculateTextChange(oldText, newText);
+      // 같은 tick 내 연속 입력/삭제(특히 IME 경계)에서도
+      // 다음 계산이 최신 텍스트를 기준으로 동작하도록 ref를 즉시 동기화한다.
+      editedAnswersRef.current = {
+        ...editedAnswersRef.current,
+        [qnaId]: newText,
+      };
 
       setEditedAnswers((prev) => ({ ...prev, [qnaId]: newText }));
       setReviewsByQnaId((prevReviews) => {

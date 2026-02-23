@@ -13,15 +13,17 @@ const ReviewCardList = ({
   onReviewClick,
 }: ReviewCardListProps) => {
   return (
-    <div className='flex h-full flex-col overflow-y-auto pb-80'>
-      {reviews.map((review) => (
-        <ReviewCard
-          key={review.id}
-          review={review}
-          selectedReviewId={selectedReviewId}
-          onReviewClick={onReviewClick}
-        />
-      ))}
+    <div className='flex h-full min-h-0 flex-col'>
+      <div className='min-h-0 flex-1 overflow-y-auto pb-80'>
+        {reviews.map((review) => (
+          <ReviewCard
+            key={review.id}
+            review={review}
+            selectedReviewId={selectedReviewId}
+            onReviewClick={onReviewClick}
+          />
+        ))}
+      </div>
     </div>
   );
 };
