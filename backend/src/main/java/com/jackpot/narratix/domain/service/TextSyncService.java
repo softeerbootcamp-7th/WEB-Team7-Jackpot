@@ -47,45 +47,89 @@ public class TextSyncService {
 
     /**
      * pending 델타를 DB에 flush한다.
-     * flushToDb로 조회한 델타를 DB에 적용한다.
      */
     @Transactional
     public void flushDeltasToDb(Long qnAId, List<TextUpdateRequest> deltas, long readCount) {
         if (deltas.isEmpty()) return;
-        else {
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    movePendingDeltasToCommitDeltas(qnAId, readCount);
-                }
-            });
-        }
 
         QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
         List<TextUpdateRequest> applicableDeltas = getApplicableDeltas(deltas, qnA.getVersion());
 
-        // getPending()으로 읽은 항목 수를 commit()에 전달해 그 이후 유입된 델타를 보존한다.
         String newAnswer = textMerger.merge(qnA.getAnswer(), applicableDeltas);
         qnA.editAnswer(newAnswer);
         qnARepository.incrementVersion(qnAId, applicableDeltas.size());
+
+        // 정합성을 위해 DB 커밋과 Redis 커밋을 같은 트랜잭션 경계 내에서 실행한다.
+        movePendingDeltasToCommitDeltas(qnAId, readCount);
     }
 
-    private void movePendingDeltasToCommitDeltas(Long qnAId, long readCount) {
-        try {
-            long committedDeltaCount = textDeltaRedisRepository.commit(qnAId, readCount);
-            log.info("redis flush 완료: qnAId={}, committed 수={}", qnAId, committedDeltaCount);
-        } catch (Exception e) {
-            log.error("Redis commit 실패 (DB는 이미 커밋됨), pending 강제 삭제 시도: qnAId={}", qnAId, e);
-            clearPending(qnAId);
-        }
+    // getPending()으로 읽은 항목 수인 readCount를 commit()에 전달해 그 이후 유입된 델타를 보존한다.
+    public void movePendingDeltasToCommitDeltas(Long qnAId, long readCount) {
+        long committedDeltaCount = textDeltaRedisRepository.commit(qnAId, readCount);
+        log.info("redis flush 완료: qnAId={}, committed 수={}", qnAId, committedDeltaCount);
     }
 
-    private void clearPending(Long qnAId) {
-        try {
-            textDeltaRedisRepository.clearPending(qnAId);
-        } catch (Exception e) {
-            log.error("pending 강제 삭제 실패 (다음 flush에서 버전 필터링으로 재처리됨): qnAId={}", qnAId, e);
-        }
+    /**
+     * QnA answer를 업데이트하고 pending delta를 committed로 이동한다.
+     * Review 삭제/승인 시 사용되며, Writer를 위한 OT 히스토리를 보존한다.
+     *
+     * @param qnAId QnA ID
+     * @param newAnswer 새로운 answer
+     * @param pendingDeltaCount pending delta 개수 (version 증가량)
+     * @return 새로운 version
+     */
+    @Transactional
+    public long updateAnswerWithPendingDeltasCommit(Long qnAId, String newAnswer, long pendingDeltaCount) {
+        QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
+        qnA.editAnswer(newAnswer);
+        long newVersion = qnARepository.incrementVersion(qnAId, (int) pendingDeltaCount);
+
+        // pending delta를 committed로 이동
+        movePendingDeltasToCommitDeltas(qnAId, pendingDeltaCount);
+
+        textDeltaRedisRepository.setVersion(qnAId, newVersion);
+
+        return newVersion;
+    }
+
+    /**
+     * QnA answer를 업데이트하고 pending/committed delta를 모두 삭제한다.
+     * Review 생성 시 사용되며, Reviewer를 위한 OT 히스토리가 더 이상 필요 없으므로 모두 정리한다.
+     *
+     * @param qnAId QnA ID
+     * @param newAnswer 새로운 answer (이미 pending delta가 병합되고 마커가 추가된 상태)
+     * @param pendingDeltaCount pending delta 개수 (version 증가량)
+     * @return 새로운 version
+     */
+    @Transactional
+    public long updateAnswerAndClearDeltas(Long qnAId, String newAnswer, long pendingDeltaCount) {
+        QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
+        qnA.editAnswer(newAnswer);
+        long newVersion = qnARepository.incrementVersion(qnAId, (int) pendingDeltaCount);
+
+        textDeltaRedisRepository.clearDeltasAndSetVersion(qnAId, newVersion);
+        return newVersion;
+    }
+
+    /**
+     * QnA answer를 업데이트하고 pending을 committed로 이동하며 기존 committed는 모두 삭제한다.
+     * Review 삭제/승인 시 사용되며, 기존 OT 히스토리를 정리하고 새로운 히스토리로 교체한다.
+     *
+     * @param qnAId QnA ID
+     * @param newAnswer 새로운 answer
+     * @param pendingDeltaCount pending delta 개수 (version 증가량)
+     * @return 새로운 version
+     */
+    @Transactional
+    public long updateAnswerCommitAndClearOldCommitted(Long qnAId, String newAnswer, long pendingDeltaCount) {
+        QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
+        qnA.editAnswer(newAnswer);
+        long newVersion = qnARepository.incrementVersion(qnAId, (int) pendingDeltaCount);
+
+        // pending을 committed로 이동하고 기존 committed는 삭제 및 redis 버전 카운터 업데이트
+        textDeltaRedisRepository.commitAndClearOldCommitted(qnAId, pendingDeltaCount, newVersion);
+
+        return newVersion;
     }
 
     /**
@@ -129,7 +173,7 @@ public class TextSyncService {
      * delta.version()은 클라이언트가 보낸 다음 버전(push 후 Redis 버전)이므로,
      * delta.version() <= dbVersion인 것은 이미 DB에 반영됨
      */
-    private List<TextUpdateRequest> getApplicableDeltas(List<TextUpdateRequest> deltas, long dbVersion) {
+    public List<TextUpdateRequest> getApplicableDeltas(List<TextUpdateRequest> deltas, long dbVersion) {
         return deltas.stream()
                 .filter(d -> d.version() > dbVersion)
                 .toList();

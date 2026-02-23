@@ -5,8 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jackpot.narratix.domain.controller.request.TextUpdateRequest;
 import com.jackpot.narratix.domain.exception.SerializationException;
 import com.jackpot.narratix.domain.exception.VersionConflictException;
-import com.jackpot.narratix.global.exception.BaseException;
-import com.jackpot.narratix.global.exception.GlobalErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -110,6 +108,50 @@ public class TextDeltaRedisRepository {
 
     private static final DefaultRedisScript<Long> ROLLBACK_PUSH_REDIS_SCRIPT =
             new DefaultRedisScript<>(ROLLBACK_PUSH_SCRIPT, Long.class);
+
+    /**
+     * pending, committed 키를 모두 삭제하고 version을 새로운 값으로 설정하는 Lua 스크립트.
+     * Review 생성 시 Reviewer를 위한 delta 히스토리가 더 이상 필요 없으므로 정리한다.
+     *
+     * KEYS: [pendingKey, committedKey, versionKey]
+     * ARGV: [newVersion, ttlSeconds]
+     * 반환값: 1 (성공)
+     */
+    private static final String CLEAR_DELTAS_AND_SET_VERSION_SCRIPT = """
+            redis.call('del', KEYS[1])
+            redis.call('del', KEYS[2])
+            redis.call('set', KEYS[3], ARGV[1])
+            redis.call('expire', KEYS[3], ARGV[2])
+            return 1
+            """;
+
+    private static final DefaultRedisScript<Long> CLEAR_DELTAS_AND_SET_VERSION_REDIS_SCRIPT =
+            new DefaultRedisScript<>(CLEAR_DELTAS_AND_SET_VERSION_SCRIPT, Long.class);
+
+    /**
+     * pending의 앞 readCount개를 committed로 이동하고 기존 committed는 모두 삭제한다.
+     * Review 삭제/승인 시 사용되며, 기존 OT 히스토리를 정리하고 새로운 히스토리로 교체한다.
+     *
+     * KEYS: [pendingKey, committedKey, versionKey]
+     * ARGV: [readCount, newVersion, ttlSeconds]
+     * 반환값: 이동된 델타 수
+     */
+    private static final String COMMIT_AND_CLEAR_OLD_COMMITTED_SCRIPT = """
+            redis.call('del', KEYS[2])
+            local count = tonumber(ARGV[1])
+            local items = redis.call('lrange', KEYS[1], 0, count - 1)
+            for _, item in ipairs(items) do
+                redis.call('rpush', KEYS[2], item)
+            end
+            redis.call('expire', KEYS[2], ARGV[3])
+            redis.call('ltrim', KEYS[1], count, -1)
+            redis.call('set', KEYS[3], ARGV[2])
+            redis.call('expire', KEYS[3], ARGV[3])
+            return #items
+            """;
+
+    private static final DefaultRedisScript<Long> COMMIT_AND_CLEAR_OLD_COMMITTED_REDIS_SCRIPT =
+            new DefaultRedisScript<>(COMMIT_AND_CLEAR_OLD_COMMITTED_SCRIPT, Long.class);
 
     private String pendingKey(Long qnAId) {
         return PENDING_KEY_FORMAT.formatted(qnAId);
@@ -250,6 +292,45 @@ public class TextDeltaRedisRepository {
     public void setVersion(Long qnAId, long version) {
         redisTemplate.opsForValue().set(versionKey(qnAId), String.valueOf(version), KEY_TTL);
         log.debug("버전 카운터 강제 갱신: qnAId={}, version={}", qnAId, version);
+    }
+
+    /**
+     * pending과 committed 델타를 모두 삭제하고 version을 새로운 값으로 설정한다.
+     * Review 생성 시 Reviewer를 위한 OT 히스토리가 더 이상 필요 없으므로 모두 정리한다.
+     *
+     * @param qnAId QnA ID
+     * @param newVersion 새로운 버전
+     */
+    public void clearDeltasAndSetVersion(Long qnAId, long newVersion) {
+        redisTemplate.execute(
+                CLEAR_DELTAS_AND_SET_VERSION_REDIS_SCRIPT,
+                List.of(pendingKey(qnAId), committedKey(qnAId), versionKey(qnAId)),
+                String.valueOf(newVersion), String.valueOf(KEY_TTL_SECONDS)
+        );
+        log.info("pending/committed 델타 삭제 및 버전 설정 완료: qnAId={}, newVersion={}", qnAId, newVersion);
+    }
+
+    /**
+     * pending의 앞 readCount개를 committed로 이동하고 기존 committed는 모두 삭제한다.
+     * Review 삭제/승인 시 사용되며, 기존 OT 히스토리를 정리하고 새로운 히스토리로 교체한다.
+     *
+     * @param qnAId      QnA ID
+     * @param readCount  pending에서 읽은 항목 수 (committed로 이동할 개수)
+     * @param newVersion 새로운 버전
+     */
+    public void commitAndClearOldCommitted(Long qnAId, long readCount, long newVersion) {
+        if (readCount <= 0) {
+            log.debug("commit 대상 델타 없음: qnAId={}, readCount={}", qnAId, readCount);
+            return;
+        }
+
+        Long moved = redisTemplate.execute(
+                COMMIT_AND_CLEAR_OLD_COMMITTED_REDIS_SCRIPT,
+                List.of(pendingKey(qnAId), committedKey(qnAId), versionKey(qnAId)),
+                String.valueOf(readCount), String.valueOf(newVersion), String.valueOf(KEY_TTL_SECONDS)
+        );
+        long count = moved != null ? moved : 0L;
+        log.info("pending→committed 이동 및 기존 committed 정리 완료: qnAId={}, 이동된 델타 수={}, newVersion={}", qnAId, count, newVersion);
     }
 
     /**

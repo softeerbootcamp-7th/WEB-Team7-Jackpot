@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class TextDeltaService {
 
-    private static final int FLUSH_THRESHOLD = 20;
+    private static final int FLUSH_THRESHOLD = 100;
 
     private final TextDeltaRedisRepository textDeltaRedisRepository;
     private final QnARepository qnARepository;
@@ -101,7 +101,15 @@ public class TextDeltaService {
         List<TextUpdateRequest> committed = textDeltaRedisRepository.getCommitted(qnAId);
         List<TextUpdateRequest> pending = textDeltaRedisRepository.getPending(qnAId);
         return Stream.concat(committed.stream(), pending.stream()) // version asc
-                .filter(d -> d.version() >= fromVersion)
+                .filter(d -> d.version() > fromVersion)
                 .toList();
+    }
+
+    /**
+     * committed 델타를 가져온다.
+     * Review 생성 시 OT 변환을 위해 사용한다.
+     */
+    public List<TextUpdateRequest> getCommittedDeltas(Long qnAId) {
+        return textDeltaRedisRepository.getCommitted(qnAId);
     }
 }
