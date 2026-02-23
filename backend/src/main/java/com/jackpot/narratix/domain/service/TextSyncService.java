@@ -163,8 +163,4 @@ public class TextSyncService {
                 .filter(d -> d.version() > dbVersion)
                 .toList();
     }
-
-    public void setDbVersion(String shareId, List<Long> qnAIds) {
-
-    }
 }
