@@ -13,7 +13,6 @@ interface UseCoverLetterDeleteFlowParams {
   latestTextRef: RefObject<string>;
   caretOffsetRef: RefObject<number>;
   reviewsRef: RefObject<Review[]>;
-  reviewRemainingCharsRef: RefObject<Record<number, number>>;
   reviewLastKnownRangesRef: RefObject<
     Record<number, { start: number; end: number }>
   >;
@@ -36,7 +35,6 @@ export const useCoverLetterDeleteFlow = ({
   latestTextRef,
   caretOffsetRef,
   reviewsRef,
-  reviewRemainingCharsRef,
   reviewLastKnownRangesRef,
   syncDOMToState,
   updateText,
@@ -56,7 +54,6 @@ export const useCoverLetterDeleteFlow = ({
         caretStart: start,
         caretEnd: end,
         reviews: reviewsRef.current,
-        reviewRemainingChars: reviewRemainingCharsRef.current,
         reviewLastKnownRanges: reviewLastKnownRangesRef.current,
       });
 
@@ -66,7 +63,6 @@ export const useCoverLetterDeleteFlow = ({
       // useEffect([reviews])가 reviews prop 변경 시 자동으로 재동기화한다.
       // 텍스트 자체도 이미 변경·전파된 상태이므로 refs만 롤백하는 것은 불완전하며,
       // 텍스트까지 되돌리는 것은 사용자 입력을 자동 취소하는 UX 문제가 있다.
-      reviewRemainingCharsRef.current = result.nextReviewRemainingChars;
       reviewLastKnownRangesRef.current = result.nextReviewLastKnownRanges;
       reviewsRef.current = result.nextReviews;
 
@@ -85,7 +81,6 @@ export const useCoverLetterDeleteFlow = ({
       syncDOMToState,
       latestTextRef,
       reviewsRef,
-      reviewRemainingCharsRef,
       reviewLastKnownRangesRef,
       caretOffsetRef,
       onDeleteReviewsByText,

@@ -264,7 +264,7 @@ const CoverLetterEditor = ({
       </div>
 
       {isReviewActive && (
-        <aside className='h-full min-h-0 w-[248px] overflow-hidden border-l border-gray-100'>
+        <aside className='flex h-full min-h-0 w-[248px] flex-col overflow-hidden border-l border-gray-100'>
           <ReviewCardList
             reviews={currentReviews}
             selectedReviewId={selectedReviewId}
