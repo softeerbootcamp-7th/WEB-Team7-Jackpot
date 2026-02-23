@@ -206,7 +206,7 @@
               </td>
               <td align="center" width="200">
                 <a href="https://github.com/Sminp">
-                  <img src="https://github.com/Sminp.png" alt="박소민" width="120" style="border-radius: 50%;" />
+                  <img src="https://github.com/user-attachments/assets/9bc78a33-e446-442f-a40a-71b07d6cfada" alt="박소민" width="120" style="border-radius: 50%;" />
                   <br />
                   <sub><b>박소민</b></sub>
                 </a>
