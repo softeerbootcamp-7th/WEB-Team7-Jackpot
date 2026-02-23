@@ -813,9 +813,7 @@ class ReviewFacadeTest {
             review.approve(); // Actually change the review state
             return null;
         }).given(reviewService).toggleApproval(review);
-        // After toggleApproval, review.isApproved() = true
-        // But the actual call shows oldContent = suggest, newContent = originText (swapped after approval)
-        given(reviewService.replaceMarkerContent("답변텍스트", reviewId, suggestedText, originalText))
+        given(reviewService.replaceMarkerContent("답변텍스트", reviewId, originalText, suggestedText))
                 .willReturn("업데이트된답변");
         given(textSyncService.updateAnswerCommitAndClearOldCommitted(qnAId, "업데이트된답변", 0L)).willReturn(1L);
 
