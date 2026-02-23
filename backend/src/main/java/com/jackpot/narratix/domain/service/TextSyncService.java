@@ -70,29 +70,6 @@ public class TextSyncService {
     }
 
     /**
-     * QnA answer를 업데이트하고 pending delta를 committed로 이동한다.
-     * Review 삭제/승인 시 사용되며, Writer를 위한 OT 히스토리를 보존한다.
-     *
-     * @param qnAId QnA ID
-     * @param newAnswer 새로운 answer
-     * @param pendingDeltaCount pending delta 개수 (version 증가량)
-     * @return 새로운 version
-     */
-    @Transactional
-    public long updateAnswerWithPendingDeltasCommit(Long qnAId, String newAnswer, long pendingDeltaCount) {
-        QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
-        qnA.editAnswer(newAnswer);
-        long newVersion = qnARepository.incrementVersion(qnAId, (int) pendingDeltaCount);
-
-        // pending delta를 committed로 이동
-        movePendingDeltasToCommitDeltas(qnAId, pendingDeltaCount);
-
-        textDeltaRedisRepository.setVersion(qnAId, newVersion);
-
-        return newVersion;
-    }
-
-    /**
      * QnA answer를 업데이트하고 pending/committed delta를 모두 삭제한다.
      * Review 생성 시 사용되며, Reviewer를 위한 OT 히스토리가 더 이상 필요 없으므로 모두 정리한다.
      *
