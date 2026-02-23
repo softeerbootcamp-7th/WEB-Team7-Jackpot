@@ -67,8 +67,8 @@ public class ReviewFacade {
                         .filter(d -> d.version() > reviewerVersion)
                         .toList();
 
-                // 가장 오래된 델타의 버전이 reviewerVersion보다 크거나 같아야 OT 변환이 가능하다. (reviewerVersion 이후의 델타가 존재해야 한다.)
-                boolean isHistoryRetained = oldestDeltaVersion >= reviewerVersion;
+                // 가장 오래된 델타의 버전이 reviewerVersion보다 작거나 같아야 OT 변환이 가능하다. (reviewerVersion 이후의 델타가 존재해야 한다.)
+                boolean isHistoryRetained = oldestDeltaVersion <= reviewerVersion + 1;
                 boolean hasNoVersionGap = !otDeltas.isEmpty() && otDeltas.get(0).version() == reviewerVersion + 1;
                 if (!isHistoryRetained || !hasNoVersionGap) {
                     throw new BaseException(ReviewErrorCode.REVIEW_VERSION_TOO_OLD);

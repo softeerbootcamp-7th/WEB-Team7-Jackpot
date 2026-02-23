@@ -198,6 +198,7 @@ class ReviewFacadeTest {
 
         // OT 결과: transformedStart=2, transformedEnd=4
         List<TextUpdateRequest> committedDeltas = List.of(
+                new TextUpdateRequest(5L, 0, 0, "C"),  // version=5인 델타
                 new TextUpdateRequest(6L, 0, 0, "AB")  // version=6인 델타
         );
         List<TextUpdateRequest> pendingDeltas = Collections.emptyList();
