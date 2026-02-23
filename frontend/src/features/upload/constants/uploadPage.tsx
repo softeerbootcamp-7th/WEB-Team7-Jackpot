@@ -32,6 +32,14 @@ export const STEP_DATA: Record<string, StepDataType> = {
     loadingTitle: '저장이 완료되었어요!',
     loadingSubTitle: '사용자님의 자기소개서가 라이브러리에 저장되었어요.',
   },
+  '3-error': {
+    className: 'left-[25.5rem]',
+    Icon: UI.CompleteSavedIcon,
+    step: 'step 03',
+    name: '저장 실패',
+    loadingTitle: '저장이 실패했습니다.',
+    loadingSubTitle: '업로드한 파일의 라벨링이 모두 실패했어요.',
+  },
 } as const;
 
 export const TAB_DATA: TabDataType[] = [
