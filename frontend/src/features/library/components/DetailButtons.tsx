@@ -22,7 +22,7 @@ const DetailButtons = ({ coverLetterId, qnAId, initialScrapState }: Props) => {
         onClick={handleToggleScrap}
         disabled={isLoading}
         // [박소민] TODO: 스크랩 상태에 따라 버튼 스타일 변경
-        className={`flex cursor-pointer items-center gap-1.5 rounded-xl border border-purple-50 bg-purple-50 px-3 py-1.5 text-sm font-bold text-purple-600 transition-colors hover:bg-purple-100`}
+        className={`flex cursor-pointer items-center gap-1.5 rounded-xl border border-purple-50 bg-purple-50 px-3 py-1.5 text-sm font-bold text-purple-600 transition-colors hover:bg-purple-100 disabled:cursor-not-allowed disabled:opacity-50`}
       >
         <LII.ScrapIcon className='h-5 w-5' />
         <span>{isScraped ? '스크랩 삭제하기' : '스크랩하기'}</span>
