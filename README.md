@@ -225,7 +225,7 @@
               </td>
               <td align="center" width="200">
                 <a href="https://github.com/livebylee">
-                  <img src="https://github.com/livebylee.png" alt="이정민" width="120" style="border-radius: 50%;" />
+                  <img src="https://github.com/user-attachments/assets/6ebadb75-050a-4719-ba5e-507e233c3e8b" alt="이정민" width="120" style="border-radius: 50%;" />
                   <br />
                   <sub><b>이정민</b></sub>
                 </a>
