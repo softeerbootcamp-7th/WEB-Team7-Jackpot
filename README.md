@@ -97,7 +97,11 @@
 
 ### 4) 자기소개서 작성
 
-![Editor Demo](https://placehold.co/1200x675?text=Cover+Letter+Editor)
+<img 
+  src="https://github.com/user-attachments/assets/9b083350-6967-4884-a3fa-848d1ac9eb43"
+  alt="Editor Page" 
+  width="100%" 
+/>
 
 ### 5) 첨삭 에디터
 
@@ -115,9 +119,8 @@
 
 ---
 
-## 🏗 아키텍처
+## 🏗 아키텍처 & ERD
 
-![System Architecture](https://placehold.co/1200x500?text=Architecture+Diagram)
 <img width="5376" height="4176" alt="image" src="https://github.com/user-attachments/assets/e5f0c462-1cba-4735-9cf2-74e2d111cf87" />
 
 ---
