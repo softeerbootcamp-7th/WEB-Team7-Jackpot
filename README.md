@@ -71,7 +71,11 @@
 
 ### 2) 채용 일정 캘린더 관리
 
-![Calendar Demo](https://placehold.co/1200x675?text=Recruit+Calendar)
+<img 
+  src="https://github.com/user-attachments/assets/5a6a2808-2373-4940-8109-88292da17da3"
+  alt="Calendar Page" 
+  width="100%" 
+/>
 
 ### 3) 자기소개서 작성
 
@@ -83,7 +87,11 @@
 
 ### 5) 기업별/문항별 라이브러리 관리
 
-![Library Demo](https://placehold.co/1200x675?text=Library+Management)
+<img 
+  src="https://github.com/user-attachments/assets/450c5d0b-44a9-4c23-b322-fb5e925b67fe"
+  alt="Library Page" 
+  width="100%" 
+/>
 
 ### 전체 기능
 
