@@ -48,7 +48,6 @@ public class ReviewFacade {
         // Transaction 1: QnA/CoverLetter 조회 및 WebSocket 연결 검증
         CoverLetterAndQnAInfo coverLetterAndQnAInfo = getCoverLetterAndQnAInfoAndValidateWebSocketConnected(qnAId, reviewerId);
 
-        // delta를 가져온다.
         List<TextUpdateRequest> committedDeltas = textSyncService.getCommittedDeltas(qnAId);
         List<TextUpdateRequest> pendingDeltas = textSyncService.getPendingDeltas(qnAId);
         List<TextUpdateRequest> allDeltas = Stream.concat(committedDeltas.stream(), pendingDeltas.stream()).toList();
@@ -58,14 +57,14 @@ public class ReviewFacade {
 
         long reviewerVersion = request.version();
 
-        if (!allDeltas.isEmpty()) {
+        if (!allDeltas.isEmpty()) { // Delta가 존재하지 않거나 reviewerVersion과 mostRecentDeltaVersion이 같으면, QnA 버전이 최신이라는 의미이므로 OT 변환이 불필요하다.
             long mostRecentDeltaVersion = allDeltas.get(pendingDeltas.size() - 1).version();
             long oldestDeltaVersion = allDeltas.get(0).version();
 
-            // Review 구간을 OT로 변환하기 위해 committed delta와 pending delta를 이용해 transformed range를 계산한다.
+            // OT 변환에 필요한 Delta만 필터링한다. reviewerVersion이 1이면, version 2,3,4, ... 인 델타가 OT 변환에 포함된다.
             if (reviewerVersion < mostRecentDeltaVersion) {
                 List<TextUpdateRequest> otDeltas = allDeltas.stream()
-                        .filter(d -> d.version() > reviewerVersion) // reviewerVersion이 1면, version 2,3,4, ... 인 델타는 OT 변환에 포함된다.
+                        .filter(d -> d.version() > reviewerVersion)
                         .toList();
 
                 // 가장 오래된 델타의 버전이 reviewerVersion보다 크거나 같아야 OT 변환이 가능하다. (reviewerVersion 이후의 델타가 존재해야 한다.)
