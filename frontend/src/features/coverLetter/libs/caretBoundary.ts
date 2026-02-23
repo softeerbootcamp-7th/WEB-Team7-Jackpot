@@ -88,6 +88,13 @@ const findBoundaryAtCaret = (
   return null;
 };
 
+const isReviewGroup = (node: Node | null): node is HTMLElement =>
+  Boolean(
+    node &&
+    node.nodeType === Node.ELEMENT_NODE &&
+    (node as HTMLElement).hasAttribute('data-review-group'),
+  );
+
 export const moveCaretIntoAdjacentReview = ({
   contentEl,
   direction,
@@ -104,13 +111,6 @@ export const moveCaretIntoAdjacentReview = ({
   if (!contentEl.contains(range.startContainer)) return false;
 
   const { startContainer, startOffset } = range;
-
-  const isReviewGroup = (node: Node | null): node is HTMLElement =>
-    Boolean(
-      node &&
-      node.nodeType === Node.ELEMENT_NODE &&
-      (node as HTMLElement).hasAttribute('data-review-group'),
-    );
 
   let reviewGroupEl: HTMLElement | null = null;
 
@@ -175,7 +175,15 @@ export const moveCaretIntoAdjacentReview = ({
     // 리뷰 텍스트 처음으로 진입
     const firstText = walker.nextNode() as Text | null;
     if (firstText) {
-      newRange.setStart(firstText, 0);
+      const txt = firstText.textContent ?? '';
+      let offset = 0;
+      while (
+        offset < txt.length &&
+        (txt[offset] === '\u200B' || txt[offset] === '\u2060')
+      ) {
+        offset++;
+      }
+      newRange.setStart(firstText, offset);
     } else {
       newRange.setStart(reviewContentEl, 0);
     }
