@@ -105,7 +105,31 @@
 
 ### 5) 첨삭 에디터
 
-![Review Demo](https://placehold.co/1200x675?text=Cover+Letter+Editor)
+> 작성자
+
+<img 
+  src="https://github.com/user-attachments/assets/e95e5489-5a80-4aa4-8f19-b9f4b10702be"
+  alt="Review Page" 
+  width="100%" 
+/>
+<img 
+  src="https://github.com/user-attachments/assets/0f26f1b0-b3f7-46df-90f4-1312e33be278"
+  alt="Review Page" 
+  width="100%" 
+/>
+
+> 첨삭자
+
+<img 
+  src="https://github.com/user-attachments/assets/8c5509fb-dbc6-42e6-8de8-2081fe38d53a"
+  alt="Review Page" 
+  width="100%" 
+/>
+<img 
+  src="https://github.com/user-attachments/assets/2a02447f-b975-407e-a59d-4a7a1a55b341"
+  alt="Review Page" 
+  width="100%" 
+/>
 
 ### 전체 기능
 
