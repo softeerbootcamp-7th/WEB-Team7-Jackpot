@@ -3,7 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router';
 
 import StepItem from '@/features/upload/components/StepItem';
-import UploadLayoutHeader from '@/features/upload/components/UploadLayoutHeader';
+import { uploadHeaderText } from '@/features/upload/constants/uploadPage';
+import ContentHeader from '@/shared/components/ContentHeader';
 import ConfirmModal from '@/shared/components/modal/ConfirmModal';
 
 const UploadPage = () => {
@@ -84,7 +85,7 @@ const UploadPage = () => {
     <div>
       <div className='mb-12 h-screen px-75 select-none'>
         <div className='mb-12'>
-          <UploadLayoutHeader />
+          <ContentHeader {...uploadHeaderText} />
           <StepItem step={currentStep.toString()} />
         </div>
         <Outlet />
