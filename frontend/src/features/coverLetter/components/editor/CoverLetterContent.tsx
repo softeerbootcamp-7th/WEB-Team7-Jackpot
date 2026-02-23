@@ -117,20 +117,16 @@ const CoverLetterContent = ({
   const prevReplaceAllSignalRef = useRef(replaceAllSignal);
   const latestTextRef = useRef(text);
   const reviewsRef = useRef(reviews);
-  const reviewRemainingCharsRef = useRef<Record<number, number>>({});
   const reviewLastKnownRangesRef = useRef<
     Record<number, { start: number; end: number }>
   >({});
 
   useEffect(() => {
     reviewsRef.current = reviews;
-    const { nextRemainingChars, nextLastKnownRanges } =
-      reconcileReviewTrackingState({
-        reviews,
-        prevRemainingChars: reviewRemainingCharsRef.current,
-        prevLastKnownRanges: reviewLastKnownRangesRef.current,
-      });
-    reviewRemainingCharsRef.current = nextRemainingChars;
+    const { nextLastKnownRanges } = reconcileReviewTrackingState({
+      reviews,
+      prevLastKnownRanges: reviewLastKnownRangesRef.current,
+    });
     reviewLastKnownRangesRef.current = nextLastKnownRanges;
   }, [reviews]);
 
@@ -390,7 +386,6 @@ const CoverLetterContent = ({
     latestTextRef,
     caretOffsetRef,
     reviewsRef,
-    reviewRemainingCharsRef,
     reviewLastKnownRangesRef,
     syncDOMToState,
     updateText,
