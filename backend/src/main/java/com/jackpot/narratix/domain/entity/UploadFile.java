@@ -18,6 +18,8 @@ import java.util.List;
 @Table(name = "upload_file")
 public class UploadFile {
 
+    private static final int MAX_EXTRACTED_TEXT_LENGTH = 20000;
+
     @Id
     @Column(length = 36)
     private String id;
@@ -42,7 +44,7 @@ public class UploadFile {
     private String extractedText;
 
     public void successExtract(String extractedText) {
-        this.extractedText = extractedText;
+        this.extractedText = limitText(extractedText);
         changeStatus(UploadStatus.EXTRACTED);
     }
 
@@ -79,5 +81,12 @@ public class UploadFile {
             this.labeledQnAs.add(labeledQnA);
             labeledQnA.connectUploadFile(this);
         });
+    }
+
+    private String limitText(String text) {
+        if (text == null) return null;
+        return (text.length() > MAX_EXTRACTED_TEXT_LENGTH)
+                ? text.substring(0, MAX_EXTRACTED_TEXT_LENGTH)
+                : text;
     }
 }
