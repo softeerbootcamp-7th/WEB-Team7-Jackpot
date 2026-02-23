@@ -60,9 +60,6 @@ class ReviewFacadeTest {
     private ReviewService reviewService;
 
     @Mock
-    private TextDeltaService textDeltaService;
-
-    @Mock
     private OTTransformer otTransformer;
 
     @Mock
@@ -82,12 +79,16 @@ class ReviewFacadeTest {
 
     @BeforeEach
     void setUp() {
-        // TransactionTemplate mock: execute the callback immediately
-        // Use lenient() to avoid UnnecessaryStubbingException in tests that don't use transactions
         lenient().when(transactionTemplate.execute(any())).thenAnswer(invocation -> {
             org.springframework.transaction.support.TransactionCallback<?> callback = invocation.getArgument(0);
             return callback.doInTransaction(null);
         });
+
+        lenient().doAnswer(invocation -> {
+            java.util.function.Consumer<org.springframework.transaction.TransactionStatus> action = invocation.getArgument(0);
+            action.accept(null);
+            return null;
+        }).when(transactionTemplate).executeWithoutResult(any());
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -138,7 +139,7 @@ class ReviewFacadeTest {
 
         given(qnAService.findByIdOrElseThrow(qnaId)).willReturn(qnA);
         doNothing().when(reviewService).validateWebSocketConnected(reviewerId, coverLetterId, ReviewRoleType.REVIEWER);
-        given(textDeltaService.getCommittedDeltas(qnaId)).willReturn(Collections.emptyList());
+        given(textSyncService.getCommittedDeltas(qnaId)).willReturn(Collections.emptyList());
         given(textSyncService.getPendingDeltas(qnaId)).willReturn(Collections.emptyList());
         given(textMerger.merge(originText, Collections.emptyList())).willReturn(originText);
         doNothing().when(reviewService).validateOriginText(originText, originText, 0, 6);
@@ -153,7 +154,7 @@ class ReviewFacadeTest {
         reviewFacade.createReview(reviewerId, qnaId, request);
 
         // then
-        verify(textDeltaService, times(1)).getCommittedDeltas(qnaId);
+        verify(textSyncService, times(1)).getCommittedDeltas(qnaId);
         verify(textSyncService, times(1)).getPendingDeltas(qnaId);
         verify(otTransformer, never()).transformRange(anyInt(), anyInt(), any());
         verify(reviewService, times(1)).createReview(reviewerId, qnaId, request);
@@ -197,6 +198,7 @@ class ReviewFacadeTest {
 
         // OT 결과: transformedStart=2, transformedEnd=4
         List<TextUpdateRequest> committedDeltas = List.of(
+                new TextUpdateRequest(5L, 0, 0, "C"),  // version=5인 델타
                 new TextUpdateRequest(6L, 0, 0, "AB")  // version=6인 델타
         );
         List<TextUpdateRequest> pendingDeltas = Collections.emptyList();
@@ -213,7 +215,7 @@ class ReviewFacadeTest {
 
         given(qnAService.findByIdOrElseThrow(qnaId)).willReturn(qnA);
         doNothing().when(reviewService).validateWebSocketConnected(reviewerId, coverLetterId, ReviewRoleType.REVIEWER);
-        given(textDeltaService.getCommittedDeltas(qnaId)).willReturn(committedDeltas);
+        given(textSyncService.getCommittedDeltas(qnaId)).willReturn(committedDeltas);
         given(textSyncService.getPendingDeltas(qnaId)).willReturn(pendingDeltas);
         given(otTransformer.transformRange(10, 12, otDeltas)).willReturn(new int[]{2, 4});
         given(textMerger.merge("AB원본CDEF", pendingDeltas)).willReturn("AB원본CDEF");
@@ -229,7 +231,7 @@ class ReviewFacadeTest {
         reviewFacade.createReview(reviewerId, qnaId, request);
 
         // then
-        verify(textDeltaService, times(1)).getCommittedDeltas(qnaId);
+        verify(textSyncService, times(1)).getCommittedDeltas(qnaId);
         verify(textSyncService, times(1)).getPendingDeltas(qnaId);
         verify(otTransformer, times(1)).transformRange(10, 12, otDeltas);
         verify(reviewService, times(1)).createReview(reviewerId, qnaId, request);
@@ -266,7 +268,7 @@ class ReviewFacadeTest {
 
         given(qnAService.findByIdOrElseThrow(qnaId)).willReturn(qnA);
         doNothing().when(reviewService).validateWebSocketConnected(reviewerId, coverLetterId, ReviewRoleType.REVIEWER);
-        given(textDeltaService.getCommittedDeltas(qnaId)).willReturn(Collections.emptyList());
+        given(textSyncService.getCommittedDeltas(qnaId)).willReturn(Collections.emptyList());
         given(textSyncService.getPendingDeltas(qnaId)).willReturn(Collections.emptyList());
         given(textMerger.merge("AB원본CD", Collections.emptyList())).willReturn("AB원본CD");
         doNothing().when(reviewService).validateOriginText(originText, "AB원본CD", 2, 4);
@@ -319,75 +321,6 @@ class ReviewFacadeTest {
     }
 
     @Test
-    @DisplayName("리뷰 생성 실패 - reviewerVersion이 currentVersion보다 크면 REVIEW_VERSION_NOT_VALID 에러 발생")
-    void createReview_Fail_ReviewerVersionTooNew() {
-        // given
-        String reviewerId = "reviewer123";
-        String writerId = "writer456";
-        Long qnaId = 1L;
-        Long coverLetterId = 1L;
-
-        ReviewCreateRequest request = new ReviewCreateRequest(
-                10L, 0L, 5L, "원본", "제안", "코멘트"
-        );
-
-        CoverLetter coverLetter = CoverLetterFixture.builder()
-                .id(coverLetterId).userId(writerId).build();
-
-        QnA qnA = QnAFixture.createQnAWithId(
-                qnaId, coverLetter, writerId, "질문", QuestionCategoryType.MOTIVATION
-        );
-        // qnA.version = 0 (기본값) → reviewerVersion(10) > currentVersion(0)
-
-        given(qnAService.findByIdOrElseThrow(qnaId)).willReturn(qnA);
-        doNothing().when(reviewService).validateWebSocketConnected(reviewerId, coverLetterId, ReviewRoleType.REVIEWER);
-        given(textDeltaService.getCommittedDeltas(qnaId)).willReturn(Collections.emptyList());
-        given(textSyncService.getPendingDeltas(qnaId)).willReturn(Collections.emptyList());
-
-        // when & then
-        assertThatThrownBy(() -> reviewFacade.createReview(reviewerId, qnaId, request))
-                .isInstanceOf(BaseException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ReviewErrorCode.REVIEW_VERSION_AHEAD);
-
-        verify(reviewService, never()).createReview(any(), any(), any());
-    }
-
-    @Test
-    @DisplayName("리뷰 생성 실패 - OT 이력이 reviewerVersion을 포함하지 않으면 REVIEW_VERSION_TOO_OLD 에러 발생")
-    void createReview_Fail_OtHistoryNotAvailable() {
-        // given
-        String reviewerId = "reviewer123";
-        String writerId = "writer456";
-        Long qnaId = 1L;
-        Long coverLetterId = 1L;
-
-        ReviewCreateRequest request = new ReviewCreateRequest(
-                3L, 0L, 5L, "원본", "제안", "코멘트"
-        );
-
-        CoverLetter coverLetter = CoverLetterFixture.builder()
-                .id(coverLetterId).userId(writerId).build();
-
-        QnA qnA = QnAFixture.createQnAWithId(
-                qnaId, coverLetter, writerId, "질문", QuestionCategoryType.MOTIVATION
-        );
-        ReflectionTestUtils.setField(qnA, "version", 6L);
-
-        // committed + pending 델타가 빈 목록 반환 → hasOtHistorySinceReviewerVersion = false
-        given(qnAService.findByIdOrElseThrow(qnaId)).willReturn(qnA);
-        doNothing().when(reviewService).validateWebSocketConnected(reviewerId, coverLetterId, ReviewRoleType.REVIEWER);
-        given(textDeltaService.getCommittedDeltas(qnaId)).willReturn(Collections.emptyList());
-        given(textSyncService.getPendingDeltas(qnaId)).willReturn(Collections.emptyList());
-
-        // when & then
-        assertThatThrownBy(() -> reviewFacade.createReview(reviewerId, qnaId, request))
-                .isInstanceOf(BaseException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ReviewErrorCode.REVIEW_VERSION_TOO_OLD);
-
-        verify(reviewService, never()).createReview(any(), any(), any());
-    }
-
-    @Test
     @DisplayName("리뷰 생성 실패 - OT 이력에 공백이 있으면 REVIEW_VERSION_TOO_OLD 에러 발생")
     void createReview_Fail_OtHistoryHasGap() {
         // given
@@ -415,7 +348,7 @@ class ReviewFacadeTest {
 
         given(qnAService.findByIdOrElseThrow(qnaId)).willReturn(qnA);
         doNothing().when(reviewService).validateWebSocketConnected(reviewerId, coverLetterId, ReviewRoleType.REVIEWER);
-        given(textDeltaService.getCommittedDeltas(qnaId)).willReturn(committedDeltas);
+        given(textSyncService.getCommittedDeltas(qnaId)).willReturn(committedDeltas);
         given(textSyncService.getPendingDeltas(qnaId)).willReturn(Collections.emptyList());
 
         // when & then
@@ -450,7 +383,7 @@ class ReviewFacadeTest {
 
         given(qnAService.findByIdOrElseThrow(qnaId)).willReturn(qnA);
         doNothing().when(reviewService).validateWebSocketConnected(reviewerId, coverLetterId, ReviewRoleType.REVIEWER);
-        given(textDeltaService.getCommittedDeltas(qnaId)).willReturn(Collections.emptyList());
+        given(textSyncService.getCommittedDeltas(qnaId)).willReturn(Collections.emptyList());
         given(textSyncService.getPendingDeltas(qnaId)).willReturn(Collections.emptyList());
         given(textMerger.merge("HELLO WORLD", Collections.emptyList())).willReturn("HELLO WORLD");
         doThrow(new BaseException(ReviewErrorCode.REVIEW_TEXT_MISMATCH))

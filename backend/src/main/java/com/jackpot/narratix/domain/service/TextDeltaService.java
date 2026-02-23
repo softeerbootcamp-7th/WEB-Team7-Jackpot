@@ -68,7 +68,7 @@ public class TextDeltaService {
         if (pendingSize >= FLUSH_THRESHOLD) {
             log.info("flush 임계값 도달: qnAId={}", qnAId);
             List<TextUpdateRequest> deltas = textSyncService.getPendingDeltas(qnAId);
-            textSyncService.flushDeltasToDb(qnAId, deltas, deltas.size());
+            textSyncService.flushDeltasToDbAndSyncVersion(qnAId, deltas, deltas.size());
         }
 
         return request.version();
@@ -78,38 +78,5 @@ public class TextDeltaService {
         log.warn("버전 카운터 유실 감지, DB에서 재초기화: qnAId={}", qnAId);
         QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
         textDeltaRedisRepository.initVersionIfAbsent(qnAId, qnA.getVersion());
-    }
-
-    /**
-     * 리뷰 처리(생성·삭제·승인) 후 Redis 버전 카운터를 DB version에 맞게 즉시 갱신한다.
-     * TEXT_REPLACE_ALL 이벤트 발행 전에 Redis 버전을 동기화하여 버전 충돌을 방지한다.
-     */
-    public void resetDeltaVersion(Long qnAId, long newVersion) {
-        try {
-            textDeltaRedisRepository.setVersion(qnAId, newVersion);
-            log.info("리뷰 처리 후 버전 카운터 갱신 완료: qnAId={}, newVersion={}", qnAId, newVersion);
-        } catch (Exception e) {
-            log.error("리뷰 처리 후 버전 카운터 갱신 실패: qnAId={}, newVersion={}", qnAId, newVersion, e);
-        }
-    }
-
-    /**
-     * OT 변환에 필요한 델타를 committed + pending에서 수집한다.
-     * fromVersion 이상의 델타를 version 오름차순으로 반환한다.
-     */
-    public List<TextUpdateRequest> getOtDeltasSince(Long qnAId, long fromVersion) {
-        List<TextUpdateRequest> committed = textDeltaRedisRepository.getCommitted(qnAId);
-        List<TextUpdateRequest> pending = textDeltaRedisRepository.getPending(qnAId);
-        return Stream.concat(committed.stream(), pending.stream()) // version asc
-                .filter(d -> d.version() > fromVersion)
-                .toList();
-    }
-
-    /**
-     * committed 델타를 가져온다.
-     * Review 생성 시 OT 변환을 위해 사용한다.
-     */
-    public List<TextUpdateRequest> getCommittedDeltas(Long qnAId) {
-        return textDeltaRedisRepository.getCommitted(qnAId);
     }
 }

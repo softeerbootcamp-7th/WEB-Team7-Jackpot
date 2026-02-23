@@ -1,8 +1,6 @@
 package com.jackpot.narratix.domain.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jackpot.narratix.domain.entity.LabeledQnA;
 import com.jackpot.narratix.domain.entity.UploadFile;
 import com.jackpot.narratix.domain.entity.UploadJob;
@@ -13,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
@@ -23,7 +23,7 @@ public class FileProcessService {
 
     private static final int MAX_EXTRACTED_TEXT_LENGTH = 20000;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
     private final UploadFileRepository uploadFileRepository;
     private final NotificationService notificationService;
 
@@ -46,9 +46,11 @@ public class FileProcessService {
         List<LabeledQnARequest> qnARequests;
 
         try {
-            qnARequests = objectMapper.readValue(labelingJson, new TypeReference<>() {
-            });
-        } catch (JsonProcessingException e) {
+            qnARequests = objectMapper.readValue(
+                    labelingJson,
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, LabeledQnARequest.class)
+            );
+        } catch (JacksonException e) {
             log.error("Failed to parse labeling result. fileId: {}, error: {}", fileId, e.getMessage());
             file.failLabeling();
             checkJobCompletionAndNotify(file.getUploadJob());
