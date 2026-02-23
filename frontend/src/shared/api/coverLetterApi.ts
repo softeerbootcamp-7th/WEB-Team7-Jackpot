@@ -114,10 +114,13 @@ export const fetchFilterCoverLetter = async (
   const queryParams = new URLSearchParams({
     startDate: params.startDate,
     endDate: params.endDate,
-    size: String(params.size ?? 7), //  기본값은 7로 설정
-    isShared: String(params.isShared ?? false), //  기본값은 false로 설정
+    size: String(params.size ?? 7),
   });
 
+  // params.isShared가 명시적으로 존재할 때만 파라미터에 추가
+  if (params.isShared !== undefined) {
+    queryParams.append('isShared', String(params.isShared));
+  }
   if (lastIdParam !== undefined) {
     queryParams.append('lastCoverLetterId', String(lastIdParam));
   }
