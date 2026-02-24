@@ -309,7 +309,11 @@
 - **자료 업로드 기능**: 자기소개서 PDF 자동 파싱 기능을 위해 PDF 파일 업로드 관련 로직과 사용자의 입력 검증 로직을 구현
 - **인메모리 기반 토큰 관리 및 Silent Refresh 구현**: 보안 강화를 위해 Access Token을 JS 변수(인메모리)에 저장하여 XSS 공격을 원천 차단하고 silentRefresh 로직을 구축하여 새로고침 시에도 사용자 세션이 끊기지 않도록 구현
 
-📄 관련 문서: (추가 예정)
+📄 관련 문서:
+  - [[윤종근] ‐ SSE 기반 실시간 알림의 연결이 자동 해제가 되는 문제 해결 이야기](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9C%A4%EC%A2%85%EA%B7%BC%5D-%E2%80%90-SSE-%EA%B8%B0%EB%B0%98-%EC%8B%A4%EC%8B%9C%EA%B0%84-%EC%95%8C%EB%A6%BC%EC%9D%98-%EC%97%B0%EA%B2%B0%EC%9D%B4-%EC%9E%90%EB%8F%99-%ED%95%B4%EC%A0%9C%EA%B0%80-%EB%90%98%EB%8A%94-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0-%EC%9D%B4%EC%95%BC%EA%B8%B0)
+  - [[윤종근] ‐ 웹소켓 연결에 관한 정보](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9C%A4%EC%A2%85%EA%B7%BC%5D-%E2%80%90-%EC%9B%B9%EC%86%8C%EC%BC%93-%EC%97%B0%EA%B2%B0%EC%97%90-%EA%B4%80%ED%95%9C-%EC%A0%95%EB%B3%B4)
+  - [[윤종근] ‐ 인메모리 기반 액세스 토큰 관리 및 Silent Refresh 소개](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9C%A4%EC%A2%85%EA%B7%BC%5D-%E2%80%90-%EC%9D%B8%EB%A9%94%EB%AA%A8%EB%A6%AC-%EA%B8%B0%EB%B0%98-%EC%95%A1%EC%84%B8%EC%8A%A4-%ED%86%A0%ED%81%B0-%EA%B4%80%EB%A6%AC-%EB%B0%8F-Silent-Refresh-%EC%86%8C%EA%B0%9C)
+  - [[윤종근] ‐ 자료 업로드 시 사용자 입력에 관한 검증 로직 구현](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9C%A4%EC%A2%85%EA%B7%BC%5D-%E2%80%90-%EC%9E%90%EB%A3%8C-%EC%97%85%EB%A1%9C%EB%93%9C-%EC%8B%9C-%EC%82%AC%EC%9A%A9%EC%9E%90-%EC%9E%85%EB%A0%A5%EC%97%90-%EA%B4%80%ED%95%9C-%EA%B2%80%EC%A6%9D-%EB%A1%9C%EC%A7%81-%EA%B5%AC%ED%98%84)
 
 
 ### 김승환 (Backend & Infra)
