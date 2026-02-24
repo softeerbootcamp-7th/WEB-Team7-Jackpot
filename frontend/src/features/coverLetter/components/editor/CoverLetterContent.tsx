@@ -106,14 +106,6 @@ const CoverLetterContent = ({
     [onSelectionChange],
   );
 
-  const { containerRef, before, after } = useTextSelection({
-    text,
-    reviews,
-    editingReview,
-    selection,
-    onSelectionChange: handleSelectionChange,
-  });
-
   const prevReplaceAllSignalRef = useRef(replaceAllSignal);
   const latestTextRef = useRef(text);
   const reviewsRef = useRef(reviews);
@@ -172,48 +164,6 @@ const CoverLetterContent = ({
 
   const undoStack = useRef<{ text: string; caret: number }[]>([]);
   const redoStack = useRef<{ text: string; caret: number }[]>([]);
-
-  // 컨테이너 높이에 따라 스페이서 설정
-  useEffect(() => {
-    if (!containerRef.current) return;
-    const containerHeight = containerRef.current.clientHeight;
-    const lineHeight = 28;
-    setSpacerHeight(Math.max(0, containerHeight - lineHeight));
-  }, [containerRef]);
-
-  // chunkPositions 계산
-  const chunkPositions = useMemo(
-    () =>
-      before.reduce<number[]>((acc, _, i) => {
-        if (i === 0) acc.push(0);
-        else acc.push(acc[i - 1] + before[i - 1].text.length);
-        return acc;
-      }, []),
-    [before],
-  );
-
-  // JSX chunks 생성
-  const chunks = useMemo(
-    () =>
-      buildChunks(
-        before,
-        after,
-        chunkPositions,
-        reviews,
-        selectedReviewId,
-        isReviewActive,
-        selection,
-      ),
-    [
-      before,
-      after,
-      chunkPositions,
-      reviews,
-      selectedReviewId,
-      isReviewActive,
-      selection,
-    ],
-  );
 
   const sendTextPatch = useCallback(
     (oldText: string, newText: string, reviewsForMapping?: Review[]) => {
@@ -601,6 +551,56 @@ const CoverLetterContent = ({
       caretOffsetRef,
       enterDuringCompositionRef,
     });
+
+  const { containerRef, before, after } = useTextSelection({
+    text,
+    reviews,
+    editingReview,
+    selection,
+    onSelectionChange: handleSelectionChange,
+  });
+
+  // 컨테이너 높이에 따라 스페이서 설정
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const containerHeight = containerRef.current.clientHeight;
+    const lineHeight = 28;
+    setSpacerHeight(Math.max(0, containerHeight - lineHeight));
+  }, [containerRef]);
+
+  // chunkPositions 계산
+  const chunkPositions = useMemo(
+    () =>
+      before.reduce<number[]>((acc, _, i) => {
+        if (i === 0) acc.push(0);
+        else acc.push(acc[i - 1] + before[i - 1].text.length);
+        return acc;
+      }, []),
+    [before],
+  );
+
+  // JSX chunks 생성
+  const chunks = useMemo(
+    () =>
+      buildChunks(
+        before,
+        after,
+        chunkPositions,
+        reviews,
+        selectedReviewId,
+        isReviewActive,
+        selection,
+      ),
+    [
+      before,
+      after,
+      chunkPositions,
+      reviews,
+      selectedReviewId,
+      isReviewActive,
+      selection,
+    ],
+  );
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     let target = e.target as Node;
