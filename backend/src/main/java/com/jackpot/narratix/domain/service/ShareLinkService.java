@@ -77,8 +77,11 @@ public class ShareLinkService {
     }
 
     private ShareLinkActiveResponse deactivateShareLink(Long coverLetterId) {
-        ShareLink shareLink = shareLinkRepository.findById(coverLetterId)
-                .orElseThrow(() -> new BaseException(ShareLinkErrorCode.SHARE_LINK_NOT_FOUND));
+        Optional<ShareLink> shareLinkOpt = shareLinkRepository.findById(coverLetterId);
+        if (shareLinkOpt.isEmpty()) {
+            return ShareLinkActiveResponse.deactivate();
+            }
+        ShareLink shareLink = shareLinkOpt.get();
         shareLink.deactivate();
         List<Long> qnAIds = qnARepository.findIdsByCoverLetterId(coverLetterId);
 
