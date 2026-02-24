@@ -287,6 +287,13 @@
   animation: enter-smooth 0.5s ease-out forwards;
 }
 
+@layer base {
+  /* 스크롤바가 있는 요소가 html이 아닌 특정 컨테이너라면 아래 클래스를 활용 */
+  .stable-layout {
+    scrollbar-gutter: stable;
+  }
+}
+
 /* 커스텀 유틸리티 클래스 추가 */
 @layer utilities {
   .bg-gradient-a {
