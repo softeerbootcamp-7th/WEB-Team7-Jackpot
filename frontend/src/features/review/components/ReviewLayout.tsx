@@ -128,7 +128,6 @@ const ReviewLayout = () => {
           onCancelEdit={reviewState.handleCancelEdit}
           onPageChange={setCurrentPageIndex}
           currentVersion={reviewState.currentVersion}
-          onReserveNextVersion={reviewState.reserveNextVersion}
         />
       </main>
       <aside className='h-full min-h-0 w-[426px] flex-none overflow-hidden'>
