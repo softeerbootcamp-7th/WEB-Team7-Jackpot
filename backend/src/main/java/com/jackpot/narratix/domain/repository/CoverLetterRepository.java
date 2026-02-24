@@ -67,4 +67,6 @@ public interface CoverLetterRepository {
     List<CoverLetter> saveAll(List<CoverLetter> coverLetters);
 
     List<String> findJobPositionsByUserId(String userId);
+
+    List<CoverLetter> findAllById(List<Long> ids);
 }
