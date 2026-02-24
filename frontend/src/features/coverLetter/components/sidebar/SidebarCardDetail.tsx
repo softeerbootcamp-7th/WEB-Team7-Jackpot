@@ -14,12 +14,14 @@ const SidebarCardDetail = ({ scrap, onBack }: CardDetailProps) => {
     <div className='flex h-full w-full flex-col items-center gap-3'>
       <div className='flex shrink-0 flex-col gap-5 self-stretch'>
         <div className='flex w-full flex-col gap-1'>
-          <div className='inline-flex items-center gap-1 self-stretch px-3'>
+          <div
+            onClick={onBack}
+            aria-label='뒤로가기'
+            className='inline-flex cursor-pointer items-center gap-1 self-stretch rounded-lg px-3 py-2 hover:bg-gray-100'
+          >
             <button
               type='button'
-              onClick={onBack}
               className='flex h-7 w-7 cursor-pointer items-center justify-center'
-              aria-label='뒤로가기'
             >
               <SI.RightArrow className='rotate-180' />
             </button>

@@ -14,8 +14,10 @@ const TabItem = <T extends string>({ currentTab, content }: TabProps<T>) => {
   return (
     <Link
       to={path}
-      className={`flex h-13 items-center justify-start rounded-lg py-3 ${
-        isActive ? 'min-w-[180px] bg-purple-50 pr-5 pl-4' : 'min-w-39 px-5'
+      className={`flex h-13 items-center justify-start rounded-lg py-3 transition-colors duration-200 ${
+        isActive
+          ? 'min-w-[180px] cursor-default bg-purple-50 pr-5 pl-4'
+          : 'min-w-39 px-5 hover:bg-gray-50'
       }`}
     >
       {isActive ? (

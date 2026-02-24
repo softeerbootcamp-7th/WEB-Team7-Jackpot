@@ -50,7 +50,7 @@ const UploadCompleteSection = () => {
   }
 
   return (
-    <div className='relative flex w-full items-center justify-center'>
+    <div className='relative flex w-full items-center py-12 justify-center'>
       <div className='absolute top-1/2 -z-10 -translate-x-1/2 -translate-y-1/2'>
         <UI.UploadCompleteBackground />
       </div>
@@ -60,14 +60,14 @@ const UploadCompleteSection = () => {
         <div className='text-title-s flex gap-3'>
           <button
             onClick={() => navigate('/upload')}
-            className='flex cursor-pointer gap-2 rounded-lg bg-gray-50 px-5 py-3'
+            className='flex cursor-pointer gap-2 rounded-lg bg-gray-50 px-5 py-3 hover:bg-gray-100 transition-colors duration-200'
           >
             <UI.UploadIconInButton />
             <span className='text-gray-600'>새로운 자료 업로드하기</span>
           </button>
           <button
             onClick={() => navigate('/library')}
-            className='flex cursor-pointer gap-2 rounded-lg bg-gray-900 px-5 py-3'
+            className='flex cursor-pointer gap-2 rounded-lg bg-gray-900 px-5 py-3 hover:bg-gray-700 transition-colors duration-200'
           >
             <UI.FolderIconInButton />
             <span className='text-white'>라이브러리에서 보기</span>

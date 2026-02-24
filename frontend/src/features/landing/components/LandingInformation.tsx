@@ -30,7 +30,7 @@ const LandingInformation = ({ isAnimating }: LandingInformationProps) => {
         </div>
         <button
           onClick={() => navigate('/login')}
-          className='text-title-m cursor-pointer rounded-lg bg-gray-900 px-5 py-3 font-bold text-white'
+          className='text-title-m cursor-pointer rounded-lg bg-gray-900 px-5 py-3 font-bold text-white transition-colors duration-200 hover:bg-gray-700'
         >
           로그인 및 회원 가입하기
         </button>

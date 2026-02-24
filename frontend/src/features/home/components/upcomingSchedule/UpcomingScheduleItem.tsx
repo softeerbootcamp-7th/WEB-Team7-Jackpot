@@ -19,7 +19,7 @@ const UpcomingScheduleItem = ({
     <Link
       aria-label={isUrgent ? '긴급' : ''}
       to={`/library/company/${encodeURIComponent(companyName)}/${coverLetterId}`}
-      className='inline-flex items-center justify-start gap-3.5 self-stretch py-0.5'
+      className='inline-flex items-center hover:bg-gray-100 rounded-lg transition-colors duration-200 justify-start gap-3.5 self-stretch py-0.5'
     >
       <div
         className={`h-14 w-2 rounded-[3px] ${

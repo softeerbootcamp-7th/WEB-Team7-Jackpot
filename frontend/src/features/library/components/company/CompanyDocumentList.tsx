@@ -10,7 +10,10 @@ interface Props {
 }
 
 const CompanyDocumentList = ({ className }: Props) => {
-  const { companyName } = useParams<{ companyName?: string }>();
+  const { companyName, coverLetterId } = useParams<{
+    companyName?: string;
+    coverLetterId?: string;
+  }>();
   const navigate = useNavigate();
 
   const { data, isLoading, isError } = useCompanyListQueries(
@@ -48,6 +51,9 @@ const CompanyDocumentList = ({ className }: Props) => {
               navigate(`/library/company/${companyName}/${id}`)
             }
             key={doc.coverLetterId}
+            isSelected={
+              !coverLetterId || doc.coverLetterId === Number(coverLetterId)
+            }
             {...doc}
           />
         )}

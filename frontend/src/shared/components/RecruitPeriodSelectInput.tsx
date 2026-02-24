@@ -65,7 +65,7 @@ const RecruitPeriodSelectInput = ({
         <div className='relative flex-1' ref={containerRef}>
           <button
             type='button'
-            className={`relative flex w-full items-center justify-between rounded-lg bg-gray-50 px-5 py-[0.875rem] text-left ${isOpen ? 'ring-2 ring-gray-200' : ''}`}
+            className={`relative flex w-full items-center cursor-pointer justify-between rounded-lg bg-gray-50 px-5 py-[0.875rem] text-left ${isOpen ? 'ring-2 ring-gray-200' : ''}`}
             onClick={() => handleDropdown(!isOpen)}
             onKeyDown={handleKeyDown}
             aria-haspopup='listbox'
