@@ -72,7 +72,12 @@ function App() {
     <BrowserRouter>
       <Suspense
         fallback={
-          <div className='flex h-screen items-center justify-center'>
+          <div
+            className='flex h-screen items-center justify-center'
+            role='status'
+            aria-live='polite'
+            aria-busy='true'
+          >
             Loading...
           </div>
         }
