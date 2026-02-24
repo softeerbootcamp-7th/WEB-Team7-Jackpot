@@ -110,7 +110,7 @@ const ReviewLayout = () => {
 
   return (
     <div className='flex min-h-0 flex-1 flex-row pb-30'>
-      <main className='w-full'>
+      <main className='h-full min-w-0 flex-1'>
         <CoverLetterSection
           company={coverLetter.companyName}
           job={coverLetter.jobPosition}
@@ -128,7 +128,6 @@ const ReviewLayout = () => {
           onCancelEdit={reviewState.handleCancelEdit}
           onPageChange={setCurrentPageIndex}
           currentVersion={reviewState.currentVersion}
-          onReserveNextVersion={reviewState.reserveNextVersion}
         />
       </main>
       <aside className='h-full min-h-0 w-[426px] flex-none overflow-hidden'>

@@ -97,6 +97,7 @@ const CoverLetterContent = ({
     null,
   );
   const enterDuringCompositionRef = useRef(false);
+  const isProcessingReplaceAllRef = useRef(false);
 
   const handleSelectionChange = useCallback(
     (newSelection: SelectionInfo | null) => {
@@ -105,14 +106,6 @@ const CoverLetterContent = ({
     },
     [onSelectionChange],
   );
-
-  const { containerRef, before, after } = useTextSelection({
-    text,
-    reviews,
-    editingReview,
-    selection,
-    onSelectionChange: handleSelectionChange,
-  });
 
   const prevReplaceAllSignalRef = useRef(replaceAllSignal);
   const latestTextRef = useRef(text);
@@ -129,15 +122,6 @@ const CoverLetterContent = ({
     });
     reviewLastKnownRangesRef.current = nextLastKnownRanges;
   }, [reviews]);
-
-  const getFocusedCaretOffset = useCallback(() => {
-    if (!contentRef.current) return caretOffsetRef.current;
-    if (!contentRef.current.contains(document.activeElement)) {
-      return caretOffsetRef.current;
-    }
-    const { start } = getCaretPosition(contentRef.current);
-    return Number.isFinite(start) ? start : caretOffsetRef.current;
-  }, []);
 
   // qnAId가 바뀌거나 처음 로드될 때 API 초기 버전으로 ref 동기화
   useEffect(() => {
@@ -173,48 +157,6 @@ const CoverLetterContent = ({
   const undoStack = useRef<{ text: string; caret: number }[]>([]);
   const redoStack = useRef<{ text: string; caret: number }[]>([]);
 
-  // 컨테이너 높이에 따라 스페이서 설정
-  useEffect(() => {
-    if (!containerRef.current) return;
-    const containerHeight = containerRef.current.clientHeight;
-    const lineHeight = 28;
-    setSpacerHeight(Math.max(0, containerHeight - lineHeight));
-  }, [containerRef]);
-
-  // chunkPositions 계산
-  const chunkPositions = useMemo(
-    () =>
-      before.reduce<number[]>((acc, _, i) => {
-        if (i === 0) acc.push(0);
-        else acc.push(acc[i - 1] + before[i - 1].text.length);
-        return acc;
-      }, []),
-    [before],
-  );
-
-  // JSX chunks 생성
-  const chunks = useMemo(
-    () =>
-      buildChunks(
-        before,
-        after,
-        chunkPositions,
-        reviews,
-        selectedReviewId,
-        isReviewActive,
-        selection,
-      ),
-    [
-      before,
-      after,
-      chunkPositions,
-      reviews,
-      selectedReviewId,
-      isReviewActive,
-      selection,
-    ],
-  );
-
   const sendTextPatch = useCallback(
     (oldText: string, newText: string, reviewsForMapping?: Review[]) => {
       if (!isConnected) return false;
@@ -239,13 +181,20 @@ const CoverLetterContent = ({
         return false;
       }
 
-      const caretAfter = (() => {
-        if (contentRef.current?.contains(document.activeElement)) {
-          const { start } = getCaretPosition(contentRef.current);
-          if (Number.isFinite(start)) return start;
-        }
-        return caretOffsetRef.current;
-      })();
+      // caretOffsetRef는 sendTextPatch 호출 전에 항상 "작업 후 커서 위치"로 갱신된다.
+      //   - processInput  : caretOffsetRef = getCaretPosition().start (브라우저가 DOM 업데이트 완료 후)
+      //   - insertTextAtCaret (Enter/붙여넣기/composition): caretOffsetRef = start + insertStr.length
+      //   - applyDeleteByDirection (Backspace/Delete): caretOffsetRef = result.caretOffset
+      //
+      // ※ getCaretPosition()을 sendTextPatch 내부에서 재호출하면 안 된다.
+      //   insertTextAtCaret 경로에서는 sendTextPatch가 React 상태 갱신(handleTextChange)보다
+      //   먼저 실행되므로 DOM은 아직 이전 상태다. 이 시점에 getCaretPosition()을 부르면
+      //   "삽입 이전 커서 위치(start)"가 반환된다.
+      //   buildTextPatch는 caretAfter를 "삽입 이후 커서 위치"로 해석해 삽입 위치를 역산하므로
+      //   pre-insert 값을 넘기면 잘못된 startIdx/endIdx가 계산된다.
+      //   예) 전체 복사 후 맨 뒤에 붙여넣기: caretAfter = textLen = insertedLen
+      //       → candidateStart = 0 으로 오판 → startIdx = 0, endIdx = 0 버그 발생.
+      const caretAfter = caretOffsetRef.current;
 
       const mappingReviews = reviewsForMapping ?? reviewsRef.current;
       const payload = createTextUpdatePayload({
@@ -405,6 +354,9 @@ const CoverLetterContent = ({
       const currentText = latestTextRef.current;
       const newText =
         currentText.slice(0, start) + insertStr + currentText.slice(end);
+
+      // sendTextPatch 내부에서 caretOffsetRef를 caretAfter로 사용하므로,
+      // DOM 업데이트(flushSync) 이전에 "삽입 후 커서 위치"를 미리 기록해 둔다.
       caretOffsetRef.current = start + insertStr.length;
 
       // flushSync: Enter 직후 한글 입력 시 React re-render가 IME 조합 중에 발생해 조합이 깨지는 문제를 방지한다.
@@ -534,10 +486,9 @@ const CoverLetterContent = ({
     if (prevReplaceAllSignalRef.current === replaceAllSignal) return;
     prevReplaceAllSignalRef.current = replaceAllSignal;
 
+    isProcessingReplaceAllRef.current = true;
+
     const wasFocused = contentRef.current.contains(document.activeElement);
-    if (wasFocused) {
-      caretOffsetRef.current = getFocusedCaretOffset();
-    }
     const boundedOffset = Math.min(caretOffsetRef.current, text.length);
 
     isComposingRef.current = false;
@@ -551,12 +502,19 @@ const CoverLetterContent = ({
       rafId = window.requestAnimationFrame(() => {
         if (!contentRef.current) return;
         restoreCaret(contentRef.current, boundedOffset);
+        // DOM 업데이트 및 커서 복원 후, selectionchange 리스너가 다시 동작하도록 플래그를 해제합니다.
+        // 혹시 모를 race condition을 방지하기 위해 microtask로 처리합니다.
+        queueMicrotask(() => {
+          isProcessingReplaceAllRef.current = false;
+        });
       });
+    } else {
+      isProcessingReplaceAllRef.current = false;
     }
     return () => {
       if (rafId !== undefined) window.cancelAnimationFrame(rafId);
     };
-  }, [replaceAllSignal, text, clearComposingFlushTimer, getFocusedCaretOffset]);
+  }, [replaceAllSignal, text, clearComposingFlushTimer]);
 
   useEffect(() => {
     return bindUndoRedoShortcuts({
@@ -580,16 +538,97 @@ const CoverLetterContent = ({
     });
   }, []);
 
-  const { handleKeyDown, handlePaste } = useCoverLetterInputHandlers({
-    isComposingRef,
-    lastCompositionEndAtRef,
-    normalizeCaretAtReviewBoundary,
-    insertPlainTextAtCaret: insertTextAtCaret,
-    applyDeleteByDirection,
-    contentRef,
-    caretOffsetRef,
-    enterDuringCompositionRef,
+  const { handleKeyDown, handlePaste, handleCopy } =
+    useCoverLetterInputHandlers({
+      isComposingRef,
+      lastCompositionEndAtRef,
+      normalizeCaretAtReviewBoundary,
+      insertPlainTextAtCaret: insertTextAtCaret,
+      applyDeleteByDirection,
+      contentRef,
+      caretOffsetRef,
+      enterDuringCompositionRef,
+    });
+
+  const handleKeyDownWrapper = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      handleKeyDown(e); // 기존 핸들러 호출
+
+      // 방향키, Home/End 등 네비게이션 키 입력 시, 브라우저가 커서를 이동시킨 후
+      // requestAnimationFrame을 사용해 새로운 커서 위치를 추적한다.
+      if (
+        [
+          'ArrowUp',
+          'ArrowDown',
+          'ArrowLeft',
+          'ArrowRight',
+          'Home',
+          'End',
+          'PageUp',
+          'PageDown',
+        ].includes(e.key)
+      ) {
+        window.requestAnimationFrame(() => {
+          if (!contentRef.current) return;
+          const { start } = getCaretPosition(contentRef.current);
+          if (Number.isFinite(start)) {
+            caretOffsetRef.current = start;
+          }
+        });
+      }
+    },
+    [handleKeyDown],
+  );
+
+  const { containerRef, before, after } = useTextSelection({
+    text,
+    reviews,
+    editingReview,
+    selection,
+    onSelectionChange: handleSelectionChange,
   });
+
+  // 컨테이너 높이에 따라 스페이서 설정
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const containerHeight = containerRef.current.clientHeight;
+    const lineHeight = 28;
+    setSpacerHeight(Math.max(0, containerHeight - lineHeight));
+  }, [containerRef]);
+
+  // chunkPositions 계산
+  const chunkPositions = useMemo(
+    () =>
+      before.reduce<number[]>((acc, _, i) => {
+        if (i === 0) acc.push(0);
+        else acc.push(acc[i - 1] + before[i - 1].text.length);
+        return acc;
+      }, []),
+    [before],
+  );
+
+  // JSX chunks 생성
+  const chunks = useMemo(
+    () =>
+      buildChunks(
+        before,
+        after,
+        chunkPositions,
+        reviews,
+        selectedReviewId,
+        isReviewActive,
+        selection,
+      ),
+    [
+      before,
+      after,
+      chunkPositions,
+      reviews,
+      selectedReviewId,
+      isReviewActive,
+      selection,
+    ],
+  );
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     let target = e.target as Node;
@@ -626,17 +665,28 @@ const CoverLetterContent = ({
       }
     }
     // 클릭 후 캐럿이 리뷰 끝 "내부"에 걸리면 첫 입력이 리뷰에 붙을 수 있다.
-    // selection 반영 이후 경계를 바깥으로 정규화한다.
+    // selection/caret 반영 이후 위치를 추적하고 경계를 정규화한다.
     window.requestAnimationFrame(() => {
-      if (isComposingRef.current) return;
+      if (isComposingRef.current || !contentRef.current) return;
+
+      const { start } = getCaretPosition(contentRef.current);
+      if (Number.isFinite(start)) {
+        caretOffsetRef.current = start;
+      }
       normalizeCaretAtReviewBoundary();
     });
   };
 
   const handleMouseUp = () => {
-    // 클릭/드래그 후 브라우저가 실제 캐럿 위치를 반영한 뒤 경계를 정규화한다.
+    // 드래그해서 selection을 만드는 로직은 reviewer에게만 필요.
+    // 여기서는 클릭/드래그 후 caret 위치를 추적하고 경계를 정규화한다.
     window.requestAnimationFrame(() => {
-      if (isComposingRef.current) return;
+      if (isComposingRef.current || !contentRef.current) return;
+
+      const { start } = getCaretPosition(contentRef.current);
+      if (Number.isFinite(start)) {
+        caretOffsetRef.current = start;
+      }
       normalizeCaretAtReviewBoundary();
     });
   };
@@ -659,7 +709,8 @@ const CoverLetterContent = ({
           aria-label='자기소개서 내용'
           suppressContentEditableWarning
           onInput={handleInput}
-          onKeyDown={handleKeyDown}
+          onKeyDown={handleKeyDownWrapper}
+          onCopy={handleCopy}
           onPaste={handlePaste}
           onCompositionStart={handleCompositionStart}
           onCompositionEnd={handleCompositionEnd}

@@ -14,7 +14,7 @@ const CommentTab = ({
   return (
     <>
       <div className='flex w-full items-center rounded-2xl border border-gray-200 px-5 py-4'>
-        <div className='w-full text-sm leading-6 font-normal text-gray-600'>
+        <div className='h-16 w-full overflow-y-auto text-sm leading-6 font-normal whitespace-pre-line text-gray-600'>
           {displayText}
         </div>
       </div>

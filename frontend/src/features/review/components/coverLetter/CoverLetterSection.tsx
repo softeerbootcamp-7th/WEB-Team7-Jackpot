@@ -30,7 +30,6 @@ interface CoverLetterSectionProps {
   onCancelEdit: () => void;
   onPageChange: (index: number) => void;
   currentVersion: number;
-  onReserveNextVersion?: () => number;
 }
 
 const CoverLetterSection = ({
@@ -50,7 +49,6 @@ const CoverLetterSection = ({
   onCancelEdit,
   onPageChange,
   currentVersion,
-  onReserveNextVersion,
 }: CoverLetterSectionProps) => {
   const { showToast } = useToastMessageContext();
 
@@ -88,10 +86,6 @@ const CoverLetterSection = ({
         return;
       }
 
-      const reservedVersion = onReserveNextVersion
-        ? onReserveNextVersion()
-        : currentVersion + 1;
-
       const taggedRange = mapCleanRangeToTaggedRange(
         text,
         reviews,
@@ -100,7 +94,7 @@ const CoverLetterSection = ({
 
       createReview(
         {
-          version: Math.max(0, reservedVersion - 1),
+          version: currentVersion,
           startIdx: taggedRange.startIdx,
           endIdx: taggedRange.endIdx,
           originText: selection.selectedText,

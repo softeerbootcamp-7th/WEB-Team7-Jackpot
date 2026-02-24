@@ -43,7 +43,6 @@ const useCoverLetterActions = ({
 
   const saveCurrentAnswer = async (showSuccessToast = true) => {
     if (isPending || isSavingRef.current) return false;
-    isSavingRef.current = true;
 
     const qnAId = currentQna?.qnAId;
     const editedText = qnAId !== undefined ? editedAnswers[qnAId] : null;
@@ -56,6 +55,8 @@ const useCoverLetterActions = ({
     if (editedText === null || editedText === undefined) {
       return true;
     }
+
+    isSavingRef.current = true;
 
     try {
       await updateQnAAsync({
