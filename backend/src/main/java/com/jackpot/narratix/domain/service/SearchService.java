@@ -21,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +31,7 @@ public class SearchService {
     private final ScrapRepository scrapRepository;
     private final CoverLetterRepository coverLetterRepository;
     private final QnARepository qnARepository;
-    
+
     @Transactional(readOnly = true)
     public SearchScrapResponse searchScrap(
             String userId, String searchWord, Integer size, Long lastQnaId
@@ -40,7 +42,17 @@ public class SearchService {
                 ? getSearchScraps(userId, keyword, lastQnaId, size)
                 : getAllScraps(userId, lastQnaId, size);
 
-        return SearchScrapResponse.of(qnas.getContent(), qnas.hasNext());
+        List<QnA> qnaList = qnas.getContent();
+
+        List<Long> coverLetterIds = qnaList.stream()
+                .map(qna -> qna.getCoverLetter().getId())
+                .distinct()
+                .toList();
+
+        Map<Long, CoverLetter> coverLetterMap = coverLetterRepository.findAllById(coverLetterIds).stream()
+                .collect(Collectors.toMap(CoverLetter::getId, c -> c));
+
+        return SearchScrapResponse.of(qnaList, coverLetterMap, qnas.hasNext());
     }
 
     private Slice<QnA> getAllScraps(String userId, Long lastQnaId, Integer size) {
