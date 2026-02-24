@@ -1,3 +1,4 @@
+// 추가 고려사항: qnA의 분리해야 합니다.
 import {
   type ChangeEvent,
   useCallback,
@@ -10,6 +11,22 @@ import { useSearchParams } from 'react-router';
 
 import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
 import { validateSearchKeyword } from '@/shared/utils/validation';
+
+// 1. 도메인 특화 타입 정의
+interface QnAPage {
+  qnAs: Array<{ qnAId: number; [key: string]: unknown }>;
+}
+
+// 2. 사용자 정의 타입 가드 (Type Guard)
+// 이 함수가 true를 반환하면, TypeScript는 해당 데이터가 QnAPage 타입임을 확신합니다.
+const isQnAPage = (data: unknown): data is QnAPage => {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'qnAs' in data &&
+    Array.isArray((data as QnAPage).qnAs)
+  );
+};
 
 interface UseInfiniteSearchProps<T> {
   queryKey?: string;
@@ -34,6 +51,8 @@ export const useInfiniteSearch = <T extends { hasNext?: boolean }>({
   queryKey = 'keyword',
   fetchAction,
   isEnabled = true,
+  mergeData,
+  getLastId,
 }: UseInfiniteSearchProps<T> = {}): InfiniteSearchResult<T> => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { showToast } = useToastMessageContext();
@@ -131,14 +150,19 @@ export const useInfiniteSearch = <T extends { hasNext?: boolean }>({
       setIsLoading(true);
       try {
         const result = await fetchActionRef.current!(currentQueryParam);
-        if (isMounted) {
+        if (isMounted && result) {
           setData(result);
-          setHasNextPage(result?.hasNext ?? false);
-          if (result && 'qnAs' in result && Array.isArray(result.qnAs)) {
-            const lastItem = result.qnAs.at(-1) as
-              | Record<string, unknown>
-              | undefined;
-            setLastId(lastItem?.qnAId as number | undefined);
+
+          // T extends { hasNext?: boolean } 이므로 any 없이 안전하게 접근 가능
+          setHasNextPage(result.hasNext ?? false);
+
+          // 3. 타입 가드를 활용한 안전한 접근
+          if (getLastId) {
+            setLastId(getLastId(result));
+          } else if (isQnAPage(result)) {
+            // 이제 TypeScript는 result가 qnAs 배열을 가지고 있음을 '알고' 있습니다.
+            const lastItem = result.qnAs.at(-1);
+            setLastId(lastItem?.qnAId);
           } else {
             setLastId(undefined);
           }
@@ -157,7 +181,7 @@ export const useInfiniteSearch = <T extends { hasNext?: boolean }>({
     return () => {
       isMounted = false;
     };
-  }, [currentQueryParam, isEnabled]);
+  }, [currentQueryParam, isEnabled, getLastId]); // 의존성 배열에 getLastId 추가
 
   // 다음 페이지 로드
   const fetchNextPage = useCallback(async () => {
@@ -168,39 +192,39 @@ export const useInfiniteSearch = <T extends { hasNext?: boolean }>({
     try {
       const nextData = await fetchActionRef.current(currentQueryParam, lastId);
       if (nextData) {
-        // 이전 데이터와 새 데이터 병합
         setData((prevData) => {
           if (!prevData) return nextData;
+          if (mergeData) return mergeData(prevData, nextData);
 
-          // QnASearchResponse 타입 처리
-          if ('qnAs' in prevData && 'qnAs' in nextData) {
-            const prevQnAs = prevData.qnAs as unknown[];
-            const nextQnAs = nextData.qnAs as unknown[];
+          // 4. 타입 가드를 활용한 안전한 병합
+          if (isQnAPage(prevData) && isQnAPage(nextData)) {
             return {
               ...nextData,
-              qnAs: [...prevQnAs, ...nextQnAs],
-            } as T;
+              qnAs: [...prevData.qnAs, ...nextData.qnAs],
+            } as unknown as T;
+            // TS 한계 극복: spread 연산자로 만든 새 객체가 제네릭 T를 완벽히
+            // 만족하는지 TS가 추론하지 못하므로, 안전하게 구조를 맞춘 후 타입 단언을 합니다.
           }
-
           return nextData;
         });
 
-        setHasNextPage(nextData?.hasNext ?? false);
+        setHasNextPage(nextData.hasNext ?? false);
 
-        // 마지막 아이템의 ID 설정
-        if ('qnAs' in nextData && Array.isArray(nextData.qnAs)) {
-          const lastItem = nextData.qnAs.at(-1) as Record<string, unknown>;
-          if (lastItem?.qnAId) {
-            setLastId(lastItem.qnAId as number);
-          }
-        }
+        // 5. 다음 페이지 커서 설정
+        const nextCursor = getLastId
+          ? getLastId(nextData)
+          : isQnAPage(nextData)
+            ? nextData.qnAs.at(-1)?.qnAId
+            : undefined;
+
+        setLastId(nextCursor);
       }
     } catch (error) {
       console.error(error);
     } finally {
       setIsFetchingNextPage(false);
     }
-  }, [currentQueryParam, lastId, hasNextPage]);
+  }, [currentQueryParam, lastId, hasNextPage, mergeData, getLastId]);
 
   return {
     keyword,

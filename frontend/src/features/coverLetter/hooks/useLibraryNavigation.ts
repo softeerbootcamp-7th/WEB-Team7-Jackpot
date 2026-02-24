@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 
 import type { ScrapItem } from '@/features/coverLetter/types/coverLetter';
 
@@ -26,33 +26,33 @@ export const useLibraryNavigation = () => {
     selectedLibrary: null,
   });
 
-  const selectLibrary = useCallback((libraryName: string) => {
+  const selectLibrary = (libraryName: string) => {
     setState({
       selectedItem: null,
       selectedLibrary: libraryName,
     });
-  }, []);
+  };
 
-  const selectItem = useCallback((item: ScrapItem) => {
+  const selectItem = (item: ScrapItem) => {
     setState((prev) => ({
       ...prev,
       selectedItem: item,
     }));
-  }, []);
+  };
 
-  const goBackToLibraryList = useCallback(() => {
+  const goBackToLibraryList = () => {
     setState((prev) => ({
       ...prev,
       selectedItem: null,
     }));
-  }, []);
+  };
 
-  const goBackToSearchResult = useCallback(() => {
+  const goBackToSearchResult = () => {
     setState({
       selectedItem: null,
       selectedLibrary: null,
     });
-  }, []);
+  };
 
   return {
     selectedItem: state.selectedItem,
