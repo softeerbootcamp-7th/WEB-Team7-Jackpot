@@ -20,7 +20,7 @@ const QnADocument = ({ content, rightAction }: Props) => {
       to={`/library/qna/${qnAName}/${id}`}
       // DocumentItem과 동일한 Hover 색상 및 투명도 인터랙션 적용
       // group과 hover 관련 클래스만 추가
-      className={`group w-full cursor-pointer transition-opacity hover:bg-gray-50 ${
+      className={`group w-full cursor-pointer rounded-lg transition-all duration-200 hover:bg-gray-50 ${
         isSelected ? 'opacity-100' : 'opacity-30 hover:opacity-100'
       }`}
     >
