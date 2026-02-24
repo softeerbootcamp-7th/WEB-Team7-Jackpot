@@ -5,6 +5,7 @@ import com.jackpot.narratix.domain.entity.enums.ReviewRoleType;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -43,6 +44,7 @@ public class QnA extends BaseTimeEntity {
 
     @Nullable
     @Column(name = "answer", nullable = true, columnDefinition = "TEXT")
+    @Size(max = 20000, message = "답변은 최대 20,000자까지 입력 가능합니다.")
     private String answer;
 
     @NotNull
