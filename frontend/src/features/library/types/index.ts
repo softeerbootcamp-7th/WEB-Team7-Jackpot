@@ -1,6 +1,7 @@
 import type { Category } from '@/shared/types/coverLetter';
+import type { LibraryView } from '@/shared/types/library';
 
-export type LibraryView = 'COMPANY' | 'QUESTION';
+export type { LibraryView };
 
 export interface LibraryResponse {
   libraries: string[];

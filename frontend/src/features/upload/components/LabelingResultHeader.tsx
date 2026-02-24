@@ -10,7 +10,7 @@ import {
 import { useSaveCoverLetter } from '@/features/upload/hooks/useUploadQueries';
 import * as UI from '@/features/upload/icons';
 import type { ContentStateType } from '@/features/upload/types/upload';
-import ConfirmModal from '@/shared/components/ConfirmModal';
+import ConfirmModal from '@/shared/components/modal/ConfirmModal';
 import { parseDate } from '@/shared/utils/dates';
 
 interface LabelingResultHeaderProps {
@@ -154,9 +154,10 @@ const LabelingResultHeader = ({
         isOpen={isModalOpen}
         type='warning'
         title='입력 확인'
-        message={modalMessage}
+        description={modalMessage}
         onConfirm={() => setIsModalOpen(false)}
-        confirmButtonText='확인'
+        confirmText='확인'
+        onCancel={() => setIsModalOpen(false)}
       />
     </>
   );

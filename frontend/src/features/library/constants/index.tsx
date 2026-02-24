@@ -3,7 +3,7 @@ import type { LibraryView } from '@/features/library/types';
 import type { TabContentType } from '@/shared/types/tab';
 
 export const libraryHeaderText = {
-  icon: <LII.LibraryIcon />,
+  icon: () => <LII.LibraryIcon />,
   title: '라이브러리',
   content: '저장한 나의 경험들을 기업별, 문항별로 나누어 관리할 수 있어요',
 };

@@ -5,8 +5,8 @@ import { useNavigate } from 'react-router';
 import UploadFileArea from '@/features/upload/components/UploadFileArea';
 import UploadInputHeader from '@/features/upload/components/UploadInputHeader';
 import { useAiLabeling } from '@/features/upload/hooks/useUploadQueries';
-import ConfirmModal from '@/shared/components/ConfirmModal';
-import LoadingModal from '@/shared/components/LoadingModal';
+import ConfirmModal from '@/shared/components/modal/ConfirmModal';
+import LoadingModal from '@/shared/components/modal/LoadingModal';
 
 const UploadInputSection = () => {
   const navigate = useNavigate();
@@ -76,7 +76,7 @@ const UploadInputSection = () => {
         isOpen={modalType !== null}
         type={modalType || 'info'}
         title={modalTitle}
-        message={modalMessage}
+        description={modalMessage}
         onConfirm={() => {
           if (modalType === 'error') {
             // 리셋 동작
@@ -88,7 +88,8 @@ const UploadInputSection = () => {
             navigate('/', { replace: true });
           }
         }}
-        confirmButtonText={modalType === 'success' ? '홈으로 이동' : '확인'}
+        confirmText={modalType === 'success' ? '홈으로 이동' : '확인'}
+        onCancel={() => setModalType(null)}
       />
     </div>
   );

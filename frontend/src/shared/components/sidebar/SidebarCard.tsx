@@ -5,11 +5,18 @@ import type { RecentCoverLetterType } from '@/shared/types/coverLetter';
 interface CardProps {
   item: ScrapItem | RecentCoverLetterType;
   isScrap: boolean;
-  deleteScrap: (id: number) => void;
+  deleteScrap?: (id: number) => void;
   onClick: () => void;
+  showDelete?: boolean;
 }
 
-const SidebarCard = ({ item, isScrap, deleteScrap, onClick }: CardProps) => {
+const SidebarCard = ({
+  item,
+  isScrap,
+  deleteScrap,
+  onClick,
+  showDelete = true,
+}: CardProps) => {
   const scrapItem = isScrap ? (item as ScrapItem) : null;
   const libraryItem = !isScrap ? (item as RecentCoverLetterType) : null;
 
@@ -33,7 +40,7 @@ const SidebarCard = ({ item, isScrap, deleteScrap, onClick }: CardProps) => {
       className='flex cursor-pointer flex-col items-start justify-start gap-3 self-stretch outline-none'
       onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onClick()}
     >
-      <div className='flex flex-col items-start justify-start self-stretch px-3'>
+      <div className='flex flex-col items-start justify-start self-stretch'>
         <div className='flex w-full flex-col items-start justify-start gap-3 border-b border-gray-100 px-3 py-5'>
           <div className='inline-flex items-center justify-between self-stretch pr-1'>
             <div className='flex flex-1 items-center gap-1'>
@@ -41,13 +48,13 @@ const SidebarCard = ({ item, isScrap, deleteScrap, onClick }: CardProps) => {
               <Tag text={jobPosition} variant='gray' />
               <Tag text={season} variant='gray' />
             </div>
-            {isScrap && scrapItem && (
+            {isScrap && scrapItem && showDelete && deleteScrap && (
               <button
                 type='button'
                 className='inline-flex h-6 w-6 cursor-pointer items-center justify-center'
                 onClick={(e) => {
                   e.stopPropagation();
-                  deleteScrap(scrapItem.id);
+                  deleteScrap?.(scrapItem.id);
                 }}
               >
                 <SI.DeleteIcon />

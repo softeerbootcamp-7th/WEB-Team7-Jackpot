@@ -1,4 +1,4 @@
-import type { LibraryView } from '@/features/library/types';
+import type { LibraryView } from '@/shared/types/library';
 
 // 라이브러리에 필요한 키 팩토리 정의
 export const libraryKeys = {
@@ -18,5 +18,3 @@ export const libraryKeys = {
   detail: (documentId: number) =>
     [...libraryKeys.details(), documentId] as const,
 };
-
-

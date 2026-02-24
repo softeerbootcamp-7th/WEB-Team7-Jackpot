@@ -48,11 +48,13 @@ const SidebarCardDetail = ({ scrap, onBack }: CardDetailProps) => {
                     {jobPosition}
                   </div>
                 </div>
-                <div className='flex items-center justify-center gap-1 rounded-xl bg-gray-50 px-3 py-1.5'>
-                  <div className='text-xs leading-4 font-medium text-gray-600'>
-                    {applySeason}
+                {applySeason && (
+                  <div className='flex items-center justify-center gap-1 rounded-xl bg-gray-50 px-3 py-1.5'>
+                    <div className='text-xs leading-4 font-medium text-gray-600'>
+                      {applySeason}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
 

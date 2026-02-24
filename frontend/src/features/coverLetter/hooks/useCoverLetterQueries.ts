@@ -25,21 +25,6 @@ export const useCoverLetterSearch = (searchWord = '', size = 9, page = 1) => {
   });
 };
 
-// 라이브러리 전체 검색 (무한 스크롤 버전)
-export const useInfiniteCoverLetterSearch = (searchWord = '', size = 9) => {
-  return useSuspenseInfiniteQuery({
-    queryKey: ['coverletter', 'search', 'infinite', { searchWord, size }],
-    queryFn: ({ pageParam = 1 }) =>
-      searchCoverLetters({ searchWord, size, page: pageParam as number }),
-    initialPageParam: 1,
-    getNextPageParam: (lastPage) => {
-      const { number, totalPage } = lastPage.page;
-      return number < totalPage ? number + 1 : undefined;
-    },
-    staleTime: 5 * 60 * 1000,
-  });
-};
-
 // 스크랩한 자기소개서 내에서 검색 (무한 스크롤)
 export const useScrapCoverLetters = (searchWord = '', size = 9) => {
   return useSuspenseInfiniteQuery({

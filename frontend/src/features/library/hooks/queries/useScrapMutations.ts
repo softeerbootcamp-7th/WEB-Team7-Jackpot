@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { createScrap } from '@/features/library/api';
-import { scrapNumKeys } from '@/shared/hooks/queries/scrapQueryKeys';
+import { scrapNumKeys } from '@/shared/hooks/queries/scrapKeys';
 
 // 스크랩 생성 뮤테이션 훅
 export const useCreateScrapMutation = () => {

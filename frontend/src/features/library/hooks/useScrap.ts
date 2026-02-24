@@ -27,24 +27,27 @@ export const useScrap = ({ qnAId, initialScrapState }: UseScrapProps) => {
   }, [initialScrapState]);
 
   const handleToggleScrap = async () => {
+    // mutation 진행 중이면 클릭 방지
     if (isLoading) return;
-    const previousState = isScraped;
 
-    setIsScraped(!previousState); // 낙관적 업데이트 (UI 즉시 반영)
+    const previousState = isScraped;
+    // 낙관적 업데이트 (UI 즉시 반영)
+    setIsScraped(!previousState);
 
     try {
       if (previousState) {
+        // delete 완료될 때까지 대기 (이 동안 다른 클릭 차단됨)
         await deleteScrap(qnAId);
         showToast('스크랩이 삭제되었습니다.');
       } else {
+        // create 완료될 때까지 대기 (이 동안 다른 클릭 차단됨)
         await createScrap(qnAId);
         showToast('스크랩 목록에 추가되었습니다.');
       }
-      // 요청이 성공하면 컴포넌트 외부에서 invalidateQueries가 동작하고,
-      // 부모 컴포넌트가 최신 initialScrapState를 다시 내려주면서
-      // 위의 useEffect가 자연스럽게 한 번만 실행되어 최종 상태를 확정
+      // onSuccess에서 invalidateQueries → useEffect에서 initialScrapState로 동기화
     } catch (error) {
-      setIsScraped(previousState); // 실패 시 롤백
+      // 실패 시 낙관적 업데이트 롤백
+      setIsScraped(previousState);
       showToast('처리에 실패했습니다. 다시 시도해주세요.');
       console.error('Scrap toggle failed:', error);
     }
