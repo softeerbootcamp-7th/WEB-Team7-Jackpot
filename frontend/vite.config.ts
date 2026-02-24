@@ -15,7 +15,43 @@ export default defineConfig({
   server: {
     port: 3000,
   },
+  preview: {
+    port: 3000,
+  },
   resolve: {
     alias: [{ find: '@', replacement: path.resolve(__dirname, 'src') }],
+  },
+  build: {
+    sourcemap: false,
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return;
+
+          if (id.includes('react-router')) {
+            return 'router';
+          }
+
+          if (id.includes('@tanstack')) {
+            return 'react-query';
+          }
+
+          if (id.includes('zod')) {
+            return 'zod';
+          }
+
+          if (id.includes('sockjs') || id.includes('stomp')) {
+            return 'socket';
+          }
+
+          if (id.includes('react')) {
+            return 'react-vendor';
+          }
+
+          return 'vendor';
+        },
+      },
+    },
   },
 });
