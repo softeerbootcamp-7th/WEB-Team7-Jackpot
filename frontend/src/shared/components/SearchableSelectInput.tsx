@@ -1,4 +1,4 @@
-import { useCallback, useId, useMemo, useRef, useState } from 'react';
+import { useCallback, useId, useRef, useState } from 'react';
 
 import { useDropdownKeyboard } from '@/shared/hooks/useDropDownKeyboard';
 import useOutsideClick from '@/shared/hooks/useOutsideClick';
@@ -20,9 +20,7 @@ const SearchableSelectInput = <T extends string | number>({
   const containerRef = useRef<HTMLDivElement>(null);
 
   // 선택된 value로 전체 목록이 필터링 되어버리는 버그를 막기 위해 검색 로직을 우회
-  const displayOptions = useMemo(() => {
-    return options; // 지금은 텍스트 입력이 안 되므로 항상 전체 옵션을 보여줍니다.
-  }, [options]);
+  const displayOptions = options;
 
   const { highlightedIndex, setHighlightedIndex, listRef, handleKeyDown } =
     useDropdownKeyboard({

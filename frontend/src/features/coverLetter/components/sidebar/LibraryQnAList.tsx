@@ -1,9 +1,10 @@
-import { Suspense } from 'react';
+import { useRef } from 'react';
 
 import SidebarCardDetail from '@/features/coverLetter/components/sidebar/SidebarCardDetail';
 import type { ScrapItem } from '@/features/coverLetter/types/coverLetter';
 import { useQnAListQueries } from '@/features/library/hooks/queries/useLibraryListQueries';
 import { SidebarSkeleton } from '@/shared/components/SidebarSkeleton';
+import useInfiniteScroll from '@/shared/hooks/useInfiniteScroll';
 import * as SI from '@/shared/icons';
 
 interface LibraryQnAListProps {
@@ -30,7 +31,16 @@ const LibraryQnAList = ({
   onBackToLibraryList,
   onBack,
 }: LibraryQnAListProps) => {
-  const { data } = useQnAListQueries(libraryName);
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useQnAListQueries(libraryName);
+
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  useInfiniteScroll({
+    sentinelRef,
+    fetchNextPage,
+    hasNextPage: hasNextPage ?? false,
+    isFetchingNextPage,
+  });
 
   const questions =
     data?.pages.flatMap((page) =>
@@ -80,20 +90,18 @@ const LibraryQnAList = ({
 
       {/* 리스트 */}
       <div className='flex min-h-0 flex-1 flex-col self-stretch overflow-y-auto'>
-        <Suspense fallback={<SidebarSkeleton len={5} />}>
-          {questions.map((qna) => (
+        {isLoading ? (
+          <SidebarSkeleton len={5} />
+        ) : (
+          questions.map((qna) => (
             <button
               key={qna.id}
               type='button'
               onClick={() =>
                 onSelectItem({
-                  id: qna.id,
-                  companyName: qna.companyName,
-                  jobPosition: qna.jobPosition,
+                  ...qna,
                   applySeason: qna.applySeason || '',
-                  question: qna.question,
                   answer: qna.answer || '',
-                  coverLetterId: qna.coverLetterId,
                 })
               }
               className='w-full cursor-pointer transition-colors hover:bg-gray-50'
@@ -133,8 +141,10 @@ const LibraryQnAList = ({
                 </div>
               </div>
             </button>
-          ))}
-        </Suspense>
+          ))
+        )}
+        {isFetchingNextPage && <SidebarSkeleton len={3} />}
+        {hasNextPage && <div ref={sentinelRef} className='h-1' />}
       </div>
     </div>
   );

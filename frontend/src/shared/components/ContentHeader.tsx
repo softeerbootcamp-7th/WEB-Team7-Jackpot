@@ -6,7 +6,7 @@ const ContentHeader = memo(
     title,
     content,
   }: {
-    icon: React.ReactNode;
+    icon: () => React.ReactNode;
     title: string;
     content: string;
   }) => {
@@ -14,7 +14,7 @@ const ContentHeader = memo(
       <div className='inline-flex w-131.25 flex-col items-start justify-start gap-0.5 pb-7.5'>
         <div className='grid grid-cols-[auto_1fr] items-center gap-2.5'>
           {/* icon */}
-          <div className='h-9 w-9'>{icon}</div>
+          <div className='h-9 w-9'>{icon()}</div>
 
           {/* title */}
           <div className='text-headline-m font-bold text-gray-950'>{title}</div>

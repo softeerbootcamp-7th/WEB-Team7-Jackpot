@@ -98,7 +98,7 @@ const SearchResultDisplay = ({
   }
 
   return (
-    <div className={`flex flex-col ${className}`}>
+    <div className={`flex flex-col ${className ?? ''}`}>
       {/* 문항 유형 검색 결과 */}
       {data.libraries.length > 0 && (
         <div className='flex w-full flex-col items-start justify-start gap-3 border-b border-gray-100 pb-3'>

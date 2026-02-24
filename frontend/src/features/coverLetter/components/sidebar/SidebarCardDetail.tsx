@@ -26,7 +26,7 @@ const SidebarCardDetail = ({ scrap, onBack }: CardDetailProps) => {
             <div className='flex flex-1 items-center gap-2'>
               <CI.FileDocument />
               <div className='line-clamp-1 flex-1 text-lg leading-7 font-bold text-gray-950'>
-                {applySeason ? `${applySeason} ${companyName}` : companyName}
+                {applySeason} {companyName}
               </div>
             </div>
           </div>

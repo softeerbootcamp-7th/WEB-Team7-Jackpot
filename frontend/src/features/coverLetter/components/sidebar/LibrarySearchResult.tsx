@@ -70,10 +70,6 @@ const LibrarySearchResult = ({
     coverLetterId: qna.coverLetterId,
   });
 
-  const handleQnASelect = (qna: QnAsSearchResponse) => {
-    onQnASelect?.(qna);
-  };
-
   // 폴더 선택 → 폴더 내 문항 리스트 표시
   if (selectedLibrary) {
     return (
@@ -122,7 +118,7 @@ const LibrarySearchResult = ({
               showDelete={false}
               onClick={() => {
                 onSelect(toScrapItem(qna));
-                handleQnASelect(qna);
+                onQnASelect?.(qna);
               }}
             />
           )}

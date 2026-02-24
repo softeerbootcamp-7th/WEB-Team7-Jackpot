@@ -1,4 +1,4 @@
-import z from 'zod';
+import { z } from 'zod';
 
 import type { QnASearchResponse } from '@/features/library/types';
 import { apiClient } from '@/shared/api/apiClient';

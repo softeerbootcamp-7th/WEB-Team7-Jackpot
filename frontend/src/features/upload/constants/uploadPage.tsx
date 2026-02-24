@@ -10,7 +10,7 @@ import type {
  * ContentHeader 컴포넌트에서 사용하는 헤더 텍스트 및 아이콘
  */
 export const uploadHeaderText = {
-  icon: <UI.DocumentBoxIcon />,
+  icon: () => <UI.DocumentBoxIcon />,
   title: '자료 업로드',
   content: '회사별, 문항별로 나만의 자기소개서를 작성하고 관리할 수 있어요',
 } as const;

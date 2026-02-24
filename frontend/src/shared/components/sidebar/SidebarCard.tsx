@@ -48,7 +48,7 @@ const SidebarCard = ({
               <Tag text={jobPosition} variant='gray' />
               <Tag text={season} variant='gray' />
             </div>
-            {isScrap && scrapItem && showDelete && (
+            {isScrap && scrapItem && showDelete && deleteScrap && (
               <button
                 type='button'
                 className='inline-flex h-6 w-6 cursor-pointer items-center justify-center'

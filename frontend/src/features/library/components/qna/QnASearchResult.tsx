@@ -80,7 +80,9 @@ const QnASearchResult = ({
           isScrap
           showDelete={false}
           onClick={() => {
-            navigate(`/library/qna/${qna.questionCategoryType}/${qna.qnAId}`);
+            navigate(
+              `/library/qna/${encodeURIComponent(qna.questionCategoryType ?? '')}/${qna.qnAId}`,
+            );
           }}
         />
       )}

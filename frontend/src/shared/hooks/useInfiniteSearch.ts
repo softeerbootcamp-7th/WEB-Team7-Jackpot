@@ -15,6 +15,8 @@ interface UseInfiniteSearchProps<T> {
   queryKey?: string;
   fetchAction?: (keyword: string, lastId?: number) => Promise<T>;
   isEnabled?: boolean;
+  mergeData?: (prev: T, next: T) => T;
+  getLastId?: (data: T) => number | undefined;
 }
 
 interface InfiniteSearchResult<T> {
@@ -132,7 +134,14 @@ export const useInfiniteSearch = <T extends { hasNext?: boolean }>({
         if (isMounted) {
           setData(result);
           setHasNextPage(result?.hasNext ?? false);
-          setLastId(undefined);
+          if (result && 'qnAs' in result && Array.isArray(result.qnAs)) {
+            const lastItem = result.qnAs.at(-1) as
+              | Record<string, unknown>
+              | undefined;
+            setLastId(lastItem?.qnAId as number | undefined);
+          } else {
+            setLastId(undefined);
+          }
         }
       } catch (error) {
         console.error(error);
@@ -154,12 +163,11 @@ export const useInfiniteSearch = <T extends { hasNext?: boolean }>({
   const fetchNextPage = useCallback(async () => {
     if (!currentQueryParam || !fetchActionRef.current || !hasNextPage) return;
 
-    const isMounted = true;
     setIsFetchingNextPage(true);
 
     try {
       const nextData = await fetchActionRef.current(currentQueryParam, lastId);
-      if (isMounted && nextData) {
+      if (nextData) {
         // 이전 데이터와 새 데이터 병합
         setData((prevData) => {
           if (!prevData) return nextData;
@@ -190,9 +198,7 @@ export const useInfiniteSearch = <T extends { hasNext?: boolean }>({
     } catch (error) {
       console.error(error);
     } finally {
-      if (isMounted) {
-        setIsFetchingNextPage(false);
-      }
+      setIsFetchingNextPage(false);
     }
   }, [currentQueryParam, lastId, hasNextPage]);
 

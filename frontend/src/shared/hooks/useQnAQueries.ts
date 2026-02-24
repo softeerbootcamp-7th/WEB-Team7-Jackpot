@@ -69,7 +69,7 @@ export const useUpdateQnA = () => {
 export const useInfiniteCoverLetterSearch = (searchWord = '', size = 9) => {
   return useSuspenseInfiniteQuery({
     queryKey: ['coverletter', 'search', 'infinite', { searchWord, size }],
-    queryFn: ({ pageParam = 1 }) =>
+    queryFn: ({ pageParam }) =>
       searchCoverLetters({ searchWord, size, page: pageParam as number }),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
