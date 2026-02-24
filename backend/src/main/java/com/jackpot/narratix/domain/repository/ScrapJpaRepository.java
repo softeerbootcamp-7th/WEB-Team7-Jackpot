@@ -20,44 +20,38 @@ public interface ScrapJpaRepository extends JpaRepository<Scrap, ScrapId> {
             @Param("qnAId") Long qnAid
     );
 
-    @Query("""
-            SELECT q
-            FROM Scrap s
-            JOIN QnA q ON s.id.qnAId = q.id
-            JOIN FETCH q.coverLetter
-            WHERE s.id.userId = :userId
-            AND (
-               q.question LIKE CONCAT('%', :searchWord, '%') OR
-               q.answer LIKE CONCAT('%', :searchWord, '%')
-            )
-            ORDER BY s.createdAt DESC, s.id.qnAId DESC
-            """)
+    @Query(value = """
+            SELECT q.*
+            FROM scrap s
+            JOIN qna q ON s.qna_id = q.id
+            WHERE s.user_id = :userId
+            AND MATCH(q.question, q.answer) AGAINST(:searchWord IN BOOLEAN MODE)
+            ORDER BY s.created_at DESC, s.qna_id DESC
+            """,
+            nativeQuery = true)
     Slice<QnA> searchQnAInScraps(
             @Param("userId") String userId,
             @Param("searchWord") String searchWord,
             Pageable pageable
     );
 
-    @Query("""
-            SELECT q
-            FROM Scrap s
-            JOIN QnA q ON s.id.qnAId = q.id
-            JOIN FETCH q.coverLetter
-            WHERE s.id.userId = :userId
+    @Query(value = """
+            SELECT q.*
+            FROM scrap s
+            JOIN qna q ON s.qna_id = q.id
+            WHERE s.user_id = :userId
+            AND MATCH(q.question, q.answer) AGAINST(:searchWord IN BOOLEAN MODE)
             AND (
-               q.question LIKE CONCAT('%', :searchWord, '%') OR
-               q.answer LIKE CONCAT('%', :searchWord, '%')
-            )
-            AND (
-                s.createdAt < (SELECT s2.createdAt FROM Scrap s2 WHERE s2.id.userId = :userId AND s2.id.qnAId = :lastQnaId)
+                s.created_at < (SELECT s2.created_at FROM scrap s2 WHERE s2.user_id = :userId AND s2.qna_id = :lastQnaId)
                 OR
                 (
-                    s.createdAt = (SELECT s2.createdAt FROM Scrap s2 WHERE s2.id.userId = :userId AND s2.id.qnAId = :lastQnaId)
-                    AND s.id.qnAId < :lastQnaId
+                    s.created_at = (SELECT s2.created_at FROM scrap s2 WHERE s2.user_id = :userId AND s2.qna_id = :lastQnaId)
+                    AND s.qna_id < :lastQnaId
                 )
             )
-            ORDER BY s.createdAt DESC, s.id.qnAId DESC
-            """)
+            ORDER BY s.created_at DESC, s.qna_id DESC
+            """,
+            nativeQuery = true)
     Slice<QnA> searchQnAInScrapsNext(
             @Param("userId") String userId,
             @Param("searchWord") String searchWord,

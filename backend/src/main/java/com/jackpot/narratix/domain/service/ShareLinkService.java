@@ -34,6 +34,7 @@ public class ShareLinkService {
     private final QnARepository qnARepository;
     private final ShareLinkRepository shareLinkRepository;
     private final ShareLinkLockManager shareLinkLockManager;
+
     private final ShareLinkSessionRegistry shareLinkSessionRegistry;
     private final TextDeltaService textDeltaService;
     private final TextSyncService textSyncService;
@@ -79,7 +80,7 @@ public class ShareLinkService {
         // pending 델타를 DB에 저장
         qnAIds.forEach(qnAId -> {
             List<TextUpdateRequest> deltas = textSyncService.getPendingDeltas(qnAId);
-            textSyncService.flushDeltasToDb(qnAId, deltas, deltas.size());
+            textSyncService.flushDeltasToDbAndSyncVersion(qnAId, deltas, deltas.size());
         });
 
         // Redis 델타 키를 트랜잭션 커밋 후에 삭제해 세션 중 데이터 유실 방지
@@ -103,7 +104,7 @@ public class ShareLinkService {
             List<Long> qnAIds = qnARepository.findIdsByCoverLetterId(shareLink.getCoverLetterId());
             qnAIds.forEach(qnAId -> {
                 List<TextUpdateRequest> deltas = textSyncService.getPendingDeltas(qnAId);
-                textSyncService.flushDeltasToDb(qnAId, deltas, deltas.size());
+                textSyncService.flushDeltasToDbAndSyncVersion(qnAId, deltas, deltas.size());
             });
             log.info("Writer disconnect: pending 델타 flush 완료. shareId={}, qnACount={}", shareId, qnAIds.size());
         });
@@ -145,7 +146,7 @@ public class ShareLinkService {
         return shareLink;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public QnAVersionResponse getQnAWithVersion(String userId, String shareId, Long qnAId) {
         QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
         ReviewRoleType role = qnA.determineReviewRole(userId);
@@ -154,9 +155,14 @@ public class ShareLinkService {
         ShareLink shareLink = findValidShareLink(shareId);
         validateShareLinkAndQnA(shareLink, qnA);
 
-        // 세션 시작 시 1회: Redis 버전 카운터를 QnA.version으로 초기화
-        // 이후 delta push마다 DB 조회 없이 Redis INCR만으로 절대 버전 획득
-        textDeltaService.initDeltaVersion(qnA.getId(), qnA.getVersion());
+        // pending delta를 가져와서 DB에 flush하여 최신 QnA를 만듦
+        List<TextUpdateRequest> pendingDeltas = textSyncService.getPendingDeltas(qnAId);
+        if (!pendingDeltas.isEmpty()) {
+            // DB의 QnA 버전 갱신, pending delta를 committed delta로 변경
+            textSyncService.flushDeltasToDbAndSyncVersion(qnAId, pendingDeltas, pendingDeltas.size());
+        } else {
+            textDeltaService.initDeltaVersion(qnAId, qnA.getVersion());
+        }
 
         return QnAVersionResponse.of(qnA);
     }

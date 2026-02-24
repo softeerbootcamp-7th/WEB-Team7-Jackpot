@@ -130,14 +130,37 @@ public class ReviewService {
     }
 
     public String replaceMarkerContent(String currentAnswer, Long reviewId, String oldContent, String newContent) {
+        String content = getContentInMarker(currentAnswer, reviewId);
+
+        if (!content.equals(oldContent)) {
+            // 마커 내부 내용이 oldContent와 다르면 오류 발생
+            log.warn("마커 내부 내용이 일치하지 않습니다. reviewId={}, expected={}, actual={}", reviewId, oldContent, content);
+            throw new BaseException(ReviewErrorCode.REVIEW_MARKER_CONTENT_MISMATCH);
+        }
+
         String oldMarker = markerOpen(reviewId) + oldContent + MARKER_CLOSE;
         String newMarker = markerOpen(reviewId) + newContent + MARKER_CLOSE;
         return currentAnswer.replace(oldMarker, newMarker);
     }
 
-    public boolean containsMarker(String answer, Long reviewId, String content) {
-        String marker = markerOpen(reviewId) + content + MARKER_CLOSE;
-        return answer.contains(marker);
+    private String getContentInMarker(String currentAnswer, Long reviewId) {
+        String markerOpen = markerOpen(reviewId);
+        int markerOpenIndex = currentAnswer.indexOf(markerOpen);
+
+        if (markerOpenIndex == -1) {
+            log.warn("리뷰 OPEN 마커가 본문에서 발견되지 않았습니다. reviewId={}, currentAnswer={}", reviewId, currentAnswer);
+            throw new BaseException(ReviewErrorCode.REVIEW_OPEN_MARKER_NOT_FOUND);
+        }
+
+        int contentStartIndex = markerOpenIndex + markerOpen.length();
+        int markerCloseIndex = currentAnswer.indexOf(MARKER_CLOSE, contentStartIndex);
+
+        if (markerCloseIndex == -1) {
+            log.warn("리뷰 CLOSE 마커가 본문에서 발견되지 않았습니다. reviewId={}, currentAnswer={}", reviewId, currentAnswer);
+            throw new BaseException(ReviewErrorCode.REVIEW_CLOSE_MARKER_NOT_FOUND);
+        }
+
+        return currentAnswer.substring(contentStartIndex, markerCloseIndex);
     }
 
     // ======================== 검증 메서드 ========================
