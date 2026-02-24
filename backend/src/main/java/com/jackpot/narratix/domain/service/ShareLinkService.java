@@ -79,6 +79,7 @@ public class ShareLinkService {
     private ShareLinkActiveResponse deactivateShareLink(Long coverLetterId) {
         ShareLink shareLink = shareLinkRepository.findById(coverLetterId)
                 .orElseThrow(() -> new BaseException(ShareLinkErrorCode.SHARE_LINK_NOT_FOUND));
+        shareLink.deactivate();
         List<Long> qnAIds = qnARepository.findIdsByCoverLetterId(coverLetterId);
 
         // pending 델타를 DB에 저장

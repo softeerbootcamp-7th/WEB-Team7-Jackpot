@@ -49,16 +49,16 @@ class ShareLinkServiceTest {
     private ShareLinkRepository shareLinkRepository;
 
     @Mock
-    private ShareLinkLockManager shareLinkLockManager;
-
-    @Mock
-    private TextDeltaService textDeltaService;
+    private ShareLinkSessionRegistry shareLinkSessionRegistry;
 
     @Mock
     private TextSyncService textSyncService;
 
     @Mock
-    private ShareLinkSessionRegistry shareLinkSessionRegistry;
+    private TextDeltaService textDeltaService;
+
+    @Mock
+    private WebSocketMessageSender webSocketMessageSender;
 
     @Test
     @DisplayName("첨삭 링크 활성화 시 첨삭 링크가 없다면 새로운 링크 생성")
@@ -123,8 +123,8 @@ class ShareLinkServiceTest {
     }
 
     @Test
-    @DisplayName("첨삭 링크 비활성화 시 기존 링크가 없는 경우 아무 일도 일어나지 않음")
-    void updateShareLinkStatus_WhenDeactivatingWithoutExistingLink_ShouldReturnInactiveResponse() {
+    @DisplayName("첨삭 링크 비활성화 시 기존 링크가 없는 경우 SHARE_LINK_NOT_FOUND 에러 발생")
+    void updateShareLinkStatus_WhenDeactivatingWithoutExistingLink_ShouldThrowException() {
         // given
         String userId = "testUser";
         Long coverLetterId = 1L;
@@ -136,20 +136,15 @@ class ShareLinkServiceTest {
         given(mockCoverLetter.isOwner(userId)).willReturn(true);
         given(shareLinkRepository.findById(coverLetterId)).willReturn(Optional.empty());
 
-        try (MockedStatic<TransactionSynchronizationManager> mockedTxManager =
-                     mockStatic(TransactionSynchronizationManager.class)) {
-            // when
-            ShareLinkActiveResponse response = shareLinkService.updateShareLinkStatus(userId, coverLetterId, active);
+        // when & then
+        assertThatThrownBy(() -> shareLinkService.updateShareLinkStatus(userId, coverLetterId, active))
+                .isInstanceOf(BaseException.class)
+                .extracting("errorCode")
+                .isEqualTo(ShareLinkErrorCode.SHARE_LINK_NOT_FOUND);
 
-            // then
-            assertThat(response).isNotNull();
-            assertThat(response.active()).isFalse();
-            assertThat(response.shareLinkId()).isNull();
-
-            verify(coverLetterRepository, times(1)).findByIdOrElseThrow(coverLetterId);
-            verify(shareLinkRepository, times(1)).findById(coverLetterId);
-            verify(shareLinkRepository, never()).save(any(ShareLink.class));
-        }
+        verify(coverLetterRepository, times(1)).findByIdOrElseThrow(coverLetterId);
+        verify(shareLinkRepository, times(1)).findById(coverLetterId);
+        verify(shareLinkRepository, never()).save(any(ShareLink.class));
     }
 
     @Test
