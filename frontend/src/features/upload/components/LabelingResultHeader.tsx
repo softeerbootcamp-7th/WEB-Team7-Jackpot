@@ -101,7 +101,7 @@ const LabelingResultHeader = ({
           // 찾은 객체가 있으면 영어 value를 사용하고 없으면 원본값 안전장치
           const finalQuestionCategory = matchedCategory
             ? matchedCategory.value
-            : originalCategoryKOR;
+            : 'OTHER';
 
           return {
             question: qna.question,

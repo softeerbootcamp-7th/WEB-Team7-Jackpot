@@ -61,7 +61,7 @@ export const UPLOAD_TAB_DATA: UploadTabDataType[] = [
 
 export const MAX_BYTES = 5 * 1024 * 1024;
 
-export const QUESTION_TYPE_LIST: Record<string, string>[] = [
+export const QUESTION_TYPE_LIST = [
   { label: '지원동기', value: 'MOTIVATION' },
   { label: '협업경험', value: 'TEAMWORK_EXPERIENCE' },
   { label: '가치관', value: 'VALUES' },

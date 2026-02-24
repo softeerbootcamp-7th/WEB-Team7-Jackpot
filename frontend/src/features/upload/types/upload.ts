@@ -96,11 +96,15 @@ export interface StartAiLabelingRequest {
   files: BeforeLabelingFileType[];
 }
 
-type QuestionCategoryType = (typeof QUESTION_TYPE_LIST)[number]['value'];
+// 배열 요소 하나에 대한 타입
+export type QuestionCategoryType = (typeof QUESTION_TYPE_LIST)[number];
+
+export type QuestionCategoryValue = QuestionCategoryType['value'];
+
 interface QnAInSaveCoverLetter {
   question: string;
   answer: string;
-  questionCategory?: QuestionCategoryType;
+  questionCategory?: QuestionCategoryValue;
 }
 
 
@@ -108,7 +112,7 @@ interface EachCoverLetterInSaveCoverLetter {
   companyName: string;
   jobPosition: string;
   applyYear: number;
-  applyHalf: 'FIRST_HALF' | 'SECOND_HALF';
+  applyHalf: ApiApplyHalf;
   deadline: string;
 }
 

@@ -64,29 +64,10 @@ const Deadline = ({ label, value, onChange, upload = false }: Props) => {
 
     if (type === 'month') {
       if (numValue.length > 2) return;
-      if (
-        Number(numValue) > 12 ||
-        (numValue.length === 2 && Number(numValue) === 0)
-      )
-        setIsError((prev) => ({
-          ...prev,
-          month: true,
-        })); // 13 이상 입력 블록 || '00' 입력 블록
     }
 
     if (type === 'day') {
       if (numValue.length > 2) return;
-
-      // 현재 입력된 연/월 기준으로 허용되는 최대 일수 계산
-      const maxDays = getDaysInMonth(localY, localM);
-      if (
-        Number(numValue) > maxDays ||
-        (numValue.length === 2 && Number(numValue) === 0)
-      )
-        setIsError((prev) => ({
-          ...prev,
-          day: true,
-        })); // (예) 2월인데 30을 누르면 무시됨 || '00' 입력 블록
     }
 
     // UI 즉시 반영
@@ -214,15 +195,13 @@ const Deadline = ({ label, value, onChange, upload = false }: Props) => {
           </div>
         </div>
       </div>
-      {isIntegrationError && (
-        <span
-          className={`text-body-s mt-1 block w-full transition-colors duration-200 ${
-            isIntegrationError ? 'text-red-600' : 'text-transparent select-none'
-          }`}
-        >
-          유효하지 않은 마감일입니다.
-        </span>
-      )}
+      <span
+        className={`text-body-s block w-full transition-colors duration-200 ${
+          isIntegrationError ? 'text-red-600' : 'text-transparent select-none'
+        }`}
+      >
+        유효하지 않은 마감일입니다.
+      </span>
     </div>
   );
 };
