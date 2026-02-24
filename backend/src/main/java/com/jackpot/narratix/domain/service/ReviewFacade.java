@@ -71,6 +71,8 @@ public class ReviewFacade {
                 boolean isHistoryRetained = oldestDeltaVersion <= reviewerVersion + 1;
                 boolean hasNoVersionGap = !otDeltas.isEmpty() && otDeltas.get(0).version() == reviewerVersion + 1;
                 if (!isHistoryRetained || !hasNoVersionGap) {
+                    log.warn("OT 변환 실패: reviewerVersion={}, oldestDeltaVersion={}, mostRecentDeltaVersion={}, otDeltas={}",
+                            reviewerVersion, oldestDeltaVersion, mostRecentDeltaVersion, otDeltas);
                     throw new BaseException(ReviewErrorCode.REVIEW_VERSION_TOO_OLD);
                 }
 
@@ -78,6 +80,8 @@ public class ReviewFacade {
                 transformedStart = transformed[0];
                 transformedEnd = transformed[1];
             } else if (reviewerVersion > mostRecentDeltaVersion) {
+                log.warn("리뷰 버전이 최신 버전보다 앞서 있습니다. reviewerVersion={}, mostRecentDeltaVersion={}",
+                        reviewerVersion, mostRecentDeltaVersion);
                 throw new BaseException(ReviewErrorCode.REVIEW_VERSION_AHEAD);
             }
         }
