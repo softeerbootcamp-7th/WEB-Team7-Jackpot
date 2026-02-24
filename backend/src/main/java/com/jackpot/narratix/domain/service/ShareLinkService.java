@@ -93,10 +93,10 @@ public class ShareLinkService {
             @Override
             public void afterCommit() {
                 qnAIds.forEach(textDeltaService::cleanupDeltaKeys);
-                WebSocketMessageResponse message = new WebSocketMessageResponse(
-                        WebSocketMessageType.SHARE_LINK_DEACTIVATED, null, null
-                );
-                webSocketMessageSender.sendMessageToShare(shareLink.getShareId(), message);
+                qnAIds.forEach(qnAId -> webSocketMessageSender.sendMessageToShare(
+                        shareLink.getShareId(),
+                        new WebSocketMessageResponse(WebSocketMessageType.SHARE_LINK_DEACTIVATED, qnAId, null)
+                ));
             }
         });
 
