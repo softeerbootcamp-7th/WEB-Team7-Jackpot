@@ -17,7 +17,7 @@ const CoverLetterSearchResult = ({
   // 파라미터 순서 정확히 매칭 (searchWord, size, page)
   const { data } = useCoverLetterSearch(searchWord, 9, page);
 
-  const overviewEmptyText = emptyCaseText['overview'];
+  const overviewEmptyText = emptyCaseText['search'];
 
   if (!data || data.coverLetters.length === 0) {
     return <EmptyCase {...overviewEmptyText} />;
