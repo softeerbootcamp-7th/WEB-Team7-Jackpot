@@ -36,9 +36,7 @@ const UploadFileArea = ({
 
   const validateFile = (newFile: File | null) => {
     const ALLOWED_TYPES = [
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       'application/pdf',
-      'application/msword',
     ];
 
     // 파일 크기 검사

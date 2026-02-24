@@ -1,27 +1,27 @@
 package com.jackpot.narratix.domain.service;
 
-import com.jackpot.narratix.domain.controller.request.CreateCoverLetterRequest;
-import com.jackpot.narratix.domain.controller.request.EditCoverLetterRequest;
-import com.jackpot.narratix.domain.controller.request.QnAEditRequest;
+import com.jackpot.narratix.domain.controller.request.*;
 import com.jackpot.narratix.domain.controller.response.*;
 import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.QnA;
+import com.jackpot.narratix.domain.entity.UploadJob;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
 import com.jackpot.narratix.domain.exception.CoverLetterErrorCode;
+import com.jackpot.narratix.domain.exception.QnAErrorCode;
 import com.jackpot.narratix.domain.repository.CoverLetterRepository;
 import com.jackpot.narratix.domain.repository.QnARepository;
+import com.jackpot.narratix.domain.repository.ScrapRepository;
+import com.jackpot.narratix.domain.repository.UploadJobRepository;
 import com.jackpot.narratix.domain.repository.dto.QnACountProjection;
 import com.jackpot.narratix.global.exception.BaseException;
 import com.jackpot.narratix.global.exception.GlobalErrorCode;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,13 +30,15 @@ public class CoverLetterService {
 
     private final CoverLetterRepository coverLetterRepository;
     private final QnARepository qnARepository;
+    private final UploadJobRepository uploadJobRepository;
+    private final ScrapRepository scrapRepository;
 
     @Transactional
     public CreateCoverLetterResponse createNewCoverLetter(String userId, CreateCoverLetterRequest createCoverLetterRequest) {
-        CoverLetter coverLetter = CoverLetter.from(userId, createCoverLetterRequest);
-        CoverLetter newCoverLetter = coverLetterRepository.save(coverLetter);
+        CoverLetter coverLetter = createCoverLetterRequest.toEntity(userId);
+        coverLetter = coverLetterRepository.save(coverLetter);
 
-        return new CreateCoverLetterResponse(newCoverLetter.getId());
+        return new CreateCoverLetterResponse(coverLetter.getId());
     }
 
     @Transactional(readOnly = true)
@@ -73,30 +75,83 @@ public class CoverLetterService {
     }
 
     @Transactional
-    public void editCoverLetter(String userId, EditCoverLetterRequest editCoverLetterRequest) {
-        CoverLetter coverLetter = coverLetterRepository.findByIdOrElseThrow(editCoverLetterRequest.coverLetterId());
-        coverLetter.edit(userId, editCoverLetterRequest);
+    public void editCoverLetterAndQnA(String userId, CoverLetterAndQnAEditRequest request) {
+        Long coverLetterId = request.coverLetter().coverLetterId();
+        CoverLetter coverLetter = coverLetterRepository.findByIdWithQnAsOrElseThrow(coverLetterId);
+
+        if (!coverLetter.isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
+        coverLetter.edit(request.coverLetter());
+
+        List<CoverLetterAndQnAEditRequest.QnAEditRequest> newQnARequests = request.questions().stream()
+                .filter(q -> q.qnAId() == null)
+                .toList();
+
+        List<CoverLetterAndQnAEditRequest.QnAEditRequest> existingQnARequests = request.questions().stream()
+                .filter(q -> q.qnAId() != null)
+                .toList();
+
+        Set<Long> keepIds = existingQnARequests.stream()
+                .map(CoverLetterAndQnAEditRequest.QnAEditRequest::qnAId)
+                .collect(Collectors.toSet());
+        coverLetter.removeQnAsNotIn(keepIds);
+
+        Map<Long, QnA> qnAMap = coverLetter.getQnAs().stream()
+                .collect(Collectors.toMap(QnA::getId, qnA -> qnA));
+
+        for (CoverLetterAndQnAEditRequest.QnAEditRequest qnAEditRequest : existingQnARequests) {
+            QnA qnA = Optional.ofNullable(qnAMap.get(qnAEditRequest.qnAId()))
+                    .orElseThrow(() -> new BaseException(QnAErrorCode.QNA_NOT_FOUND));
+            qnA.editQuestion(qnAEditRequest.question(), qnAEditRequest.category());
+        }
+
+        // 새 QnA 추가
+        List<QnA> newQnAs = newQnARequests.stream()
+                .map(q -> QnA.builder()
+                        .userId(userId)
+                        .question(q.question())
+                        .questionCategory(q.category())
+                        .build())
+                .toList();
+        coverLetter.addQnAs(newQnAs);
     }
 
     @Transactional(readOnly = true)
-    public CoverLettersDateRangeResponse getAllCoverLetterByDate(
-            String userId, LocalDate startDate, LocalDate endDate, Integer size
-    ) {
-        List<CoverLetter> coverLetters = coverLetterRepository.findInPeriod(
-                userId, startDate, endDate, Pageable.ofSize(size)
+    public FilteredCoverLettersResponse getAllCoverLetterByFilter(String userId, CoverLetterFilterRequest request) {
+        Slice<CoverLetter> slice = coverLetterRepository.findByFilter(
+                userId,
+                request.startDate(),
+                request.endDate(),
+                request.isShared(),
+                request.lastCoverLetterId(),
+                request.size()
         );
 
-        if (coverLetters.isEmpty()) {
-            return CoverLettersDateRangeResponse.of(0L, List.of());
+        if (slice.isEmpty()) {
+            return FilteredCoverLettersResponse.of(
+                    coverLetterRepository.countByFilter(
+                            userId,
+                            request.startDate(),
+                            request.endDate(),
+                            request.isShared()
+                    ),
+                    List.of(),
+                    false
+            );
         }
 
-        return CoverLettersDateRangeResponse.of(
-                coverLetterRepository.countByUserIdAndDeadlineBetween(userId, startDate, endDate),
-                buildCoverLetterResponsesWithQnaCount(coverLetters)
+        return FilteredCoverLettersResponse.of(
+                coverLetterRepository.countByFilter(
+                        userId,
+                        request.startDate(),
+                        request.endDate(),
+                        request.isShared()
+                ),
+                buildCoverLetterResponsesWithQnaCount(slice.getContent()),
+                slice.hasNext()
         );
     }
 
-    private List<CoverLettersDateRangeResponse.CoverLetterResponse> buildCoverLetterResponsesWithQnaCount(
+    private List<FilteredCoverLettersResponse.CoverLetterResponse> buildCoverLetterResponsesWithQnaCount(
             List<CoverLetter> coverLetters
     ) {
         List<Long> coverLetterIds = coverLetters.stream().map(CoverLetter::getId).toList();
@@ -109,9 +164,8 @@ public class CoverLetterService {
                 ));
 
         return coverLetters.stream()
-                .map(coverLetter -> CoverLettersDateRangeResponse.CoverLetterResponse.of(
-                        coverLetter,
-                        qnaCountMap.getOrDefault(coverLetter.getId(), 0L)
+                .map(coverLetter -> FilteredCoverLettersResponse.CoverLetterResponse.of(
+                        coverLetter, qnaCountMap.getOrDefault(coverLetter.getId(), 0L)
                 ))
                 .toList();
     }
@@ -136,7 +190,7 @@ public class CoverLetterService {
 
         if (!coverLetter.isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
 
-        return coverLetter.getQnAs().stream().map(QnA::getId).toList();
+        return qnARepository.findIdsByCoverLetterId(coverLetterId);
     }
 
     @Transactional(readOnly = true)
@@ -157,22 +211,79 @@ public class CoverLetterService {
     }
 
     @Transactional(readOnly = true)
-    public QnAResponse getQnAById(String userId, Long qnaId) {
-        QnA qnA = qnARepository.findByIdOrElseThrow(qnaId);
+    public QnAResponse getQnAById(String userId, Long qnAId) {
+        QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
 
-        if(!qnA.isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
+        if (!qnA.isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
 
-        return QnAResponse.of(qnA);
+        Boolean isScraped = scrapRepository.existsById(userId, qnAId);
+
+        return QnAResponse.of(qnA, isScraped);
     }
 
     @Transactional
     public QnAEditResponse editQnA(String userId, QnAEditRequest request) {
-        QnA qnA = qnARepository.findByIdOrElseThrow(request.qnaId());
+        QnA qnA = qnARepository.findByIdOrElseThrow(request.qnAId());
 
-        if(!qnA.isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
+        if (!qnA.isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
 
         qnA.editAnswer(request.answer());
 
         return new QnAEditResponse(qnA.getId(), qnA.getModifiedAt());
+    }
+
+    @Transactional(readOnly = true)
+    public QnAListResponse getQnAsByQnAIds(String userId, List<Long> qnAIds) {
+
+        List<QnA> qnAs = qnARepository.findByIds(qnAIds);
+        if (qnAs.isEmpty()) return new QnAListResponse(Collections.emptyList());
+
+        // qnAIds가 모두 하나의 coverLetter와 연관관계를 갖는지 확인
+        boolean isSameCoverLetter = qnAs.stream()
+                .map(qnA -> qnA.getCoverLetter().getId())
+                .distinct()
+                .count() == 1;
+
+        if (!isSameCoverLetter) throw new BaseException(QnAErrorCode.NOT_SAME_COVERLETTER);
+        if (!qnAs.get(0).isOwner(userId)) throw new BaseException(GlobalErrorCode.FORBIDDEN);
+
+
+        return new QnAListResponse(
+                qnAs.stream()
+                        .map(QnAListResponse.QnAResponse::of)
+                        .toList()
+        );
+    }
+
+    @Transactional
+    public SavedCoverLetterCountResponse saveCoverLetterAndDeleteJob(
+            String userId, String uploadJobId, CoverLettersSaveRequest request
+    ) {
+        List<CoverLetter> coverLetters = request.toEntity(userId);
+        coverLetters = coverLetterRepository.saveAll(coverLetters);
+
+        int savedCount = coverLetters.size();
+
+        Optional<UploadJob> uploadJobOpt = uploadJobRepository.findById(uploadJobId);
+        if (uploadJobOpt.isPresent()) {
+            UploadJob uploadJob = uploadJobOpt.get();
+            if (!uploadJob.isOwner(userId)) {
+                throw new BaseException(GlobalErrorCode.FORBIDDEN);
+            }
+            // cascade로 연관된 UploadFile과 LabeledQnA도 함께 삭제됨
+            uploadJobRepository.deleteById(uploadJobId);
+        }
+
+        return new SavedCoverLetterCountResponse(savedCount);
+    }
+
+    @Transactional(readOnly = true)
+    public List<String> getCompanies(String userId) {
+        return coverLetterRepository.findCompanyNamesByUserId(userId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<String> getJobPositions(String userId) {
+        return coverLetterRepository.findJobPositionsByUserId(userId);
     }
 }

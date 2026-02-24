@@ -26,6 +26,12 @@ const LabelingResultSection = () => {
 
   const { editedData, handleUpdateQnA } = useEditableQnA(labeledData);
 
+  // jobId 변경 시 상태 초기화
+  useEffect(() => {
+    // 라벨링 결과 화면에서 다른 알림을 누르면 내용이 그대로 유지되는 문제를 해결하기 위해
+    // useCoverLetterState가 jobId 기반으로 초기화
+  }, [jobId]);
+
   const originalCoverLetter =
     labeledData?.coverLetters?.[currentCoverLetterIdx];
   const originalQnA = originalCoverLetter?.qnAs?.[currentQnAIdx];
@@ -36,17 +42,21 @@ const LabelingResultSection = () => {
   const isInitialAnswerFailure =
     originalQnA && originalQnA.answer.trim() === '';
 
+  const isNoQnAData =
+    !originalCoverLetter?.qnAs || originalCoverLetter.qnAs.length === 0;
+
   const isInitialTotalFailure =
-    isInitialAnswerFailure && isInitialQuestionFailure;
+    isNoQnAData || (isInitialAnswerFailure && isInitialQuestionFailure);
 
   useEffect(() => {
+    if (!labeledData) return;
     if (isInitialTotalFailure) {
       navigate('/upload/complete', {
         state: { isFailed: true },
         replace: true,
       });
     }
-  }, [isInitialTotalFailure, navigate]);
+  }, [isInitialTotalFailure, labeledData, navigate]);
 
   const handleNextStep = () => {
     navigate('/upload/complete', { replace: true });
@@ -69,7 +79,6 @@ const LabelingResultSection = () => {
   }
 
   if (isInitialTotalFailure) return null;
-
   const qnACount = originalCoverLetter?.qnAs?.length ?? 0;
 
   return (

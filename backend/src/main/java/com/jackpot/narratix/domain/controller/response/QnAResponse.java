@@ -5,20 +5,22 @@ import com.jackpot.narratix.domain.entity.QnA;
 import java.time.LocalDateTime;
 
 public record QnAResponse(
-        Long qnaId,
+        Long qnAId,
         String question,
         String answer,
         Integer answerSize,
-        LocalDateTime modifiedAt
+        LocalDateTime modifiedAt,
+        Boolean isScraped
 ) {
-    public static QnAResponse of(QnA qnA) {
+    public static QnAResponse of(QnA qnA, Boolean isScraped) {
         String answer = (qnA.getAnswer() == null) ? "" : qnA.getAnswer();
         return new QnAResponse(
                 qnA.getId(),
                 qnA.getQuestion(),
                 answer,
                 answer.length(),
-                qnA.getModifiedAt()
+                qnA.getModifiedAt(),
+                isScraped
         );
     }
 }

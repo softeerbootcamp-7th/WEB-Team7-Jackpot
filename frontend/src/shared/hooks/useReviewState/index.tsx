@@ -245,8 +245,11 @@ export const useReviewState = ({
   );
 
   const getApiReviewSource = useCallback(
-    (targetQnaId: number, baseReviews: Review[]): ApiReview[] => {
-      const baseAsApi = baseReviews.map((review) => ({
+    (_targetQnaId: number, baseReviews: Review[]): ApiReview[] => {
+      // baseReviews(로컬 상태)를 그대로 변환해 반환한다.
+      // 삭제된 리뷰가 stale 상태인 apiReviews 캐시를 통해 부활하지 않도록
+      // apiReviews와의 병합은 하지 않는다.
+      return baseReviews.map((review) => ({
         id: review.id,
         sender: review.sender ?? { id: '', nickname: '' },
         originText: review.originText,
@@ -255,19 +258,8 @@ export const useReviewState = ({
         createdAt: review.createdAt ?? '',
         isApproved: Boolean(review.isApproved),
       }));
-
-      if (targetQnaId === qnaId && apiReviews) {
-        // API 스냅샷이 늦게 갱신되는 동안(예: 방금 소켓으로 생성/수정된 리뷰)
-        // baseReviews를 잃지 않도록 id 기준으로 병합한다.
-        const mergedById = new Map<number, ApiReview>();
-        for (const review of baseAsApi) mergedById.set(review.id, review);
-        for (const review of apiReviews) mergedById.set(review.id, review);
-        return Array.from(mergedById.values());
-      }
-
-      return baseAsApi;
     },
-    [qnaId, apiReviews],
+    [],
   );
 
   const revalidateReviewsByCurrentText = useCallback(

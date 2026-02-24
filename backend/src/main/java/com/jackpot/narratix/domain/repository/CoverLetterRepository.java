@@ -2,6 +2,7 @@ package com.jackpot.narratix.domain.repository;
 
 import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.enums.ApplyHalfType;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 
@@ -44,4 +45,26 @@ public interface CoverLetterRepository {
     CoverLetter findByIdWithQnAsOrElseThrow(Long coverLetterId);
 
     List<LocalDate> findDeadlineByUserIdBetweenDeadline(String userId, LocalDate startDate, LocalDate endDate);
+
+    Page<CoverLetter> searchCoverLetters(String userId, String keyword, Pageable pageable);
+
+    Slice<CoverLetter> findByFilter(
+            String userId,
+            LocalDate startDate,
+            LocalDate endDate,
+            Boolean isShared,
+            Long lastCoverLetterId,
+            int size
+    );
+
+    Long countByFilter(
+            String userId,
+            LocalDate startDate,
+            LocalDate endDate,
+            Boolean isShared
+    );
+
+    List<CoverLetter> saveAll(List<CoverLetter> coverLetters);
+
+    List<String> findJobPositionsByUserId(String userId);
 }

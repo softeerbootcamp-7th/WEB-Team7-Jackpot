@@ -105,13 +105,13 @@ public class LibraryService {
                 );
 
         if (qnASlice.isEmpty()) {
-            return QuestionLibraryResponse.of(Collections.emptyList(), false);
+            return QuestionLibraryResponse.of(category, Collections.emptyList(), false);
         }
 
         List<QuestionLibraryResponse.QnAItem> items = qnASlice.getContent().stream()
                 .map(QuestionLibraryResponse.QnAItem::from)
                 .toList();
 
-        return QuestionLibraryResponse.of(items, qnASlice.hasNext());
+        return QuestionLibraryResponse.of(category, items, qnASlice.hasNext());
     }
 }

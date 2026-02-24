@@ -13,34 +13,36 @@ const UploadCompleteSection = () => {
 
   if (isFailed) {
     return (
-      <div className='flex w-full flex-col items-center justify-center bg-white py-20'>
-        <div className='relative flex h-80 w-80 items-center justify-center'>
+      <div className='flex w-full flex-col items-center justify-center bg-white'>
+        <div className='relative aspect-[810/424] w-full max-w-[1000px]'>
           <SI.NotFoundIllustration
-            className='absolute h-full w-full opacity-10'
+            className='h-full w-full'
             aria-hidden='true'
           />
-          <div className='z-10 flex flex-col items-center justify-center rounded-full bg-white/70 p-8 text-center shadow-sm backdrop-blur-md'>
-            <h2 className='text-xl font-bold text-gray-950'>
+          <div className='absolute top-1/4 left-1/2 inline-flex w-96 max-w-full -translate-x-1/2 flex-col items-center justify-start gap-3'>
+            <h2 className='self-stretch text-center text-2xl font-bold text-gray-950'>
               업로드 과정에서
               <br />
               오류가 발생했어요
             </h2>
-            <p className='mt-2 text-sm text-gray-500'>
+            <p className='self-stretch text-center text-lg font-normal text-gray-600'>
               자기소개서 내에서 답변을 찾지 못했어요.
               <br />
-              답변을 포함한 다른 자료를 새업로드해주세요.
+              답변을 포함한 다른 자료를 새로 업로드해주세요.
             </p>
-            <div className='mt-4 text-4xl text-gray-300'>!</div>
           </div>
         </div>
 
-        <div className='mt-10 flex'>
+        {/* 하단 버튼 영역 */}
+        <div className='mt-2 flex'>
           <button
             onClick={() => navigate('/upload')}
-            className='flex cursor-pointer gap-2 rounded-lg bg-gray-50 px-5 py-3'
+            className='flex cursor-pointer items-center gap-2 rounded-lg bg-gray-50 px-6 py-3 transition-colors hover:bg-gray-100'
           >
             <UI.UploadIconInButton />
-            <span className='text-gray-600'>새로운 자료 업로드하기</span>
+            <span className='text-body-m font-bold text-gray-600'>
+              새로운 자료 업로드하기
+            </span>
           </button>
         </div>
       </div>

@@ -3,7 +3,9 @@ import { useEffect, useMemo, useState } from 'react';
 interface LabeledSelectInputProps {
   label: string;
   value: string | number;
-  constantData?: Record<string, string>[] | string[];
+  constantData?:
+    | readonly { label: string; value: string }[]
+    | readonly string[];
   handleChange: (value: string | number) => void;
   handleDropdown: (isOpen: boolean) => void;
   isOpen: boolean;
