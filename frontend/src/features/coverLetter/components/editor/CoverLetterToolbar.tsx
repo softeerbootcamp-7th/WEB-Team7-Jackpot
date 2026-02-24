@@ -44,9 +44,9 @@ const CoverLetterToolbar = ({
         <button
           type='button'
           onClick={onToggleReview}
-          className={`flex cursor-pointer items-center gap-1.5 rounded-xl border px-3 py-1.5 text-sm font-medium transition-colors ${
+          className={`flex cursor-pointer items-center gap-1.5 rounded-xl border px-3 py-1.5 text-sm font-medium transition-colors duration-200 ${
             isReviewActive
-              ? 'border-gray-800 bg-gray-800 text-white'
+              ? 'border-gray-800 bg-gray-900 text-white hover:bg-gray-700'
               : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
           }`}
         >
@@ -60,7 +60,7 @@ const CoverLetterToolbar = ({
           disabled={!isReviewActive}
           className={`flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium transition-colors ${
             isReviewActive
-              ? 'cursor-pointer text-gray-700 hover:bg-gray-50'
+              ? 'cursor-pointer text-gray-700 hover:bg-gray-100'
               : 'cursor-not-allowed text-gray-400 opacity-50'
           }`}
           aria-label='첨삭 링크 복사'
@@ -79,10 +79,10 @@ const CoverLetterToolbar = ({
             type='button'
             onClick={onSave}
             disabled={isPending || !onSave}
-            className={`flex items-center gap-1.5 rounded-xl px-4 py-1.5 text-sm font-bold text-white transition-colors ${
+            className={`flex items-center gap-1.5 rounded-xl px-4 py-1.5 text-sm font-bold text-white transition-colors duration-200 ${
               isPending || !onSave
                 ? 'cursor-not-allowed bg-gray-400'
-                : 'cursor-pointer bg-gray-800 hover:bg-gray-900'
+                : 'cursor-pointer bg-gray-900 hover:bg-gray-700'
             }`}
           >
             <SI.SaveCheckIcon />
@@ -93,7 +93,7 @@ const CoverLetterToolbar = ({
         <button
           type='button'
           onClick={onDelete}
-          className='flex cursor-pointer items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600'
+          className='flex cursor-pointer items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors duration-200 hover:border-red-200 hover:bg-red-50 hover:text-red-600'
         >
           <CI.TrashIcon />
           <span>삭제하기</span>

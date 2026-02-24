@@ -9,7 +9,7 @@ interface TabBarProps<T> {
 
 function TabBar<T extends string>({ content, currentTab }: TabBarProps<T>) {
   return (
-    <nav className='mb-7.5 flex items-center justify-start'>
+    <nav className='mb-7.5 flex items-center justify-start gap-2'>
       {content.map((tab) => (
         <div key={tab.name} className='flex items-center justify-start'>
           <TabItem currentTab={currentTab} content={tab} />

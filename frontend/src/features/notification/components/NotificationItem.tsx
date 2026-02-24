@@ -51,7 +51,7 @@ const NotificationItem = ({ data }: NotificationItemProps) => {
         <span className='text-body-m font-bold text-gray-950'>
           {data.title}
         </span>
-        <span className='text-caption-m text-gray-400'>{data.content}</span>
+        <span className='text-caption-m text-gray-400 line-clamp-2'>{data.content}</span>
       </div>
     </div>
   );

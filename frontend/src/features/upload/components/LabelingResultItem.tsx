@@ -90,7 +90,7 @@ const LabelingResultItem = ({
     <div className='flex flex-col gap-6'>
       <div className='flex gap-6'>
         <div className='flex-3'>
-          <div className='flex flex-col gap-5'>
+          <div className='flex flex-col gap-5 pb-12'>
             <CoverLetterList
               tabState={tabState}
               setTabState={setTabState}

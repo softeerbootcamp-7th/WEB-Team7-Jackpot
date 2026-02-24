@@ -135,7 +135,7 @@ const AddFileItem = ({
       ) : (
         <label
           // 3-3. UI 피드백: 드래그 오버 시 배경 색상 변경 (blue-50), 테두리 표시
-          className={`relative flex h-[23.5rem] w-full flex-col items-center justify-center gap-5 overflow-hidden rounded-lg transition-all duration-500 ease-in-out ${file ? '' : 'cursor-pointer bg-gray-50'} ${
+          className={`hover-float-up relative flex h-[23.5rem] w-full flex-col items-center justify-center gap-5 overflow-hidden rounded-lg transition-all duration-500 ease-in-out ${file ? '' : 'cursor-pointer bg-gray-50'} ${
             isDragOver ? 'bg-blue-50 ring-2 ring-blue-400' : ''
           }`}
           htmlFor={inputId}

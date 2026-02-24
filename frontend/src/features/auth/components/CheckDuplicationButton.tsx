@@ -16,7 +16,7 @@ const CheckDuplicationButton = ({
       type='button'
       disabled={!isActived}
       onClick={onClick}
-      className={`rounded-md px-3 py-1.5 text-sm font-bold transition-colors ${
+      className={`rounded-md hover:bg-gray-800 transition-colors duration-200 px-3 py-1.5 text-sm font-bold transition-colors ${
         buttonActiveStyle
       }`}
     >
