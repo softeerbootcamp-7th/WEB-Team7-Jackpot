@@ -277,7 +277,7 @@
 | 이름   | 포지션          | 담당 도메인                             |
 | ------ | --------------- |------------------------------------|
 | 강유진 | Frontend        | 실시간 텍스트 에디터 / 협업 첨삭 UI             |
-| 박소민 | Frontend        | 라이브러리(기업·문항) / 나의 채용공고(캘린더)        |
+| 박소민 | Frontend        | 라이브러리(기업·문항) / 나의 채용공고(캘린더) / 자기소개서 작성 (랜딩 페이지 및 검색)        |
 | 윤종근 | Frontend        | 실시간 첨삭, 실시간 알림, 자료 업로드             |
 | 김승환 | Backend & Infra | WebSocket 실시간 첨삭, SSE 알림, 자기소개서, 첨삭 링크 관리 |
 | 이정민 | Backend & Infra | 자료 업로드, 라이브러리, 검색                  |
@@ -299,7 +299,7 @@
 - **사용자 경험(UX) 및 웹 접근성 고도화**: 모달 포커스 트랩(Focus Trap), 키보드 조작 가능한 드롭다운, 토스트 알림 등 재사용 가능한 인터랙션 UI 설계
 - **성능 최적화 및 안정성 확보**: TanStack Query 기반 API 캡슐화, Tree-shaking을 고려한 아이콘 관리 체계 구축 및 `React.memo`를 통한 불필요한 리렌더링 방지
 
-📄 관련 문서: [[박소민] - 중첩 라우팅 환경에서의 상태 관리 전략 (Memory vs URL)](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EB%B0%95%EC%86%8C%EB%AF%BC%5D-%E2%80%90-%EC%A4%91%EC%B2%A9-%EB%9D%BC%EC%9A%B0%ED%8C%85-%ED%99%98%EA%B2%BD%EC%97%90%EC%84%9C%EC%9D%98-%EC%83%81%ED%83%9C-%EA%B4%80%EB%A6%AC-%EC%A0%84%EB%9E%B5-(Memory-vs-URL))
+📄 관련 문서: [[박소민] - 중첩 라우팅 환경에서의 상태 관리 전략 (Memory vs URL)](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EB%B0%95%EC%86%8C%EB%AF%BC%5D-%E2%80%90-%EC%A4%91%EC%B2%A9-%EB%9D%BC%EC%9A%B0%ED%8C%85-%ED%99%98%EA%B2%BD%EC%97%90%EC%84%9C%EC%9D%98-%EC%83%81%ED%83%9C-%EA%B4%80%EB%A6%AC-%EC%A0%84%EB%9E%B5-(Memory-vs-URL)), [[박소민] ‐ 커스텀 캘린더 구현기](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EB%B0%95%EC%86%8C%EB%AF%BC%5D-%E2%80%90-%EC%BB%A4%EC%8A%A4%ED%85%80-%EC%BA%98%EB%A6%B0%EB%8D%94-%EA%B5%AC%ED%98%84%EA%B8%B0)
 
 ### 윤종근 (Frontend)
 
