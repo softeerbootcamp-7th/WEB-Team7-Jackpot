@@ -1,10 +1,13 @@
-import { useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
+
+import { useNavigate } from 'react-router';
 
 import {
   useSharedLink,
   useSharedLinkToggle,
 } from '@/features/coverLetter/hooks/useCoverLetterQueries';
 import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
+import { useDeleteCoverLetter } from '@/shared/hooks/useCoverLetterQueries';
 import { useUpdateQnA } from '@/shared/hooks/useQnAQueries';
 import { reconstructTaggedText } from '@/shared/hooks/useReviewState/helpers';
 import type { Review } from '@/shared/types/review';
@@ -26,13 +29,17 @@ const useCoverLetterActions = ({
   isReviewActive,
   setIsReviewActive,
 }: UseCoverLetterActionsParams) => {
+  const navigate = useNavigate();
   const { mutateAsync: updateQnAAsync, isPending } = useUpdateQnA();
+  const { mutateAsync: deleteCoverLetterAsync, isPending: isDeleting } =
+    useDeleteCoverLetter();
   const { showToast } = useToastMessageContext();
 
   const { data: sharedLink, isLoading } = useSharedLink(coverLetterId);
   const { mutate: toggleLink } = useSharedLinkToggle();
 
   const isSavingRef = useRef(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const saveCurrentAnswer = async (showSuccessToast = true) => {
     if (isPending || isSavingRef.current) return false;
@@ -75,11 +82,32 @@ const useCoverLetterActions = ({
     void saveCurrentAnswer(true);
   };
 
-  const handleDelete = () => {
-    if (confirm('정말로 삭제하시겠습니까?')) {
-      showToast('삭제되었습니다.', true);
+  // 삭제 모달 열기
+  const openDeleteModal = useCallback(() => {
+    setDeletingId(coverLetterId);
+  }, [coverLetterId]);
+
+  // 삭제 모달 닫기
+  const closeDeleteModal = useCallback(() => {
+    setDeletingId(null);
+  }, []);
+
+  // 실제 삭제 실행
+  const confirmDelete = useCallback(async () => {
+    if (deletingId !== null) {
+      try {
+        await deleteCoverLetterAsync({ coverLetterId: deletingId });
+        showToast('자기소개서가 삭제되었습니다.', true);
+        setDeletingId(null);
+        navigate('/cover-letter/list');
+      } catch {
+        showToast('자기소개서 삭제에 실패했습니다.', false);
+        // 모달은 열린 상태 유지
+      }
     }
-  };
+  }, [deletingId, deleteCoverLetterAsync, showToast, navigate]);
+
+  const handleDelete = openDeleteModal;
 
   const handleCopyLink = () => {
     if (isLoading) {
@@ -139,6 +167,11 @@ const useCoverLetterActions = ({
     handleToggleReview,
     isPending,
     isShareDisabled: isLoading || !sharedLink?.active,
+    // 모달 관련 state와 actions
+    deletingId,
+    isDeleting,
+    closeDeleteModal,
+    confirmDelete,
   };
 };
 

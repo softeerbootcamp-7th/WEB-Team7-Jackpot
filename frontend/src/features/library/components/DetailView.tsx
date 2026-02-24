@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 
+import { parseTaggedText } from '@/shared/hooks/useReviewState/helpers';
+
 // [박소민] TODO: 공통 인터페이스로 줄이기
 interface Props {
   companyName: string;
@@ -28,6 +30,7 @@ const DetailView = ({
   qnaIds,
   pagination,
 }: Props) => {
+  const parsedAnswer = parseTaggedText(answer).cleaned;
   return (
     <div className='flex h-full w-full min-w-0 flex-col items-start justify-start gap-5 border-t-0 border-r-0 border-b-0 border-l border-gray-100 px-8 py-7'>
       <div className='relative flex items-start justify-between self-stretch'>
@@ -78,7 +81,7 @@ const DetailView = ({
           <div className='flex flex-col items-start justify-start gap-2 self-stretch'>
             <div className='relative flex flex-col items-start justify-start gap-2 self-stretch py-2'>
               <p className='text-body-m w-full self-stretch text-left whitespace-pre-wrap text-gray-800'>
-                {answer}
+                {parsedAnswer}
               </p>
             </div>
           </div>

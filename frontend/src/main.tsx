@@ -7,7 +7,7 @@ import '@/index.css';
 import App from '@/App.tsx';
 import { AuthProvider } from '@/features/auth/context/AuthContext';
 import { ToastMessageProvider } from '@/shared/context/ToastMessageContext';
-import { queryClient } from '@/shared/queries/queryClient';
+import { queryClient } from '@/shared/hooks/queries/queryClient';
 createRoot(document.getElementById('root')!).render(
   <QueryClientProvider client={queryClient}>
     <ToastMessageProvider>

@@ -5,6 +5,16 @@ import type {
   UploadTabDataType,
 } from '@/features/upload/types/upload';
 
+/**
+ * UploadLayoutHeader 상수
+ * ContentHeader 컴포넌트에서 사용하는 헤더 텍스트 및 아이콘
+ */
+export const uploadHeaderText = {
+  icon: () => <UI.DocumentBoxIcon />,
+  title: '자료 업로드',
+  content: '회사별, 문항별로 나만의 자기소개서를 작성하고 관리할 수 있어요',
+} as const;
+
 export const STEP_DATA: Record<string, StepDataType> = {
   '1': {
     className: 'left-[4.6875rem]',

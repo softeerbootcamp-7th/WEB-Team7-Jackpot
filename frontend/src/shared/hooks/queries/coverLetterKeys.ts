@@ -1,3 +1,4 @@
+// 나의 채용공고에서 사용하는 키
 export const coverLetterQueryKeys = {
   // 1. 최상위 키
   all: ['coverLetters'] as const,

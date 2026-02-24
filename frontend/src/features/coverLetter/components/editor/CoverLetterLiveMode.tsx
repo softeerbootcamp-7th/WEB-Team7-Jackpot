@@ -1,6 +1,7 @@
 import CoverLetterEditor from '@/features/coverLetter/components/editor/CoverLetterEditor';
 import CoverLetterToolbar from '@/features/coverLetter/components/editor/CoverLetterToolbar';
 import useCoverLetterActions from '@/features/coverLetter/hooks/useCoverLetterActions';
+import ConfirmModal from '@/shared/components/modal/ConfirmModal';
 import useCoverLetterPagination from '@/shared/hooks/useCoverLetterPagination';
 import { useReviewsByQnaId } from '@/shared/hooks/useReviewQueries';
 import useReviewState from '@/shared/hooks/useReviewState';
@@ -64,15 +65,22 @@ const CoverLetterLiveMode = ({
     clientRef,
   });
 
-  const { handleDelete, handleCopyLink, handleToggleReview } =
-    useCoverLetterActions({
-      coverLetterId: coverLetter.coverLetterId,
-      currentQna,
-      editedAnswers: reviewState.editedAnswers,
-      currentReviews: reviewState.currentReviews,
-      isReviewActive: isReviewActive,
-      setIsReviewActive: setIsReviewActive,
-    });
+  const {
+    handleDelete,
+    handleCopyLink,
+    handleToggleReview,
+    deletingId,
+    isDeleting,
+    closeDeleteModal,
+    confirmDelete,
+  } = useCoverLetterActions({
+    coverLetterId: coverLetter.coverLetterId,
+    currentQna,
+    editedAnswers: reviewState.editedAnswers,
+    currentReviews: reviewState.currentReviews,
+    isReviewActive: isReviewActive,
+    setIsReviewActive: setIsReviewActive,
+  });
 
   // TODO: WebSocket 구독 관리
   // - 마운트 시: /sub/share/{shareId}/qna/{currentQnAId}/review 구독
@@ -109,24 +117,40 @@ const CoverLetterLiveMode = ({
   );
 
   return (
-    <CoverLetterEditor
-      coverLetter={coverLetter}
-      currentQna={currentQna}
-      currentText={reviewState.currentText}
-      currentReviews={reviewState.currentReviews}
-      currentPageIndex={safePageIndex}
-      totalPages={qnaIds.length}
-      isReviewActive={isReviewActive}
-      toolbar={toolbar}
-      onPageChange={setCurrentPageIndex}
-      onTextChange={reviewState.handleTextChange}
-      onReserveNextVersion={reviewState.reserveNextVersion}
-      currentVersion={reviewState.currentVersion}
-      currentReplaceAllSignal={reviewState.currentReplaceAllSignal}
-      isConnected={isConnected}
-      sendMessage={sendMessage}
-      shareId={shareId}
-    />
+    <>
+      <CoverLetterEditor
+        coverLetter={coverLetter}
+        currentQna={currentQna}
+        currentText={reviewState.currentText}
+        currentReviews={reviewState.currentReviews}
+        currentPageIndex={safePageIndex}
+        totalPages={qnaIds.length}
+        isReviewActive={isReviewActive}
+        toolbar={toolbar}
+        onPageChange={setCurrentPageIndex}
+        onTextChange={reviewState.handleTextChange}
+        onReserveNextVersion={reviewState.reserveNextVersion}
+        currentVersion={reviewState.currentVersion}
+        currentReplaceAllSignal={reviewState.currentReplaceAllSignal}
+        isConnected={isConnected}
+        sendMessage={sendMessage}
+        shareId={shareId}
+      />
+
+      <ConfirmModal
+        isOpen={deletingId !== null}
+        isPending={isDeleting}
+        type='warning'
+        title='자기소개서를 삭제하시겠습니까?'
+        description={
+          '삭제된 자기소개서는 복구할 수 없습니다.\n정말로 삭제하시겠습니까?'
+        }
+        confirmText='삭제하기'
+        cancelText='취소'
+        onConfirm={confirmDelete}
+        onCancel={closeDeleteModal}
+      />
+    </>
   );
 };
 

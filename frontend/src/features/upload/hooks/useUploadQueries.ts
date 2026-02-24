@@ -9,6 +9,7 @@ import type {
   StartAiLabelingRequest,
 } from '@/features/upload/types/upload';
 import { apiClient } from '@/shared/api/apiClient';
+import { useInvalidateCoverLetters } from '@/shared/hooks/useCoverLetterQueries';
 
 export const useIssuePresignedUrl = () => {
   return useMutation({
@@ -54,12 +55,15 @@ export const useAiLabeling = () => {
 };
 
 export const useSaveCoverLetter = () => {
+  const invalidate = useInvalidateCoverLetters();
+
   return useMutation({
     mutationFn: ({ uploadJobId, coverLetters }: SaveCoverLetterRequest) =>
       apiClient.post<SaveCoverLetterResponse>({
         endpoint: `/coverletter/upload/${uploadJobId}`,
         body: { coverLetters },
       }),
+    onSuccess: () => invalidate(),
   });
 };
 

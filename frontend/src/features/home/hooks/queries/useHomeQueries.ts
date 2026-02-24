@@ -9,9 +9,9 @@ import {
   MAX_COVER_LETTER_SIZE_PER_DEADLINE,
   MAX_DEADLINE_SIZE,
 } from '@/features/home/constants';
-import { homeKeys } from '@/features/home/hooks/queries/keys';
 import type { CalendarDatesResponse } from '@/features/home/types/home';
 import { searchCoverLetters } from '@/shared/api/coverLetterApi';
+import { homeKeys } from '@/shared/hooks/queries/homeKeys';
 import { getTodayISODate } from '@/shared/utils/dates';
 
 // 홈 화면 통계 데이터

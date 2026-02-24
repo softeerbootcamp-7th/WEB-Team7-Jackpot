@@ -1,8 +1,8 @@
 import { useRef } from 'react';
 
-import SidebarCard from '@/features/coverLetter/components/sidebar/SidebarCard';
 import { useScrapCoverLetters } from '@/features/coverLetter/hooks/useCoverLetterQueries';
 import type { ScrapItem } from '@/features/coverLetter/types/coverLetter';
+import SidebarCard from '@/shared/components/sidebar/SidebarCard';
 import { SidebarSkeleton } from '@/shared/components/SidebarSkeleton';
 import useInfiniteScroll from '@/shared/hooks/useInfiniteScroll';
 

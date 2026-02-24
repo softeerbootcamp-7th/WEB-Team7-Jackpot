@@ -6,13 +6,13 @@ import {
 } from '@tanstack/react-query';
 
 import { fetchDocumentList, fetchFolderList } from '@/features/library/api';
-import { libraryKeys } from '@/features/library/hooks/queries/keys';
 import {
   type CoverLetterListResponse,
-  type LibraryView,
   type QuestionListResponse,
 } from '@/features/library/types';
 import { getQnA } from '@/shared/api/qnaApi';
+import { libraryKeys } from '@/shared/hooks/queries/libraryKeys';
+import type { LibraryView } from '@/shared/types/library';
 import type { QnA } from '@/shared/types/qna';
 
 export const useLibraryListQueries = (type: LibraryView) => {
