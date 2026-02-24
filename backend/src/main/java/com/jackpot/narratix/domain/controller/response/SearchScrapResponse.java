@@ -4,6 +4,7 @@ import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.QnA;
 
 import java.util.List;
+import java.util.Map;
 
 public record SearchScrapResponse(
         List<QnAItem> scraps,
@@ -18,9 +19,7 @@ public record SearchScrapResponse(
             String answer,
             Long coverLetterId
     ) {
-        public static QnAItem from(QnA qna) {
-            CoverLetter coverLetter = qna.getCoverLetter();
-
+        public static QnAItem of(QnA qna, CoverLetter coverLetter) {
             return new QnAItem(
                     qna.getId(),
                     coverLetter.getCompanyName(),
@@ -35,10 +34,17 @@ public record SearchScrapResponse(
         }
     }
 
-    public static SearchScrapResponse of(List<QnA> qnaItems, boolean hasNext) {
+    public static SearchScrapResponse of(
+            List<QnA> qnaItems,
+            Map<Long, CoverLetter> coverLetterMap,
+            boolean hasNext
+    ) {
         return new SearchScrapResponse(
                 qnaItems.stream()
-                        .map(QnAItem::from)
+                        .map(qna -> {
+                            CoverLetter realCoverLetter = coverLetterMap.get(qna.getCoverLetter().getId());
+                            return QnAItem.of(qna, realCoverLetter);
+                        })
                         .toList(),
                 hasNext
         );

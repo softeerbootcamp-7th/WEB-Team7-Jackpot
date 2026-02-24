@@ -63,7 +63,6 @@ public interface ScrapJpaRepository extends JpaRepository<Scrap, ScrapId> {
                 SELECT q
                 FROM Scrap s
                 JOIN QnA q ON s.id.qnAId = q.id
-                JOIN FETCH q.coverLetter
                 WHERE s.id.userId = :userId
                 ORDER BY s.createdAt DESC, s.id.qnAId DESC
             """)
@@ -76,7 +75,6 @@ public interface ScrapJpaRepository extends JpaRepository<Scrap, ScrapId> {
                 SELECT q
                 FROM Scrap s
                 JOIN QnA q ON s.id.qnAId = q.id
-                JOIN FETCH q.coverLetter
                 WHERE s.id.userId = :userId
                 AND (
                     s.createdAt < (SELECT s2.createdAt FROM Scrap s2
