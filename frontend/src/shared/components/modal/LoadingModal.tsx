@@ -13,7 +13,7 @@ const LoadingModal = ({
 
   return (
     <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40'>
-      <div className='flex flex-col items-center gap-4 rounded-lg bg-white/95 p-6'>
+      <div className='flex min-w-48 flex-col items-center gap-4 rounded-lg bg-white/95 p-6'>
         <BeatLoader color='var(--color-purple-600)' />
         <div className='text-body-m'>{message}</div>
       </div>
