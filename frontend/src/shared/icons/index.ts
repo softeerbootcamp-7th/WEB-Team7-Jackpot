@@ -2,7 +2,6 @@ import { AlertIcon } from '@/shared/icons/Alert';
 import { DeleteIcon } from '@/shared/icons/Delete';
 import DropdownArrow from '@/shared/icons/DropdownArrow';
 import { FolderIcon } from '@/shared/icons/Folder';
-import { LibraryFolder } from '@/shared/icons/LibraryFolder';
 import MoreVertIcon from '@/shared/icons/MoreVertIcon';
 import NotFoundIllustration from '@/shared/icons/NotFoundIllustration';
 import { PaginationIcon } from '@/shared/icons/PaginationIcons';
@@ -24,7 +23,6 @@ export {
   DeleteIcon,
   DropdownArrow,
   FolderIcon,
-  LibraryFolder,
   MoreVertIcon,
   NotFoundIllustration,
   PaginationIcon,
