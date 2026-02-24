@@ -239,13 +239,20 @@ const CoverLetterContent = ({
         return false;
       }
 
-      const caretAfter = (() => {
-        if (contentRef.current?.contains(document.activeElement)) {
-          const { start } = getCaretPosition(contentRef.current);
-          if (Number.isFinite(start)) return start;
-        }
-        return caretOffsetRef.current;
-      })();
+      // caretOffsetRef는 sendTextPatch 호출 전에 항상 "작업 후 커서 위치"로 갱신된다.
+      //   - processInput  : caretOffsetRef = getCaretPosition().start (브라우저가 DOM 업데이트 완료 후)
+      //   - insertTextAtCaret (Enter/붙여넣기/composition): caretOffsetRef = start + insertStr.length
+      //   - applyDeleteByDirection (Backspace/Delete): caretOffsetRef = result.caretOffset
+      //
+      // ※ getCaretPosition()을 sendTextPatch 내부에서 재호출하면 안 된다.
+      //   insertTextAtCaret 경로에서는 sendTextPatch가 React 상태 갱신(handleTextChange)보다
+      //   먼저 실행되므로 DOM은 아직 이전 상태다. 이 시점에 getCaretPosition()을 부르면
+      //   "삽입 이전 커서 위치(start)"가 반환된다.
+      //   buildTextPatch는 caretAfter를 "삽입 이후 커서 위치"로 해석해 삽입 위치를 역산하므로
+      //   pre-insert 값을 넘기면 잘못된 startIdx/endIdx가 계산된다.
+      //   예) 전체 복사 후 맨 뒤에 붙여넣기: caretAfter = textLen = insertedLen
+      //       → candidateStart = 0 으로 오판 → startIdx = 0, endIdx = 0 버그 발생.
+      const caretAfter = caretOffsetRef.current;
 
       const mappingReviews = reviewsForMapping ?? reviewsRef.current;
       const payload = createTextUpdatePayload({
@@ -405,6 +412,9 @@ const CoverLetterContent = ({
       const currentText = latestTextRef.current;
       const newText =
         currentText.slice(0, start) + insertStr + currentText.slice(end);
+
+      // sendTextPatch 내부에서 caretOffsetRef를 caretAfter로 사용하므로,
+      // DOM 업데이트(flushSync) 이전에 "삽입 후 커서 위치"를 미리 기록해 둔다.
       caretOffsetRef.current = start + insertStr.length;
 
       // flushSync: Enter 직후 한글 입력 시 React re-render가 IME 조합 중에 발생해 조합이 깨지는 문제를 방지한다.
@@ -580,16 +590,17 @@ const CoverLetterContent = ({
     });
   }, []);
 
-  const { handleKeyDown, handlePaste } = useCoverLetterInputHandlers({
-    isComposingRef,
-    lastCompositionEndAtRef,
-    normalizeCaretAtReviewBoundary,
-    insertPlainTextAtCaret: insertTextAtCaret,
-    applyDeleteByDirection,
-    contentRef,
-    caretOffsetRef,
-    enterDuringCompositionRef,
-  });
+  const { handleKeyDown, handlePaste, handleCopy } =
+    useCoverLetterInputHandlers({
+      isComposingRef,
+      lastCompositionEndAtRef,
+      normalizeCaretAtReviewBoundary,
+      insertPlainTextAtCaret: insertTextAtCaret,
+      applyDeleteByDirection,
+      contentRef,
+      caretOffsetRef,
+      enterDuringCompositionRef,
+    });
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     let target = e.target as Node;
@@ -660,6 +671,7 @@ const CoverLetterContent = ({
           suppressContentEditableWarning
           onInput={handleInput}
           onKeyDown={handleKeyDown}
+          onCopy={handleCopy}
           onPaste={handlePaste}
           onCompositionStart={handleCompositionStart}
           onCompositionEnd={handleCompositionEnd}
