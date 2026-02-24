@@ -45,7 +45,7 @@ export default defineConfig({
             return 'socket';
           }
 
-          if (id.includes('react')) {
+          if (/[\\/]node_modules[\\/](react|react-dom)[\\/]/.test(id)) {
             return 'react-vendor';
           }
 
