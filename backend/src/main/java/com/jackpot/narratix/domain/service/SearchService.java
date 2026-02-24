@@ -29,7 +29,8 @@ public class SearchService {
     private final ScrapRepository scrapRepository;
     private final CoverLetterRepository coverLetterRepository;
     private final QnARepository qnARepository;
-
+    
+    @Transactional(readOnly = true)
     public SearchScrapResponse searchScrap(
             String userId, String searchWord, Integer size, Long lastQnaId
     ) {
