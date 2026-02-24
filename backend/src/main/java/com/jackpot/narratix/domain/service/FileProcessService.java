@@ -1,11 +1,11 @@
 package com.jackpot.narratix.domain.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jackpot.narratix.domain.entity.LabeledQnA;
 import com.jackpot.narratix.domain.entity.UploadFile;
 import com.jackpot.narratix.domain.entity.UploadJob;
 import com.jackpot.narratix.domain.entity.enums.UploadStatus;
 import com.jackpot.narratix.domain.repository.UploadFileRepository;
+import com.jackpot.narratix.domain.repository.UploadJobRepository;
 import com.jackpot.narratix.domain.service.dto.LabeledQnARequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +25,7 @@ public class FileProcessService {
 
     private final ObjectMapper objectMapper;
     private final UploadFileRepository uploadFileRepository;
+    private final UploadJobRepository uploadJobRepository;
     private final NotificationService notificationService;
 
     private static final int MAX_QNA_SIZE = 10;
@@ -100,10 +101,20 @@ public class FileProcessService {
         long successCount = uploadFileRepository.countByUploadJobIdAndStatus(job.getId(), UploadStatus.COMPLETED);
 
         if (failCount + successCount == totalCount) {
-            log.info("All files completed for Job: {}. Sending SSE Notification.", job.getId());
+            int updated = uploadJobRepository.markNotificationSentIfNotYet(job.getId());
 
-            notificationService.sendLabelingCompleteNotification(job.getUserId(), job.getId(), successCount, failCount);
+            if (updated == 1) {
+                log.info("All files completed for Job: {}. Sending SSE Notification.", job.getId());
+
+                notificationService.sendLabelingCompleteNotification(
+                        job.getUserId(),
+                        job.getId(),
+                        successCount,
+                        failCount
+                );
+            }
         }
+
     }
 }
 
