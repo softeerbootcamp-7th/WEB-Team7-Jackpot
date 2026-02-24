@@ -97,6 +97,7 @@ const CoverLetterContent = ({
     null,
   );
   const enterDuringCompositionRef = useRef(false);
+  const isProcessingReplaceAllRef = useRef(false);
 
   const handleSelectionChange = useCallback(
     (newSelection: SelectionInfo | null) => {
@@ -121,15 +122,6 @@ const CoverLetterContent = ({
     });
     reviewLastKnownRangesRef.current = nextLastKnownRanges;
   }, [reviews]);
-
-  const getFocusedCaretOffset = useCallback(() => {
-    if (!contentRef.current) return caretOffsetRef.current;
-    if (!contentRef.current.contains(document.activeElement)) {
-      return caretOffsetRef.current;
-    }
-    const { start } = getCaretPosition(contentRef.current);
-    return Number.isFinite(start) ? start : caretOffsetRef.current;
-  }, []);
 
   // qnAId가 바뀌거나 처음 로드될 때 API 초기 버전으로 ref 동기화
   useEffect(() => {
@@ -494,10 +486,9 @@ const CoverLetterContent = ({
     if (prevReplaceAllSignalRef.current === replaceAllSignal) return;
     prevReplaceAllSignalRef.current = replaceAllSignal;
 
+    isProcessingReplaceAllRef.current = true;
+
     const wasFocused = contentRef.current.contains(document.activeElement);
-    if (wasFocused) {
-      caretOffsetRef.current = getFocusedCaretOffset();
-    }
     const boundedOffset = Math.min(caretOffsetRef.current, text.length);
 
     isComposingRef.current = false;
@@ -511,12 +502,19 @@ const CoverLetterContent = ({
       rafId = window.requestAnimationFrame(() => {
         if (!contentRef.current) return;
         restoreCaret(contentRef.current, boundedOffset);
+        // DOM 업데이트 및 커서 복원 후, selectionchange 리스너가 다시 동작하도록 플래그를 해제합니다.
+        // 혹시 모를 race condition을 방지하기 위해 microtask로 처리합니다.
+        queueMicrotask(() => {
+          isProcessingReplaceAllRef.current = false;
+        });
       });
+    } else {
+      isProcessingReplaceAllRef.current = false;
     }
     return () => {
       if (rafId !== undefined) window.cancelAnimationFrame(rafId);
     };
-  }, [replaceAllSignal, text, clearComposingFlushTimer, getFocusedCaretOffset]);
+  }, [replaceAllSignal, text, clearComposingFlushTimer]);
 
   useEffect(() => {
     return bindUndoRedoShortcuts({
@@ -551,6 +549,36 @@ const CoverLetterContent = ({
       caretOffsetRef,
       enterDuringCompositionRef,
     });
+
+  const handleKeyDownWrapper = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      handleKeyDown(e); // 기존 핸들러 호출
+
+      // 방향키, Home/End 등 네비게이션 키 입력 시, 브라우저가 커서를 이동시킨 후
+      // requestAnimationFrame을 사용해 새로운 커서 위치를 추적한다.
+      if (
+        [
+          'ArrowUp',
+          'ArrowDown',
+          'ArrowLeft',
+          'ArrowRight',
+          'Home',
+          'End',
+          'PageUp',
+          'PageDown',
+        ].includes(e.key)
+      ) {
+        window.requestAnimationFrame(() => {
+          if (!contentRef.current) return;
+          const { start } = getCaretPosition(contentRef.current);
+          if (Number.isFinite(start)) {
+            caretOffsetRef.current = start;
+          }
+        });
+      }
+    },
+    [handleKeyDown],
+  );
 
   const { containerRef, before, after } = useTextSelection({
     text,
@@ -637,17 +665,28 @@ const CoverLetterContent = ({
       }
     }
     // 클릭 후 캐럿이 리뷰 끝 "내부"에 걸리면 첫 입력이 리뷰에 붙을 수 있다.
-    // selection 반영 이후 경계를 바깥으로 정규화한다.
+    // selection/caret 반영 이후 위치를 추적하고 경계를 정규화한다.
     window.requestAnimationFrame(() => {
-      if (isComposingRef.current) return;
+      if (isComposingRef.current || !contentRef.current) return;
+
+      const { start } = getCaretPosition(contentRef.current);
+      if (Number.isFinite(start)) {
+        caretOffsetRef.current = start;
+      }
       normalizeCaretAtReviewBoundary();
     });
   };
 
   const handleMouseUp = () => {
-    // 클릭/드래그 후 브라우저가 실제 캐럿 위치를 반영한 뒤 경계를 정규화한다.
+    // 드래그해서 selection을 만드는 로직은 reviewer에게만 필요.
+    // 여기서는 클릭/드래그 후 caret 위치를 추적하고 경계를 정규화한다.
     window.requestAnimationFrame(() => {
-      if (isComposingRef.current) return;
+      if (isComposingRef.current || !contentRef.current) return;
+
+      const { start } = getCaretPosition(contentRef.current);
+      if (Number.isFinite(start)) {
+        caretOffsetRef.current = start;
+      }
       normalizeCaretAtReviewBoundary();
     });
   };
@@ -670,7 +709,7 @@ const CoverLetterContent = ({
           aria-label='자기소개서 내용'
           suppressContentEditableWarning
           onInput={handleInput}
-          onKeyDown={handleKeyDown}
+          onKeyDown={handleKeyDownWrapper}
           onCopy={handleCopy}
           onPaste={handlePaste}
           onCompositionStart={handleCompositionStart}
