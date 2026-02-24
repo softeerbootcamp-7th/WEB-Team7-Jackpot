@@ -4,10 +4,12 @@ import com.jackpot.narratix.domain.controller.request.TextUpdateRequest;
 import com.jackpot.narratix.domain.controller.response.CoverLetterAndQnAIdsResponse;
 import com.jackpot.narratix.domain.controller.response.QnAVersionResponse;
 import com.jackpot.narratix.domain.controller.response.ShareLinkActiveResponse;
+import com.jackpot.narratix.domain.controller.response.WebSocketMessageResponse;
 import com.jackpot.narratix.domain.entity.CoverLetter;
 import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.ShareLink;
 import com.jackpot.narratix.domain.entity.enums.ReviewRoleType;
+import com.jackpot.narratix.domain.entity.enums.WebSocketMessageType;
 import com.jackpot.narratix.domain.exception.ShareLinkErrorCode;
 import com.jackpot.narratix.domain.repository.CoverLetterRepository;
 import com.jackpot.narratix.domain.repository.QnARepository;
@@ -33,8 +35,9 @@ public class ShareLinkService {
     private final CoverLetterRepository coverLetterRepository;
     private final QnARepository qnARepository;
     private final ShareLinkRepository shareLinkRepository;
-    private final ShareLinkLockManager shareLinkLockManager;
 
+    private final WebSocketMessageSender webSocketMessageSender;
+    private final ShareLinkLockManager shareLinkLockManager;
     private final ShareLinkSessionRegistry shareLinkSessionRegistry;
     private final TextDeltaService textDeltaService;
     private final TextSyncService textSyncService;
@@ -74,7 +77,12 @@ public class ShareLinkService {
     }
 
     private ShareLinkActiveResponse deactivateShareLink(Long coverLetterId) {
-        shareLinkRepository.findById(coverLetterId).ifPresent(ShareLink::deactivate);
+        Optional<ShareLink> shareLinkOpt = shareLinkRepository.findById(coverLetterId);
+        if (shareLinkOpt.isEmpty()) {
+            return ShareLinkActiveResponse.deactivate();
+            }
+        ShareLink shareLink = shareLinkOpt.get();
+        shareLink.deactivate();
         List<Long> qnAIds = qnARepository.findIdsByCoverLetterId(coverLetterId);
 
         // pending 델타를 DB에 저장
@@ -88,6 +96,10 @@ public class ShareLinkService {
             @Override
             public void afterCommit() {
                 qnAIds.forEach(textDeltaService::cleanupDeltaKeys);
+                qnAIds.forEach(qnAId -> webSocketMessageSender.sendMessageToShare(
+                        shareLink.getShareId(),
+                        new WebSocketMessageResponse(WebSocketMessageType.SHARE_LINK_DEACTIVATED, qnAId, null)
+                ));
             }
         });
 
