@@ -196,8 +196,14 @@ public class ReviewService {
     }
 
     public void validateOriginText(String originText, String currentAnswer, int start, int end) {
+        if(start > end) {
+            log.warn("리뷰 범위의 시작 인덱스가 끝 인덱스보다 큽니다. start={}, end={}", start, end);
+            throw new BaseException(ReviewErrorCode.REVIEW_TEXT_MISMATCH);
+        }
         String textAtRange = currentAnswer.substring(start, end);
         if (!textAtRange.equals(originText)) {
+            log.warn("리뷰 대상 텍스트가 현재 텍스트와 일치하지 않습니다. expected={}, actual={}, currentAnswer={}, start={}, end={}",
+                    originText, textAtRange, currentAnswer, start, end);
             throw new BaseException(ReviewErrorCode.REVIEW_TEXT_MISMATCH);
         }
     }
