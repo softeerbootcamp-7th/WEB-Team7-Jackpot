@@ -89,11 +89,16 @@ export const useTextSelection = ({
   const scrollIntoViewAndSetSelection = useCallback(
     (range: Range, text: string) => {
       if (!containerRef.current) return;
+      if (selectionTimeoutRef.current !== null) {
+        window.clearTimeout(selectionTimeoutRef.current);
+        selectionTimeoutRef.current = null;
+      }
 
       const rects = range.getClientRects();
       if (rects.length === 0) {
         const modalInfo = calculateModalInfo(containerRef.current, range, text);
         if (modalInfo) onSelectionChange(modalInfo);
+        selectionTimeoutRef.current = null;
         return;
       }
 
@@ -218,16 +223,13 @@ export const useTextSelection = ({
       return;
     }
 
-    const rects = domRange.getClientRects();
-    if (rects.length === 0) return;
-
-    const firstRect = rects[0];
-    const lastLineRect = rects[rects.length - 1];
-    const containerRect = containerRef.current.getBoundingClientRect();
-
-    const selectionHeight = lastLineRect.bottom - firstRect.top;
-    const modalTop = containerRect.top + selectionHeight + 10;
-    const modalLeft = lastLineRect.left;
+    const modalInfo = calculateModalInfo(
+      containerRef.current,
+      domRange,
+      text.slice(start, end),
+    );
+    if (!modalInfo) return;
+    const { modalTop, modalLeft } = modalInfo;
 
     if (
       Math.abs(modalTop - selection.modalTop) < 1 &&
