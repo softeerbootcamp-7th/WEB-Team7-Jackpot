@@ -144,7 +144,7 @@ const LabelingResultHeader = ({
           <button
             type='button'
             onClick={handleSaveClick}
-            className='cursor-pointer rounded-lg bg-gray-900 px-5 py-3 text-lg font-bold text-white'
+            className='cursor-pointer rounded-lg hover:bg-gray-700 transition-colors duration-200 bg-gray-900 px-5 py-3 text-lg font-bold text-white'
           >
             저장하기
           </button>

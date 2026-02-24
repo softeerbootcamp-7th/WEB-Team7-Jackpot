@@ -30,7 +30,7 @@ const SidebarCard = ({ item, isScrap, deleteScrap, onClick }: CardProps) => {
       onClick={onClick}
       role='button'
       tabIndex={0}
-      className='flex cursor-pointer flex-col items-start justify-start gap-3 self-stretch outline-none'
+      className='flex w-full cursor-pointer flex-col items-start justify-start gap-3 self-stretch rounded-lg transition-colors duration-200 outline-none hover:bg-gray-50'
       onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onClick()}
     >
       <div className='flex flex-col items-start justify-start self-stretch px-3'>

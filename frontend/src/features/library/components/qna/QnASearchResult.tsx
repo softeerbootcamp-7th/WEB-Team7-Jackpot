@@ -71,7 +71,7 @@ const QnASearchResult = ({
                 <NavLink
                   to={`/library/qna/${encodeURIComponent(libName)}`}
                   key={libName}
-                  className='inline-flex w-28 shrink-0 flex-col items-center justify-center gap-2.5 px-3 pt-5 pb-4'
+                  className='inline-flex w-28 shrink-0 hover:bg-gray-100 rounded-lg transition-colors duration-200 flex-col items-center justify-center gap-2.5 px-3 pt-5 pb-4'
                 >
                   <div className='relative flex flex-col items-center'>
                     <LII.LibraryFolder />
@@ -114,7 +114,7 @@ const QnASearchResult = ({
               <NavLink
                 key={qna.qnAId}
                 to={`/library/qna/${qna.questionCategoryType}/${qna.qnAId}`}
-                className='flex w-full cursor-pointer flex-col items-start justify-start gap-3 border-b border-gray-200 px-3 py-5 text-left transition-colors hover:bg-gray-50'
+                className='flex w-full cursor-pointer flex-col items-start justify-start gap-3 rounded-lg border-b border-gray-200 px-3 py-5 text-left transition-colors duration-200 hover:bg-gray-50'
               >
                 <div className='inline-flex w-full items-center justify-between'>
                   <div className='flex flex-1 items-center justify-start gap-1'>

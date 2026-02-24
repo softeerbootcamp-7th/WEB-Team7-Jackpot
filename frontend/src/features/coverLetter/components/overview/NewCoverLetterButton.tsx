@@ -8,7 +8,7 @@ const NewCoverLetterButton = () => {
       to='/cover-letter/new'
       className='inline-flex cursor-pointer items-center justify-start gap-6'
     >
-      <div className='flex items-center justify-center gap-1.5 rounded-lg bg-gray-900 py-3 pr-5 pl-4'>
+      <div className='flex items-center justify-center gap-1.5 rounded-lg hover:bg-gray-700 transition-colors duration-200 bg-gray-900 py-3 pr-5 pl-4'>
         <div className='h-6 w-6'>
           <SI.PlusIcon className='text-white' />
         </div>

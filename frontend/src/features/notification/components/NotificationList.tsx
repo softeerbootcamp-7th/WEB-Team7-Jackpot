@@ -78,7 +78,7 @@ const NotificationList = ({ handleDropdown }: NotificationListProps) => {
                 handleDropdown(false);
               }}
               key={each.id}
-              className='w-full cursor-pointer rounded-md py-[0.875rem] text-left text-[0.813rem] font-medium text-gray-700 hover:bg-gray-50'
+              className='w-full cursor-pointer rounded-md py-[0.875rem] text-left text-[0.813rem] font-medium text-gray-700 transition-colors duration-200 hover:bg-gray-50'
             >
               <NotificationItem data={each} />
             </button>

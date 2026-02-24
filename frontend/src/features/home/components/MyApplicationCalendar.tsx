@@ -16,20 +16,24 @@ const MyApplicationCalendar = () => {
   return (
     <div className='inline-flex w-96 flex-col items-start justify-start gap-6'>
       {/* 헤더 영역 */}
-      <div className='inline-flex items-center justify-between self-stretch'>
-        <div className='flex items-center justify-start gap-2.5'>
-          <div className='h-7 w-7'>
-            <HI.CalendarIcon />
+      <Link
+        to={'/recruit'}
+        aria-label={MY_APPLICATION_CALENDAR_ARIA_LABEL}
+        className='block w-full'
+      >
+        <div className='inline-flex w-full cursor-pointer items-center justify-between self-stretch rounded-lg p-2 transition-colors hover:bg-gray-100'>
+          <div className='flex items-center justify-start gap-2.5'>
+            <div className='h-7 w-7'>
+              <HI.CalendarIcon />
+            </div>
+            <h2 className='text-xl leading-9 font-bold text-gray-950'>
+              {MY_APPLICATION_CALENDAR_TITLE}
+            </h2>
           </div>
-          <h2 className='justify-start text-xl leading-9 font-bold text-gray-950'>
-            {MY_APPLICATION_CALENDAR_TITLE}
-          </h2>
-        </div>
-        <Link to={'/recruit'} aria-label={MY_APPLICATION_CALENDAR_ARIA_LABEL}>
-          <SI.RightArrow size='lg' aria-hidden='true' />
-        </Link>
-      </div>
 
+          <SI.RightArrow size='lg' aria-hidden='true' />
+        </div>
+      </Link>
       {/* 캘린더 영역 */}
       <div className='flex w-full flex-col items-start justify-start gap-1 self-stretch'>
         {/* 요일 헤더 */}
