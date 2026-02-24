@@ -79,7 +79,7 @@ const UploadPage = () => {
     return 1;
   };
 
-  const isFailed = Boolean(location.state && (location.state).isFailed);
+  const isFailed = Boolean(location.state && location.state.isFailed);
 
   const currentStep = getCurrentStep();
   const stepProp =
@@ -89,7 +89,7 @@ const UploadPage = () => {
     <div>
       <div className='mb-12 h-screen px-75 select-none'>
         <div className='mb-12'>
-          <UploadLayoutHeader />
+          <ContentHeader {...uploadHeaderText} />
           <StepItem step={stepProp} />
         </div>
         <Outlet />
