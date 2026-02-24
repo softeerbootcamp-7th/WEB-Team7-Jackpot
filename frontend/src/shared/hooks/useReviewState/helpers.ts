@@ -290,8 +290,21 @@ export const updateSelectionForTextChange = (
     };
   }
 
-  // 변경 영역이 selection을 완전히 포함 → 취소
-  if (changeStart <= start && changeEnd >= end) return null;
+  // 변경 영역이 selection을 완전히 포함
+  if (changeStart <= start && changeEnd >= end) {
+    // 순수 삭제인 경우만 취소
+    if (newLength === 0) return null;
+    // 교체인 경우: 원래 선택 길이만큼 새 범위로 유지 (드래그 모달 보존)
+    const selLen = end - start;
+    const newEnd = changeStart + Math.min(newLength, selLen);
+    if (newEnd <= changeStart) return null;
+    return {
+      ...selection,
+      range: { start: changeStart, end: newEnd },
+      selectedText: newText.slice(changeStart, newEnd),
+      lineEndIndex: newEnd,
+    };
+  }
 
   // 이하: 부분 겹침 처리
   // spec 2.2: 원문이 모두 삭제된 경우에만 드래그가 풀린다.

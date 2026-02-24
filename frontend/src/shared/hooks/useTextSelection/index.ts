@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+} from 'react';
 
 import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
 import {
@@ -80,6 +86,64 @@ export const useTextSelection = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const selectionTimeoutRef = useRef<number | null>(null);
 
+  const scrollIntoViewAndSetSelection = useCallback(
+    (range: Range, text: string) => {
+      if (!containerRef.current) return;
+
+      const rects = range.getClientRects();
+      if (rects.length === 0) {
+        const modalInfo = calculateModalInfo(containerRef.current, range, text);
+        if (modalInfo) onSelectionChange(modalInfo);
+        return;
+      }
+
+      // 텍스트 인덱스를 지금 추출 (300ms 후에는 DOM이 바뀌어 range가 무효화될 수 있음)
+      const { start, end } = rangeToTextIndices(containerRef.current, range);
+
+      const firstRect = rects[0];
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const offset = firstRect.top - containerRect.top;
+      const desiredScrollTop = containerRef.current.scrollTop + offset;
+
+      containerRef.current.style.overflowY = 'auto';
+      containerRef.current.scrollTo({
+        top: Math.max(0, Math.floor(desiredScrollTop)),
+        behavior: 'smooth',
+      });
+
+      selectionTimeoutRef.current = window.setTimeout(() => {
+        if (!containerRef.current) return;
+        containerRef.current.style.removeProperty('overflowY');
+
+        // 저장해 둔 텍스트 인덱스로 새 Range 생성 (DOM 변경에 안전)
+        const startPos = findNodeAtIndex(containerRef.current, start);
+        const endPos = findNodeAtIndex(containerRef.current, end);
+        if (startPos && endPos) {
+          try {
+            const freshRange = document.createRange();
+            freshRange.setStart(startPos.node, startPos.offset);
+            freshRange.setEnd(endPos.node, endPos.offset);
+            const modalInfo = calculateModalInfo(
+              containerRef.current,
+              freshRange,
+              text,
+            );
+            if (modalInfo) {
+              onSelectionChange(modalInfo);
+              return;
+            }
+          } catch {
+            // range 생성 실패 시 아래 fallback으로
+          }
+        }
+        // fallback: 원본 range로 재시도
+        const modalInfo = calculateModalInfo(containerRef.current, range, text);
+        if (modalInfo) onSelectionChange(modalInfo);
+      }, 300);
+    },
+    [onSelectionChange],
+  );
+
   useEffect(() => {
     return () => {
       if (selectionTimeoutRef.current !== null) {
@@ -91,7 +155,6 @@ export const useTextSelection = ({
   // editingReview 처리
   useEffect(() => {
     if (!editingReview || !containerRef.current) return;
-    let timeoutId: number | undefined;
 
     const { range, originText } = editingReview;
     if (range.start < 0 || range.end < 0 || range.start >= range.end) {
@@ -110,42 +173,71 @@ export const useTextSelection = ({
     domRange.setStart(startPos.node, startPos.offset);
     domRange.setEnd(endPos.node, endPos.offset);
 
-    // 편집 모드일 때는 먼저 스크롤을 맞춘 뒤 모달 위치를 재계산하여 전달
-    const editRects = domRange.getClientRects();
-    if (editRects.length > 0) {
-      const firstRect = editRects[0];
-      const containerRect = containerRef.current.getBoundingClientRect();
-      const offset = firstRect.top - containerRect.top;
-      const desiredScrollTop = containerRef.current.scrollTop + offset;
-
-      containerRef.current.style.overflowY = 'auto';
-      containerRef.current.scrollTo({
-        top: Math.max(0, Math.floor(desiredScrollTop)),
-        behavior: 'smooth',
-      });
-
-      timeoutId = window.setTimeout(() => {
-        containerRef.current?.style.removeProperty('overflowY');
-        const modalInfoAfter = calculateModalInfo(
-          containerRef.current!,
-          domRange,
-          originText,
-        );
-        if (modalInfoAfter) onSelectionChange(modalInfoAfter);
-      }, 300);
-    } else {
-      const modalInfo = calculateModalInfo(
-        containerRef.current,
-        domRange,
-        originText,
-      );
-      if (modalInfo) onSelectionChange(modalInfo);
-    }
+    scrollIntoViewAndSetSelection(domRange, originText);
 
     return () => {
-      if (timeoutId) window.clearTimeout(timeoutId);
+      if (selectionTimeoutRef.current) {
+        window.clearTimeout(selectionTimeoutRef.current);
+      }
     };
-  }, [editingReview, onSelectionChange]);
+  }, [editingReview, onSelectionChange, scrollIntoViewAndSetSelection]);
+
+  // selection.range가 바뀔 때마다 DOM에서 modalTop/modalLeft를 즉시 재계산
+  const lastRecalcRangeRef = useRef<{ start: number; end: number } | null>(
+    null,
+  );
+  const lastRecalcTextRef = useRef(text);
+
+  useLayoutEffect(() => {
+    if (!selection || !containerRef.current) {
+      lastRecalcRangeRef.current = null;
+      return;
+    }
+
+    const { start, end } = selection.range;
+    const textChanged = lastRecalcTextRef.current !== text;
+
+    // 같은 range이고 텍스트도 변경되지 않았으면 이미 계산했으므로 건너뜀 (무한 루프 방지)
+    const last = lastRecalcRangeRef.current;
+    if (!textChanged && last && last.start === start && last.end === end)
+      return;
+
+    lastRecalcRangeRef.current = { start, end };
+    lastRecalcTextRef.current = text;
+
+    const startPos = findNodeAtIndex(containerRef.current, start);
+    const endPos = findNodeAtIndex(containerRef.current, end);
+    if (!startPos || !endPos) return;
+
+    let domRange: Range;
+    try {
+      domRange = document.createRange();
+      domRange.setStart(startPos.node, startPos.offset);
+      domRange.setEnd(endPos.node, endPos.offset);
+    } catch {
+      return;
+    }
+
+    const rects = domRange.getClientRects();
+    if (rects.length === 0) return;
+
+    const firstRect = rects[0];
+    const lastLineRect = rects[rects.length - 1];
+    const containerRect = containerRef.current.getBoundingClientRect();
+
+    const selectionHeight = lastLineRect.bottom - firstRect.top;
+    const modalTop = containerRect.top + selectionHeight + 10;
+    const modalLeft = lastLineRect.left;
+
+    if (
+      Math.abs(modalTop - selection.modalTop) < 1 &&
+      Math.abs(modalLeft - selection.modalLeft) < 1
+    ) {
+      return;
+    }
+
+    onSelectionChange({ ...selection, modalTop, modalLeft });
+  }, [selection, onSelectionChange, text]);
 
   // 하이라이트 적용
   const highlights = useMemo(
@@ -184,51 +276,8 @@ export const useTextSelection = ({
     }
 
     const selectedText = sel.toString();
-    const rects = range.getClientRects();
-
-    if (rects.length > 0) {
-      const firstRect = rects[0];
-      const lastLineRect = rects[rects.length - 1];
-      const containerRect = containerRef.current.getBoundingClientRect();
-
-      const lineEndIndex = findLineEndIndex(
-        containerRef.current,
-        end,
-        lastLineRect.bottom,
-      );
-
-      const offset = firstRect.top - containerRect.top;
-      const desiredScrollTop = containerRef.current.scrollTop + offset;
-
-      const selectionHeight = lastLineRect.bottom - firstRect.top;
-      const modalTop = containerRect.top + selectionHeight + 10;
-      const modalLeft = lastLineRect.left;
-
-      containerRef.current.style.overflowY = 'auto';
-      containerRef.current.scrollTo({
-        top: Math.max(0, Math.floor(desiredScrollTop)),
-        behavior: 'smooth',
-      });
-
-      selectionTimeoutRef.current = window.setTimeout(() => {
-        containerRef.current?.style.removeProperty('overflowY');
-        onSelectionChange({
-          selectedText,
-          range: { start, end },
-          modalTop,
-          modalLeft,
-          lineEndIndex,
-        });
-      }, 300);
-    } else {
-      const modalInfo = calculateModalInfo(
-        containerRef.current,
-        range,
-        selectedText,
-      );
-      if (modalInfo) onSelectionChange(modalInfo);
-    }
-  }, [reviews, onSelectionChange, showToast]);
+    scrollIntoViewAndSetSelection(range, selectedText);
+  }, [reviews, showToast, scrollIntoViewAndSetSelection]);
 
   const { before, after } = useMemo(() => {
     if (!selection) {

@@ -357,10 +357,11 @@ export const useReviewState = ({
       };
 
       setEditedAnswers((prev) => ({ ...prev, [targetQnaId]: cleaned }));
+      const change = calculateTextChange(oldText, cleaned);
+
       setReviewsByQnaId((prevReviews) => {
         const baseReviews = getLatestReviews(prevReviews, targetQnaId);
         if (taggedRanges.length === 0) {
-          const change = calculateTextChange(oldText, cleaned);
           const nextReviews = updateReviewRanges(
             baseReviews,
             change.changeStart,
@@ -386,7 +387,16 @@ export const useReviewState = ({
         };
       });
 
-      setSelection(null);
+      setSelection((prev) => {
+        if (!prev) return null;
+        return updateSelectionForTextChange(
+          prev,
+          change.changeStart,
+          change.oldLength,
+          change.newLength,
+          cleaned,
+        );
+      });
       setVersionByQnaId((prev) => ({ ...prev, [targetQnaId]: version }));
       setReplaceAllSignalByQnaId((prev) => ({
         ...prev,
