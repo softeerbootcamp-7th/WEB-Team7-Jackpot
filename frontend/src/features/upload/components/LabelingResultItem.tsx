@@ -158,9 +158,7 @@ const LabelingResultItem = ({
 
             <LabeledSelectInput
               label='문항 유형'
-              value={
-                data.coverLetters[tabState].qnAs[qnAState].questionCategory
-              }
+              value={currentQnA?.questionCategory || ''}
               constantData={QUESTION_TYPE_LIST}
               handleChange={(value) =>
                 updateContents(tabState, 'questionType', value)
@@ -187,8 +185,8 @@ const LabelingResultItem = ({
           onChangeQnA={(index, field, value) =>
             updateQnA(tabState, index, field, value)
           }
-       isInitialQuestionFailure={isInitialQuestionFailure}
-        isInitialAnswerFailure={isInitialAnswerFailure}
+          isInitialQuestionFailure={isInitialQuestionFailure}
+          isInitialAnswerFailure={isInitialAnswerFailure}
         />
       </div>
     </div>

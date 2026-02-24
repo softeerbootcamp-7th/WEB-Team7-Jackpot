@@ -11,6 +11,7 @@ import { useSaveCoverLetter } from '@/features/upload/hooks/useUploadQueries';
 import * as UI from '@/features/upload/icons';
 import type { ContentStateType } from '@/features/upload/types/upload';
 import ConfirmModal from '@/shared/components/ConfirmModal';
+import { parseDate } from '@/shared/utils/dates';
 
 interface LabelingResultHeaderProps {
   nextStep?: (step: string) => void;
@@ -50,6 +51,9 @@ const LabelingResultHeader = ({
 
       if (!userInput.companyName?.trim()) missingFields.push(`${prefix}기업명`);
       if (!userInput.jobPosition?.trim()) missingFields.push(`${prefix}직무명`);
+      // 제출일(마감일) 필수 검사: 연/월/일 중 하나라도 비어있으면 오류
+      const { y: dlY, m: dlM, d: dlD } = parseDate(userInput.deadline);
+      if (!dlY || !dlM || !dlD) missingFields.push(`${prefix}제출일`);
 
       letter.qnAs.forEach((qna, qIdx) => {
         const qPrefix = `${prefix}${qIdx + 1}번 문항의 `;
@@ -97,7 +101,7 @@ const LabelingResultHeader = ({
           // 찾은 객체가 있으면 영어 value를 사용하고 없으면 원본값 안전장치
           const finalQuestionCategory = matchedCategory
             ? matchedCategory.value
-            : originalCategoryKOR;
+            : 'OTHER';
 
           return {
             question: qna.question,
@@ -132,7 +136,7 @@ const LabelingResultHeader = ({
               <span className='text-purple-500'>
                 {TAB_STATE[Number(tabState)]?.label || '첫 번째'}
               </span>
-              자기소개서는 총
+              {' 자기소개서는 총'}
               <span className='text-purple-500'> {qnACount}개</span>의 문항으로
               분류되었어요!
             </div>

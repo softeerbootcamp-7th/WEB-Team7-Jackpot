@@ -43,7 +43,7 @@ export interface NotificationCountResponse {
 export interface QnAType {
   question: string;
   answer: string;
-  questionCategory: string;
+  questionCategory?: string;
   answerSize: number;
 }
 

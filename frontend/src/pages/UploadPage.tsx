@@ -69,13 +69,18 @@ const UploadPage = () => {
     return 1;
   };
 
+  const isFailed = Boolean(location.state && (location.state).isFailed);
+
   const currentStep = getCurrentStep();
+  const stepProp =
+    currentStep === 3 && isFailed ? '3-error' : String(currentStep);
+
   return (
     <div>
       <div className='mb-12 h-screen px-75 select-none'>
         <div className='mb-12'>
           <UploadLayoutHeader />
-          <StepItem step={currentStep.toString()} />
+          <StepItem step={stepProp} />
         </div>
         <Outlet />
       </div>
