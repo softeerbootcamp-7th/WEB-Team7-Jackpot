@@ -107,23 +107,21 @@ public class FileProcessService {
 
             if (updated == 1) {
                 log.info("All files completed for Job: {}. Sending SSE Notification.", job.getId());
-
-                TransactionSynchronizationManager.registerSynchronization(
-                        new TransactionSynchronization() {
-                            @Override
-                            public void afterCommit() {
-                                notificationService.sendLabelingCompleteNotification(
-                                        job.getUserId(),
-                                        job.getId(),
-                                        successCount,
-                                        failCount
-                                );
-                            }
-                        }
-                );
+                executeAfterCommit(() -> notificationService.sendLabelingCompleteNotification(
+                        job.getUserId(), job.getId(), successCount, failCount
+                ));
             }
         }
 
+    }
+
+    private void executeAfterCommit(Runnable runnable) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                runnable.run();
+            }
+        });
     }
 }
 
