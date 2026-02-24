@@ -39,11 +39,12 @@ public class QnA extends BaseTimeEntity {
     private QuestionCategoryType questionCategory;
 
     @NotNull
-    @Column(name = "question", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "question", nullable = false, columnDefinition = "TEXT", length = 20000)
+    @Size(max = 20000, message = "질문은 최대 20,000자까지 입력 가능합니다.")
     private String question;
 
     @Nullable
-    @Column(name = "answer", nullable = true, columnDefinition = "TEXT")
+    @Column(name = "answer", nullable = true, columnDefinition = "TEXT", length = 20000)
     @Size(max = 20000, message = "답변은 최대 20,000자까지 입력 가능합니다.")
     private String answer;
 
