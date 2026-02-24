@@ -280,7 +280,7 @@
 | 박소민 | Frontend        | 라이브러리(기업·문항) / 나의 채용공고(캘린더) / 자기소개서 작성 (랜딩 페이지 및 검색)        |
 | 윤종근 | Frontend        | 실시간 첨삭, 실시간 알림, 자료 업로드             |
 | 김승환 | Backend & Infra | WebSocket 실시간 첨삭, SSE 알림, 자기소개서, 첨삭 링크 관리 |
-| 이정민 | Backend & Infra | 자료 업로드, 라이브러리, 검색                  |
+| 이정민 | Backend & Infra | 자료 업로드, 라이브러리, 검색 , aws 인프라 구축                  |
 ---
 
 ### 강유진 (Frontend)
@@ -326,13 +326,15 @@
 
 ### 이정민 (Backend & Infra)
 
-- **자료 업로드 관련 기능 및 인프라 구축**:  AWS S3, Lambda, SQS를 조합한 비동기 아키텍처 설계, (S3업로드 -> lambda 호출 -> pdf 추출 -> ai라벨링 -> SSE 실시간 알림) 로직 구현
+- **자료 업로드 관련 기능 및 인프라 구축**:  AWS S3, Lambda, SQS를 조합한 비동기 아키텍처 설계 및 구축, (S3업로드 -> lambda 호출 -> pdf 추출 -> ai라벨링 -> SSE 실시간 알림) 로직 구현
 - **라이브러리 & 스크랩 기능**: 라이브러리, 문항 스크랩 기능의 비즈니스 로직을 구현
-- **검색 기능**: 자기소개서 및 문항 대상 검색 기능 구현 및 최적화
+- **검색 기능**: 자기소개서 및 문항 대상 검색 기능 구현 및 전문 검색을 도입한 최적화
 - **Auth 로직 구현**: JWT 기반 로그인, 로그아웃 등 전반적인 사용자 인증 관련 로직을 구현
 
-:page_facing_up: 관련 문서: **[pdf업로드 및 AI 라벨링 기능을 위한 이벤트 기반 비동기 파이프라인](<https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EA%B3%A0%EB%AF%BC%5D-pdf%EC%97%85%EB%A1%9C%EB%93%9C-%EB%B0%8F-AI-%EB%9D%BC%EB%B2%A8%EB%A7%81-%EA%B8%B0%EB%8A%A5%EC%9D%84-%EC%9C%84%ED%95%9C-%EC%9D%B4%EB%B2%A4%ED%8A%B8-%EA%B8%B0%EB%B0%98-%EB%B9%84%EB%8F%99%EA%B8%B0-%ED%8C%8C%EC%9D%B4%ED%94%84%EB%9D%BC%EC%9D%B8>)**
+:page_facing_up: 관련 문서: 
+**[pdf업로드 및 AI 라벨링 기능을 위한 이벤트 기반 비동기 파이프라인](<https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EA%B3%A0%EB%AF%BC%5D-pdf%EC%97%85%EB%A1%9C%EB%93%9C-%EB%B0%8F-AI-%EB%9D%BC%EB%B2%A8%EB%A7%81-%EA%B8%B0%EB%8A%A5%EC%9D%84-%EC%9C%84%ED%95%9C-%EC%9D%B4%EB%B2%A4%ED%8A%B8-%EA%B8%B0%EB%B0%98-%EB%B9%84%EB%8F%99%EA%B8%B0-%ED%8C%8C%EC%9D%B4%ED%94%84%EB%9D%BC%EC%9D%B8>)**
 
+**[검색 최적화 (Full‐Text Search 도입)](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9D%B4%EC%A0%95%EB%AF%BC%5D-%E2%80%90-%EC%8A%A4%ED%81%AC%EB%9E%A9-%EB%82%B4-QnA-%EA%B2%80%EC%83%89-%EC%B5%9C%EC%A0%81%ED%99%94-(Full%E2%80%90Text-Search-%EB%8F%84%EC%9E%85))**
 
 ## 🚀 기술적 도전 (Top Picks)
 
@@ -348,7 +350,6 @@
 ### Backend & Infra
 
 - **[[고민] Refresh Token Rotation (RTR) 및 보안 전략](<https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9D%B4%EC%A0%95%EB%AF%BC%5D-%E2%80%90-Refresh-Token-Rotation-(RTR)-%EB%B0%8F-%EB%B3%B4%EC%95%88-%EC%A0%84%EB%9E%B5>)**
-  - 토큰 탈취 공격에 대응하기 위해 RTR 전략을 도입하고, 동시 요청 시 발생하는 Race Condition 문제를 해결하며 시스템 보안을 강화했습니다.
 - [[고민] - WebSocket vs. SSE](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EA%B9%80%EC%8A%B9%ED%99%98%5D-%E2%80%90-Websocket-vs.-SSE)
 	- 실시간 문서 첨삭 기능 구현 시 SSE와 WebSocket의 트레이드오프를 분석하고, 인프라 통합과 향후 기능 확장성을 고려해 STOMP 기반의 WebSocket으로 통신 아키텍처를 통일한 과정입니다.
 
@@ -356,6 +357,8 @@
   - 업로드 관련 로직 최종 정리 버전입니다.
 - **[[고민] 비동기 이벤트 아키텍처 개선기](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EA%B9%80%EC%8A%B9%ED%99%98%5D-%EB%B9%84%EB%8F%99%EA%B8%B0-%EC%9D%B4%EB%B2%A4%ED%8A%B8-%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98-%EA%B0%9C%EC%84%A0%EA%B8%B0)**
   - 업로드 관련 로직 아키텍처를 구상하고 개선해나간 기록입니다.
+
+- **[검색 최적화 (Full‐Text Search 도입)](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9D%B4%EC%A0%95%EB%AF%BC%5D-%E2%80%90-%EC%8A%A4%ED%81%AC%EB%9E%A9-%EB%82%B4-QnA-%EA%B2%80%EC%83%89-%EC%B5%9C%EC%A0%81%ED%99%94-(Full%E2%80%90Text-Search-%EB%8F%84%EC%9E%85))**
 ---
 
 ## 📚 문서 허브
