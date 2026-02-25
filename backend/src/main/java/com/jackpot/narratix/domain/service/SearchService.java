@@ -37,9 +37,10 @@ public class SearchService {
             String userId, String searchWord, Integer size, Long lastQnaId
     ) {
         String keyword = processSearchWord(searchWord);
+        String keywordWithWildcard = addWildCard(keyword);
 
         Slice<QnA> qnas = (keyword != null)
-                ? getSearchScraps(userId, keyword, lastQnaId, size)
+                ? getSearchScraps(userId, keywordWithWildcard, lastQnaId, size)
                 : getAllScraps(userId, lastQnaId, size);
 
         List<QnA> qnaList = qnas.getContent();
@@ -90,12 +91,13 @@ public class SearchService {
         }
 
         String keyword = processSearchWord(searchWord);
+        String keywordWithWildcard = addWildCard(keyword);
 
         List<QuestionCategoryType> questionLibraries = qnARepository.searchQuestionCategory(userId, keyword);
 
-        Slice<QnA> qnAs = qnARepository.searchQnA(userId, keyword, size, lastQnAId);
+        Slice<QnA> qnAs = qnARepository.searchQnA(userId, keywordWithWildcard, size, lastQnAId);
 
-        Long qnACount = qnARepository.countSearchQnA(userId, keyword);
+        Long qnACount = qnARepository.countSearchQnA(userId, keywordWithWildcard);
         return SearchLibraryAndQnAResponse.of(questionLibraries, qnACount, qnAs.getContent(), qnAs.hasNext());
     }
 
@@ -108,6 +110,11 @@ public class SearchService {
             throw new BaseException(SearchErrorCode.INVALID_SEARCH_KEYWORD);
         }
         return keyword;
+    }
+
+    private String addWildCard(String keyword) {
+        if (keyword == null) return null;
+        return keyword + "*";
     }
 }
 
