@@ -15,6 +15,7 @@ import com.jackpot.narratix.domain.event.ReviewCreatedEvent;
 import com.jackpot.narratix.domain.event.ReviewDeleteEvent;
 import com.jackpot.narratix.domain.event.ReviewEditEvent;
 import com.jackpot.narratix.domain.event.TextReplaceAllEvent;
+import com.jackpot.narratix.domain.exception.QnAErrorCode;
 import com.jackpot.narratix.domain.exception.ReviewErrorCode;
 import com.jackpot.narratix.domain.exception.ReviewSyncRequiredException;
 import com.jackpot.narratix.domain.fixture.CoverLetterFixture;
@@ -1129,13 +1130,15 @@ class ReviewFacadeTest {
         given(qnAService.findByIdOrElseThrow(qnAId)).willReturn(qnA);
         given(textMerger.merge("DB답변", pendingDeltas)).willReturn("DB답변추가");
 
-        // when: recover 메서드 직접 호출
-        reviewFacade.recoverCreateReview(
+        // when: recover 메서드 직접 호출 (예외가 던져져야 함)
+        assertThatThrownBy(() -> reviewFacade.recoverCreateReview(
                 new com.jackpot.narratix.domain.exception.OptimisticLockException(),
                 "reviewer123",
                 qnAId,
                 new ReviewCreateRequest(1L, 0L, 10L, "원본", "수정", "피드백")
-        );
+        ))
+                .isInstanceOf(BaseException.class)
+                .hasFieldOrPropertyWithValue("errorCode", QnAErrorCode.OPTIMISTIC_LOCK_FAILURE);
 
         // then: pending delta 조회 확인
         verify(textSyncService, times(1)).getPendingDeltas(qnAId);

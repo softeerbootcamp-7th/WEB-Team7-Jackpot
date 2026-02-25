@@ -84,7 +84,7 @@ public class ReviewFacade {
                 if (!isHistoryRetained || !hasNoVersionGap) {
                     log.warn("OT 변환 실패: reviewerVersion={}, oldestDeltaVersion={}, mostRecentDeltaVersion={}, otDeltas={}",
                             reviewerVersion, oldestDeltaVersion, mostRecentDeltaVersion, otDeltas);
-                    throw new BaseException(ReviewErrorCode.REVIEW_VERSION_TOO_OLD);
+                    throw new ReviewSyncRequiredException(ReviewErrorCode.REVIEW_VERSION_TOO_OLD, qnAId);
                 }
 
                 try {
@@ -296,6 +296,7 @@ public class ReviewFacade {
     public void recoverCreateReview(OptimisticLockException e, String reviewerId, Long qnAId, ReviewCreateRequest request) {
         log.warn("리뷰 생성 재시도 실패 (OptimisticLock). 최신 QnA 값으로 TEXT_REPLACE_ALL 이벤트 발행. qnAId={}, reviewerId={}", qnAId, reviewerId);
         publishLatestQnAStateWithPendingDeltas(qnAId);
+        throw new BaseException(e.getErrorCode());
     }
 
     @Recover
@@ -310,12 +311,14 @@ public class ReviewFacade {
     public void recoverDeleteReview(OptimisticLockException e, String userId, Long qnAId, Long reviewId) {
         log.warn("리뷰 삭제 재시도 실패. 최신 QnA 값으로 TEXT_REPLACE_ALL 이벤트 발행. qnAId={}, reviewId={}, userId={}", qnAId, reviewId, userId);
         publishLatestQnAStateWithPendingDeltas(qnAId);
+        throw new BaseException(e.getErrorCode());
     }
 
     @Recover
     public void recoverApproveReview(OptimisticLockException e, String userId, Long qnAId, Long reviewId) {
         log.warn("리뷰 승인/취소 재시도 실패. 최신 QnA 값으로 TEXT_REPLACE_ALL 이벤트 발행. qnAId={}, reviewId={}, userId={}", qnAId, reviewId, userId);
         publishLatestQnAStateWithPendingDeltas(qnAId);
+        throw new BaseException(e.getErrorCode());
     }
 
     /**
