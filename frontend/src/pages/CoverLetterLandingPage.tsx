@@ -7,25 +7,58 @@ import CoverLetterOverviewSkeleton from '@/features/home/components/CoverLetterO
 import ErrorBoundary from '@/shared/components/ErrorBoundary';
 import SearchInput from '@/shared/components/SearchInput';
 import SectionError from '@/shared/components/SectionError';
-import useSearch from '@/shared/hooks/useSearch';
+import { useSearch } from '@/shared/hooks/useSearch';
 
 const CoverLetterLandingPage = () => {
   const [isFilterActive, setIsFilterActive] = useState(false);
 
-  //  URL 상태 동기화 및 검색 로직을 담당하는 커스텀 훅
+  // 1. 바뀐 useSearch 훅 적용 (페이지네이션 모드)
   const {
     keyword,
     handleChange,
     page: searchPage,
     handlePageChange: handleSearchPageChange,
-    currentQueryParam, // 디바운싱이 끝난 "진짜 검색어"
+    currentQueryParam,
+    isInitializing, // URL 파라미터 동기화 틈을 막아줄 상태
   } = useSearch({
     queryKey: 'keyword',
     pageKey: 'page',
+    mode: 'pagination',
   });
 
   const handleFilterToggle = () => {
     setIsFilterActive((prev) => !prev);
+  };
+
+  // 2. 메인 콘텐츠 렌더링 함수 분리 (가독성 및 방어 로직)
+  const renderContent = () => {
+    // URL과 상태가 동기화되는 찰나의 1프레임 동안 스켈레톤 표시 (깜빡임 완벽 차단)
+    if (isInitializing) {
+      return <CoverLetterOverviewSkeleton len={9} />;
+    }
+
+    return (
+      <ErrorBoundary
+        key={`${currentQueryParam}|${isFilterActive}`}
+        fallback={(reset) => (
+          <SectionError
+            onRetry={reset}
+            text='자기소개서 목록을 표시할 수 없습니다'
+          />
+        )}
+      >
+        <Suspense fallback={<CoverLetterOverviewSkeleton len={9} />}>
+          <div className='flex h-full w-full flex-1 flex-col pb-10'>
+            <OverviewSection
+              searchWord={currentQueryParam}
+              isFilterActive={isFilterActive}
+              page={searchPage || 1}
+              onPageChange={handleSearchPageChange}
+            />
+          </div>
+        </Suspense>
+      </ErrorBoundary>
+    );
   };
 
   return (
@@ -59,29 +92,9 @@ const CoverLetterLandingPage = () => {
         </div>
       </div>
 
-      {/* 2. 하단 리스트 영역 (페이지네이션 잘림 방지를 위해 flex-col과 overflow-y-auto 사용) */}
+      {/* 2. 하단 리스트 영역 */}
       <div className='flex flex-1 flex-col overflow-y-auto'>
-        <ErrorBoundary
-          key={`${currentQueryParam}|${isFilterActive}`}
-          fallback={(reset) => (
-            <SectionError
-              onRetry={reset}
-              text='자기소개서 목록을 표시할 수 없습니다'
-            />
-          )}
-        >
-          {/* React Query의 로딩 상태는 부모의 Suspense가 알아서 캐치합니다 */}
-          <Suspense fallback={<CoverLetterOverviewSkeleton len={9} />}>
-            <div className='flex h-full w-full flex-1 flex-col pb-10'>
-              <OverviewSection
-                searchWord={currentQueryParam}
-                isFilterActive={isFilterActive}
-                page={searchPage}
-                onPageChange={handleSearchPageChange}
-              />
-            </div>
-          </Suspense>
-        </ErrorBoundary>
+        {renderContent()}
       </div>
     </div>
   );

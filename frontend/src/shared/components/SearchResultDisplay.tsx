@@ -11,7 +11,6 @@ import * as SI from '@/shared/icons';
 interface SearchResultDisplayProps {
   keyword: string;
   data: QnASearchResponse | null;
-  isLoading: boolean;
   className?: string;
   renderLibraryItem: (libName: string) => ReactNode;
   renderQnAItem: (qna: QnAsSearchResponse) => ReactNode;
@@ -58,7 +57,6 @@ interface SearchResultDisplayProps {
 const SearchResultDisplay = ({
   keyword,
   data,
-  isLoading,
   className,
   renderLibraryItem,
   renderQnAItem,
@@ -74,16 +72,6 @@ const SearchResultDisplay = ({
     hasNextPage: hasNextPage ?? false,
     isFetchingNextPage: isFetchingNextPage ?? false,
   });
-  // 로딩 상태
-  if (isLoading) {
-    return (
-      <div
-        className={`flex items-center justify-center pt-20 ${className ?? ''}`}
-      >
-        <span className='text-gray-400'>검색 중...</span>
-      </div>
-    );
-  }
 
   // 검색어 없음
   if (!keyword) return null;
