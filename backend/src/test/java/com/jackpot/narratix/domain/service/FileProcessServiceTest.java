@@ -16,9 +16,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import tools.jackson.databind.ObjectMapper;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
@@ -46,6 +49,7 @@ class FileProcessServiceTest {
         if (!TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.initSynchronization();
         }
+        ReflectionTestUtils.setField(fileProcessService, "self", fileProcessService);
     }
 
     @AfterEach
@@ -57,13 +61,14 @@ class FileProcessServiceTest {
         UploadFile file = mock(UploadFile.class);
         UploadJob job = mock(UploadJob.class);
 
-        when(uploadFileRepository.findByIdOrElseThrow(fileId)).thenReturn(file);
+        when(uploadFileRepository.findByIdForUpdateOrElseThrow(fileId)).thenReturn(file);
 
         lenient().when(file.isFinalized()).thenReturn(false);
 
         lenient().when(file.getUploadJob()).thenReturn(job);
         lenient().when(job.getId()).thenReturn(jobId);
         lenient().when(job.getUserId()).thenReturn(userId);
+        lenient().when(uploadJobRepository.findById(jobId)).thenReturn(Optional.of(job));
 
         return file;
     }
@@ -97,7 +102,6 @@ class FileProcessServiceTest {
         // then
         verify(file, times(1)).successExtract(extractedText);
         verify(file, times(1)).successLabeling();
-        verify(uploadFileRepository, times(1)).flush();
 
         triggerAfterCommit();
         verify(notificationService, times(1))
@@ -145,7 +149,6 @@ class FileProcessServiceTest {
 
         // then
         verify(file, times(1)).failLabeling();
-        verify(uploadFileRepository, times(1)).flush();
 
         triggerAfterCommit();
         verify(notificationService, times(1))
@@ -171,7 +174,6 @@ class FileProcessServiceTest {
 
         // then
         verify(file, times(1)).failExtract();
-        verify(uploadFileRepository, times(1)).flush();
 
         triggerAfterCommit();
         verify(notificationService, times(1))
@@ -185,7 +187,7 @@ class FileProcessServiceTest {
         String fileId = "test-file";
         UploadFile file = mock(UploadFile.class);
 
-        when(uploadFileRepository.findByIdOrElseThrow(fileId)).thenReturn(file);
+        when(uploadFileRepository.findByIdForUpdateOrElseThrow(fileId)).thenReturn(file);
         when(file.isFinalized()).thenReturn(true);
 
         // when
@@ -193,7 +195,6 @@ class FileProcessServiceTest {
 
         // then
         verify(file, never()).successExtract(anyString());
-        verify(uploadFileRepository, never()).flush();
         verify(uploadJobRepository, never()).markNotificationSentIfNotYet(anyString());
     }
 
@@ -202,7 +203,8 @@ class FileProcessServiceTest {
     void throwException_when_fileNotFound() {
         // given
         String fileId = "no-file";
-        when(uploadFileRepository.findByIdOrElseThrow(fileId))
+
+        when(uploadFileRepository.findByIdForUpdateOrElseThrow(fileId))
                 .thenThrow(new BaseException(UploadErrorCode.FILE_NOT_FOUND));
 
         // when  then
