@@ -61,7 +61,7 @@ const PageGlobalHeader = () => {
             onClick={() => setIsProfileOpen(!isProfileOpen)}
           >
             <SI.UserAvatarIcon />
-            {isLoading || !userInfo ? (
+            {isLoading ? (
               <div className='h-5 w-16 animate-pulse rounded bg-gray-200' />
             ) : userInfo?.nickname ? (
               <span className='text-base font-medium text-gray-600'>
