@@ -112,8 +112,9 @@ public class SearchService {
         return keyword;
     }
 
-    private String addWildCard(String addWildCard) {
-        return addWildCard + "*";
+    private String addWildCard(String keyword) {
+        if (keyword == null) return null;
+        return keyword + "*";
     }
 }
 
