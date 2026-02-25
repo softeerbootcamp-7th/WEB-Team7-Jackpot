@@ -130,6 +130,22 @@ export const useCoverLetterDeleteFlow = ({
 
       caretOffsetRef.current = start + textToInsert.length;
 
+      // reviewLastKnownRangesRef를 갱신하여 이후 applyDeleteByDirection이
+      // 올바른 범위 정보를 사용할 수 있도록 한다.
+      const nextReviewLastKnownRanges: Record<
+        number,
+        { start: number; end: number }
+      > = {};
+      for (const r of reviewsRef.current) {
+        if (!deletedReviewIds.includes(r.id)) {
+          nextReviewLastKnownRanges[r.id] = {
+            start: r.range.start,
+            end: r.range.end,
+          };
+        }
+      }
+      reviewLastKnownRangesRef.current = nextReviewLastKnownRanges;
+
       updateText(newText, {
         reviewsForMapping: reviews,
         removeWholeReviewIds: deletedReviewIds,
@@ -146,6 +162,7 @@ export const useCoverLetterDeleteFlow = ({
       updateText,
       caretOffsetRef,
       isComposingRef,
+      reviewLastKnownRangesRef,
     ],
   );
 

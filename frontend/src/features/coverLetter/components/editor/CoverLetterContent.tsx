@@ -566,6 +566,13 @@ const CoverLetterContent = ({
           // 조합 문자가 사라진다. input 이벤트마다 현재 DOM text·caret을 저장해두고
           // replaceAll 처리 후 재적용한다.
           const domText = collectText(contentRef.current);
+          if (domText !== composingDOMTextRef.current) {
+            composingDOMTextRef.current = domText;
+            composingDOMCaretRef.current = getCaretPosition(
+              contentRef.current,
+            ).start;
+            onComposingLengthChange?.(domText.length);
+          }
           composingDOMTextRef.current = domText;
           composingDOMCaretRef.current = getCaretPosition(
             contentRef.current,
