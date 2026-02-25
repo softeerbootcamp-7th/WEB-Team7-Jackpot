@@ -14,7 +14,7 @@ const Question = ({ displayIndex, data, onChange, onRemove }: Props) => {
   const formattedIndex = String(displayIndex).padStart(2, '0');
 
   return (
-    <div className='group relative flex flex-col items-start justify-start gap-3 self-stretch rounded-lg bg-gray-50 px-5 pt-3.5 pb-5 transition-colors hover:bg-gray-100'>
+    <div className='group relative flex w-full flex-col items-start justify-start gap-3 rounded-lg bg-gray-50 px-5 pt-3.5 pb-5 transition-colors hover:bg-gray-100'>
       {onRemove && (
         <button
           type='button'
@@ -25,8 +25,8 @@ const Question = ({ displayIndex, data, onChange, onRemove }: Props) => {
         </button>
       )}
 
-      <div className='flex flex-col items-start justify-start gap-1.5 self-stretch'>
-        <div className='text-caption-m justify-start font-medium text-gray-600'>
+      <div className='flex w-full flex-col items-start justify-start gap-1.5'>
+        <div className='text-caption-m w-full justify-start font-medium text-gray-600'>
           질문 {formattedIndex}
         </div>
 
@@ -35,7 +35,7 @@ const Question = ({ displayIndex, data, onChange, onRemove }: Props) => {
           value={data.question}
           aria-label={`질문 ${formattedIndex} 내용`}
           onChange={(e) => onChange('question', e.target.value)}
-          className='text-body-s resize-none justify-start self-stretch bg-transparent font-normal text-gray-950 outline-none placeholder:text-gray-400'
+          className='text-body-s w-full resize-none justify-start bg-transparent font-normal text-gray-950 outline-none placeholder:text-gray-400'
           placeholder='자기소개서 질문을 입력해주세요'
           rows={2}
         />

@@ -32,9 +32,9 @@ const QuestionsSection = ({ questions, onQuestionsChange }: Props) => {
   };
 
   return (
-    <div className='flex w-full flex-col items-start justify-start gap-4 self-stretch'>
-      <div className='flex flex-col items-start justify-start gap-3 self-stretch'>
-        <div className='inline-flex items-start justify-start gap-3 self-stretch'>
+    <div className='flex w-full flex-col items-start justify-start gap-4'>
+      <div className='flex flex-col items-start justify-start gap-3'>
+        <div className='inline-flex items-start justify-start gap-3'>
           <div className='flex flex-1 items-center justify-start gap-0.5'>
             <div className='text-title-s justify-start font-bold text-gray-950'>
               자기소개서 질문
@@ -64,7 +64,7 @@ const QuestionsSection = ({ questions, onQuestionsChange }: Props) => {
       <button
         type='button'
         onClick={addQuestion}
-        className='inline-flex cursor-pointer items-center justify-center gap-1.5 self-stretch rounded-lg py-3 pr-5 pl-4 outline outline-1 outline-offset-[-1px] outline-gray-100 transition-colors hover:bg-gray-50'
+        className='inline-flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg py-3 pr-5 pl-4 outline outline-1 outline-offset-[-1px] outline-gray-100 transition-colors hover:bg-gray-50'
       >
         <div className='relative h-6 w-6'>
           <SI.PlusIcon className='text-gray-300' />

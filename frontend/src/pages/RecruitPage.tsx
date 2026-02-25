@@ -16,18 +16,18 @@ const RecruitPage = () => {
 
   return (
     <>
-      <div className='flex min-h-[calc(100vh-5.625rem)] w-full max-w-screen min-w-[1700px] flex-col px-75 pb-30'>
+      <div className='flex h-[calc(100vh-5.625rem)] w-full max-w-screen min-w-[1700px] flex-col overflow-hidden px-75 pb-30'>
         <div className='flex flex-row items-center justify-between'>
           <ContentHeader {...recruitHeaderText} />
           <NewRecruitButton onClick={actions.openNewForm} />
         </div>
 
-        <div className='flex flex-1 flex-row items-start gap-1'>
-          <div className='flex-none'>
+        <div className='flex flex-row gap-1 overflow-hidden'>
+          <div className='w-[730px] flex-none'>
             <CalendarContainer />
           </div>
 
-          <div className='flex-1 overflow-auto pl-4'>
+          <div className='h-full min-w-0 flex-1 pl-4'>
             {state.isFormOpen ? (
               <RecruitFormContainer
                 recruitId={state.editingRecruitId}
