@@ -15,7 +15,9 @@ import com.jackpot.narratix.domain.event.ReviewCreatedEvent;
 import com.jackpot.narratix.domain.event.ReviewDeleteEvent;
 import com.jackpot.narratix.domain.event.ReviewEditEvent;
 import com.jackpot.narratix.domain.event.TextReplaceAllEvent;
+import com.jackpot.narratix.domain.exception.QnAErrorCode;
 import com.jackpot.narratix.domain.exception.ReviewErrorCode;
+import com.jackpot.narratix.domain.exception.ReviewSyncRequiredException;
 import com.jackpot.narratix.domain.fixture.CoverLetterFixture;
 import com.jackpot.narratix.domain.fixture.QnAFixture;
 import com.jackpot.narratix.domain.fixture.ReviewFixture;
@@ -143,7 +145,7 @@ class ReviewFacadeTest {
         given(textSyncService.getCommittedDeltas(qnaId)).willReturn(Collections.emptyList());
         given(textSyncService.getPendingDeltas(qnaId)).willReturn(Collections.emptyList());
         given(textMerger.merge(originText, Collections.emptyList())).willReturn(originText);
-        doNothing().when(reviewService).validateOriginText(originText, originText, 0, 6);
+        doNothing().when(reviewService).validateOriginText(originText, originText, 0, 6, qnaId);
         given(reviewService.createReview(reviewerId, qnaId, request)).willReturn(savedReview);
         given(reviewService.addMarkerToReviewedSection(originText, 0, 6, 1L, originText))
                 .willReturn("⟦r:1⟧원본 텍스트⟦/r⟧");
@@ -220,7 +222,7 @@ class ReviewFacadeTest {
         given(textSyncService.getPendingDeltas(qnaId)).willReturn(pendingDeltas);
         given(otTransformer.transformRange(10, 12, otDeltas)).willReturn(new int[]{2, 4});
         given(textMerger.merge("AB원본CDEF", pendingDeltas)).willReturn("AB원본CDEF");
-        doNothing().when(reviewService).validateOriginText(originText, "AB원본CDEF", 2, 4);
+        doNothing().when(reviewService).validateOriginText(originText, "AB원본CDEF", 2, 4, qnaId);
         given(reviewService.createReview(reviewerId, qnaId, request)).willReturn(savedReview);
         given(reviewService.addMarkerToReviewedSection("AB원본CDEF", 2, 4, 1L, originText))
                 .willReturn("AB⟦r:1⟧원본⟦/r⟧CDEF");
@@ -272,7 +274,7 @@ class ReviewFacadeTest {
         given(textSyncService.getCommittedDeltas(qnaId)).willReturn(Collections.emptyList());
         given(textSyncService.getPendingDeltas(qnaId)).willReturn(Collections.emptyList());
         given(textMerger.merge("AB원본CD", Collections.emptyList())).willReturn("AB원본CD");
-        doNothing().when(reviewService).validateOriginText(originText, "AB원본CD", 2, 4);
+        doNothing().when(reviewService).validateOriginText(originText, "AB원본CD", 2, 4, qnaId);
         given(reviewService.createReview(reviewerId, qnaId, request)).willReturn(savedReview);
         given(reviewService.addMarkerToReviewedSection("AB원본CD", 2, 4, 99L, originText))
                 .willReturn("AB⟦r:99⟧원본⟦/r⟧CD");
@@ -387,8 +389,8 @@ class ReviewFacadeTest {
         given(textSyncService.getCommittedDeltas(qnaId)).willReturn(Collections.emptyList());
         given(textSyncService.getPendingDeltas(qnaId)).willReturn(Collections.emptyList());
         given(textMerger.merge("HELLO WORLD", Collections.emptyList())).willReturn("HELLO WORLD");
-        doThrow(new BaseException(ReviewErrorCode.REVIEW_TEXT_MISMATCH))
-                .when(reviewService).validateOriginText("원본", "HELLO WORLD", 0, 5);
+        doThrow(new ReviewSyncRequiredException(ReviewErrorCode.REVIEW_TEXT_MISMATCH, qnaId))
+                .when(reviewService).validateOriginText("원본", "HELLO WORLD", 0, 5, qnaId);
 
         // when & then
         assertThatThrownBy(() -> reviewFacade.createReview(reviewerId, qnaId, request))
@@ -1128,13 +1130,15 @@ class ReviewFacadeTest {
         given(qnAService.findByIdOrElseThrow(qnAId)).willReturn(qnA);
         given(textMerger.merge("DB답변", pendingDeltas)).willReturn("DB답변추가");
 
-        // when: recover 메서드 직접 호출
-        reviewFacade.recoverCreateReview(
+        // when: recover 메서드 직접 호출 (예외가 던져져야 함)
+        assertThatThrownBy(() -> reviewFacade.recoverCreateReview(
                 new com.jackpot.narratix.domain.exception.OptimisticLockException(),
                 "reviewer123",
                 qnAId,
                 new ReviewCreateRequest(1L, 0L, 10L, "원본", "수정", "피드백")
-        );
+        ))
+                .isInstanceOf(BaseException.class)
+                .hasFieldOrPropertyWithValue("errorCode", QnAErrorCode.OPTIMISTIC_LOCK_FAILURE);
 
         // then: pending delta 조회 확인
         verify(textSyncService, times(1)).getPendingDeltas(qnAId);

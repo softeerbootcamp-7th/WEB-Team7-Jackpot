@@ -8,6 +8,7 @@ import com.jackpot.narratix.domain.entity.Review;
 import com.jackpot.narratix.domain.entity.User;
 import com.jackpot.narratix.domain.entity.enums.ReviewRoleType;
 import com.jackpot.narratix.domain.exception.ReviewErrorCode;
+import com.jackpot.narratix.domain.exception.ReviewSyncRequiredException;
 import com.jackpot.narratix.domain.repository.QnARepository;
 import com.jackpot.narratix.domain.repository.ReviewRepository;
 import com.jackpot.narratix.domain.repository.UserRepository;
@@ -195,16 +196,27 @@ public class ReviewService {
         }
     }
 
-    public void validateOriginText(String originText, String currentAnswer, int start, int end) {
-        if(start > end) {
-            log.warn("리뷰 범위의 시작 인덱스가 끝 인덱스보다 큽니다. start={}, end={}", start, end);
-            throw new BaseException(ReviewErrorCode.REVIEW_TEXT_MISMATCH);
+    public void validateOriginText(String originText, String currentAnswer, int start, int end, Long qnAId) {
+        // 인덱스 범위 유효성 검증
+        if (start < 0 || start > end || end > currentAnswer.length()) {
+            log.warn("리뷰 범위가 유효하지 않습니다. qnAId={}, currentAnswerLength={}, start={}, end={}",
+                    qnAId, currentAnswer.length(), start, end);
+            throw new ReviewSyncRequiredException(ReviewErrorCode.REVIEW_TEXT_MISMATCH, qnAId);
         }
-        String textAtRange = currentAnswer.substring(start, end);
-        if (!textAtRange.equals(originText)) {
-            log.warn("리뷰 대상 텍스트가 현재 텍스트와 일치하지 않습니다. expected={}, actual={}, currentAnswer={}, start={}, end={}",
-                    originText, textAtRange, currentAnswer, start, end);
-            throw new BaseException(ReviewErrorCode.REVIEW_TEXT_MISMATCH);
+
+        // substring 실행 및 텍스트 일치 검증
+        try {
+            String textAtRange = currentAnswer.substring(start, end);
+            if (!textAtRange.equals(originText)) {
+                log.warn("리뷰 대상 텍스트가 현재 텍스트와 일치하지 않습니다. qnAId={}, expected={}, actual={}, currentAnswer={}, start={}, end={}",
+                        qnAId, originText, textAtRange, currentAnswer, start, end);
+                throw new ReviewSyncRequiredException(ReviewErrorCode.REVIEW_TEXT_MISMATCH, qnAId);
+            }
+        } catch (StringIndexOutOfBoundsException e) {
+            // 예상치 못한 substring 에러 (위의 검증을 통과했지만 발생한 경우)
+            log.error("예상치 못한 substring 에러 발생. qnAId={}, currentAnswerLength={}, start={}, end={}",
+                    qnAId, currentAnswer.length(), start, end, e);
+            throw new ReviewSyncRequiredException(ReviewErrorCode.REVIEW_TEXT_MISMATCH, qnAId);
         }
     }
 
