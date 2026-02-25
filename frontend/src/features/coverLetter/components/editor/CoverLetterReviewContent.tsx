@@ -7,6 +7,7 @@ import { useSharedLink } from '@/features/coverLetter/hooks/useCoverLetterQuerie
 import type { OutletContext } from '@/features/coverLetter/types/outletContext';
 import ErrorBoundary from '@/shared/components/ErrorBoundary';
 import SectionError from '@/shared/components/SectionError';
+import SkeletonCard from '@/shared/components/SkeletonCard';
 
 const CoverLetterReviewContent = () => {
   const { isReviewActive, setIsReviewActive } =
@@ -33,7 +34,7 @@ const CoverLetterReviewContent = () => {
         <SectionError onRetry={reset} text='QnA를 표시할 수 없습니다' />
       )}
     >
-      <Suspense fallback={<div>로딩 중...</div>}>
+      <Suspense fallback={<SkeletonCard />}>
         <CoverLetterSection
           id={id}
           isReviewActive={isReviewActive}
