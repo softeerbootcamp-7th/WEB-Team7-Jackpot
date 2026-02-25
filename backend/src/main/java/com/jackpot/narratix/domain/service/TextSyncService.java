@@ -84,13 +84,14 @@ public class TextSyncService {
      * @param qnAId QnA ID
      * @param newAnswer 새로운 answer (이미 pending delta가 병합되고 마커가 추가된 상태)
      * @param pendingDeltaCount pending delta 개수 (version 증가량)
+     * @param expectedVersion 예상 버전 (낙관적 락용)
      * @return 새로운 version
      */
     @Transactional
-    public long updateAnswerAndClearDeltas(Long qnAId, String newAnswer, long pendingDeltaCount) {
+    public long updateAnswerAndClearDeltas(Long qnAId, String newAnswer, long pendingDeltaCount, Long expectedVersion) {
         QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
         qnA.editAnswer(newAnswer);
-        long newVersion = qnARepository.incrementVersion(qnAId, (int) pendingDeltaCount);
+        long newVersion = qnARepository.incrementVersionWithOptimisticLock(qnAId, (int) pendingDeltaCount, expectedVersion);
 
         textDeltaRedisRepository.clearDeltasAndSetVersion(qnAId, newVersion);
         return newVersion;
@@ -103,13 +104,14 @@ public class TextSyncService {
      * @param qnAId QnA ID
      * @param newAnswer 새로운 answer
      * @param pendingDeltaCount pending delta 개수 (version 증가량)
+     * @param expectedVersion 예상 버전 (낙관적 락용)
      * @return 새로운 version
      */
     @Transactional
-    public long updateAnswerCommitAndClearOldCommitted(Long qnAId, String newAnswer, long pendingDeltaCount) {
+    public long updateAnswerCommitAndClearOldCommitted(Long qnAId, String newAnswer, long pendingDeltaCount, Long expectedVersion) {
         QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
         qnA.editAnswer(newAnswer);
-        long newVersion = qnARepository.incrementVersion(qnAId, (int) pendingDeltaCount);
+        long newVersion = qnARepository.incrementVersionWithOptimisticLock(qnAId, (int) pendingDeltaCount, expectedVersion);
 
         // pending을 committed로 이동하고 기존 committed는 삭제 및 redis 버전 카운터 업데이트
         textDeltaRedisRepository.commitAndClearOldCommitted(qnAId, pendingDeltaCount, newVersion);

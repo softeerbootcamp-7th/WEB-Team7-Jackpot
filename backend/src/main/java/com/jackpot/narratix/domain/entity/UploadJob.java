@@ -28,6 +28,9 @@ public class UploadJob extends BaseTimeEntity {
     @OneToMany(mappedBy = "uploadJob", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UploadFile> uploadFiles = new ArrayList<>();
 
+    @Column(nullable = false)
+    private boolean notificationSent = false;
+    
     @Builder
     public UploadJob(String id, String userId) {
         this.id = id;

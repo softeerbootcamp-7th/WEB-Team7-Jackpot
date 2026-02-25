@@ -49,16 +49,16 @@ class ShareLinkServiceTest {
     private ShareLinkRepository shareLinkRepository;
 
     @Mock
-    private ShareLinkLockManager shareLinkLockManager;
-
-    @Mock
-    private TextDeltaService textDeltaService;
+    private ShareLinkSessionRegistry shareLinkSessionRegistry;
 
     @Mock
     private TextSyncService textSyncService;
 
     @Mock
-    private ShareLinkSessionRegistry shareLinkSessionRegistry;
+    private TextDeltaService textDeltaService;
+
+    @Mock
+    private WebSocketMessageSender webSocketMessageSender;
 
     @Test
     @DisplayName("첨삭 링크 활성화 시 첨삭 링크가 없다면 새로운 링크 생성")

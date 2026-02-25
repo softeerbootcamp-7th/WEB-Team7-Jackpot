@@ -215,11 +215,12 @@ class SearchServiceTest {
     }
 
     @Test
-    @DisplayName("문항 검색: 유효한 검색어로 정상 조회된다 (검색어 trim 적용 확인)")
+    @DisplayName("문항 검색: 유효한 검색어로 정상 조회된다 (검색어 trim 및 와일드카드 적용 확인)")
     void searchLibraryAndQnA_validKeyword_returnsResponse() {
         String userId = "user-1";
         String searchWord = "  도전  ";
         String trimmedKeyword = "도전";
+        String keywordWithWildcard = "도전*";
         Integer size = 10;
         Long lastQnAId = null;
 
@@ -241,10 +242,10 @@ class SearchServiceTest {
         given(qnARepository.searchQuestionCategory(userId, trimmedKeyword))
                 .willReturn(mockCategories);
 
-        given(qnARepository.searchQnA(eq(userId), eq(trimmedKeyword), eq(size), eq(lastQnAId)))
+        given(qnARepository.searchQnA(eq(userId), eq(keywordWithWildcard), eq(size), eq(lastQnAId)))
                 .willReturn(qnaSlice);
 
-        given(qnARepository.countSearchQnA(eq(userId), eq(trimmedKeyword)))
+        given(qnARepository.countSearchQnA(eq(userId), eq(keywordWithWildcard)))
                 .willReturn(mockCount);
 
         // when
@@ -265,8 +266,8 @@ class SearchServiceTest {
 
         // verify
         verify(qnARepository).searchQuestionCategory(userId, trimmedKeyword);
-        verify(qnARepository).searchQnA(userId, trimmedKeyword, size, lastQnAId);
-        verify(qnARepository).countSearchQnA(userId, trimmedKeyword);
+        verify(qnARepository).searchQnA(userId, keywordWithWildcard, size, lastQnAId);
+        verify(qnARepository).countSearchQnA(userId, keywordWithWildcard);
     }
 }
 

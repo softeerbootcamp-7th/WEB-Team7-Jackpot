@@ -40,4 +40,6 @@ public interface QnARepository {
     List<QnA> findByIds(List<Long> qnAIds);
 
     long incrementVersion(Long qnAId, int size);
+
+    long incrementVersionWithOptimisticLock(Long qnAId, int delta, Long expectedVersion);
 }

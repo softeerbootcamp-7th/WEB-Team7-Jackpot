@@ -1,16 +1,16 @@
 package com.jackpot.narratix.domain.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jackpot.narratix.domain.entity.LabeledQnA;
 import com.jackpot.narratix.domain.entity.UploadFile;
 import com.jackpot.narratix.domain.entity.UploadJob;
-import com.jackpot.narratix.domain.entity.enums.UploadStatus;
 import com.jackpot.narratix.domain.repository.UploadFileRepository;
 import com.jackpot.narratix.domain.service.dto.LabeledQnARequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
@@ -25,13 +25,18 @@ public class FileProcessService {
 
     private final ObjectMapper objectMapper;
     private final UploadFileRepository uploadFileRepository;
-    private final NotificationService notificationService;
+    private final JobCompletionService jobCompletionService;
 
     private static final int MAX_QNA_SIZE = 10;
 
     @Transactional
     public void processUploadedFile(String fileId, String extractedText, String labelingJson) {
-        UploadFile file = uploadFileRepository.findByIdOrElseThrow(fileId);
+        UploadFile file = uploadFileRepository.findByIdForUpdateOrElseThrow(fileId);
+
+        if (file.isFinalized()) {
+            log.info("File {} is already processed. Skipping.", fileId);
+            return;
+        }
 
         file.successExtract(limitText(extractedText));
         log.info("Extract success saved. FileId = {}", fileId);
@@ -76,7 +81,7 @@ public class FileProcessService {
 
     @Transactional
     public void processFailedFile(String fileId, String errorMessage) {
-        UploadFile file = uploadFileRepository.findByIdOrElseThrow(fileId);
+        UploadFile file = uploadFileRepository.findByIdForUpdateOrElseThrow(fileId);
 
         file.failExtract();
         log.warn("Extract fail saved. FileId={}, error: {}", fileId, errorMessage);
@@ -93,17 +98,17 @@ public class FileProcessService {
     }
 
     private void checkJobCompletionAndNotify(UploadJob job) {
+        String jobId = job.getId();
+        executeAfterCommit(() -> jobCompletionService.checkAndNotify(jobId));
+    }
 
-        uploadFileRepository.flush();
-        long totalCount = uploadFileRepository.countByUploadJobId(job.getId());
-        long failCount = uploadFileRepository.countByUploadJobIdAndStatus(job.getId(), UploadStatus.FAILED);
-        long successCount = uploadFileRepository.countByUploadJobIdAndStatus(job.getId(), UploadStatus.COMPLETED);
-
-        if (failCount + successCount == totalCount) {
-            log.info("All files completed for Job: {}. Sending SSE Notification.", job.getId());
-
-            notificationService.sendLabelingCompleteNotification(job.getUserId(), job.getId(), successCount, failCount);
-        }
+    private void executeAfterCommit(Runnable runnable) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                runnable.run();
+            }
+        });
     }
 }
 
