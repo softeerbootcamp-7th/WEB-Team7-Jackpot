@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { useLocation, useNavigate } from 'react-router';
+
 import type { TextChangeResult } from '@/features/coverLetter/types/coverLetter';
 import type { ApiReview } from '@/shared/api/reviewApi';
+import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
 import {
   applyViewStatus,
   buildReviewsFromApi,
@@ -54,6 +57,7 @@ interface ReviewDispatchers {
     qnaId: number,
     payload: ReviewUpdatedResponseType['payload'],
   ) => void;
+  handleShareLinkDeactivatedEvent: (qnaId: number) => void;
 }
 
 export interface UseReviewStateResult {
@@ -94,6 +98,9 @@ export const useReviewState = ({
 }: UseReviewStateParams): UseReviewStateResult => {
   const qnaId = qna?.qnAId;
   const qnaVersion = qna?.version ?? 0;
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { showToast } = useToastMessageContext();
 
   const [reviewsByQnaId, setReviewsByQnaId] = useState<
     Record<number, Review[]>
@@ -406,6 +413,19 @@ export const useReviewState = ({
     [getCurrentTextByQnaId, getLatestReviews, getApiReviewSource, qnaId],
   );
 
+  const handleShareLinkDeactivatedEvent = useCallback(
+    (targetQnaId: number) => {
+      if (targetQnaId !== qnaId) return;
+
+      const isReviewerMode = location.pathname.includes('review');
+      if (!isReviewerMode) return;
+
+      showToast('첨삭 링크가 비활성화되어 홈으로 이동합니다.', false);
+      navigate('/home', { replace: true });
+    },
+    [qnaId, navigate, showToast, location],
+  );
+
   const handleReviewCreatedEvent = useCallback(
     (targetQnaId: number, payload: ReviewCreatedResponseType['payload']) => {
       if (targetQnaId !== qnaId) return;
@@ -631,6 +651,8 @@ export const useReviewState = ({
         enqueueSocketEvent(() =>
           handleReviewUpdatedEvent(targetQnaId, payload),
         ),
+      handleShareLinkDeactivatedEvent: (targetQnaId) =>
+        enqueueSocketEvent(() => handleShareLinkDeactivatedEvent(targetQnaId)),
     }),
     [
       enqueueSocketEvent,
@@ -639,6 +661,7 @@ export const useReviewState = ({
       handleReviewCreatedEvent,
       handleReviewDeletedEvent,
       handleReviewUpdatedEvent,
+      handleShareLinkDeactivatedEvent,
     ],
   );
 

@@ -65,23 +65,14 @@ const RecruitRedirect = lazy(
 );
 
 const EmptyCase = lazy(() => import('@/shared/components/EmptyCase'));
+
+import LoadingModal from '@/shared/components/modal/LoadingModal';
 import { coverLetterEmptyCaseText } from '@/shared/constants/coverLetterEmptyCaseText';
 
 function App() {
   return (
     <BrowserRouter>
-      <Suspense
-        fallback={
-          <div
-            className='flex h-screen items-center justify-center'
-            role='status'
-            aria-live='polite'
-            aria-busy='true'
-          >
-            Loading...
-          </div>
-        }
-      >
+      <Suspense fallback={<LoadingModal isLoading={true} message='Narratix' />}>
         <Routes>
           {/* Public */}
           <Route element={<PublicGuard />}>

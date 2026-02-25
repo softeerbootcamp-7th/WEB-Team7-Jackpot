@@ -2,6 +2,7 @@ import { useNavigate, useParams } from 'react-router';
 
 import CoverLetterSection from '@/features/review/components/coverLetter/CoverLetterSection';
 import ReviewListSection from '@/features/review/components/review/ReviewListSection';
+import LoadingModal from '@/shared/components/modal/LoadingModal';
 import useCoverLetterPagination from '@/shared/hooks/useCoverLetterPagination';
 import { useReviewsByQnaId } from '@/shared/hooks/useReviewQueries';
 import useReviewState from '@/shared/hooks/useReviewState';
@@ -67,7 +68,7 @@ const ReviewLayout = () => {
     onMessage: (message: unknown) => {
       if (isShareDeactivatedMessage(message)) {
         alert('작성자가 첨삭 url을 비활성화시켰어요!');
-        navigate('/');
+        navigate('/home');
         return;
       }
       if (!isWebSocketResponse(message)) return;
@@ -76,11 +77,13 @@ const ReviewLayout = () => {
   });
 
   if (!isConnected) {
-    return <div>웹소켓 연결 중...</div>;
+    return <LoadingModal isLoading={true} message='웹소켓 연결 중입니다.' />;
   }
 
   if (isShareDataLoading || !shareData) {
-    return <div>데이터를 불러오는 중...</div>;
+    return (
+      <LoadingModal isLoading={true} message='데이터 불러오는 중입니다.' />
+    );
   }
 
   if (qnAIds.length === 0) {
@@ -94,9 +97,7 @@ const ReviewLayout = () => {
   // !currentQna: 실제로는 위 qnAIds.length === 0 가드에서 걸리지만, TypeScript 타입 좁힘을 위해 필요
   if (isQnALoading || !currentQna) {
     return (
-      <div className='flex flex-1 items-center justify-center'>
-        <span className='text-gray-400'>질문을 불러오는 중...</span>
-      </div>
+      <LoadingModal isLoading={true} message='데이터 불러오는 중입니다.' />
     );
   }
 
