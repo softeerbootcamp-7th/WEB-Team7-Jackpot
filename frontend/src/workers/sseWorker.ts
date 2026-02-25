@@ -28,7 +28,7 @@ let isConnected = false;
 // isConnected가 여러번 호출되는 race condition 방지하기 위한 플래그 (연결 시도를 한다는 플래그)
 let isConnecting = false;
 // 지수 백오프용 카운트
-let retryCount = 0;
+let retryCount = 2;
 
 // 연결된 모든 탭(port)에 메시지 브로드캐스트
 const broadcast = (data: unknown) => {
@@ -114,8 +114,25 @@ const scheduleReconnect = () => {
   // 토큰이 없으면 연결할 수 없으므로 재시도 불필요
   if (!token) return;
 
+  // 서버의 트래픽 집중을 방지하기 위한 Jitter 함수 도입
+  const getRandomNumber = (min: number, max: number) =>
+    Math.random() * (max - min) + min;
+
+  // 지수 백오프 알고리즘 (4초 ~ 최대 2^4 = 16초)
+  // Jitter 적용: 지수 값이 중간 값이 되도록 딜레이 설정
   const maxRetries = 4;
   const currentRetry = Math.min(retryCount, maxRetries);
+
+  // 기준이 되는 지수 값 (중간값) (4, 8, 16)
+  const baseDelay = 1000 * Math.pow(2, currentRetry);
+
+  // 중간값(baseDelay)을 기준으로 앞뒤로 50%씩 범위를 잡음
+  // baseDelay가 4s라면, 2s ~ 6s 사이의 랜덤값 발생
+  const spread = baseDelay * 0.5;
+  const min = baseDelay - spread;
+  const max = baseDelay + spread;
+
+  const delay = getRandomNumber(min, max);
 
   retryCount++;
 
