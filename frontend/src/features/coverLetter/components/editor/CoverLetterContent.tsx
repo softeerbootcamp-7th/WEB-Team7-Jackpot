@@ -35,7 +35,7 @@ import type { WriterMessageType } from '@/shared/types/websocket';
 const DUPLICATE_PATCH_WINDOW_MS = 150;
 
 // 노션처럼 띄워쓰기나 delete시, 전송될 수 있도록 시간 조절
-const DEBOUNCDE_TIME = 300;
+const DEBOUNCE_TIME = 300;
 
 interface CoverLetterContentProps {
   text: string;
@@ -235,7 +235,7 @@ const CoverLetterContent = ({
         onTextUpdateSent?.(new Date().toISOString());
       };
 
-      // 1초 debounce 전송: 마지막 변경 후 1초 뒤에 base → 최신 텍스트를 한 번에 전송
+      // debounce 전송: 마지막 변경 후 DEBOUNCE_TIME ms 뒤에 base → 최신 텍스트를 한 번에 전송
       if (sendDebounceTimerRef.current) {
         clearTimeout(sendDebounceTimerRef.current);
       }
@@ -255,7 +255,7 @@ const CoverLetterContent = ({
           latestTextRef.current,
           baseReviews ?? reviewsRef.current,
         );
-      }, DEBOUNCDE_TIME);
+      }, DEBOUNCE_TIME);
 
       // 아직 전송 전이지만 skipVersionIncrement 처리를 위해 true 반환
       return true;
@@ -275,6 +275,15 @@ const CoverLetterContent = ({
   useEffect(() => {
     sendTextPatchRef.current = sendTextPatch;
   }, [sendTextPatch]);
+
+  useEffect(() => {
+    return () => {
+      if (sendDebounceTimerRef.current) {
+        clearTimeout(sendDebounceTimerRef.current);
+        sendDebounceTimerRef.current = null;
+      }
+    };
+  }, []);
 
   const updateText = useCallback(
     (
