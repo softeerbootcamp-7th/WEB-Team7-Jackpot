@@ -12,6 +12,7 @@ const InputBar = ({
   return (
     <div className='relative w-full'>
       <input
+        autoComplete='off'
         className={`w-full rounded-lg border bg-gray-50 px-5 py-[0.875rem] transition-colors duration-200 outline-none focus:placeholder:text-transparent ${className ?? ''} ${isFail ? 'border-red-600' : 'border-transparent'}`}
         {...props}
       />
