@@ -168,6 +168,9 @@ const CoverLetterContent = ({
   const debounceBaseTextRef = useRef<string | null>(null);
   const debounceBaseReviewsRef = useRef<Review[] | null>(null);
 
+  // 예약된 버전을 추적하는 ref
+  const reservedVersionRef = useRef<number | null>(null);
+
   const sendTextPatch = useCallback(
     (oldText: string, newText: string, reviewsForMapping?: Review[]) => {
       if (!isConnected) return false;
@@ -180,31 +183,17 @@ const CoverLetterContent = ({
       }
       if (oldText === newText) return false;
 
-      // caretOffsetRef는 sendTextPatch 호출 전에 항상 "작업 후 커서 위치"로 갱신된다.
-      //   - processInput  : caretOffsetRef = getCaretPosition().start (브라우저가 DOM 업데이트 완료 후)
-      //   - insertTextAtCaret (Enter/붙여넣기/composition): caretOffsetRef = start + insertStr.length
-      //   - applyDeleteByDirection (Backspace/Delete): caretOffsetRef = result.caretOffset
-      //
-      // ※ getCaretPosition()을 sendTextPatch 내부에서 재호출하면 안 된다.
-      //   insertTextAtCaret 경로에서는 sendTextPatch가 React 상태 갱신(handleTextChange)보다
-      //   먼저 실행되므로 DOM은 아직 이전 상태다. 이 시점에 getCaretPosition()을 부르면
-      //   "삽입 이전 커서 위치(start)"가 반환된다.
-      //   buildTextPatch는 caretAfter를 "삽입 이후 커서 위치"로 해석해 삽입 위치를 역산하므로
-      //   pre-insert 값을 넘기면 잘못된 startIdx/endIdx가 계산된다.
-      //   예) 전체 복사 후 맨 뒤에 붙여넣기: caretAfter = textLen = insertedLen
-      //       → candidateStart = 0 으로 오판 → startIdx = 0, endIdx = 0 버그 발생.
-
       // 실제 네트워크 전송 (중복 체크 포함)
       const transmit = (
         fromText: string,
         toText: string,
         reviews: Review[],
+        version: number, // 예약된 버전을 파라미터로 받음
       ) => {
-        if (fromText === toText) return;
         const now = Date.now();
         const lastSentPatch = lastSentPatchRef.current;
-        // 일부 브라우저/IME 조합에서 동일 input이 연달아 올라올 수 있어
-        // 짧은 시간 내 동일(old/new) 패치는 한 번만 전송한다.
+
+        // 중복 체크
         if (
           lastSentPatch &&
           lastSentPatch.oldText === fromText &&
@@ -213,6 +202,14 @@ const CoverLetterContent = ({
         ) {
           return;
         }
+
+        // fromText === toText인 경우에도 버전은 소비됨 (일관성 유지)
+        // 다만 실제 전송은 하지 않음
+        if (fromText === toText) {
+          // 버전은 이미 예약되었으므로 건너뛰기만 함
+          return;
+        }
+
         const caretAfter = caretOffsetRef.current;
         const payload = createTextUpdatePayload({
           oldText: fromText,
@@ -220,13 +217,15 @@ const CoverLetterContent = ({
           caretAfter,
           reviews,
         });
-        const nextVersion = onReserveNextVersion();
+
+        // onReserveNextVersion() 호출 제거 (이미 예약됨)
         sendMessage(`/pub/share/${shareId}/qna/${qnAId}/text-update`, {
-          version: nextVersion,
+          version, // 예약된 버전 사용
           startIdx: payload.startIdx,
           endIdx: payload.endIdx,
           replacedText: payload.replacedText,
         } as WriterMessageType);
+
         lastSentPatchRef.current = {
           oldText: fromText,
           newText: toText,
@@ -235,29 +234,39 @@ const CoverLetterContent = ({
         onTextUpdateSent?.(new Date().toISOString());
       };
 
-      // debounce 전송: 마지막 변경 후 DEBOUNCE_TIME ms 뒤에 base → 최신 텍스트를 한 번에 전송
+      // debounce 전송
       if (sendDebounceTimerRef.current) {
         clearTimeout(sendDebounceTimerRef.current);
       }
+
+      // 첫 번째 입력에서만 base text와 버전을 예약
       if (debounceBaseTextRef.current === null) {
         debounceBaseTextRef.current = oldText;
         debounceBaseReviewsRef.current = reviewsForMapping ?? null;
+        reservedVersionRef.current = onReserveNextVersion();
       }
+
       sendDebounceTimerRef.current = setTimeout(() => {
         sendDebounceTimerRef.current = null;
         const baseText = debounceBaseTextRef.current;
         const baseReviews = debounceBaseReviewsRef.current;
+        const reservedVersion = reservedVersionRef.current;
+
+        // refs 초기화
         debounceBaseTextRef.current = null;
         debounceBaseReviewsRef.current = null;
-        if (baseText === null) return;
+        reservedVersionRef.current = null;
+
+        if (baseText === null || reservedVersion === null) return;
+
         transmit(
           baseText,
           latestTextRef.current,
           baseReviews ?? reviewsRef.current,
+          reservedVersion,
         );
       }, DEBOUNCE_TIME);
 
-      // 아직 전송 전이지만 skipVersionIncrement 처리를 위해 true 반환
       return true;
     },
     [
