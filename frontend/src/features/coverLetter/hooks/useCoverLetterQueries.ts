@@ -68,10 +68,12 @@ export const useSharedLinkToggle = () => {
       active: boolean;
     }) => toggleSharedLinkStatus({ coverLetterId, active }),
     onSuccess: (_, { coverLetterId, active }) => {
+      // 공유 링크 관련 쿼리 갱신
       queryClient.invalidateQueries({
         queryKey: ['coverletter', 'sharedLink', { coverLetterId }],
       });
 
+      // 리뷰 쿼리 갱신/삭제
       if (active) {
         queryClient.invalidateQueries({
           queryKey: ['reviews', { coverLetterId }],
@@ -81,6 +83,21 @@ export const useSharedLinkToggle = () => {
           queryKey: ['reviews', { coverLetterId }],
         });
       }
+
+      const qnaIdList = queryClient.getQueryData<number[]>([
+        'qnaIdList',
+        coverLetterId,
+      ]);
+
+      if (qnaIdList) {
+        queryClient.invalidateQueries({
+          queryKey: ['qnaIdList', coverLetterId],
+        });
+      }
+
+      queryClient.invalidateQueries({
+        queryKey: ['qna'],
+      });
 
       toast?.showToast('첨삭 링크 상태가 변경되었습니다.', true);
     },

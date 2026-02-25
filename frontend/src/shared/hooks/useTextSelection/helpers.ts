@@ -3,6 +3,7 @@ import type { Review } from '@/shared/types/review';
 export interface TextChunk {
   text: string;
   isHighlighted: boolean;
+  isActive?: boolean;
 }
 
 /**
@@ -10,7 +11,7 @@ export interface TextChunk {
  */
 export const buildTextChunks = (
   text: string,
-  highlights: { start: number; end: number }[],
+  highlights: { start: number; end: number; isActive?: boolean }[],
 ): TextChunk[] => {
   if (highlights.length === 0) {
     return [{ text, isHighlighted: false }];
@@ -20,6 +21,7 @@ export const buildTextChunks = (
     .map((h) => ({
       start: Math.max(0, Math.min(h.start, text.length)),
       end: Math.max(0, Math.min(h.end, text.length)),
+      isActive: h.isActive ?? false,
     }))
     .filter((h) => h.end > h.start)
     .sort((a, b) => a.start - b.start);
@@ -29,21 +31,33 @@ export const buildTextChunks = (
 
   for (const highlight of sortedHighlights) {
     const start = Math.max(cursor, highlight.start);
+
+    // 일반 텍스트 영역
     if (cursor < start) {
       chunks.push({
         text: text.slice(cursor, start),
         isHighlighted: false,
       });
     }
+
+    // 하이라이트 영역
+    const end = Math.max(start, highlight.end);
+
     chunks.push({
-      text: text.slice(highlight.start, highlight.end),
+      text: text.slice(start, end),
       isHighlighted: true,
+      isActive: highlight.isActive,
     });
-    cursor = highlight.end;
+
+    cursor = end;
   }
 
+  // 마지막 일반 텍스트
   if (cursor < text.length) {
-    chunks.push({ text: text.slice(cursor), isHighlighted: false });
+    chunks.push({
+      text: text.slice(cursor),
+      isHighlighted: false,
+    });
   }
 
   return chunks;

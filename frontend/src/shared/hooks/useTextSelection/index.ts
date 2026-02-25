@@ -33,8 +33,10 @@ const calculateModalInfo = (
   container: HTMLElement,
   range: Range,
   selectionText: string,
+  precomputedIndices?: { start: number; end: number },
 ): SelectionInfo | null => {
-  const { start, end } = rangeToTextIndices(container, range);
+  const { start, end } =
+    precomputedIndices ?? rangeToTextIndices(container, range);
   const rects = range.getClientRects();
   if (rects.length === 0) return null;
 
@@ -89,11 +91,14 @@ export const useTextSelection = ({
   const scrollIntoViewAndSetSelection = useCallback(
     (range: Range, text: string) => {
       if (!containerRef.current) return;
+      if (selectionTimeoutRef.current !== null) {
+        window.clearTimeout(selectionTimeoutRef.current);
+        selectionTimeoutRef.current = null;
+      }
 
       const rects = range.getClientRects();
       if (rects.length === 0) {
-        const modalInfo = calculateModalInfo(containerRef.current, range, text);
-        if (modalInfo) onSelectionChange(modalInfo);
+        selectionTimeoutRef.current = null;
         return;
       }
 
@@ -218,16 +223,14 @@ export const useTextSelection = ({
       return;
     }
 
-    const rects = domRange.getClientRects();
-    if (rects.length === 0) return;
-
-    const firstRect = rects[0];
-    const lastLineRect = rects[rects.length - 1];
-    const containerRect = containerRef.current.getBoundingClientRect();
-
-    const selectionHeight = lastLineRect.bottom - firstRect.top;
-    const modalTop = containerRect.top + selectionHeight + 10;
-    const modalLeft = lastLineRect.left;
+    const modalInfo = calculateModalInfo(
+      containerRef.current,
+      domRange,
+      text.slice(start, end),
+      { start, end },
+    );
+    if (!modalInfo) return;
+    const { modalTop, modalLeft } = modalInfo;
 
     if (
       Math.abs(modalTop - selection.modalTop) < 1 &&
@@ -244,8 +247,13 @@ export const useTextSelection = ({
     () => [
       ...reviews
         .filter((r) => r.range.start >= 0 && r.range.end > r.range.start)
-        .map((r) => r.range),
-      ...(selection && !editingReview ? [selection.range] : []),
+        .map((r) => ({
+          ...r.range,
+          isActive: editingReview?.id === r.id,
+        })),
+      ...(selection && !editingReview
+        ? [{ ...selection.range, isActive: true }]
+        : []),
     ],
     [reviews, selection, editingReview],
   );
