@@ -1,76 +1,49 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import {
-  AUTH_API,
+  checkIdApi,
+  loginApi,
+  logoutApi,
+  refreshApi,
+  signUpApi,
+} from '@/features/auth/api/authApi';
+import {
   AUTH_MESSAGES,
   AUTH_QUERY,
   AUTH_STORAGE,
 } from '@/features/auth/constants';
-import { useAuth } from '@/features/auth/hooks/useAuth';
 import { setAccessToken } from '@/features/auth/libs/tokenStore';
-import type {
-  AuthResponse,
-  CheckIdRequest,
-  JoinRequest,
-  LoginRequest,
-} from '@/features/auth/types/authApi';
-import { apiClient } from '@/shared/api/apiClient';
 import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
 
 // 아이디 중복확인을 위한 커스텀 훅
-export const useCheckId = () => {
-  return useMutation({
-    mutationFn: (userData: CheckIdRequest) =>
-      apiClient.post({
-        endpoint: AUTH_API.ENDPOINTS.CHECK_ID,
-        body: userData,
-        skipAuth: true,
-      }),
-  });
-};
+export const useCheckId = () => useMutation({ mutationFn: checkIdApi });
+
 // 회원가입을 위한 커스텀 훅
-export const useSignUp = () => {
-  return useMutation({
-    mutationFn: (userData: JoinRequest) =>
-      apiClient.post({
-        endpoint: AUTH_API.ENDPOINTS.SIGNUP,
-        body: userData,
-        skipAuth: true,
-      }),
-  });
-};
+export const useSignUp = () => useMutation({ mutationFn: signUpApi });
 
 // 로그인을 위한 커스텀 훅
 export const useLogin = () => {
   const queryClient = useQueryClient();
-  const { login } = useAuth();
+  const { showToast } = useToastMessageContext();
 
   return useMutation({
-    mutationFn: async (userData: LoginRequest) => {
-      const data = await apiClient.post<AuthResponse>({
-        endpoint: AUTH_API.ENDPOINTS.LOGIN,
-        body: userData,
-        options: {
-          credentials: 'include',
-        },
-        skipAuth: true,
-      });
+    mutationFn: loginApi,
+    onSuccess: (data) => {
+      // 토큰 저장
+      if (data.accessToken) setAccessToken(data.accessToken);
 
-      if (data.accessToken) {
-        login(data.accessToken);
-      } else {
-        throw new Error('로그인 응답에 accessToken이 없습니다.');
-      }
-      return data;
-    },
-    onSuccess: async () => {
+      // 로그인 상태 로컬 스토리지 기록
       localStorage.setItem(
         AUTH_STORAGE.KEYS.IS_LOGGED_IN,
         AUTH_STORAGE.VALUES.TRUE,
       );
-      await queryClient.invalidateQueries({
+
+      // 유저 정보 갱신
+      queryClient.invalidateQueries({
         queryKey: [AUTH_QUERY.KEYS.USERINFO, AUTH_QUERY.KEYS.NICKNAME],
       });
+
+      showToast(AUTH_MESSAGES.LOGIN.SUCCESS, true);
     },
   });
 };
@@ -78,20 +51,9 @@ export const useLogin = () => {
 // 액세스 토큰 리프레시를 위한 커스텀 훅
 export const useRefresh = () => {
   return useMutation({
-    mutationFn: async () => {
-      const data = await apiClient.post<AuthResponse>({
-        endpoint: AUTH_API.ENDPOINTS.REFRESH,
-        options: {
-          credentials: 'include',
-        },
-        skipAuth: true,
-      });
-
-      if (data.accessToken) {
-        setAccessToken(data.accessToken);
-      }
-
-      return data;
+    mutationFn: refreshApi,
+    onSuccess: (data) => {
+      if (data.accessToken) setAccessToken(data.accessToken);
     },
   });
 };
@@ -100,27 +62,24 @@ export const useRefresh = () => {
 export const useLogout = () => {
   const queryClient = useQueryClient();
   const { showToast } = useToastMessageContext();
-  const { logout } = useAuth();
+
+  const handleClearAuth = () => {
+    // tokenStore 비우기
+    setAccessToken('');
+    localStorage.removeItem(AUTH_STORAGE.KEYS.IS_LOGGED_IN);
+    // 전체 캐시 날리기
+    queryClient.clear();
+  };
 
   return useMutation({
-    mutationFn: () =>
-      apiClient.delete({
-        endpoint: AUTH_API.ENDPOINTS.LOGOUT,
-        options: { credentials: 'include' },
-        skipAuth: true,
-      }),
+    mutationFn: logoutApi,
     onSuccess: () => {
-      logout();
-      localStorage.removeItem(AUTH_STORAGE.KEYS.IS_LOGGED_IN);
-      // 로그아웃 시 전체 캐시 날리기
-      queryClient.clear();
+      handleClearAuth();
       showToast(AUTH_MESSAGES.LOGOUT.SUCCESS, true);
     },
     onError: () => {
-      // UX를 위해 서버 실패와 무관하게 클라이언트 로그아웃 처리
-      logout();
-      localStorage.removeItem(AUTH_STORAGE.KEYS.IS_LOGGED_IN);
-      queryClient.clear();
+      // 서버 에러와 무관하게 클라이언트 세션은 종료 (UX)
+      handleClearAuth();
       showToast(AUTH_MESSAGES.LOGOUT.SUCCESS, true);
     },
   });

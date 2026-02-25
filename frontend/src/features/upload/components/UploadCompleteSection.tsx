@@ -5,7 +5,6 @@ import * as UI from '@/features/upload/icons';
 import * as SI from '@/shared/icons';
 
 const UploadCompleteSection = () => {
-  // [윤종근] - TODO: 추후 useNavigate -> Link로 변경 시 수정
   const navigate = useNavigate();
   const location = useLocation();
 
