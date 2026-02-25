@@ -132,8 +132,7 @@ public class FileProcessService {
             if (updated == 1) {
                 log.info("All files committed for Job: {}. Sending SSE Notification.", jobId);
 
-                UploadJob job = uploadJobRepository.findById(jobId)
-                        .orElseThrow(() -> new IllegalStateException("Job not found"));
+                UploadJob job = uploadJobRepository.findByIdOrElseThrow(jobId);
 
                 notificationService.sendLabelingCompleteNotification(
                         job.getUserId(),
