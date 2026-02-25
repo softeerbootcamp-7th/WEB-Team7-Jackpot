@@ -1,4 +1,3 @@
-// [박소민] TODO: NavLink로 변경하는 것 알아보기
 import { memo } from 'react';
 
 import { Link } from 'react-router';

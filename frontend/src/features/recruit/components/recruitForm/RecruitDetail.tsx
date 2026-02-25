@@ -9,7 +9,7 @@ import type { CreateCoverLetterRequest } from '@/shared/types/coverLetter';
 import type { DropdownStateType } from '@/shared/types/dropdown';
 import { generateYearList } from '@/shared/utils/dates';
 
-// [박소민] TODO: 상의 후 정하기
+// [박소민] TODO: 가져오기
 const COMPANY_NAME_LIST = ['삼성전자', 'SK하이닉스', '네이버'];
 const JOB_POSITION_LIST = ['개발자', '기획자', '디자이너'];
 const yearList = generateYearList(new Date().getFullYear());
@@ -36,7 +36,7 @@ const RecruitDetail = ({ formData, onUpdate }: Props) => {
   };
 
   return (
-    <div className='flex w-full flex-col gap-5'>
+    <div className='flex flex-col gap-4'>
       <LabeledSelectInput
         label='기업명'
         name='companyName'

@@ -76,7 +76,7 @@ export const useInvalidateCoverLetters = () => {
 
   return useCallback(() => {
     queryClient.invalidateQueries({ queryKey: coverLetterQueryKeys.all });
-    queryClient.invalidateQueries({ queryKey: ['coverletter'] }); // 추가 [박소민] TODO: API 합치기
+    queryClient.invalidateQueries({ queryKey: ['coverletter'] });
     queryClient.invalidateQueries({ queryKey: homeKeys.all });
     queryClient.invalidateQueries({ queryKey: libraryKeys.all });
   }, [queryClient]);

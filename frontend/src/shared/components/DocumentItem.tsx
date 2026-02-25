@@ -39,8 +39,7 @@ const DocumentItem = ({
       tabIndex={hasLink ? 0 : undefined}
       onKeyDown={
         hasLink
-          ? // [박소민] TODO: 리팩토링
-            (e) => {
+          ? (e) => {
               if (e.key === 'Enter' || e.key === ' ') onClick?.(coverLetterId);
             }
           : undefined

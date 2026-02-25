@@ -2,16 +2,18 @@ import { useParams, useSearchParams } from 'react-router';
 
 import DetailButtons from '@/features/library/components/DetailButtons';
 import DetailView from '@/features/library/components/DetailView';
+import { emptyCaseText } from '@/features/library/constants';
 import {
   useCompanyListQueries,
   useQnAQuery,
 } from '@/features/library/hooks/queries/useLibraryListQueries';
 import type { CoverLetterItem } from '@/features/library/types';
+import EmptyCase from '@/shared/components/EmptyCase';
 import Pagination from '@/shared/components/Pagination';
+import SkeletonCard from '@/shared/components/SkeletonCard';
 import { useQnAIdListQuery } from '@/shared/hooks/useQnAQueries';
 import { getDate } from '@/shared/utils/dates';
 
-// [박소민] 기업 자기소개서 API 최적화하기 (지금은 자기소개서 리스트 + 문항 ID 단건 조회 사용)
 const CompanyDetailView = () => {
   const { companyName, coverLetterId } = useParams<{
     companyName: string;
@@ -48,23 +50,23 @@ const CompanyDetailView = () => {
 
   // 로딩 상태 처리 (필수 데이터가 로딩 중일 때)
   if (companyQuery.isLoading || qnaIdListQuery.isLoading) {
-    return <div className='p-8'>Loading...</div>;
+    return <SkeletonCard />;
   }
 
   // 문서 메타데이터가 없을 때
   if (!currentDocument) {
-    return <div className='p-8'>문서를 찾을 수 없습니다.</div>;
+    return <EmptyCase {...emptyCaseText.notFound} />;
   }
 
   // 문항 데이터 로딩 중이거나 없을 때 처리
   // (ID 리스트는 왔는데 상세 내용이 아직 안 온 경우 포함)
   if (qnaDetailQuery.isLoading) {
-    return <div className='p-8'>문항 내용을 불러오는 중...</div>;
+    return <SkeletonCard />;
   }
 
   // ID 리스트 범위 밖이거나 데이터가 없을 때
   if (!currentQnA) {
-    return <div className='p-8'>해당 페이지의 문항을 찾을 수 없습니다.</div>;
+    return <EmptyCase {...emptyCaseText.notFound} />;
   }
 
   // 수정일: 단건 조회 데이터 우선, 없으면 문서 전체 수정일
@@ -82,7 +84,7 @@ const CompanyDetailView = () => {
     <DetailView
       companyName={currentDocument.companyName}
       jobPosition={currentDocument.jobPosition}
-      applySeason={currentDocument.applySeason ?? ''} // [박소민] TODO: 지원시기 정보가 없을 때 어떻게 할지 처리
+      applySeason={currentDocument.applySeason ?? ''}
       modifiedAt={modifiedAt}
       question={currentQnA.question}
       answer={currentQnA.answer}

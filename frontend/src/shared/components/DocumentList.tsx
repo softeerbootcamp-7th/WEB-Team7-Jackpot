@@ -1,5 +1,6 @@
 import { type ReactNode, useCallback, useRef } from 'react';
 
+import SidebarSkeleton from '@/shared/components/SidebarSkeleton';
 import useInfiniteScroll from '@/shared/hooks/useInfiniteScroll';
 
 interface Props<T> {
@@ -45,11 +46,7 @@ const DocumentList = <T,>({
   });
 
   if (isLoading && items.length === 0) {
-    return (
-      <div className='flex h-40 w-full items-center justify-center text-gray-500'>
-        로딩 중...
-      </div>
-    );
+    return <SidebarSkeleton len={5} />;
   }
 
   if (isError && items.length === 0) {
@@ -87,7 +84,7 @@ const DocumentList = <T,>({
           className='mt-2 flex h-14 w-full items-center justify-center text-sm font-medium text-gray-500'
         >
           {/* 데이터를 불러오는 동안만 텍스트를 보여줌 */}
-          {isFetchingNextPage ? '불러오는 중...' : ''}
+          {isFetchingNextPage ? <SidebarSkeleton len={1} /> : ''}
         </div>
       )}
     </div>

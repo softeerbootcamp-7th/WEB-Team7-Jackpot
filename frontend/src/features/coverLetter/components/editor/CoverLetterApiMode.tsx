@@ -1,3 +1,5 @@
+import { useSearchParams } from 'react-router';
+
 import CoverLetterEditor from '@/features/coverLetter/components/editor/CoverLetterEditor';
 import CoverLetterToolbar from '@/features/coverLetter/components/editor/CoverLetterToolbar';
 import useCoverLetterActions from '@/features/coverLetter/hooks/useCoverLetterActions';
@@ -22,10 +24,15 @@ const CoverLetterApiMode = ({
   setIsReviewActive,
 }: CoverLetterApiModeProps) => {
   const { data: qnas } = useQnAList(qnaIds);
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const { safePageIndex, setCurrentPageIndex } = useCoverLetterPagination(
-    qnas.length,
-  );
+  // Hook에서 URL 기반 페이지 인덱스와 페이지 변경 핸들러 가져오기
+  const { safePageIndex, handlePageChange } = useCoverLetterPagination({
+    qnas,
+    searchParams,
+    setSearchParams,
+  });
+
   const currentQna = qnas.length > 0 ? qnas[safePageIndex] : undefined;
 
   const { data: reviewData } = useReviewsByQnaId(currentQna?.qnAId, {
@@ -88,7 +95,7 @@ const CoverLetterApiMode = ({
         totalPages={qnas.length}
         isReviewActive={isReviewActive}
         toolbar={toolbar}
-        onPageChange={setCurrentPageIndex}
+        onPageChange={handlePageChange}
         onTextChange={reviewState.handleTextChange}
         onReserveNextVersion={reviewState.reserveNextVersion}
         currentVersion={reviewState.currentVersion}

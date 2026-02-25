@@ -1,7 +1,7 @@
 const SidebarCardSkeleton = () => {
   return (
     <div className='flex flex-col items-start justify-start gap-3 self-stretch'>
-      <div className='flex flex-col items-start justify-start self-stretch px-3'>
+      <div className='flex flex-col items-start justify-start self-stretch'>
         <div className='flex w-96 flex-col items-start justify-start gap-3 border-b border-gray-100 px-3 py-5'>
           {/* 태그 영역 */}
           <div className='inline-flex items-center justify-between self-stretch pr-1'>

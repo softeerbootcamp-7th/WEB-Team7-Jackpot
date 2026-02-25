@@ -2,10 +2,13 @@ import { useParams } from 'react-router';
 
 import DetailButtons from '@/features/library/components/DetailButtons';
 import DetailView from '@/features/library/components/DetailView';
+import { emptyCaseText } from '@/features/library/constants';
 import {
   useQnAListQueries,
   useQnAQuery,
 } from '@/features/library/hooks/queries/useLibraryListQueries';
+import EmptyCase from '@/shared/components/EmptyCase';
+import SkeletonCard from '@/shared/components/SkeletonCard';
 import { getDate } from '@/shared/utils/dates';
 
 const QnADetailView = () => {
@@ -22,12 +25,12 @@ const QnADetailView = () => {
 
   // 로딩 상태 처리 (둘 중 하나라도 로딩 중이면 로딩 표시)
   if (listQuery.isLoading || detailQuery.isLoading) {
-    return <div>Loading...</div>;
+    return <SkeletonCard />;
   }
 
   // 에러 상태 처리
   if (listQuery.isError || detailQuery.isError) {
-    return <div>문서를 불러오는 중 오류가 발생했습니다.</div>;
+    return <EmptyCase {...emptyCaseText.error} />;
   }
 
   // [기존 로직 유지] 리스트에서 메타데이터(기업명 등) 찾기
@@ -40,7 +43,7 @@ const QnADetailView = () => {
 
   // 두 데이터 중 하나라도 없으면 문서를 찾을 수 없음 처리
   if (!listDocument || !detailDocument) {
-    return <div>문서를 찾을 수 없습니다.</div>;
+    return <EmptyCase {...emptyCaseText.notFound} />;
   }
 
   return (

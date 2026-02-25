@@ -25,6 +25,7 @@ const CoverLetterFooter = ({
         total={totalPages}
         onChange={onPageChange}
         ariaLabel='문항'
+        align='end'
       />
     </div>
   );

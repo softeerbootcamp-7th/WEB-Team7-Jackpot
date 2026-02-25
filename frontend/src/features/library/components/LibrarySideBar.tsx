@@ -1,112 +1,77 @@
-import { useEffect, useRef } from 'react';
+import { Suspense } from 'react';
 
-import { useParams, useSearchParams } from 'react-router';
+import { useParams } from 'react-router';
 
 import CompanyDocumentList from '@/features/library/components/company/CompanyDocumentList';
 import FolderList from '@/features/library/components/FolderList';
 import QnADocumentList from '@/features/library/components/qna/QnADocumentList';
 import QnASearchResult from '@/features/library/components/qna/QnASearchResult';
 import { useLibraryTabs } from '@/features/library/hooks/useLibraryTabs';
-import { searchLibrary } from '@/shared/api/qnaApi';
+import ErrorBoundary from '@/shared/components/ErrorBoundary';
 import SearchInput from '@/shared/components/SearchInput';
-import useInfiniteSearch from '@/shared/hooks/useInfiniteSearch';
+import SidebarSkeleton from '@/shared/components/SidebarSkeleton';
+import { useSearch } from '@/shared/hooks/useSearch';
+
+const STORAGE_KEY = 'LIB_QNA_SEARCH_KEYWORD';
 
 interface LibrarySideBarProps {
   folderList: string[];
 }
 
-const STORAGE_KEY = 'LIB_QNA_SEARCH_KEYWORD';
-
 const LibrarySideBar = ({ folderList }: LibrarySideBarProps) => {
-  const [searchParams, setSearchParams] = useSearchParams();
   const { currentTab } = useLibraryTabs();
-
-  // 탭 변경 감지용 Ref
-  const prevTabRef = useRef(currentTab);
-
-  const {
-    keyword,
-    handleChange,
-    data: searchResults,
-    isLoading,
-    isFetchingNextPage,
-    hasNextPage,
-    fetchNextPage,
-  } = useInfiniteSearch({
-    queryKey: 'keyword',
-    fetchAction: searchLibrary,
-    isEnabled: currentTab === 'QUESTION',
-  });
-
   const { companyName, qnAName } = useParams<{
     companyName?: string;
     qnAName?: string;
   }>();
 
-  // 탭이 'QUESTION'으로 바뀌는 순간 딱 한 번만 실행 (복원)
-  useEffect(() => {
-    if (currentTab === 'QUESTION' && prevTabRef.current !== 'QUESTION') {
-      const savedKeyword = localStorage.getItem(STORAGE_KEY);
-      const currentUrlKeyword = searchParams.get('keyword');
+  const isQuestionTab = currentTab === 'QUESTION';
 
-      // URL엔 없는데 저장된 게 있으면 -> 복원
-      if (!currentUrlKeyword && savedKeyword) {
-        const nextParams = new URLSearchParams(searchParams);
-        nextParams.set('keyword', savedKeyword);
-        setSearchParams(nextParams, { replace: true });
-      }
-    }
-
-    // 기업 탭으로 가면 URL 파라미터 정리 (콜백 패턴 적용 - searchParams 제거)
-    if (currentTab === 'COMPANY') {
-      setSearchParams(
-        (prev) => {
-          if (!prev.has('keyword')) return prev; // keyword가 없으면 아무것도 안 함
-          prev.delete('keyword');
-          return prev;
-        },
-        { replace: true },
-      );
-    }
-
-    prevTabRef.current = currentTab;
-  }, [currentTab, searchParams, setSearchParams]);
-
-  // 문항 탭에서 검색어가 바뀔 때마다 저장 (동기화)
-  useEffect(() => {
-    if (currentTab === 'QUESTION') {
-      // keyword가 빈 문자열이어도 저장해야 함 (사용자가 지운 상태를 기억하기 위해)
-      // 단, 초기 로딩 시점의 null/undefined 방지를 위해 체크
-      if (typeof keyword === 'string') {
-        if (keyword.length > 0) {
-          localStorage.setItem(STORAGE_KEY, keyword);
-        } else {
-          // 사용자가 다 지웠으면 스토리지도 비워야 다음 복원 때 빈 값으로 복원됨
-          localStorage.removeItem(STORAGE_KEY);
-        }
-      }
-    }
-  }, [keyword, currentTab]);
+  // 1. useSearch 훅을 호출
+  const {
+    keyword,
+    handleChange,
+    currentQueryParam,
+    isInitializing, // URL 동기화를 기다리는 찰나의 순간에 true
+    handleClear,
+  } = useSearch({
+    queryKey: 'keyword',
+    storageKey: STORAGE_KEY,
+    activeCondition: isQuestionTab,
+  });
 
   const folderName = currentTab === 'COMPANY' ? companyName : qnAName;
 
+  // 하위 콘텐츠 렌더링을 담당하는 함수
   const renderContent = () => {
-    if (currentTab === 'QUESTION' && keyword && keyword.length >= 2) {
-      // 문항 탭이면서 사용자가 이미 검색어를 입력한 경우
+    // 로컬엔 검색어가 있는데 URL엔 아직 없는 그 '1프레임 틈'일 때 무조건 스켈레톤!
+    // 이 코드 덕분에 탭을 돌아왔을 때 '폴더 리스트'가 잠깐 보이는 깜빡임 현상이 원천 차단
+    if (isInitializing) {
+      return <SidebarSkeleton len={5} />;
+    }
 
+    // 동기화 완료 후, 검색어가 2자 이상이면 검색 결과 컴포넌트 렌더링
+    if (isQuestionTab && currentQueryParam && currentQueryParam.length >= 2) {
       return (
-        <QnASearchResult
-          keyword={keyword}
-          data={searchResults}
-          isLoading={isLoading}
-          isFetchingNextPage={isFetchingNextPage}
-          hasNextPage={hasNextPage}
-          fetchNextPage={fetchNextPage}
-          className='flex-1 overflow-y-auto'
-        />
+        <ErrorBoundary
+          fallback={
+            <p className='p-4 text-center text-gray-500'>
+              검색 결과를 불러오지 못했습니다.
+            </p>
+          }
+        >
+          <Suspense fallback={<SidebarSkeleton len={5} />}>
+            <QnASearchResult
+              searchWord={currentQueryParam}
+              className='flex-1 overflow-y-auto'
+              onClearSearch={handleClear} // 좀비 URL 쿼리 차단용 함수 전달
+            />
+          </Suspense>
+        </ErrorBoundary>
       );
     }
 
+    // 검색어가 없거나 2자 미만일 때: 폴더를 선택하지 않은 경우 폴더 리스트 표시
     if (folderName === undefined) {
       return (
         <FolderList
@@ -116,7 +81,8 @@ const LibrarySideBar = ({ folderList }: LibrarySideBarProps) => {
       );
     }
 
-    if (currentTab === 'QUESTION') {
+    // 폴더를 선택한 경우 해당 폴더의 문서 리스트 표시
+    if (isQuestionTab) {
       return <QnADocumentList className='flex-1 overflow-y-auto' />;
     }
 
@@ -125,7 +91,8 @@ const LibrarySideBar = ({ folderList }: LibrarySideBarProps) => {
 
   return (
     <div className='flex h-full w-107 flex-col overflow-hidden pr-5'>
-      {currentTab === 'QUESTION' && (
+      {/* 문항 탭일 때만 검색창을 표시 */}
+      {isQuestionTab && (
         <div className='flex-none shrink-0 pb-6'>
           <SearchInput
             placeholder='문항 유형을 입력해주세요'
@@ -135,6 +102,7 @@ const LibrarySideBar = ({ folderList }: LibrarySideBarProps) => {
         </div>
       )}
 
+      {/* 렌더링 로직의 결과물 */}
       {renderContent()}
     </div>
   );

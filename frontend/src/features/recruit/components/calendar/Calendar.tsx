@@ -29,7 +29,7 @@ const Calendar = ({
   eventsByDate,
 }: Props) => {
   return (
-    <div className='inline-flex flex-col items-center justify-center gap-6 self-stretch border-r border-gray-100 py-6 pr-8'>
+    <div className='flex flex-col items-center justify-center gap-6 self-stretch border-r border-gray-100 py-6 pr-8'>
       <div>
         {isLoading ? (
           <CalendarHeaderSkeleton />
