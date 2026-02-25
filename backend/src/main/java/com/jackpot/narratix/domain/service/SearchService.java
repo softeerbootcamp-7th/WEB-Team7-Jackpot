@@ -37,9 +37,10 @@ public class SearchService {
             String userId, String searchWord, Integer size, Long lastQnaId
     ) {
         String keyword = processSearchWord(searchWord);
+        String keywordWithWildcard = addWildCard(keyword);
 
         Slice<QnA> qnas = (keyword != null)
-                ? getSearchScraps(userId, keyword, lastQnaId, size)
+                ? getSearchScraps(userId, keywordWithWildcard, lastQnaId, size)
                 : getAllScraps(userId, lastQnaId, size);
 
         List<QnA> qnaList = qnas.getContent();
