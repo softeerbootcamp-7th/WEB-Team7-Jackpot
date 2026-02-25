@@ -2,7 +2,6 @@ package com.jackpot.narratix.domain.service;
 
 import com.jackpot.narratix.domain.entity.UploadFile;
 import com.jackpot.narratix.domain.entity.UploadJob;
-import com.jackpot.narratix.domain.entity.enums.UploadStatus;
 import com.jackpot.narratix.domain.exception.UploadErrorCode;
 import com.jackpot.narratix.domain.repository.UploadFileRepository;
 import com.jackpot.narratix.global.exception.BaseException;
@@ -29,7 +28,7 @@ class FileProcessServiceTest {
     private UploadFileRepository uploadFileRepository;
 
     @Mock
-    private NotificationService notificationService;
+    private JobCompletionService jobCompletionService;
 
     @Spy
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -37,6 +36,7 @@ class FileProcessServiceTest {
     @InjectMocks
     private FileProcessService fileProcessService;
 
+    // 💡 추가됨: 단위 테스트 환경에서 강제로 트랜잭션 동기화를 활성화합니다.
     @BeforeEach
     void setUp() {
         if (!TransactionSynchronizationManager.isSynchronizationActive()) {
@@ -44,22 +44,21 @@ class FileProcessServiceTest {
         }
     }
 
+    // 💡 추가됨: 다음 테스트에 영향을 주지 않도록 트랜잭션 동기화를 초기화합니다.
     @AfterEach
     void tearDown() {
         TransactionSynchronizationManager.clear();
     }
 
-    private UploadFile setupFileAndJobMock(String fileId, String jobId, String userId) {
+    private UploadFile setupFileAndJobMock(String fileId, String jobId) {
         UploadFile file = mock(UploadFile.class);
         UploadJob job = mock(UploadJob.class);
 
-        when(uploadFileRepository.findByIdOrElseThrow(fileId)).thenReturn(file);
+        when(uploadFileRepository.findByIdForUpdateOrElseThrow(fileId)).thenReturn(file);
+        lenient().when(file.isFinalized()).thenReturn(false);
+        lenient().when(file.getUploadJob()).thenReturn(job);
+        lenient().when(job.getId()).thenReturn(jobId);
 
-        when(file.getUploadJob()).thenReturn(job);
-        when(job.getId()).thenReturn(jobId);
-        when(job.getUserId()).thenReturn(userId);
-
-        lenient().when(job.getUserId()).thenReturn(userId);
         return file;
     }
 
@@ -70,20 +69,15 @@ class FileProcessServiceTest {
     }
 
     @Test
-    @DisplayName("파일 추출 및 라벨링 성공 -> (모든 파일 완료) -> 알림 전송 성공")
-    void processUploadedFile_success_and_notify() {
+    @DisplayName("파일 추출 및 라벨링 성공 -> JobCompletionService 호출")
+    void processUploadedFile_success() {
         // given
         String fileId = "test-file";
         String jobId = "test-job";
-        String userId = "test-user";
         String extractedText = "테스트 텍스트";
         String labelingJson = "[{\"question\":\"Q\",\"answer\":\"A\",\"questionCategory\":\"MOTIVATION\"}]";
 
-        UploadFile file = setupFileAndJobMock(fileId, jobId, userId);
-
-        when(uploadFileRepository.countByUploadJobId(jobId)).thenReturn(2L);
-        when(uploadFileRepository.countByUploadJobIdAndStatus(jobId, UploadStatus.FAILED)).thenReturn(0L);
-        when(uploadFileRepository.countByUploadJobIdAndStatus(jobId, UploadStatus.COMPLETED)).thenReturn(2L);
+        UploadFile file = setupFileAndJobMock(fileId, jobId);
 
         // when
         fileProcessService.processUploadedFile(fileId, extractedText, labelingJson);
@@ -91,82 +85,65 @@ class FileProcessServiceTest {
         // then
         verify(file, times(1)).successExtract(extractedText);
         verify(file, times(1)).successLabeling();
-        verify(uploadFileRepository, times(1)).flush();
 
         triggerAfterCommit();
-        verify(notificationService, times(1))
-                .sendLabelingCompleteNotification(userId, jobId, 2L, 0L);
+        verify(jobCompletionService, times(1)).checkAndNotify(jobId);
     }
 
     @Test
-    @DisplayName("파일 처리는 성공했지만 아직 남은 파일이 있음 -> 알림 전송 안 함")
-    void processUploadedFile_success_but_not_completed() {
-        // given
-        String fileId = "test-file";
-        String jobId = "test-job";
-        String userId = "test-user";
-        setupFileAndJobMock(fileId, jobId, userId);
-
-        when(uploadFileRepository.countByUploadJobId(jobId)).thenReturn(3L);
-        when(uploadFileRepository.countByUploadJobIdAndStatus(jobId, UploadStatus.FAILED)).thenReturn(0L);
-        when(uploadFileRepository.countByUploadJobIdAndStatus(jobId, UploadStatus.COMPLETED)).thenReturn(1L);
-
-        // when
-        fileProcessService.processUploadedFile(fileId, "text", "[{\"question\":\"Q\"}]");
-
-        // then
-        triggerAfterCommit();
-        verify(notificationService, never()).sendLabelingCompleteNotification(any(), any(), anyLong(), anyLong());
-    }
-
-    @Test
-    @DisplayName("라벨링 JSON 파싱 실패 -> 저장안됨, failLabeling 호출, 완료 여부 확인")
+    @DisplayName("라벨링 JSON 파싱 실패 -> failLabeling 호출 후 JobCompletionService 호출")
     void processUploadedFile_invalidJson_fail() {
         // given
         String fileId = "test-file";
         String jobId = "test-job";
-        String userId = "test-user";
-        UploadFile file = setupFileAndJobMock(fileId, jobId, userId);
 
-        when(uploadFileRepository.countByUploadJobId(jobId)).thenReturn(1L);
-        when(uploadFileRepository.countByUploadJobIdAndStatus(jobId, UploadStatus.FAILED)).thenReturn(1L);
-        when(uploadFileRepository.countByUploadJobIdAndStatus(jobId, UploadStatus.COMPLETED)).thenReturn(0L);
+        UploadFile file = setupFileAndJobMock(fileId, jobId);
 
         // when
         fileProcessService.processUploadedFile(fileId, "text", "invalid-json");
 
         // then
         verify(file, times(1)).failLabeling();
-        verify(uploadFileRepository, times(1)).flush();
-
         triggerAfterCommit();
-        verify(notificationService, times(1))
-                .sendLabelingCompleteNotification(userId, jobId, 0L, 1L);
+        verify(jobCompletionService, times(1)).checkAndNotify(jobId);
     }
 
     @Test
-    @DisplayName("processFailedFile 호출 -> failExtract 호출, 완료 여부 확인")
+    @DisplayName("processFailedFile 호출 -> failExtract 호출 후 JobCompletionService 호출")
     void processFailedFile_success() {
         // given
         String fileId = "test-file";
         String jobId = "test-job";
-        String userId = "test-user";
-        UploadFile file = setupFileAndJobMock(fileId, jobId, userId);
 
-        when(uploadFileRepository.countByUploadJobId(jobId)).thenReturn(1L);
-        when(uploadFileRepository.countByUploadJobIdAndStatus(jobId, UploadStatus.FAILED)).thenReturn(1L);
-        when(uploadFileRepository.countByUploadJobIdAndStatus(jobId, UploadStatus.COMPLETED)).thenReturn(0L);
+        UploadFile file = setupFileAndJobMock(fileId, jobId);
 
         // when
         fileProcessService.processFailedFile(fileId, "S3 추출 단계에서 에러");
 
         // then
         verify(file, times(1)).failExtract();
-        verify(uploadFileRepository, times(1)).flush();
 
         triggerAfterCommit();
-        verify(notificationService, times(1))
-                .sendLabelingCompleteNotification(userId, jobId, 0L, 1L);
+        verify(jobCompletionService, times(1)).checkAndNotify(jobId);
+    }
+
+    @Test
+    @DisplayName("이미 완료된 파일(isFinalized = true)인 경우 처리 스킵")
+    void processUploadedFile_skip_when_finalized() {
+        // given
+        String fileId = "test-file";
+        UploadFile file = mock(UploadFile.class);
+
+        when(uploadFileRepository.findByIdForUpdateOrElseThrow(fileId)).thenReturn(file);
+        when(file.isFinalized()).thenReturn(true);
+
+        // when
+        fileProcessService.processUploadedFile(fileId, "text", "json");
+
+        // then
+        verify(file, never()).successExtract(anyString());
+        verify(file, never()).successLabeling();
+        verify(jobCompletionService, never()).checkAndNotify(any());
     }
 
     @Test
@@ -174,10 +151,11 @@ class FileProcessServiceTest {
     void throwException_when_fileNotFound() {
         // given
         String fileId = "no-file";
-        when(uploadFileRepository.findByIdOrElseThrow(fileId))
+
+        when(uploadFileRepository.findByIdForUpdateOrElseThrow(fileId))
                 .thenThrow(new BaseException(UploadErrorCode.FILE_NOT_FOUND));
 
-        // when  then
+        // when then
         assertThatThrownBy(() -> fileProcessService.processFailedFile(fileId, "error"))
                 .isInstanceOf(BaseException.class)
                 .extracting("errorCode")

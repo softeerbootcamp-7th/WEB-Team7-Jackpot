@@ -80,4 +80,8 @@ public class UploadFile {
             labeledQnA.connectUploadFile(this);
         });
     }
+
+    public boolean isFinalized() {
+        return this.status == UploadStatus.COMPLETED || this.status == UploadStatus.FAILED;
+    }
 }
