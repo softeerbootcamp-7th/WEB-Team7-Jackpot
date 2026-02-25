@@ -8,7 +8,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import { flushSync } from 'react-dom';
 
 import { useCoverLetterCompositionFlow } from '@/features/coverLetter/hooks/useCoverLetterCompositionFlow';
 import { useCoverLetterDeleteFlow } from '@/features/coverLetter/hooks/useCoverLetterDeleteFlow';
@@ -239,6 +238,7 @@ const CoverLetterContent = ({
         reviewsForMapping?: Review[];
         removeWholeReviewIds?: number[];
         forceParentSync?: boolean;
+        forceSocket?: boolean;
       },
     ) => {
       const handleTextChange = onTextChangeRef.current;
@@ -250,7 +250,9 @@ const CoverLetterContent = ({
       if (hasChanged || options?.forceParentSync) {
         const change = calculateTextChange(currentText, newText);
         const sentBySocket =
-          !options?.skipSocket && hasChanged && !isComposingRef.current
+          !options?.skipSocket &&
+          hasChanged &&
+          (!isComposingRef.current || options?.forceSocket)
             ? sendTextPatch(currentText, newText, options?.reviewsForMapping)
             : false;
 
@@ -356,13 +358,10 @@ const CoverLetterContent = ({
         currentText.slice(0, start) + insertStr + currentText.slice(end);
 
       // sendTextPatch 내부에서 caretOffsetRef를 caretAfter로 사용하므로,
-      // DOM 업데이트(flushSync) 이전에 "삽입 후 커서 위치"를 미리 기록해 둔다.
+      // DOM 업데이트 이전에 "삽입 후 커서 위치"를 미리 기록해 둔다.
       caretOffsetRef.current = start + insertStr.length;
 
-      // flushSync: Enter 직후 한글 입력 시 React re-render가 IME 조합 중에 발생해 조합이 깨지는 문제를 방지한다.
-      flushSync(() => {
-        updateText(newText);
-      });
+      updateText(newText);
     },
     [updateText],
   );
@@ -513,6 +512,7 @@ const CoverLetterContent = ({
     }
     return () => {
       if (rafId !== undefined) window.cancelAnimationFrame(rafId);
+      isProcessingReplaceAllRef.current = false;
     };
   }, [replaceAllSignal, text, clearComposingFlushTimer]);
 
@@ -591,9 +591,16 @@ const CoverLetterContent = ({
   // 컨테이너 높이에 따라 스페이서 설정
   useEffect(() => {
     if (!containerRef.current) return;
-    const containerHeight = containerRef.current.clientHeight;
     const lineHeight = 28;
-    setSpacerHeight(Math.max(0, containerHeight - lineHeight));
+    const el = containerRef.current;
+    const update = () => {
+      const containerHeight = el.clientHeight;
+      setSpacerHeight(Math.max(0, containerHeight - lineHeight));
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
   }, [containerRef]);
 
   // chunkPositions 계산
