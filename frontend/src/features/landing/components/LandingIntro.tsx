@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import LandingIntroBackground from '@/features/landing/components/LandingIntroBackground';
 import LandingTypographyAnimation from '@/features/landing/components/LandingTypographyAnimation';
+import { LANDING_CONTENT } from '@/features/landing/constants';
 import * as LAI from '@/features/landing/icons';
 
 interface LandingIntroProps {
@@ -32,7 +33,7 @@ const LandingIntro = ({ onEnter }: LandingIntroProps) => {
           <span className='absolute top-0 right-0 h-full w-16 rounded-full bg-gray-950 transition-all duration-500 ease-in-out group-hover:w-full' />
 
           <span className='relative z-10 pl-6 text-2xl text-gray-950 transition-colors duration-500 group-hover:text-white'>
-            Step into Narratix
+            {LANDING_CONTENT.INTRO.ENTER_BUTTON}
           </span>
 
           <div className='relative z-10 flex h-16 w-16 items-center justify-center rounded-full bg-gray-950'>

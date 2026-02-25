@@ -68,13 +68,18 @@ export const useStompClient = ({ shareId }: UseStompClientProps) => {
           errorMessage.toLowerCase().includes('unauthorized');
         const isExpiredError =
           errorCode === '410' || errorMessage.includes('만료');
-        if (isAuthError || isExpiredError) {
+        const isFullError =
+          errorCode === '410' || errorMessage.includes('초과');
+        if (isAuthError || isExpiredError || isFullError) {
           // force: true로 즉시 세션을 종료하고 재연결을 막음
           client.deactivate({ force: true });
 
           if (isExpiredError) {
             showToast('첨삭 링크가 만료되었습니다.', false);
-            navigate('/home');
+            navigate('/home', { replace: true });
+          } else if (isFullError) {
+            showToast('접근 가능한 인원 수가 초과되었습니다.', false);
+            navigate('/home', { replace: true });
           }
         }
       },

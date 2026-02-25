@@ -29,7 +29,7 @@ const UploadInputHeader = ({ isContent, nextStep }: UploadInputHeaderProps) => {
 
       <div className='flex items-center gap-6'>
         <button
-          className='text-title-s flex cursor-pointer gap-[0.375rem] rounded-lg bg-gray-900 px-[1.125rem] py-3 font-bold text-white hover:bg-gray-700 transition-colors duration-200 disabled:cursor-default disabled:bg-gray-50 disabled:text-gray-400'
+          className='text-title-s flex cursor-pointer gap-[0.375rem] rounded-lg bg-gray-900 px-[1.125rem] py-3 font-bold text-white transition-colors duration-200 hover:bg-gray-700 disabled:cursor-default disabled:bg-gray-50 disabled:text-gray-400'
           onClick={nextStep}
           disabled={!canLabeling}
         >

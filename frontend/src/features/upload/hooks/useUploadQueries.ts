@@ -1,88 +1,29 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 
-import type {
-  FileUploadRequest,
-  PresignedUrlRequest,
-  PresignedUrlResponse,
-  SaveCoverLetterRequest,
-  SaveCoverLetterResponse,
-  StartAiLabelingRequest,
-} from '@/features/upload/types/upload';
-import { apiClient } from '@/shared/api/apiClient';
+import {
+  fileUploadToS3Api,
+  issuePresignedUrlApi,
+  saveCoverLetterApi,
+  startAiLabelingApi,
+} from '@/features/upload/api/uploadApi';
 import { useInvalidateCoverLetters } from '@/shared/hooks/useCoverLetterQueries';
 
-export const useIssuePresignedUrl = () => {
-  return useMutation({
-    mutationFn: (request: PresignedUrlRequest) =>
-      apiClient.post<PresignedUrlResponse>({
-        endpoint: '/upload/presignedurl',
-        body: {
-          clientFileId: request.clientFileId,
-          fileName: request.fileName,
-          contentType: request.contentType,
-          fileSize: request.fileSize,
-        },
-      }),
-  });
-};
+export const useIssuePresignedUrl = () =>
+  useMutation({ mutationFn: issuePresignedUrlApi });
 
-export const useFileUpload = () => {
-  return useMutation({
-    mutationFn: async (request: FileUploadRequest) => {
-      const response = await fetch(request.presignedUrl, {
-        method: 'PUT',
-        body: request.file,
-        headers: {
-          'Content-Type': request.contentType,
-        },
-      });
+export const useFileUpload = () =>
+  useMutation({ mutationFn: fileUploadToS3Api });
 
-      if (!response.ok) {
-        throw new Error(`S3 업로드 실패: ${response.status}`);
-      }
-    },
-  });
-};
-
-export const useAiLabeling = () => {
-  return useMutation({
-    mutationFn: (request: StartAiLabelingRequest) =>
-      apiClient.post<void>({
-        endpoint: '/upload/jobs',
-        body: request,
-      }),
-  });
-};
+export const useAiLabeling = () =>
+  useMutation({ mutationFn: startAiLabelingApi });
 
 export const useSaveCoverLetter = () => {
   const invalidate = useInvalidateCoverLetters();
 
   return useMutation({
-    mutationFn: ({ uploadJobId, coverLetters }: SaveCoverLetterRequest) =>
-      apiClient.post<SaveCoverLetterResponse>({
-        endpoint: `/coverletter/upload/${uploadJobId}`,
-        body: { coverLetters },
-      }),
-    onSuccess: () => invalidate(),
-  });
-};
-
-export const useGetCompanies = () => {
-  return useQuery({
-    queryKey: ['companies'],
-    queryFn: () =>
-      apiClient.get<string[]>({
-        endpoint: '/coverletter/companies/all',
-      }),
-  });
-};
-
-export const useGetJobPositions = () => {
-  return useQuery({
-    queryKey: ['jobPositions'],
-    queryFn: () =>
-      apiClient.get<string[]>({
-        endpoint: '/coverletter/job-positions/all',
-      }),
+    mutationFn: saveCoverLetterApi,
+    onSuccess: () => {
+      invalidate();
+    },
   });
 };

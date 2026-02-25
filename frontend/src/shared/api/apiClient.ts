@@ -5,6 +5,15 @@ import {
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+export class ApiError extends Error {
+  status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+  }
+}
+
 interface MethodProps {
   endpoint: string;
   body?: unknown;
@@ -162,7 +171,11 @@ const request = async <T>(
   // API 에러 처리
   if (!response.ok) {
     const errorBody = await response.text().catch(() => '');
-    throw new Error(`API Error: ${response.status} ${errorBody}`);
+    // 일반 Error 대신 ApiError를 던짐
+    throw new ApiError(
+      response.status,
+      errorBody || `API Error: ${response.status}`,
+    );
   }
 
   // SSE 용도라면 파싱하지 않고 response 그대로 반환

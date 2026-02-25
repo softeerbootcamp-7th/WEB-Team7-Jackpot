@@ -35,9 +35,9 @@ const Question = ({ displayIndex, data, onChange, onRemove }: Props) => {
           value={data.question}
           aria-label={`질문 ${formattedIndex} 내용`}
           onChange={(e) => onChange('question', e.target.value)}
-          className='text-body-s resize-none justify-start border-b border-gray-300 self-stretch bg-transparent font-normal text-gray-950 outline-none placeholder:text-gray-400'
+          className='text-body-s resize-none justify-start border-gray-300 self-stretch bg-transparent font-normal text-gray-950 outline-none placeholder:text-gray-400'
           placeholder='자기소개서 질문을 입력해주세요'
-          rows={1}
+          rows={2}
         />
       </div>
 

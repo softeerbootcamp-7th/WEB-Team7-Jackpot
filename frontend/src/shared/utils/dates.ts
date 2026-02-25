@@ -201,8 +201,17 @@ export const createRecruitPath = (date: Date) => {
 };
 
 export const generateYearList = (year: number) => {
-  // Array.from을 사용하여 더 깔끔하게 생성
-  return Array.from({ length: 100 }, (_, i) => year - i);
+  // 내후년 정도까지만 보여줌
+  const FUTURE_RANGE = 2;
+  // 과거 20년
+  const PAST_RANGE = 20;
+  const TOTAL_LENGTH = FUTURE_RANGE + PAST_RANGE + 1;
+
+  // (올해 + 2년)부터 시작해서 내림차순
+  return Array.from(
+    { length: TOTAL_LENGTH },
+    (_, i) => year + FUTURE_RANGE - i,
+  );
 };
 
 /**

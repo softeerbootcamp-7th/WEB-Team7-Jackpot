@@ -1,6 +1,7 @@
 import InputBar, {
   type InputBarProps,
 } from '@/features/auth/components/InputBar';
+import { AUTH_FORM } from '@/features/auth/constants';
 
 interface InputBarInSignUpProps extends InputBarProps {
   label: string;
@@ -20,7 +21,7 @@ const InputBarInSignUp = ({
     <div className='flex w-full flex-col gap-3'>
       <div className='flex gap-[0.125rem]'>
         <div className='text-title-s font-bold text-gray-950'>{label}</div>
-        <div className='text-title-s text-red-600'>*</div>
+        <div className='text-title-s text-red-600'>{AUTH_FORM.REQUIRED_MARK}</div>
       </div>
 
       <InputBar

@@ -7,32 +7,31 @@ import {
 } from '@tanstack/react-query';
 
 import { getAccessToken } from '@/features/auth/libs/tokenStore';
+import {
+  getAllNotificationsApi,
+  getLabeledQnAListApi,
+  getNotificationCountApi,
+  readAllNotificationApi,
+  readEachNotificationApi,
+} from '@/features/notification/api/notificationApi';
+import { NOTIFICATION_QUERY_KEYS } from '@/features/notification/hooks/queries/notificationKeys';
 import type {
-  LabeledQnAListResponse,
   NotificationCountResponse,
   NotificationResponse,
   NotificationType,
 } from '@/features/notification/types/notification';
-import { apiClient } from '@/shared/api/apiClient';
 
 // 알림 목록을 조회하는 커스텀 훅
 export const useGetAllNotification = () => {
   return useInfiniteQuery({
-    queryKey: ['notificationList'],
-    queryFn: ({ pageParam }: { pageParam: number | null }) =>
-      apiClient.get<NotificationResponse>({
-        endpoint: '/notification/all',
-        params: {
-          size: 10,
-          lastNotificationId: pageParam ?? undefined,
-        },
-      }),
+    queryKey: NOTIFICATION_QUERY_KEYS.lists(),
+    queryFn: getAllNotificationsApi,
     initialPageParam: null,
     getNextPageParam: (lastPage) => {
       if (!lastPage.hasNext) return undefined;
-      const notificationList = lastPage.notifications;
-      return notificationList.length > 0
-        ? notificationList[notificationList.length - 1].id
+      const notifications = lastPage.notifications;
+      return notifications.length > 0
+        ? notifications[notifications.length - 1].id
         : undefined;
     },
     staleTime: 0,
@@ -43,11 +42,8 @@ export const useGetAllNotification = () => {
 // 읽지 않은 알림 개수를 조회하는 커스텀 훅
 export const useGetNotificationCount = () => {
   return useQuery({
-    queryKey: ['notificationCount'],
-    queryFn: () =>
-      apiClient.get<NotificationCountResponse>({
-        endpoint: '/notification/count',
-      }),
+    queryKey: NOTIFICATION_QUERY_KEYS.count(),
+    queryFn: getNotificationCountApi,
     staleTime: 0,
     enabled: !!getAccessToken(),
     select: (data: NotificationCountResponse) => data.unreadNotificationCount,
@@ -58,32 +54,29 @@ export const useGetNotificationCount = () => {
 export const useReadEachNotification = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (notificationId: number) =>
-      apiClient.patch({ endpoint: `/notification/${notificationId}/read` }),
+    mutationFn: readEachNotificationApi,
     onSuccess: (_, notificationId) => {
+      // 목록 데이터 캐시 업데이트
       queryClient.setQueryData<InfiniteData<NotificationResponse>>(
-        ['notificationList'],
+        NOTIFICATION_QUERY_KEYS.lists(),
         (oldData) => {
           if (!oldData) return oldData;
-
           return {
             ...oldData,
             pages: oldData.pages.map((page) => ({
               ...page,
-              notifications: page.notifications.map(
-                (notification: NotificationType) =>
-                  notification.id === notificationId
-                    ? { ...notification, isRead: true }
-                    : notification,
+              notifications: page.notifications.map((n: NotificationType) =>
+                n.id === notificationId ? { ...n, isRead: true } : n,
               ),
             })),
           };
         },
       );
-      queryClient.invalidateQueries({ queryKey: ['notificationCount'] });
+      // 알림 개수 갱신
+      queryClient.invalidateQueries({
+        queryKey: NOTIFICATION_QUERY_KEYS.count(),
+      });
     },
-    // [윤종근] - TODO: 토스트 메시지로 수정 필요
-    onError: (error) => console.error('에러입니다.', error),
   });
 };
 
@@ -91,41 +84,49 @@ export const useReadEachNotification = () => {
 export const useReadAllNotification = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => apiClient.patch({ endpoint: '/notification/all/read' }),
+    mutationFn: readAllNotificationApi,
     onSuccess: () => {
-      // UI 즉시 반영을 위해 낙관적 업데이트 적용
+      // 모든 알림을 읽음 처리로 캐시 업데이트
       queryClient.setQueryData<InfiniteData<NotificationResponse>>(
-        ['notificationList'],
+        NOTIFICATION_QUERY_KEYS.lists(),
         (oldData) => {
           if (!oldData) return;
           return {
             ...oldData,
             pages: oldData.pages.map((page) => ({
               ...page,
-              notifications: page.notifications.map((notification) => ({
-                ...notification,
+              notifications: page.notifications.map((n) => ({
+                ...n,
                 isRead: true,
               })),
             })),
           };
         },
       );
-      queryClient.invalidateQueries({ queryKey: ['notificationList'] });
-      queryClient.invalidateQueries({ queryKey: ['notificationCount'] });
+      queryClient.invalidateQueries({
+        queryKey: NOTIFICATION_QUERY_KEYS.count(),
+      });
     },
-    // [윤종근] - TODO: 토스트 메시지로 수정 필요
-    onError: (error) => console.error('에러입니다.', error),
   });
 };
 
 // 라벨링 완료된 자기소개서로 리다이렉트 해주기 위한 사전 정보 수집 커스텀 훅
 export const useLabeledQnAList = (uploadJobId: string) => {
   return useQuery({
-    queryKey: ['qnaList', uploadJobId],
-    queryFn: () =>
-      apiClient.get<LabeledQnAListResponse>({
-        endpoint: `/upload/uploaded/${uploadJobId}/qnas`,
-      }),
+    queryKey: NOTIFICATION_QUERY_KEYS.qna(uploadJobId),
+    queryFn: () => getLabeledQnAListApi(uploadJobId),
     enabled: !!uploadJobId,
+    select: (data) => {
+      // qnAs가 존재하고 최소 1개 이상의 데이터가 있는 커버레터만 남김
+      const validCoverLetters = data.coverLetters.filter(
+        (letter) => letter.qnAs && letter.qnAs.length > 0,
+      );
+
+      // 가공된 배열을 덮어씌워서 반환
+      return {
+        ...data,
+        coverLetters: validCoverLetters,
+      };
+    },
   });
 };

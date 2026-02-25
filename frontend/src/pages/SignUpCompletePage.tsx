@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router';
 
 import folderIconInSignUp from '@/assets/icons/folderIconInSignUp.png';
+import { AUTH_FORM } from '@/features/auth/constants';
 import * as AI from '@/features/auth/icons';
 import * as SI from '@/shared/icons';
 
@@ -21,12 +22,12 @@ const SignUpCompletePage = () => {
         </div>
         <div className='flex flex-col gap-1'>
           <span className='text-headline-l font-bold text-gray-800'>
-            회원가입이 완료되었어요!
+            {AUTH_FORM.COMPLETE.TITLE}
           </span>
           <span className='text-title-m mb-12 text-center text-gray-600'>
-            자기소개서 저장부터
+            {AUTH_FORM.COMPLETE.SUB_TITLE_FIRST}
             <br />
-            손쉬운 작성까지 빠르게 경험해보세요!
+            {AUTH_FORM.COMPLETE.SUB_TITLE_SECOND}
           </span>
         </div>
 
@@ -36,7 +37,7 @@ const SignUpCompletePage = () => {
           onClick={() => navigate('/upload')}
         >
           <AI.ShareIcon />
-          <span>자료 업로드하러 가기</span>
+          <span>{AUTH_FORM.COMPLETE.BUTTON_TEXT}</span>
         </button>
       </div>
     </div>

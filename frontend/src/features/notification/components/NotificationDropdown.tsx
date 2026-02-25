@@ -1,4 +1,5 @@
 import NotificationList from '@/features/notification/components/NotificationList';
+import { NOTIFICATION_MESSAGES } from '@/features/notification/constants';
 import {
   useGetNotificationCount,
   useReadAllNotification,
@@ -16,8 +17,8 @@ const NotificationDropdown = ({
 }: NotificationDropdownProps) => {
   const { data: unreadCount, isLoading, isError } = useGetNotificationCount();
   const { mutate: readAllNotification } = useReadAllNotification();
-  if (isLoading) return <div>로딩 중...</div>;
-  if (isError) return <div>에러 발생</div>;
+  if (isLoading) return <div>{NOTIFICATION_MESSAGES.STATE.LOADING}</div>;
+  if (isError) return <div>{NOTIFICATION_MESSAGES.STATE.ERROR}</div>;
   const safeCount = unreadCount ?? 0;
   return (
     <div className='relative inline-block'>
@@ -47,7 +48,7 @@ const NotificationDropdown = ({
               <div className='flex items-center gap-2'>
                 <NI.NotificationIcon />
                 <span className='text-body-l font-bold text-gray-950'>
-                  최근 도착한 알림
+                  {NOTIFICATION_MESSAGES.TITLE}
                 </span>
               </div>
               <button
@@ -58,7 +59,7 @@ const NotificationDropdown = ({
                 }}
                 className='text-caption-m flex cursor-pointer items-center justify-center rounded-md bg-gray-50 px-2 py-1 font-medium text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-700 active:scale-95'
               >
-                모두 읽음
+                {NOTIFICATION_MESSAGES.READ_ALL}
               </button>
             </div>
             <div className='flex flex-col gap-1 p-1'>

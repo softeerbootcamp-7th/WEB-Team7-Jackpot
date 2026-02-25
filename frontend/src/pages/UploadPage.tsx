@@ -87,7 +87,7 @@ const UploadPage = () => {
 
   return (
     <div>
-      <div className='mb-12 h-screen px-75 select-none min-w-[1700px]'>
+      <div className='mb-12 h-screen min-w-[1700px] px-75 select-none'>
         <div className='mb-12'>
           <ContentHeader {...uploadHeaderText} />
           <StepItem step={stepProp} />

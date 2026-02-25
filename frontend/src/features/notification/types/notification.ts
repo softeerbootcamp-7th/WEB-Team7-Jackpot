@@ -1,3 +1,5 @@
+import { NOTIFICATION_TYPE } from '@/features/notification/constants';
+
 interface NotificationBaseType {
   id: number;
   title: string;
@@ -7,7 +9,7 @@ interface NotificationBaseType {
 }
 
 export interface FeedbackNotificationType extends NotificationBaseType {
-  type: 'FEEDBACK';
+  type: typeof NOTIFICATION_TYPE.FEEDBACK;
   meta: {
     sender: {
       id: string;
@@ -19,7 +21,7 @@ export interface FeedbackNotificationType extends NotificationBaseType {
 }
 
 export interface LabelingNotificationType extends NotificationBaseType {
-  type: 'LABELING_COMPLETE';
+  type: typeof NOTIFICATION_TYPE.LABELING_COMPLETE;
   meta: {
     jobId: string;
     successFileCount: number;

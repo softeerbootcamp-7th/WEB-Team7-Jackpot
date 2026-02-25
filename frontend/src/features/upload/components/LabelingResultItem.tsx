@@ -5,10 +5,6 @@ import CoverLetterContentArea from '@/features/upload/components/CoverLetterCont
 import CoverLetterList from '@/features/upload/components/CoverLetterList';
 import LabeledSelectInput from '@/features/upload/components/LabeledSelectInput';
 import { QUESTION_TYPE_LIST } from '@/features/upload/constants/uploadPage';
-import {
-  useGetCompanies,
-  useGetJobPositions,
-} from '@/features/upload/hooks/useUploadQueries';
 import type {
   ContentItemType,
   ContentStateType,
@@ -16,6 +12,10 @@ import type {
 import { yearList } from '@/features/upload/utils/generateAboutDate';
 import Deadline from '@/shared/components/Deadline';
 import RecruitPeriodSelectInput from '@/shared/components/RecruitPeriodSelectInput';
+import {
+  useGetCompanies,
+  useGetJobPositions,
+} from '@/shared/hooks/coverLetterInformationQueries';
 import * as SI from '@/shared/icons';
 import type { DropdownStateType } from '@/shared/types/dropdown';
 
@@ -85,7 +85,6 @@ const LabelingResultItem = ({
   const currentCoverLetterQnAs = data.coverLetters[tabState]?.qnAs;
   const currentQnA = currentCoverLetterQnAs[qnAState];
 
-  // [윤종근] - 추후 리팩토링 예정
   return (
     <div className='flex flex-col gap-6'>
       <div className='flex gap-6'>

@@ -1,3 +1,5 @@
+import { AUTH_FORM } from '@/features/auth/constants';
+
 interface CheckDuplicationButtonProps {
   onClick: () => void;
   isActived: boolean;
@@ -8,7 +10,7 @@ const CheckDuplicationButton = ({
   isActived,
 }: CheckDuplicationButtonProps) => {
   const buttonActiveStyle: string = isActived
-    ? 'bg-gray-900 text-white cursor-pointer'
+    ? 'bg-gray-900 text-white cursor-pointer transition-colors duration-200 hover:bg-gray-700'
     : 'bg-gray-100 text-gray-400';
 
   return (
@@ -16,11 +18,11 @@ const CheckDuplicationButton = ({
       type='button'
       disabled={!isActived}
       onClick={onClick}
-      className={`rounded-md hover:bg-gray-800 transition-colors duration-200 px-3 py-1.5 text-sm font-bold transition-colors ${
+      className={`rounded-md px-3 py-1.5 text-sm font-bold ${
         buttonActiveStyle
       }`}
     >
-      중복확인
+      {AUTH_FORM.LABELS.CHECK_DUPLICATE}
     </button>
   );
 };

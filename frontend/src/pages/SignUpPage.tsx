@@ -2,7 +2,7 @@ import { useNavigate, useSearchParams } from 'react-router';
 
 import AuthLayout from '@/features/auth/components/AuthLayout';
 import SignUpForm from '@/features/auth/components/SignUpForm';
-import { SUB_TITLE } from '@/features/auth/constants/constantsInSignUpPage';
+import { AUTH_FORM } from '@/features/auth/constants';
 
 const SignUpPage = () => {
   const navigate = useNavigate();
@@ -20,7 +20,7 @@ const SignUpPage = () => {
   };
 
   return (
-    <AuthLayout subTitle={SUB_TITLE} subTitleColor='text-gray-950'>
+    <AuthLayout subTitle={AUTH_FORM.TITLES.SIGNUP} subTitleColor='text-gray-950'>
       <SignUpForm handleSuccess={handleSuccess} />
     </AuthLayout>
   );
