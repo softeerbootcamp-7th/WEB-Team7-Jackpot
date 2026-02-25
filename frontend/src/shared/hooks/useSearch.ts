@@ -92,6 +92,8 @@ export const useSearch = ({
   const handlePageChange = useCallback(
     (newPage: number) => {
       if (!isPagination) return;
+      if (!Number.isInteger(newPage) || newPage < 1) return;
+
       setSearchParams((prev) => {
         const next = new URLSearchParams(prev);
         next.set(pageKey, newPage.toString());
@@ -127,6 +129,9 @@ export const useSearch = ({
         const { isValid, message } = validateSearchKeyword(trimmedKeyword);
         if (!isValid && message) {
           showToast(message);
+          // 유효하지 않은 검색어를 스토리지에서 제거하여 isInitializing 고착 방지
+          if (storageKey) localStorage.removeItem(storageKey);
+          setKeyword('');
           return;
         }
       }
