@@ -5,6 +5,7 @@ import com.jackpot.narratix.domain.entity.UploadJob;
 import com.jackpot.narratix.domain.entity.enums.UploadStatus;
 import com.jackpot.narratix.domain.exception.UploadErrorCode;
 import com.jackpot.narratix.domain.repository.UploadFileRepository;
+import com.jackpot.narratix.domain.repository.UploadJobRepository;
 import com.jackpot.narratix.global.exception.BaseException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +28,9 @@ class FileProcessServiceTest {
 
     @Mock
     private UploadFileRepository uploadFileRepository;
+
+    @Mock
+    private UploadJobRepository uploadJobRepository;
 
     @Mock
     private NotificationService notificationService;
@@ -55,11 +59,12 @@ class FileProcessServiceTest {
 
         when(uploadFileRepository.findByIdOrElseThrow(fileId)).thenReturn(file);
 
-        when(file.getUploadJob()).thenReturn(job);
-        when(job.getId()).thenReturn(jobId);
-        when(job.getUserId()).thenReturn(userId);
+        lenient().when(file.isFinalized()).thenReturn(false);
 
+        lenient().when(file.getUploadJob()).thenReturn(job);
+        lenient().when(job.getId()).thenReturn(jobId);
         lenient().when(job.getUserId()).thenReturn(userId);
+
         return file;
     }
 
@@ -84,6 +89,7 @@ class FileProcessServiceTest {
         when(uploadFileRepository.countByUploadJobId(jobId)).thenReturn(2L);
         when(uploadFileRepository.countByUploadJobIdAndStatus(jobId, UploadStatus.FAILED)).thenReturn(0L);
         when(uploadFileRepository.countByUploadJobIdAndStatus(jobId, UploadStatus.COMPLETED)).thenReturn(2L);
+        when(uploadJobRepository.markNotificationSentIfNotYet(jobId)).thenReturn(1);
 
         // when
         fileProcessService.processUploadedFile(fileId, extractedText, labelingJson);
@@ -116,6 +122,7 @@ class FileProcessServiceTest {
 
         // then
         triggerAfterCommit();
+        verify(uploadJobRepository, never()).markNotificationSentIfNotYet(anyString());
         verify(notificationService, never()).sendLabelingCompleteNotification(any(), any(), anyLong(), anyLong());
     }
 
@@ -131,6 +138,7 @@ class FileProcessServiceTest {
         when(uploadFileRepository.countByUploadJobId(jobId)).thenReturn(1L);
         when(uploadFileRepository.countByUploadJobIdAndStatus(jobId, UploadStatus.FAILED)).thenReturn(1L);
         when(uploadFileRepository.countByUploadJobIdAndStatus(jobId, UploadStatus.COMPLETED)).thenReturn(0L);
+        when(uploadJobRepository.markNotificationSentIfNotYet(jobId)).thenReturn(1);
 
         // when
         fileProcessService.processUploadedFile(fileId, "text", "invalid-json");
@@ -156,6 +164,7 @@ class FileProcessServiceTest {
         when(uploadFileRepository.countByUploadJobId(jobId)).thenReturn(1L);
         when(uploadFileRepository.countByUploadJobIdAndStatus(jobId, UploadStatus.FAILED)).thenReturn(1L);
         when(uploadFileRepository.countByUploadJobIdAndStatus(jobId, UploadStatus.COMPLETED)).thenReturn(0L);
+        when(uploadJobRepository.markNotificationSentIfNotYet(jobId)).thenReturn(1);
 
         // when
         fileProcessService.processFailedFile(fileId, "S3 추출 단계에서 에러");
@@ -167,6 +176,25 @@ class FileProcessServiceTest {
         triggerAfterCommit();
         verify(notificationService, times(1))
                 .sendLabelingCompleteNotification(userId, jobId, 0L, 1L);
+    }
+
+    @Test
+    @DisplayName("이미 완료된 파일(isFinalized = true)인 경우 처리 스킵")
+    void processUploadedFile_skip_when_finalized() {
+        // given
+        String fileId = "test-file";
+        UploadFile file = mock(UploadFile.class);
+
+        when(uploadFileRepository.findByIdOrElseThrow(fileId)).thenReturn(file);
+        when(file.isFinalized()).thenReturn(true);
+
+        // when
+        fileProcessService.processUploadedFile(fileId, "text", "json");
+
+        // then
+        verify(file, never()).successExtract(anyString());
+        verify(uploadFileRepository, never()).flush();
+        verify(uploadJobRepository, never()).markNotificationSentIfNotYet(anyString());
     }
 
     @Test
