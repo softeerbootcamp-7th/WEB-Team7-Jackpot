@@ -16,6 +16,7 @@ import com.jackpot.narratix.domain.event.ReviewDeleteEvent;
 import com.jackpot.narratix.domain.event.ReviewEditEvent;
 import com.jackpot.narratix.domain.event.TextReplaceAllEvent;
 import com.jackpot.narratix.domain.exception.ReviewErrorCode;
+import com.jackpot.narratix.domain.exception.ReviewSyncRequiredException;
 import com.jackpot.narratix.domain.fixture.CoverLetterFixture;
 import com.jackpot.narratix.domain.fixture.QnAFixture;
 import com.jackpot.narratix.domain.fixture.ReviewFixture;
@@ -143,7 +144,7 @@ class ReviewFacadeTest {
         given(textSyncService.getCommittedDeltas(qnaId)).willReturn(Collections.emptyList());
         given(textSyncService.getPendingDeltas(qnaId)).willReturn(Collections.emptyList());
         given(textMerger.merge(originText, Collections.emptyList())).willReturn(originText);
-        doNothing().when(reviewService).validateOriginText(originText, originText, 0, 6);
+        doNothing().when(reviewService).validateOriginText(originText, originText, 0, 6, qnaId);
         given(reviewService.createReview(reviewerId, qnaId, request)).willReturn(savedReview);
         given(reviewService.addMarkerToReviewedSection(originText, 0, 6, 1L, originText))
                 .willReturn("⟦r:1⟧원본 텍스트⟦/r⟧");
@@ -220,7 +221,7 @@ class ReviewFacadeTest {
         given(textSyncService.getPendingDeltas(qnaId)).willReturn(pendingDeltas);
         given(otTransformer.transformRange(10, 12, otDeltas)).willReturn(new int[]{2, 4});
         given(textMerger.merge("AB원본CDEF", pendingDeltas)).willReturn("AB원본CDEF");
-        doNothing().when(reviewService).validateOriginText(originText, "AB원본CDEF", 2, 4);
+        doNothing().when(reviewService).validateOriginText(originText, "AB원본CDEF", 2, 4, qnaId);
         given(reviewService.createReview(reviewerId, qnaId, request)).willReturn(savedReview);
         given(reviewService.addMarkerToReviewedSection("AB원본CDEF", 2, 4, 1L, originText))
                 .willReturn("AB⟦r:1⟧원본⟦/r⟧CDEF");
@@ -272,7 +273,7 @@ class ReviewFacadeTest {
         given(textSyncService.getCommittedDeltas(qnaId)).willReturn(Collections.emptyList());
         given(textSyncService.getPendingDeltas(qnaId)).willReturn(Collections.emptyList());
         given(textMerger.merge("AB원본CD", Collections.emptyList())).willReturn("AB원본CD");
-        doNothing().when(reviewService).validateOriginText(originText, "AB원본CD", 2, 4);
+        doNothing().when(reviewService).validateOriginText(originText, "AB원본CD", 2, 4, qnaId);
         given(reviewService.createReview(reviewerId, qnaId, request)).willReturn(savedReview);
         given(reviewService.addMarkerToReviewedSection("AB원본CD", 2, 4, 99L, originText))
                 .willReturn("AB⟦r:99⟧원본⟦/r⟧CD");
@@ -387,8 +388,8 @@ class ReviewFacadeTest {
         given(textSyncService.getCommittedDeltas(qnaId)).willReturn(Collections.emptyList());
         given(textSyncService.getPendingDeltas(qnaId)).willReturn(Collections.emptyList());
         given(textMerger.merge("HELLO WORLD", Collections.emptyList())).willReturn("HELLO WORLD");
-        doThrow(new BaseException(ReviewErrorCode.REVIEW_TEXT_MISMATCH))
-                .when(reviewService).validateOriginText("원본", "HELLO WORLD", 0, 5);
+        doThrow(new ReviewSyncRequiredException(ReviewErrorCode.REVIEW_TEXT_MISMATCH, qnaId))
+                .when(reviewService).validateOriginText("원본", "HELLO WORLD", 0, 5, qnaId);
 
         // when & then
         assertThatThrownBy(() -> reviewFacade.createReview(reviewerId, qnaId, request))

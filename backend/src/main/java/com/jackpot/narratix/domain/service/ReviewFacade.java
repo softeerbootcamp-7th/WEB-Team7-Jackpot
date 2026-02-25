@@ -15,8 +15,8 @@ import com.jackpot.narratix.domain.event.ReviewEditEvent;
 import com.jackpot.narratix.domain.event.TextReplaceAllEvent;
 import com.jackpot.narratix.domain.exception.OptimisticLockException;
 import com.jackpot.narratix.domain.exception.ReviewErrorCode;
+import com.jackpot.narratix.domain.exception.ReviewSyncRequiredException;
 import com.jackpot.narratix.global.exception.BaseException;
-import com.jackpot.narratix.global.exception.GlobalErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -50,7 +50,7 @@ public class ReviewFacade {
     private final TextMerger textMerger;
 
     @Retryable(
-            retryFor = OptimisticLockException.class,
+            retryFor = {OptimisticLockException.class, ReviewSyncRequiredException.class},
             maxAttempts = 3,  // 초기 시도 1회 + 재시도 2회
             backoff = @Backoff(delay = 0),
             recover = "recoverCreateReview"
@@ -87,20 +87,28 @@ public class ReviewFacade {
                     throw new BaseException(ReviewErrorCode.REVIEW_VERSION_TOO_OLD);
                 }
 
-                int[] transformed = otTransformer.transformRange(transformedStart, transformedEnd, otDeltas);
-                transformedStart = transformed[0];
-                transformedEnd = transformed[1];
+                try {
+                    int[] transformed = otTransformer.transformRange(transformedStart, transformedEnd, otDeltas);
+                    transformedStart = transformed[0];
+                    transformedEnd = transformed[1];
+                } catch (BaseException e) {
+                    if (e.getErrorCode() == ReviewErrorCode.REVIEW_TEXT_MISMATCH) {
+                        log.warn("OT 변환 중 범위 삭제 감지. qnAId={}, start={}, end={}", qnAId, transformedStart, transformedEnd);
+                        throw new ReviewSyncRequiredException(ReviewErrorCode.REVIEW_TEXT_MISMATCH, qnAId);
+                    }
+                    throw e;
+                }
             } else if (reviewerVersion > mostRecentDeltaVersion) {
-                log.warn("리뷰 버전이 최신 버전보다 앞서 있습니다. reviewerVersion={}, mostRecentDeltaVersion={}",
-                        reviewerVersion, mostRecentDeltaVersion);
-                throw new BaseException(ReviewErrorCode.REVIEW_VERSION_AHEAD);
+                log.warn("리뷰 버전이 최신 버전보다 앞서 있습니다. qnAId={}, reviewerVersion={}, mostRecentDeltaVersion={}",
+                        qnAId, reviewerVersion, mostRecentDeltaVersion);
+                throw new ReviewSyncRequiredException(ReviewErrorCode.REVIEW_VERSION_AHEAD, qnAId);
             }
         }
 
         // pending delta까지 병합된 결과에서 리뷰 originText가 유효한지 검증한다.
         String currentAnswer = coverLetterAndQnAInfo.qnAAnswer != null ? coverLetterAndQnAInfo.qnAAnswer : "";
         String mergedAnswer = textMerger.merge(currentAnswer, pendingDeltas);
-        reviewService.validateOriginText(request.originText(), mergedAnswer, transformedStart, transformedEnd);
+        reviewService.validateOriginText(request.originText(), mergedAnswer, transformedStart, transformedEnd, qnAId);
 
         // Transaction 2: Review 생성 및 QnA 업데이트 & 이벤트 발행
         Long coverLetterId = coverLetterAndQnAInfo.coverLetterId;
@@ -286,8 +294,16 @@ public class ReviewFacade {
 
     @Recover
     public void recoverCreateReview(OptimisticLockException e, String reviewerId, Long qnAId, ReviewCreateRequest request) {
-        log.warn("리뷰 생성 재시도 실패. 최신 QnA 값으로 TEXT_REPLACE_ALL 이벤트 발행. qnAId={}, reviewerId={}", qnAId, reviewerId);
+        log.warn("리뷰 생성 재시도 실패 (OptimisticLock). 최신 QnA 값으로 TEXT_REPLACE_ALL 이벤트 발행. qnAId={}, reviewerId={}", qnAId, reviewerId);
         publishLatestQnAStateWithPendingDeltas(qnAId);
+    }
+
+    @Recover
+    public void recoverCreateReview(ReviewSyncRequiredException e, String reviewerId, Long qnAId, ReviewCreateRequest request) {
+        log.warn("리뷰 생성 재시도 실패 (정합성 불일치). 최신 QnA 값으로 TEXT_REPLACE_ALL 이벤트 발행. qnAId={}, reviewerId={}, errorCode={}",
+                qnAId, reviewerId, e.getErrorCode());
+        publishLatestQnAStateWithPendingDeltas(qnAId);
+        throw new BaseException(e.getErrorCode());
     }
 
     @Recover
