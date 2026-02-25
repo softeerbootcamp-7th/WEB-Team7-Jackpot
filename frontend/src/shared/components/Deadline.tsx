@@ -20,13 +20,15 @@ const Deadline = ({ label, value, onChange, upload = false }: Props) => {
     (each) => each === true,
   );
 
-  // useEffect(() => {}, [isError, isIntegrationError]);
   const [localY, setLocalY] = useState(() => parseDate(value).y);
   const [localM, setLocalM] = useState(() => parseDate(value).m);
   const [localD, setLocalD] = useState(() => parseDate(value).d);
 
   // ✨ 핵심 1: 부모로부터 받은 이전 value를 기억할 상태를 하나 만듭니다.
   const [prevValue, setPrevValue] = useState(value);
+
+  // 마지막으로 브로드캐스트한 값을 기억하는 상태 (부모로부터 받은 이전 value로 초기화)
+  const [lastBroadcastValue, setLastBroadcastValue] = useState(value);
 
   const getValidationError = (y: string, m: string, d: string) => {
     const monthNum = Number(m);
@@ -45,12 +47,16 @@ const Deadline = ({ label, value, onChange, upload = false }: Props) => {
     // 값이 달라졌다면, 새로운 값으로 동기화합니다.
     setPrevValue(value);
 
-    const { y, m, d } = parseDate(value);
-    setLocalY(y);
-    setLocalM(m);
-    setLocalD(d);
+    // 부모로부터 내려온 값과 마지막으로 보낸 값이 다른 경우
+    // -> 사용자가 탭을 바꿨거나 외부 요인에 의한 초기화
+    if (value !== lastBroadcastValue) {
+      const { y, m, d } = parseDate(value);
+      setLocalY(y);
+      setLocalM(m);
+      setLocalD(d);
 
-    setIsError(getValidationError(y, m, d));
+      setIsError(getValidationError(y, m, d));
+    }
   }
 
   const handleInputChange = (
@@ -83,8 +89,11 @@ const Deadline = ({ label, value, onChange, upload = false }: Props) => {
     const newErrors = getValidationError(nextY, nextM, nextD);
     setIsError(newErrors);
 
+    const isComplete =
+      nextY.length === 4 && nextM.length > 0 && nextD.length > 0;
+
     // 2. 완벽한 날짜가 완성되었을 때의 검증 로직
-    if (nextY.length === 4 && nextM.length === 2 && nextD.length === 2) {
+    if (isComplete) {
       const formattedM = nextM.padStart(2, '0');
       const formattedD = nextD.padStart(2, '0');
 
@@ -95,8 +104,17 @@ const Deadline = ({ label, value, onChange, upload = false }: Props) => {
         !newErrors.day &&
         isValidDate(nextY, formattedM, formattedD)
       ) {
-        onChange(`${nextY}-${formattedM}-${formattedD}`);
+        const finalDate = `${nextY}-${formattedM}-${formattedD}`;
+        // 핸들러로 보내는 finalDate를 사용하여 상태 업데이트
+        setLastBroadcastValue(finalDate);
+        onChange(finalDate);
+      } else {
+        setLastBroadcastValue('');
+        onChange('');
       }
+    } else {
+      setLastBroadcastValue('');
+      onChange('');
     }
   };
 
@@ -126,8 +144,16 @@ const Deadline = ({ label, value, onChange, upload = false }: Props) => {
         !errors.day &&
         isValidDate(currentY, currentM, currentD)
       ) {
-        onChange(`${currentY}-${currentM}-${currentD}`);
+        const finalDate = `${currentY}-${currentM}-${currentD}`;
+        setLastBroadcastValue(finalDate);
+        onChange(finalDate);
+      } else {
+        setLastBroadcastValue('');
+        onChange('');
       }
+    } else {
+      setLastBroadcastValue('');
+      onChange('');
     }
   };
 
