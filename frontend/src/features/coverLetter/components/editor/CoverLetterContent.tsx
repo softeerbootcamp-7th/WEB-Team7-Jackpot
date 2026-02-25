@@ -172,23 +172,26 @@ const CoverLetterContent = ({
   const reservedVersionRef = useRef<number | null>(null);
 
   const sendTextPatch = useCallback(
-    (oldText: string, newText: string, reviewsForMapping?: Review[]) => {
+    (
+      oldText: string,
+      newText: string,
+      reviewsForMapping?: Review[],
+      options?: { force?: boolean },
+    ) => {
       if (!isConnected) return false;
       if (!shareId || !qnAId) return false;
       if (!onReserveNextVersion) {
-        console.error(
-          '[CoverLetterContent] onReserveNextVersion is required when socket is connected.',
-        );
+        console.error('[CoverLetterContent] onReserveNextVersion is required');
         return false;
       }
       if (oldText === newText) return false;
 
-      // 실제 네트워크 전송 (중복 체크 포함)
+      // 실제 네트워크 전송 함수
       const transmit = (
         fromText: string,
         toText: string,
         reviews: Review[],
-        version: number, // 예약된 버전을 파라미터로 받음
+        version: number,
       ) => {
         const now = Date.now();
         const lastSentPatch = lastSentPatchRef.current;
@@ -203,12 +206,7 @@ const CoverLetterContent = ({
           return;
         }
 
-        // fromText === toText인 경우에도 버전은 소비됨 (일관성 유지)
-        // 다만 실제 전송은 하지 않음
-        if (fromText === toText) {
-          // 버전은 이미 예약되었으므로 건너뛰기만 함
-          return;
-        }
+        if (fromText === toText) return;
 
         const caretAfter = caretOffsetRef.current;
         const payload = createTextUpdatePayload({
@@ -218,9 +216,8 @@ const CoverLetterContent = ({
           reviews,
         });
 
-        // onReserveNextVersion() 호출 제거 (이미 예약됨)
         sendMessage(`/pub/share/${shareId}/qna/${qnAId}/text-update`, {
-          version, // 예약된 버전 사용
+          version,
           startIdx: payload.startIdx,
           endIdx: payload.endIdx,
           replacedText: payload.replacedText,
@@ -234,7 +231,50 @@ const CoverLetterContent = ({
         onTextUpdateSent?.(new Date().toISOString());
       };
 
-      // debounce 전송
+      // FORCE 경로
+      if (options?.force) {
+        // 1. 진행 중인 debounce가 있다면 취소하고 즉시 flush
+        if (sendDebounceTimerRef.current) {
+          clearTimeout(sendDebounceTimerRef.current);
+          sendDebounceTimerRef.current = null;
+
+          // 대기 중이던 base → current 변경사항이 있다면 먼저 전송
+          const pendingBaseText = debounceBaseTextRef.current;
+          const pendingBaseReviews = debounceBaseReviewsRef.current;
+          const pendingReservedVersion = reservedVersionRef.current;
+
+          if (
+            pendingBaseText !== null &&
+            pendingReservedVersion !== null &&
+            pendingBaseText !== latestTextRef.current
+          ) {
+            transmit(
+              pendingBaseText,
+              latestTextRef.current,
+              pendingBaseReviews ?? reviewsRef.current,
+              pendingReservedVersion,
+            );
+          }
+
+          // refs 초기화
+          debounceBaseTextRef.current = null;
+          debounceBaseReviewsRef.current = null;
+          reservedVersionRef.current = null;
+        }
+
+        // 2. 새로운 버전을 예약하고 즉시 전송
+        const immediateVersion = onReserveNextVersion();
+        transmit(
+          oldText,
+          newText,
+          reviewsForMapping ?? reviewsRef.current,
+          immediateVersion,
+        );
+
+        return true;
+      }
+
+      // DEBOUNCE 경로 (기존)
       if (sendDebounceTimerRef.current) {
         clearTimeout(sendDebounceTimerRef.current);
       }
@@ -318,7 +358,9 @@ const CoverLetterContent = ({
           !options?.skipSocket &&
           hasChanged &&
           (!isComposingRef.current || options?.forceSocket)
-            ? sendTextPatch(currentText, newText, options?.reviewsForMapping)
+            ? sendTextPatch(currentText, newText, options?.reviewsForMapping, {
+                force: options?.forceSocket,
+              })
             : false;
 
         if (!isComposingRef.current || options?.forceParentSync) {

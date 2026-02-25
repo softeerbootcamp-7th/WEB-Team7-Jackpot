@@ -84,6 +84,7 @@ export const useCoverLetterDeleteFlow = ({
       updateText(result.newText, {
         reviewsForMapping: result.reviewsForMapping,
         removeWholeReviewIds: result.deletedWholeReviewIdsForPatch,
+        forceSocket: true,
       });
     },
     [
