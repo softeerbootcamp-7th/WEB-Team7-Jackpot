@@ -61,6 +61,8 @@ class FileProcessServiceTest {
         UploadFile file = mock(UploadFile.class);
         UploadJob job = mock(UploadJob.class);
 
+        lenient().when(uploadJobRepository.findByIdOrElseThrow(jobId)).thenReturn(job);
+
         when(uploadFileRepository.findByIdForUpdateOrElseThrow(fileId)).thenReturn(file);
 
         lenient().when(file.isFinalized()).thenReturn(false);
@@ -144,13 +146,12 @@ class FileProcessServiceTest {
         when(uploadFileRepository.countByUploadJobIdAndStatus(jobId, UploadStatus.COMPLETED)).thenReturn(0L);
         when(uploadJobRepository.markNotificationSentIfNotYet(jobId)).thenReturn(1);
 
-        // when
         fileProcessService.processUploadedFile(fileId, "text", "invalid-json");
 
-        // then
         verify(file, times(1)).failLabeling();
 
         triggerAfterCommit();
+
         verify(notificationService, times(1))
                 .sendLabelingCompleteNotification(userId, jobId, 0L, 1L);
     }
@@ -169,13 +170,12 @@ class FileProcessServiceTest {
         when(uploadFileRepository.countByUploadJobIdAndStatus(jobId, UploadStatus.COMPLETED)).thenReturn(0L);
         when(uploadJobRepository.markNotificationSentIfNotYet(jobId)).thenReturn(1);
 
-        // when
         fileProcessService.processFailedFile(fileId, "S3 추출 단계에서 에러");
 
-        // then
         verify(file, times(1)).failExtract();
 
         triggerAfterCommit();
+
         verify(notificationService, times(1))
                 .sendLabelingCompleteNotification(userId, jobId, 0L, 1L);
     }
