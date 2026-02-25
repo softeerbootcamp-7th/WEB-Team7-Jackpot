@@ -12,7 +12,7 @@ export const useGetNickname = (enabled: boolean) => {
     enabled: enabled,
     retry: (failureCount, error) => {
       // 토큰 만료/권한 없음 에러면 즉시 포기 (로그아웃 처리로 넘김)
-      if (error?.message?.includes('401') || error?.message?.includes('403')) {
+      if (error?.message?.includes('401')) {
         return false;
       }
 
