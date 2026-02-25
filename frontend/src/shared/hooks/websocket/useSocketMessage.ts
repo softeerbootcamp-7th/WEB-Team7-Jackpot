@@ -26,6 +26,9 @@ export const useSocketMessage = ({ dispatchers }: UseSocketMessageParams) => {
         case 'REVIEW_DELETED':
           dispatchers.handleReviewDeletedEvent(message.qnAId, message.payload);
           break;
+        case 'SHARE_LINK_DEACTIVATED':
+          dispatchers.handleShareLinkDeactivatedEvent(message.qnAId);
+          break;
         default:
           break;
       }

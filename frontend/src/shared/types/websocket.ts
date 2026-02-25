@@ -66,6 +66,12 @@ export interface ReviewCreatedResponseType {
   };
 }
 
+export interface ShareLinkDeactivatedResponseType {
+  type: 'SHARE_LINK_DEACTIVATED';
+  qnAId: number;
+  payload: null;
+}
+
 // ShareDeactivatedResponseType은 qnAId/payload가 없는 별도 메시지이므로
 // WebSocketResponse 유니온에 포함하지 않고 isShareDeactivatedMessage로 별도 처리한다.
 export interface ShareDeactivatedResponseType {
@@ -77,7 +83,8 @@ export type WebSocketResponse =
   | ReviewUpdatedResponseType
   | ReviewDeletedResponseType
   | ReviewCreatedResponseType
-  | TextReplaceAllResponseType;
+  | TextReplaceAllResponseType
+  | ShareLinkDeactivatedResponseType;
 
 export const isShareDeactivatedMessage = (
   message: unknown,
@@ -95,7 +102,11 @@ const WEBSOCKET_TYPES = new Set<WebSocketResponse['type']>(
     REVIEW_DELETED: true,
     REVIEW_CREATED: true,
     TEXT_REPLACE_ALL: true,
-  } satisfies Record<WebSocketResponse['type'], true>) as WebSocketResponse['type'][],
+    SHARE_LINK_DEACTIVATED: true,
+  } satisfies Record<
+    WebSocketResponse['type'],
+    true
+  >) as WebSocketResponse['type'][],
 );
 
 const isWebSocketType = (type: unknown): type is WebSocketResponse['type'] =>
@@ -108,10 +119,14 @@ export const isWebSocketResponse = (
   if (typeof message !== 'object' || message === null) return false;
 
   const candidate = message as Record<string, unknown>;
+
+  const isValidPayload =
+    candidate.payload === null || typeof candidate.payload === 'object';
+
   return (
     isWebSocketType(candidate.type) &&
     typeof candidate.qnAId === 'number' &&
     typeof candidate.payload === 'object' &&
-    candidate.payload !== null
+    isValidPayload
   );
 };

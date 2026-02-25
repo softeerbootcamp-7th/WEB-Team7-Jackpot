@@ -2,10 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 
 import type { IFrame } from '@stomp/stompjs';
 import { Client } from '@stomp/stompjs';
+import { useNavigate } from 'react-router';
 import SockJS from 'sockjs-client';
 
 import { getAccessToken } from '@/features/auth/libs/tokenStore';
 import { refreshAccessToken } from '@/shared/api/apiClient';
+import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
 
 const SOCKET_URL = `${import.meta.env.VITE_SOCKET_URL}`;
 
@@ -14,8 +16,10 @@ interface UseStompClientProps {
 }
 
 export const useStompClient = ({ shareId }: UseStompClientProps) => {
+  const { showToast } = useToastMessageContext();
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const clientRef = useRef<Client | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!shareId) {
@@ -53,16 +57,25 @@ export const useStompClient = ({ shareId }: UseStompClientProps) => {
       },
       onStompError: (frame: IFrame) => {
         setIsConnected(false);
+        const errorMessage = frame.headers['message'] ?? '';
+        const errorCode = frame.headers['error-code'];
         console.error('Broker reported error:', frame.headers['message']);
         console.error('Additional details', frame.body);
 
         // 인증 오류는 재연결해도 해결되지 않으므로 즉시 비활성화
-        const message = frame.headers['message'] ?? '';
-        if (
-          message.toLowerCase().includes('auth') ||
-          message.toLowerCase().includes('unauthorized')
-        ) {
+        const isAuthError =
+          errorMessage.toLowerCase().includes('auth') ||
+          errorMessage.toLowerCase().includes('unauthorized');
+        const isExpiredError =
+          errorCode === '410' || errorMessage.includes('만료');
+        if (isAuthError || isExpiredError) {
+          // force: true로 즉시 세션을 종료하고 재연결을 막음
           client.deactivate({ force: true });
+
+          if (isExpiredError) {
+            showToast('첨삭 링크가 만료되었습니다.', false);
+            navigate('/home');
+          }
         }
       },
       reconnectDelay: 5000,
@@ -78,7 +91,7 @@ export const useStompClient = ({ shareId }: UseStompClientProps) => {
       client.deactivate();
       setIsConnected(false);
     };
-  }, [shareId]);
+  }, [shareId, showToast, navigate]);
 
   const sendMessage = (destination: string, body: unknown) => {
     if (clientRef.current && clientRef.current.connected) {
