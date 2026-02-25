@@ -9,11 +9,12 @@ import { INPUT_BAR_IN_LOGIN } from '@/features/auth/constants/constantsInLoginPa
 import { useLogin } from '@/features/auth/hooks/useAuthClient';
 import useAuthForm from '@/features/auth/hooks/useAuthForm';
 import type { AuthInputKey } from '@/features/auth/types/auth';
+import LoadingModal from '@/shared/components/modal/LoadingModal';
 import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
 import { validateId } from '@/shared/utils/validation';
 
 const LoginForm = () => {
-  const { mutateAsync: login } = useLogin();
+  const { mutateAsync: login, isPending } = useLogin();
   const { showToast } = useToastMessageContext();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -58,6 +59,7 @@ const LoginForm = () => {
   };
   return (
     <>
+      <LoadingModal isLoading={isPending} message='로그인 중입니다.' />
       <form
         className='flex flex-col items-center justify-center gap-6'
         onSubmit={handleLogin}
