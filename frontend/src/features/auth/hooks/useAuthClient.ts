@@ -12,6 +12,7 @@ import {
   AUTH_QUERY,
   AUTH_STORAGE,
 } from '@/features/auth/constants';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { setAccessToken } from '@/features/auth/libs/tokenStore';
 import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
 
@@ -25,12 +26,13 @@ export const useSignUp = () => useMutation({ mutationFn: signUpApi });
 export const useLogin = () => {
   const queryClient = useQueryClient();
   const { showToast } = useToastMessageContext();
+  const { login } = useAuth();
 
   return useMutation({
     mutationFn: loginApi,
     onSuccess: (data) => {
       // 토큰 저장
-      if (data.accessToken) setAccessToken(data.accessToken);
+      if (data.accessToken) login(data.accessToken);
 
       // 로그인 상태 로컬 스토리지 기록
       localStorage.setItem(
@@ -62,10 +64,10 @@ export const useRefresh = () => {
 export const useLogout = () => {
   const queryClient = useQueryClient();
   const { showToast } = useToastMessageContext();
+  const { logout } = useAuth();
 
   const handleClearAuth = () => {
-    // tokenStore 비우기
-    setAccessToken('');
+    logout();
     localStorage.removeItem(AUTH_STORAGE.KEYS.IS_LOGGED_IN);
     // 전체 캐시 날리기
     queryClient.clear();

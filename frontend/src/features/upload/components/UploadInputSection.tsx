@@ -84,8 +84,7 @@ const UploadInputSection = () => {
             setResetKey((v) => v + 1);
             setModalType(null);
           } else if (modalType === 'success') {
-            // 성공: 홈으로 이동
-            navigate('/', { replace: true });
+            navigate('/home', { replace: true });
           }
         }}
         confirmText={modalType === 'success' ? '홈으로 이동' : '확인'}
