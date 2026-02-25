@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,7 +52,8 @@ public class ReviewFacade {
     @Retryable(
             retryFor = OptimisticLockException.class,
             maxAttempts = 3,  // 초기 시도 1회 + 재시도 2회
-            backoff = @Backoff(delay = 0)
+            backoff = @Backoff(delay = 0),
+            recover = "recoverCreateReview"
     )
     public void createReview(String reviewerId, Long qnAId, ReviewCreateRequest request) {
         // Transaction 1: QnA/CoverLetter 조회 및 WebSocket 연결 검증
@@ -125,7 +127,8 @@ public class ReviewFacade {
     @Retryable(
             retryFor = OptimisticLockException.class,
             maxAttempts = 3,  // 초기 시도 1회 + 재시도 2회
-            backoff = @Backoff(delay = 0)
+            backoff = @Backoff(delay = 0),
+            recover = "recoverDeleteReview"
     )
     public void deleteReview(String userId, Long qnAId, Long reviewId) {
         // 트랜잭션 전: pending delta 조회
@@ -175,7 +178,8 @@ public class ReviewFacade {
     @Retryable(
             retryFor = OptimisticLockException.class,
             maxAttempts = 3,  // 초기 시도 1회 + 재시도 2회
-            backoff = @Backoff(delay = 0)
+            backoff = @Backoff(delay = 0),
+            recover = "recoverApproveReview"
     )
     public void approveReview(String userId, Long qnAId, Long reviewId) {
         // 트랜잭션 전: pending delta 조회
@@ -277,6 +281,50 @@ public class ReviewFacade {
             // 트랜잭션 커밋 후 이벤트 발행
             eventPublisher.publishEvent(new TextReplaceAllEvent(coverLetterId, qnAId, newVersion, wrappedAnswer));
             eventPublisher.publishEvent(ReviewCreatedEvent.of(coverLetterId, qnAId, review));
+        });
+    }
+
+    @Recover
+    public void recoverCreateReview(OptimisticLockException e, String reviewerId, Long qnAId, ReviewCreateRequest request) {
+        log.warn("리뷰 생성 재시도 실패. 최신 QnA 값으로 TEXT_REPLACE_ALL 이벤트 발행. qnAId={}, reviewerId={}", qnAId, reviewerId);
+        publishLatestQnAStateWithPendingDeltas(qnAId);
+    }
+
+    @Recover
+    public void recoverDeleteReview(OptimisticLockException e, String userId, Long qnAId, Long reviewId) {
+        log.warn("리뷰 삭제 재시도 실패. 최신 QnA 값으로 TEXT_REPLACE_ALL 이벤트 발행. qnAId={}, reviewId={}, userId={}", qnAId, reviewId, userId);
+        publishLatestQnAStateWithPendingDeltas(qnAId);
+    }
+
+    @Recover
+    public void recoverApproveReview(OptimisticLockException e, String userId, Long qnAId, Long reviewId) {
+        log.warn("리뷰 승인/취소 재시도 실패. 최신 QnA 값으로 TEXT_REPLACE_ALL 이벤트 발행. qnAId={}, reviewId={}, userId={}", qnAId, reviewId, userId);
+        publishLatestQnAStateWithPendingDeltas(qnAId);
+    }
+
+    /**
+     * 최신 QnA 상태(DB answer + pending delta 병합)를 조회하여 TEXT_REPLACE_ALL 이벤트를 발행한다.
+     * 낙관적 락 재시도 실패 시 클라이언트를 최신 상태로 동기화하기 위해 사용된다.
+     */
+    private void publishLatestQnAStateWithPendingDeltas(Long qnAId) {
+        // 트랜잭션 외부에서 pending delta 조회 (Redis)
+        List<TextUpdateRequest> pendingDeltas = textSyncService.getPendingDeltas(qnAId);
+
+        // 트랜잭션 내부에서 QnA 조회 및 병합
+        transactionTemplate.executeWithoutResult(status -> {
+            QnA qnA = qnAService.findByIdOrElseThrow(qnAId);
+            Long coverLetterId = qnA.getCoverLetter().getId();
+            Long dbVersion = qnA.getVersion();
+            String dbAnswer = qnA.getAnswer() != null ? qnA.getAnswer() : "";
+
+            // pending delta를 병합하여 최신 상태 생성
+            String latestAnswer = textMerger.merge(dbAnswer, pendingDeltas);
+            Long latestVersion = dbVersion + pendingDeltas.size();
+
+            log.info("최신 QnA 상태 발행 (pending delta 병합): coverLetterId={}, qnAId={}, dbVersion={}, pendingDeltaCount={}, latestVersion={}",
+                    coverLetterId, qnAId, dbVersion, pendingDeltas.size(), latestVersion);
+
+            eventPublisher.publishEvent(new TextReplaceAllEvent(coverLetterId, qnAId, latestVersion, latestAnswer));
         });
     }
 }

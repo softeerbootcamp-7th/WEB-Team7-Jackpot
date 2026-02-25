@@ -46,6 +46,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.lenient;
+import org.mockito.ArgumentCaptor;
 
 @ExtendWith(MockitoExtension.class)
 class ReviewFacadeTest {
@@ -1099,5 +1100,57 @@ class ReviewFacadeTest {
 
         // then
         assertThat(response.reviews()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("recover 메서드는 최신 QnA 상태(pending delta 병합)로 TEXT_REPLACE_ALL 이벤트를 발행한다")
+    void recoverMethods_PublishLatestQnAStateWithPendingDeltas() {
+        // given
+        Long qnAId = 1L;
+        Long coverLetterId = 10L;
+        String writerId = "writer123";
+
+        CoverLetter coverLetter = CoverLetterFixture.builder()
+                .id(coverLetterId).userId(writerId).build();
+
+        QnA qnA = QnAFixture.createQnAWithId(
+                qnAId, coverLetter, writerId, "질문?", QuestionCategoryType.MOTIVATION
+        );
+        qnA.editAnswer("DB답변");
+
+        // pending delta 조회 (트랜잭션 외부)
+        List<TextUpdateRequest> pendingDeltas = List.of(
+                new TextUpdateRequest(1L, 0, 0, "추가")
+        );
+        given(textSyncService.getPendingDeltas(qnAId)).willReturn(pendingDeltas);
+
+        // Transaction 내부에서 QnA 조회 및 병합
+        given(qnAService.findByIdOrElseThrow(qnAId)).willReturn(qnA);
+        given(textMerger.merge("DB답변", pendingDeltas)).willReturn("DB답변추가");
+
+        // when: recover 메서드 직접 호출
+        reviewFacade.recoverCreateReview(
+                new com.jackpot.narratix.domain.exception.OptimisticLockException(),
+                "reviewer123",
+                qnAId,
+                new ReviewCreateRequest(1L, 0L, 10L, "원본", "수정", "피드백")
+        );
+
+        // then: pending delta 조회 확인
+        verify(textSyncService, times(1)).getPendingDeltas(qnAId);
+
+        // QnA 조회 및 병합 확인
+        verify(qnAService, atLeastOnce()).findByIdOrElseThrow(qnAId);
+        verify(textMerger, times(1)).merge("DB답변", pendingDeltas);
+
+        // TEXT_REPLACE_ALL 이벤트가 최신 상태(pending delta 병합)로 발행되어야 함
+        ArgumentCaptor<TextReplaceAllEvent> eventCaptor = ArgumentCaptor.forClass(TextReplaceAllEvent.class);
+        verify(eventPublisher, times(1)).publishEvent(eventCaptor.capture());
+
+        TextReplaceAllEvent capturedEvent = eventCaptor.getValue();
+        assertThat(capturedEvent.qnAId()).isEqualTo(qnAId);
+        assertThat(capturedEvent.coverLetterId()).isEqualTo(coverLetterId);
+        assertThat(capturedEvent.version()).isEqualTo(1L); // dbVersion(0) + pendingDeltaCount(1)
+        assertThat(capturedEvent.content()).isEqualTo("DB답변추가");
     }
 }
