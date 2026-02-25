@@ -5,7 +5,10 @@ import {
   useCallback,
 } from 'react';
 
-import { restoreCaret } from '@/features/coverLetter/libs/caret';
+import {
+  getCaretPosition,
+  restoreCaret,
+} from '@/features/coverLetter/libs/caret';
 import { moveCaretIntoAdjacentReview } from '@/features/coverLetter/libs/caretBoundary';
 import type { DeleteDirection } from '@/features/coverLetter/libs/deleteUtils';
 
@@ -13,6 +16,7 @@ interface UseCoverLetterInputHandlersParams {
   isComposingRef: RefObject<boolean>;
   lastCompositionEndAtRef: RefObject<number>;
   normalizeCaretAtReviewBoundary: () => boolean;
+  applyDeleteRange: (start: number, end: number, textToInsert?: string) => void;
   insertPlainTextAtCaret: (text: string) => void;
   applyDeleteByDirection: (direction: DeleteDirection) => void;
   contentRef: RefObject<HTMLDivElement | null>;
@@ -24,6 +28,7 @@ export const useCoverLetterInputHandlers = ({
   isComposingRef,
   lastCompositionEndAtRef,
   normalizeCaretAtReviewBoundary,
+  applyDeleteRange,
   insertPlainTextAtCaret,
   applyDeleteByDirection,
   contentRef,
@@ -92,6 +97,25 @@ export const useCoverLetterInputHandlers = ({
 
       if (isComposingRef.current) return;
 
+      const isPrintable =
+        e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey;
+
+      if (isPrintable) {
+        const selection = window.getSelection();
+        if (
+          selection &&
+          !selection.isCollapsed &&
+          contentRef.current?.contains(selection.anchorNode)
+        ) {
+          const { start, end } = getCaretPosition(contentRef.current);
+          if (start !== end) {
+            e.preventDefault();
+            applyDeleteRange(start, end, e.key);
+            return;
+          }
+        }
+      }
+
       if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
         if (contentRef.current) {
           const moved = moveCaretIntoAdjacentReview({
@@ -127,6 +151,7 @@ export const useCoverLetterInputHandlers = ({
     },
     [
       applyDeleteByDirection,
+      applyDeleteRange,
       insertPlainTextAtCaret,
       isComposingRef,
       lastCompositionEndAtRef,

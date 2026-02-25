@@ -36,6 +36,7 @@ const UploadFileArea = ({
 
   const validateFile = (newFile: File | null) => {
     const ALLOWED_TYPES = [
+      //이력서 pdf만 받도록 수정
       'application/pdf',
     ];
 

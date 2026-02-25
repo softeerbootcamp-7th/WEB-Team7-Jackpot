@@ -97,6 +97,9 @@ const CoverLetterContent = ({
   );
   const enterDuringCompositionRef = useRef(false);
   const isProcessingReplaceAllRef = useRef(false);
+  // composition 중 TEXT_REPLACE_ALL이 도착했을 때 재적용하기 위해 저장
+  const composingDOMTextRef = useRef<string | null>(null);
+  const composingDOMCaretRef = useRef<number | null>(null);
 
   const handleSelectionChange = useCallback(
     (newSelection: SelectionInfo | null) => {
@@ -265,13 +268,19 @@ const CoverLetterContent = ({
         if (hasChanged) {
           const reviewsForNextMapping =
             options?.reviewsForMapping ?? reviewsRef.current;
-          reviewsRef.current = updateReviewRanges(
+          let nextReviews = updateReviewRanges(
             reviewsForNextMapping,
             change.changeStart,
             change.oldLength,
             change.newLength,
             newText,
           );
+          if (options?.removeWholeReviewIds?.length) {
+            nextReviews = nextReviews.filter(
+              (r) => !options.removeWholeReviewIds!.includes(r.id),
+            );
+          }
+          reviewsRef.current = nextReviews;
           undoStack.current.push({
             text: currentText,
             caret: caretOffsetRef.current,
@@ -331,17 +340,18 @@ const CoverLetterContent = ({
     return result;
   }, []);
 
-  const { applyDeleteByDirection } = useCoverLetterDeleteFlow({
-    contentRef,
-    isComposingRef,
-    latestTextRef,
-    caretOffsetRef,
-    reviewsRef,
-    reviewLastKnownRangesRef,
-    syncDOMToState,
-    updateText,
-    onDeleteReviewsByText,
-  });
+  const { applyDeleteByDirection, applyDeleteRange, flushPendingDeletes } =
+    useCoverLetterDeleteFlow({
+      contentRef,
+      isComposingRef,
+      latestTextRef,
+      caretOffsetRef,
+      reviewsRef,
+      reviewLastKnownRangesRef,
+      syncDOMToState,
+      updateText,
+      onDeleteReviewsByText,
+    });
 
   const insertTextAtCaret = useCallback(
     (insertStr: string) => {
@@ -431,6 +441,8 @@ const CoverLetterContent = ({
     clearComposingFlushTimer,
     processInput,
     normalizeCaretAtReviewBoundary,
+    syncDOMToState,
+    applyDeleteRange,
   });
 
   const handleInput = useCallback(
@@ -447,7 +459,15 @@ const CoverLetterContent = ({
           isComposingRef.current = true;
         }
         if (contentRef.current) {
-          onComposingLengthChange?.(collectText(contentRef.current).length);
+          // TEXT_REPLACE_ALL이 composition 중에 도착하면 React가 DOM을 덮어써서
+          // 조합 문자가 사라진다. input 이벤트마다 현재 DOM text·caret을 저장해두고
+          // replaceAll 처리 후 재적용한다.
+          const domText = collectText(contentRef.current);
+          composingDOMTextRef.current = domText;
+          composingDOMCaretRef.current = getCaretPosition(
+            contentRef.current,
+          ).start;
+          onComposingLengthChange?.(domText.length);
         }
         return;
       }
@@ -457,7 +477,10 @@ const CoverLetterContent = ({
   );
 
   const handleCompositionEnd = useCallback(() => {
+    flushPendingDeletes();
     rawHandleCompositionEnd();
+    composingDOMTextRef.current = null;
+    composingDOMCaretRef.current = null;
     onComposingLengthChange?.(null);
 
     if (enterDuringCompositionRef.current) {
@@ -477,6 +500,7 @@ const CoverLetterContent = ({
     rawHandleCompositionEnd,
     onComposingLengthChange,
     normalizeCaretAtReviewBoundary,
+    flushPendingDeletes,
     insertTextAtCaret,
   ]);
 
@@ -488,6 +512,19 @@ const CoverLetterContent = ({
     isProcessingReplaceAllRef.current = true;
 
     const wasFocused = contentRef.current.contains(document.activeElement);
+
+    // composition 중에 TEXT_REPLACE_ALL이 도착한 경우, input 이벤트에서 저장해둔
+    // DOM text와 caret을 꺼낸다. React가 DOM을 덮어쓰기 전(useLayoutEffect 시점)이라
+    // DOM에서 직접 읽을 수 없으므로 ref에 저장된 값을 사용한다.
+    const pendingDOMText = isComposingRef.current
+      ? composingDOMTextRef.current
+      : null;
+    const pendingCaretOffset = isComposingRef.current
+      ? composingDOMCaretRef.current
+      : null;
+    composingDOMTextRef.current = null;
+    composingDOMCaretRef.current = null;
+
     const boundedOffset = Math.min(caretOffsetRef.current, text.length);
 
     isComposingRef.current = false;
@@ -495,12 +532,21 @@ const CoverLetterContent = ({
     clearComposingFlushTimer();
     latestTextRef.current = text;
 
+    // composition 중 덮어쓰기가 발생했다면, 저장된 조합 문자를 재적용한다.
+    // ex) "ㄱㅁ" (TEXT_REPLACE_ALL) + pendingDOMText="ㄱㅐㅅ" → "ㄱㅐㅅ" 로 복원
+    let targetCaretOffset = boundedOffset;
+    if (pendingDOMText !== null && pendingDOMText !== text) {
+      targetCaretOffset = pendingCaretOffset ?? boundedOffset;
+      caretOffsetRef.current = targetCaretOffset;
+      updateText(pendingDOMText, { forceParentSync: true, forceSocket: true });
+    }
+
     let rafId: number | undefined;
     if (wasFocused) {
       contentRef.current.blur();
       rafId = window.requestAnimationFrame(() => {
         if (!contentRef.current) return;
-        restoreCaret(contentRef.current, boundedOffset);
+        restoreCaret(contentRef.current, targetCaretOffset);
         // DOM 업데이트 및 커서 복원 후, selectionchange 리스너가 다시 동작하도록 플래그를 해제합니다.
         // 혹시 모를 race condition을 방지하기 위해 microtask로 처리합니다.
         queueMicrotask(() => {
@@ -514,7 +560,7 @@ const CoverLetterContent = ({
       if (rafId !== undefined) window.cancelAnimationFrame(rafId);
       isProcessingReplaceAllRef.current = false;
     };
-  }, [replaceAllSignal, text, clearComposingFlushTimer]);
+  }, [replaceAllSignal, text, clearComposingFlushTimer, updateText]);
 
   useEffect(() => {
     return bindUndoRedoShortcuts({
@@ -543,6 +589,7 @@ const CoverLetterContent = ({
       isComposingRef,
       lastCompositionEndAtRef,
       normalizeCaretAtReviewBoundary,
+      applyDeleteRange,
       insertPlainTextAtCaret: insertTextAtCaret,
       applyDeleteByDirection,
       contentRef,

@@ -1,4 +1,4 @@
-import { type RefObject, useCallback } from 'react';
+import { type RefObject, useCallback, useRef } from 'react';
 
 import { getCaretPosition } from '@/features/coverLetter/libs/caret';
 import {
@@ -24,6 +24,8 @@ interface UseCoverLetterDeleteFlowParams {
       skipVersionIncrement?: boolean;
       reviewsForMapping?: Review[];
       removeWholeReviewIds?: number[];
+      forceParentSync?: boolean;
+      forceSocket?: boolean;
     },
   ) => void;
   onDeleteReviewsByText?: (reviewIds: number[]) => void;
@@ -40,6 +42,15 @@ export const useCoverLetterDeleteFlow = ({
   updateText,
   onDeleteReviewsByText,
 }: UseCoverLetterDeleteFlowParams) => {
+  const pendingDeletedReviewIdsRef = useRef<number[]>([]);
+
+  const flushPendingDeletes = useCallback(() => {
+    if (pendingDeletedReviewIdsRef.current.length > 0) {
+      onDeleteReviewsByText?.(pendingDeletedReviewIdsRef.current);
+      pendingDeletedReviewIdsRef.current = [];
+    }
+  }, [onDeleteReviewsByText]);
+
   const applyDeleteByDirection = useCallback(
     (direction: DeleteDirection) => {
       if (!contentRef.current) return;
@@ -88,5 +99,52 @@ export const useCoverLetterDeleteFlow = ({
     ],
   );
 
-  return { applyDeleteByDirection };
+  const applyDeleteRange = useCallback(
+    (start: number, end: number, textToInsert = '') => {
+      if (!contentRef.current) return;
+
+      syncDOMToState();
+
+      const currentText = latestTextRef.current;
+      const reviews = reviewsRef.current;
+
+      const deletedReviewIds = reviews
+        .filter((r) => r.range.start >= start && r.range.end <= end)
+        .map((r) => r.id);
+
+      const newText =
+        currentText.slice(0, start) + textToInsert + currentText.slice(end);
+
+      if (deletedReviewIds.length > 0) {
+        if (isComposingRef.current) {
+          const current = new Set(pendingDeletedReviewIdsRef.current);
+          deletedReviewIds.forEach((id) => current.add(id));
+          pendingDeletedReviewIdsRef.current = Array.from(current);
+        } else {
+          onDeleteReviewsByText?.(deletedReviewIds);
+        }
+      }
+
+      caretOffsetRef.current = start + textToInsert.length;
+
+      updateText(newText, {
+        reviewsForMapping: reviews,
+        removeWholeReviewIds: deletedReviewIds,
+        forceParentSync: true,
+        forceSocket: true,
+      });
+    },
+    [
+      contentRef,
+      syncDOMToState,
+      latestTextRef,
+      reviewsRef,
+      onDeleteReviewsByText,
+      updateText,
+      caretOffsetRef,
+      isComposingRef,
+    ],
+  );
+
+  return { applyDeleteByDirection, applyDeleteRange, flushPendingDeletes };
 };
