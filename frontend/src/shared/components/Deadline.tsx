@@ -8,9 +8,10 @@ interface Props {
   value?: string | Date;
   onChange: (value: string) => void;
   upload?: boolean;
+  errorMessage?: string;
 }
 
-const Deadline = ({ label, value, onChange, upload = false }: Props) => {
+const Deadline = ({ label, value, onChange, upload = false, errorMessage = '유효하지 않은 마감일입니다.' }: Props) => {
   const [isError, setIsError] = useState({
     year: false,
     month: false,
@@ -166,7 +167,7 @@ const Deadline = ({ label, value, onChange, upload = false }: Props) => {
             isIntegrationError ? 'opacity-100' : 'pointer-events-none opacity-0'
           } text-red-600`}
         >
-          유효하지 않은 마감일입니다.
+          {errorMessage}
         </span>
       </div>
 
