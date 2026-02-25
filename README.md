@@ -332,9 +332,11 @@
 - **Auth 로직 구현**: JWT 기반 로그인, 로그아웃 등 전반적인 사용자 인증 관련 로직을 구현
 
 :page_facing_up: 관련 문서: 
-**[pdf업로드 및 AI 라벨링 기능을 위한 이벤트 기반 비동기 파이프라인](<https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EA%B3%A0%EB%AF%BC%5D-pdf%EC%97%85%EB%A1%9C%EB%93%9C-%EB%B0%8F-AI-%EB%9D%BC%EB%B2%A8%EB%A7%81-%EA%B8%B0%EB%8A%A5%EC%9D%84-%EC%9C%84%ED%95%9C-%EC%9D%B4%EB%B2%A4%ED%8A%B8-%EA%B8%B0%EB%B0%98-%EB%B9%84%EB%8F%99%EA%B8%B0-%ED%8C%8C%EC%9D%B4%ED%94%84%EB%9D%BC%EC%9D%B8>)**
+- [[이정민] - pdf업로드 및 AI 라벨링 기능을 위한 이벤트 기반 비동기 파이프라인](<https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EA%B3%A0%EB%AF%BC%5D-pdf%EC%97%85%EB%A1%9C%EB%93%9C-%EB%B0%8F-AI-%EB%9D%BC%EB%B2%A8%EB%A7%81-%EA%B8%B0%EB%8A%A5%EC%9D%84-%EC%9C%84%ED%95%9C-%EC%9D%B4%EB%B2%A4%ED%8A%B8-%EA%B8%B0%EB%B0%98-%EB%B9%84%EB%8F%99%EA%B8%B0-%ED%8C%8C%EC%9D%B4%ED%94%84%EB%9D%BC%EC%9D%B8>)
+- [[이정민] - 검색 최적화 (Full‐Text Search 도입)](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9D%B4%EC%A0%95%EB%AF%BC%5D-%E2%80%90-%EC%8A%A4%ED%81%AC%EB%9E%A9-%EB%82%B4-QnA-%EA%B2%80%EC%83%89-%EC%B5%9C%EC%A0%81%ED%99%94-(Full%E2%80%90Text-Search-%EB%8F%84%EC%9E%85))
+- [[이정민] - 스크랩 검색 에러 해결하기 (ngram의 stopword 설정, LazyInitializationException, n+1문제 개선)](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9D%B4%EC%A0%95%EB%AF%BC%5D-%E2%80%90-%EC%8A%A4%ED%81%AC%EB%9E%A9-%EA%B2%80%EC%83%89-%EC%98%A4%EB%A5%98-%ED%95%B4%EA%B2%B0-(%EB%B6%88%EC%9A%A9%EC%96%B4-%ED%95%84%ED%84%B0%EB%A7%81-%EC%84%A4%EC%A0%95,-LazyInitializationException))
+- [[이정민] ‐ 업로드 완료 알림 중복과 누락 문제 해결하기  (feat. REQUIRES_NEW, CAS)](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9D%B4%EC%A0%95%EB%AF%BC%5D-%E2%80%90-%EC%97%85%EB%A1%9C%EB%93%9C-%EC%99%84%EB%A3%8C-%EC%95%8C%EB%A6%BC-%EC%A4%91%EB%B3%B5%EA%B3%BC-%EB%88%84%EB%9D%BD-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0%ED%95%98%EA%B8%B0--(feat.-REQUIRES_NEW,-CAS))
 
-**[검색 최적화 (Full‐Text Search 도입)](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9D%B4%EC%A0%95%EB%AF%BC%5D-%E2%80%90-%EC%8A%A4%ED%81%AC%EB%9E%A9-%EB%82%B4-QnA-%EA%B2%80%EC%83%89-%EC%B5%9C%EC%A0%81%ED%99%94-(Full%E2%80%90Text-Search-%EB%8F%84%EC%9E%85))**
 
 ## 🚀 기술적 도전 (Top Picks)
 
@@ -358,7 +360,11 @@
 - **[[고민] 비동기 이벤트 아키텍처 개선기](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EA%B9%80%EC%8A%B9%ED%99%98%5D-%EB%B9%84%EB%8F%99%EA%B8%B0-%EC%9D%B4%EB%B2%A4%ED%8A%B8-%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98-%EA%B0%9C%EC%84%A0%EA%B8%B0)**
   - 업로드 관련 로직 아키텍처를 구상하고 개선해나간 기록입니다.
 
-- **[검색 최적화 (Full‐Text Search 도입)](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9D%B4%EC%A0%95%EB%AF%BC%5D-%E2%80%90-%EC%8A%A4%ED%81%AC%EB%9E%A9-%EB%82%B4-QnA-%EA%B2%80%EC%83%89-%EC%B5%9C%EC%A0%81%ED%99%94-(Full%E2%80%90Text-Search-%EB%8F%84%EC%9E%85))**
+- **[[최적화] 검색 최적화 (Full‐Text Search 도입)](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9D%B4%EC%A0%95%EB%AF%BC%5D-%E2%80%90-%EC%8A%A4%ED%81%AC%EB%9E%A9-%EB%82%B4-QnA-%EA%B2%80%EC%83%89-%EC%B5%9C%EC%A0%81%ED%99%94-(Full%E2%80%90Text-Search-%EB%8F%84%EC%9E%85))**
+
+- **[[트러블 슈팅] - 스크랩 검색 에러 해결하기 (ngram의 stopword 설정, LazyInitializationException, n+1문제 개선)](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9D%B4%EC%A0%95%EB%AF%BC%5D-%E2%80%90-%EC%8A%A4%ED%81%AC%EB%9E%A9-%EA%B2%80%EC%83%89-%EC%98%A4%EB%A5%98-%ED%95%B4%EA%B2%B0-(%EB%B6%88%EC%9A%A9%EC%96%B4-%ED%95%84%ED%84%B0%EB%A7%81-%EC%84%A4%EC%A0%95,-LazyInitializationException))**
+
+- **[[트러블 슈팅] ‐ 업로드 완료 알림 중복과 누락 문제 해결하기  (feat. REQUIRES_NEW, CAS)](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9D%B4%EC%A0%95%EB%AF%BC%5D-%E2%80%90-%EC%97%85%EB%A1%9C%EB%93%9C-%EC%99%84%EB%A3%8C-%EC%95%8C%EB%A6%BC-%EC%A4%91%EB%B3%B5%EA%B3%BC-%EB%88%84%EB%9D%BD-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0%ED%95%98%EA%B8%B0--(feat.-REQUIRES_NEW,-CAS))**
 ---
 
 ## 📚 문서 허브
