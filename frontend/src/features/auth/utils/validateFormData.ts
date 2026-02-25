@@ -1,3 +1,4 @@
+import { AUTH_FORM, AUTH_MESSAGES } from '@/features/auth/constants';
 import type { AuthFormData } from '@/features/auth/types/auth';
 import {
   validateId,
@@ -24,12 +25,12 @@ export const validateFormData = ({
 
   if (formData.userId) {
     if (!validateId(formData.userId)) {
-      newMsg.userId = '6~12자의 영문 소문자, 숫자만 사용 가능합니다.';
+      newMsg.userId = AUTH_MESSAGES.VALIDATION.ID_FORMAT;
     } else {
       if (isIdDuplicationVerified) {
-        newMsg.userId = '사용 가능한 아이디입니다.';
+        newMsg.userId = AUTH_MESSAGES.VALIDATION.ID_AVAILABLE;
       } else {
-        newMsg.userId = '중복 확인이 필요합니다.';
+        newMsg.userId = AUTH_MESSAGES.VALIDATION.ID_CHECK_REQUIRED;
       }
     }
   }
@@ -37,7 +38,7 @@ export const validateFormData = ({
   if (formData.password) {
     newMsg.password = validatePassword(formData.password)
       ? ''
-      : '비밀번호 형식이 올바르지 않습니다. (영문, 숫자 조합 8자 이상)';
+      : AUTH_MESSAGES.VALIDATION.PW_FORMAT;
   } else {
     newMsg.password = '';
   }
@@ -45,8 +46,8 @@ export const validateFormData = ({
   if (formData.passwordConfirm) {
     isMatch = formData.password === formData.passwordConfirm;
     newMsg.passwordConfirm = isMatch
-      ? '비밀번호가 일치합니다.'
-      : '비밀번호가 일치하지 않습니다.';
+      ? AUTH_MESSAGES.VALIDATION.PW_MATCH
+      : AUTH_MESSAGES.VALIDATION.PW_MISMATCH;
   } else {
     newMsg.passwordConfirm = '';
     isMatch = false;
@@ -54,13 +55,12 @@ export const validateFormData = ({
 
   const name = formData.nickname;
   if (name) {
-    if (name.length < 2) {
-      newMsg.nickname = '2자 이상 입력해주세요';
-    } else if (name.length > 15) {
-      newMsg.nickname = '15자 이하로 입력해주세요';
+    if (name.length < AUTH_FORM.VALIDATION_RULES.NICKNAME.MIN) {
+      newMsg.nickname = AUTH_MESSAGES.VALIDATION.NICKNAME_MIN;
+    } else if (name.length > AUTH_FORM.VALIDATION_RULES.NICKNAME.MAX) {
+      newMsg.nickname = AUTH_MESSAGES.VALIDATION.NICKNAME_MAX;
     } else if (!validateNickname(name)) {
-      newMsg.nickname =
-        '형식이 올바르지 않습니다 (자/모음, 숫자, 특수문자, 공백 입력 불가)';
+      newMsg.nickname = AUTH_MESSAGES.VALIDATION.NICKNAME_FORMAT;
     } else {
       newMsg.nickname = '';
     }

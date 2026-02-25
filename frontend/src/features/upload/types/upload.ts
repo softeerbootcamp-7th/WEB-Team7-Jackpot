@@ -107,7 +107,6 @@ interface QnAInSaveCoverLetter {
   questionCategory?: QuestionCategoryValue;
 }
 
-
 interface EachCoverLetterInSaveCoverLetter {
   companyName: string;
   jobPosition: string;

@@ -35,9 +35,7 @@ const UploadFileArea = ({
   const uploadInProgressRef = useRef<Set<number>>(new Set());
 
   const validateFile = (newFile: File | null) => {
-    const ALLOWED_TYPES = [
-      'application/pdf',
-    ];
+    const ALLOWED_TYPES = ['application/pdf'];
 
     // 파일 크기 검사
     if (newFile && newFile.size > MAX_BYTES) {

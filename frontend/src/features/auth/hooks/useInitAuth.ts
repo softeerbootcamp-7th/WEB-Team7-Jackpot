@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 
+import { AUTH_API, AUTH_STORAGE } from '@/features/auth/constants';
 import { useRefresh } from '@/features/auth/hooks/useAuthClient';
 import {
   getAccessToken,
@@ -15,8 +16,7 @@ export const useInitAuth = () => {
   const [accessToken, setAccessToken] = useState<string | null>(
     getAccessToken(),
   );
-  const { data: userInfo } =
-    useGetNickname(!!accessToken);
+  const { data: userInfo } = useGetNickname(!!accessToken);
 
   const onLoginSuccess = (newToken: string) => {
     // 인메모리 저장 (API용)
@@ -39,7 +39,7 @@ export const useInitAuth = () => {
         return;
       }
 
-      const isLoggedIn = localStorage.getItem('isLoggedIn');
+      const isLoggedIn = localStorage.getItem(AUTH_STORAGE.KEYS.IS_LOGGED_IN);
       if (!isLoggedIn) {
         setIsInitialized(true);
         return;
@@ -56,12 +56,12 @@ export const useInitAuth = () => {
         if (error instanceof Error) {
           isUnauthorized =
             // 서버가 토큰 만료를 알림
-            error.message.includes('401')
+            error.message.includes(AUTH_API.STATUS_CODE.UNAUTHORIZED);
         }
 
         if (isUnauthorized) {
           // 서버가 명시적으로 토큰 만료를 알렸을 때 날림
-          localStorage.removeItem('isLoggedIn');
+          localStorage.removeItem(AUTH_STORAGE.KEYS.IS_LOGGED_IN);
         } else {
           // 새로고침 취소, 인터넷 끊김, 원인 불명의 통신 에러 등은 전부 무시
           // 스토리지를 날리지 않으니 새로고침 해도 로그인 유지됨
@@ -77,7 +77,9 @@ export const useInitAuth = () => {
   return {
     isInitialized: isInitialized,
     isAuthenticated:
-      !!accessToken || localStorage.getItem('isLoggedIn') === 'true',
+      !!accessToken ||
+      localStorage.getItem(AUTH_STORAGE.KEYS.IS_LOGGED_IN) ===
+        AUTH_STORAGE.VALUES.TRUE,
     userInfo: userInfo,
     isLoading: !isInitialized,
     login: onLoginSuccess,

@@ -1,5 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
+import {
+  AUTH_API,
+  AUTH_MESSAGES,
+  AUTH_QUERY,
+  AUTH_STORAGE,
+} from '@/features/auth/constants';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { setAccessToken } from '@/features/auth/libs/tokenStore';
 import type {
@@ -16,7 +22,7 @@ export const useCheckId = () => {
   return useMutation({
     mutationFn: (userData: CheckIdRequest) =>
       apiClient.post({
-        endpoint: '/auth/checkid',
+        endpoint: AUTH_API.ENDPOINTS.CHECK_ID,
         body: userData,
         skipAuth: true,
       }),
@@ -27,7 +33,7 @@ export const useSignUp = () => {
   return useMutation({
     mutationFn: (userData: JoinRequest) =>
       apiClient.post({
-        endpoint: '/auth/join',
+        endpoint: AUTH_API.ENDPOINTS.SIGNUP,
         body: userData,
         skipAuth: true,
       }),
@@ -42,7 +48,7 @@ export const useLogin = () => {
   return useMutation({
     mutationFn: async (userData: LoginRequest) => {
       const data = await apiClient.post<AuthResponse>({
-        endpoint: '/auth/login',
+        endpoint: AUTH_API.ENDPOINTS.LOGIN,
         body: userData,
         options: {
           credentials: 'include',
@@ -53,14 +59,17 @@ export const useLogin = () => {
       if (data.accessToken) {
         login(data.accessToken);
       } else {
-        throw new Error('로그인 응답에 accessToken이 없습니다.')
+        throw new Error('로그인 응답에 accessToken이 없습니다.');
       }
       return data;
     },
     onSuccess: async () => {
-      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem(
+        AUTH_STORAGE.KEYS.IS_LOGGED_IN,
+        AUTH_STORAGE.VALUES.TRUE,
+      );
       await queryClient.invalidateQueries({
-        queryKey: ['userInfo', 'nickname'],
+        queryKey: [AUTH_QUERY.KEYS.USERINFO, AUTH_QUERY.KEYS.NICKNAME],
       });
     },
   });
@@ -71,7 +80,7 @@ export const useRefresh = () => {
   return useMutation({
     mutationFn: async () => {
       const data = await apiClient.post<AuthResponse>({
-        endpoint: '/auth/refresh',
+        endpoint: AUTH_API.ENDPOINTS.REFRESH,
         options: {
           credentials: 'include',
         },
@@ -96,23 +105,23 @@ export const useLogout = () => {
   return useMutation({
     mutationFn: () =>
       apiClient.delete({
-        endpoint: '/auth/logout',
+        endpoint: AUTH_API.ENDPOINTS.LOGOUT,
         options: { credentials: 'include' },
         skipAuth: true,
       }),
     onSuccess: () => {
       logout();
-      localStorage.removeItem('isLoggedIn');
+      localStorage.removeItem(AUTH_STORAGE.KEYS.IS_LOGGED_IN);
       // 로그아웃 시 전체 캐시 날리기
       queryClient.clear();
-      showToast('로그아웃 되었습니다', true);
+      showToast(AUTH_MESSAGES.LOGOUT.SUCCESS, true);
     },
     onError: () => {
       // UX를 위해 서버 실패와 무관하게 클라이언트 로그아웃 처리
       logout();
-      localStorage.removeItem('isLoggedIn');
+      localStorage.removeItem(AUTH_STORAGE.KEYS.IS_LOGGED_IN);
       queryClient.clear();
-      showToast('로그아웃 되었습니다', true);
-    }
+      showToast(AUTH_MESSAGES.LOGOUT.SUCCESS, true);
+    },
   });
 };

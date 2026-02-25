@@ -7,6 +7,7 @@ import {
 } from '@tanstack/react-query';
 
 import { getAccessToken } from '@/features/auth/libs/tokenStore';
+import { NOTIFICATION_API } from '@/features/notification/constants';
 import type {
   LabeledQnAListResponse,
   NotificationCountResponse,
@@ -21,7 +22,7 @@ export const useGetAllNotification = () => {
     queryKey: ['notificationList'],
     queryFn: ({ pageParam }: { pageParam: number | null }) =>
       apiClient.get<NotificationResponse>({
-        endpoint: '/notification/all',
+        endpoint: NOTIFICATION_API.ENDPOINTS.ALL,
         params: {
           size: 10,
           lastNotificationId: pageParam ?? undefined,
@@ -46,7 +47,7 @@ export const useGetNotificationCount = () => {
     queryKey: ['notificationCount'],
     queryFn: () =>
       apiClient.get<NotificationCountResponse>({
-        endpoint: '/notification/count',
+        endpoint: NOTIFICATION_API.ENDPOINTS.COUNT,
       }),
     staleTime: 0,
     enabled: !!getAccessToken(),
@@ -59,7 +60,9 @@ export const useReadEachNotification = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (notificationId: number) =>
-      apiClient.patch({ endpoint: `/notification/${notificationId}/read` }),
+      apiClient.patch({
+        endpoint: NOTIFICATION_API.ENDPOINTS.READ_EACH(notificationId),
+      }),
     onSuccess: (_, notificationId) => {
       queryClient.setQueryData<InfiniteData<NotificationResponse>>(
         ['notificationList'],
@@ -82,7 +85,6 @@ export const useReadEachNotification = () => {
       );
       queryClient.invalidateQueries({ queryKey: ['notificationCount'] });
     },
-    // [윤종근] - TODO: 토스트 메시지로 수정 필요
     onError: (error) => console.error('에러입니다.', error),
   });
 };
@@ -91,7 +93,8 @@ export const useReadEachNotification = () => {
 export const useReadAllNotification = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => apiClient.patch({ endpoint: '/notification/all/read' }),
+    mutationFn: () =>
+      apiClient.patch({ endpoint: NOTIFICATION_API.ENDPOINTS.READ_ALL }),
     onSuccess: () => {
       // UI 즉시 반영을 위해 낙관적 업데이트 적용
       queryClient.setQueryData<InfiniteData<NotificationResponse>>(
@@ -113,7 +116,6 @@ export const useReadAllNotification = () => {
       queryClient.invalidateQueries({ queryKey: ['notificationList'] });
       queryClient.invalidateQueries({ queryKey: ['notificationCount'] });
     },
-    // [윤종근] - TODO: 토스트 메시지로 수정 필요
     onError: (error) => console.error('에러입니다.', error),
   });
 };
@@ -124,7 +126,7 @@ export const useLabeledQnAList = (uploadJobId: string) => {
     queryKey: ['qnaList', uploadJobId],
     queryFn: () =>
       apiClient.get<LabeledQnAListResponse>({
-        endpoint: `/upload/uploaded/${uploadJobId}/qnas`,
+        endpoint: NOTIFICATION_API.ENDPOINTS.LABELED_QNA(uploadJobId),
       }),
     enabled: !!uploadJobId,
   });

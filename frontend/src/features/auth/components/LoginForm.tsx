@@ -5,7 +5,7 @@ import { useNavigate, useSearchParams } from 'react-router';
 
 import InputBar from '@/features/auth/components/InputBar';
 import SubmitButton from '@/features/auth/components/SubmitButton';
-import { INPUT_BAR_IN_LOGIN } from '@/features/auth/constants/constantsInLoginPage';
+import { AUTH_FORM, AUTH_MESSAGES } from '@/features/auth/constants';
 import { useLogin } from '@/features/auth/hooks/useAuthClient';
 import useAuthForm from '@/features/auth/hooks/useAuthForm';
 import type { AuthInputKey } from '@/features/auth/types/auth';
@@ -48,24 +48,24 @@ const LoginForm = () => {
         password: formData.password,
       });
 
-      showToast('로그인 되었습니다.', true);
+      showToast(AUTH_MESSAGES.LOGIN.SUCCESS, true);
     } catch (error) {
       if (error instanceof Error) {
         setIsLoginFailed(true);
       } else {
-        showToast('로그인에 실패했습니다.', false);
+        showToast(AUTH_MESSAGES.LOGIN.FAILURE, false);
       }
     }
   };
   return (
     <>
-      <LoadingModal isLoading={isPending} message='로그인 중입니다.' />
+      <LoadingModal isLoading={isPending} message={AUTH_MESSAGES.LOGIN.PENDING} />
       <form
         className='flex flex-col items-center justify-center gap-6'
         onSubmit={handleLogin}
       >
         <div className='flex w-[24.5rem] flex-col items-center justify-center gap-3'>
-          {INPUT_BAR_IN_LOGIN.map((each) => (
+          {AUTH_FORM.INPUTS.LOGIN.map((each) => (
             <React.Fragment key={each.ID}>
               <InputBar
                 isFail={isLoginFailed}
@@ -75,7 +75,7 @@ const LoginForm = () => {
                 value={formData[each.ID]}
                 onChange={handleInputChange(each.ID)}
               />
-              {each.ID === 'password' && (
+              {each.ID === AUTH_FORM.FIELDS.PASSWORD && (
                 <span
                   className={`text-body-s w-full text-center transition-colors duration-200 ${
                     isLoginFailed
@@ -83,23 +83,27 @@ const LoginForm = () => {
                       : 'text-transparent select-none'
                   }`}
                 >
-                  아이디, 비밀번호를 확인해 주세요
+                  {AUTH_MESSAGES.LOGIN.INVALID}
                 </span>
               )}
             </React.Fragment>
           ))}
         </div>
-        <SubmitButton isActived={isActived} value='로그인' />
+        <SubmitButton isActived={isActived} value={AUTH_FORM.LABELS.LOGIN_ACTION} />
       </form>
       <button
         type='button'
         onClick={() => {
           const redirect = searchParams.get('redirect');
-          navigate(redirect ? `/signup?redirect=${encodeURIComponent(redirect)}` : '/signup');
+          navigate(
+            redirect
+              ? `/signup?redirect=${encodeURIComponent(redirect)}`
+              : '/signup',
+          );
         }}
         className='text-body-m cursor-pointer font-medium text-gray-600'
       >
-        회원가입
+        {AUTH_FORM.LABELS.SIGN_UP_ACTION}
       </button>
     </>
   );

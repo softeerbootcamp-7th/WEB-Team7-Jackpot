@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
 import NotificationItem from '@/features/notification/components/NotificationItem';
+import { NOTIFICATION_MESSAGES, NOTIFICATION_TYPE } from '@/features/notification/constants';
 import {
   useGetAllNotification,
   useReadEachNotification,
@@ -34,7 +35,7 @@ const NotificationList = ({ handleDropdown }: NotificationListProps) => {
   if (isLoading) {
     return (
       <div className='flex h-40 items-center justify-center text-gray-400'>
-        로딩 중...
+        {NOTIFICATION_MESSAGES.STATE.LOADING}
       </div>
     );
   }
@@ -48,10 +49,10 @@ const NotificationList = ({ handleDropdown }: NotificationListProps) => {
       <div className='flex h-60 w-full flex-col items-center justify-center gap-4 text-center'>
         <div className='flex flex-col gap-1'>
           <span className='text-body-m font-medium text-gray-600'>
-            새로운 알림이 없습니다.
+            {NOTIFICATION_MESSAGES.EMPTY.TITLE}
           </span>
           <span className='text-caption-m text-gray-400'>
-            새 소식이 도착하면 알려드릴게요!
+            {NOTIFICATION_MESSAGES.EMPTY.SUB}
           </span>
         </div>
       </div>
@@ -67,7 +68,7 @@ const NotificationList = ({ handleDropdown }: NotificationListProps) => {
               type='button'
               onClick={() => {
                 readEachNotification(Number(each.id));
-                if (each.type === 'FEEDBACK') {
+                if (each.type === NOTIFICATION_TYPE.FEEDBACK) {
                   navigate(
                     `/cover-letter/edit/${each.meta.coverLetterId}?qnAId=${each.meta.qnAId}`,
                   );
@@ -86,7 +87,7 @@ const NotificationList = ({ handleDropdown }: NotificationListProps) => {
         </div>
       ))}
       <div ref={targetRef} className='flex h-4 items-center justify-center'>
-        {isFetchingNextPage && <span>로딩 중...</span>}
+        {isFetchingNextPage && <span>{NOTIFICATION_MESSAGES.STATE.LOADING}</span>}
       </div>
     </>
   );

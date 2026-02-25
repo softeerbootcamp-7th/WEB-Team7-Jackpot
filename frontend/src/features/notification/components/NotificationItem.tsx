@@ -1,3 +1,4 @@
+import { NOTIFICATION_MESSAGES, NOTIFICATION_TYPE } from '@/features/notification/constants';
 import * as NI from '@/features/notification/icons';
 import type { NotificationType } from '@/features/notification/types/notification';
 
@@ -16,8 +17,8 @@ const FeedbackNotificationHeader = ({
     <div className='flex items-center gap-2'>
       <NI.ProfileIcon />
       <span className='text-caption-m text-purple-600'>
-        <span className='font-bold'>{nickname}</span>님이 새로운 알림을
-        보냈어요!
+        <span className='font-bold'>{nickname}</span>
+        {NOTIFICATION_MESSAGES.HEADER.FEEDBACK}
       </span>
     </div>
   );
@@ -28,7 +29,7 @@ const LabelingNotificationHeader = () => {
     <div className='flex items-center gap-2'>
       <NI.CardFileBoxIcon />
       <span className='text-caption-m text-purple-600'>
-        요청하신 AI 라벨링이 완료되었어요!
+        {NOTIFICATION_MESSAGES.HEADER.LABELING}
       </span>
     </div>
   );
@@ -42,7 +43,7 @@ const NotificationItem = ({ data }: NotificationItemProps) => {
       {!data.isRead && (
         <div className='absolute top-3 right-3 h-2 w-2 rounded-full bg-red-500 ring-4 ring-purple-50/40' />
       )}
-      {data.type === 'FEEDBACK' ? (
+      {data.type === NOTIFICATION_TYPE.FEEDBACK ? (
         <FeedbackNotificationHeader nickname={data.meta.sender.nickname} />
       ) : (
         <LabelingNotificationHeader />
@@ -51,7 +52,9 @@ const NotificationItem = ({ data }: NotificationItemProps) => {
         <span className='text-body-m font-bold text-gray-950'>
           {data.title}
         </span>
-        <span className='text-caption-m text-gray-400 line-clamp-2'>{data.content}</span>
+        <span className='text-caption-m line-clamp-2 text-gray-400'>
+          {data.content}
+        </span>
       </div>
     </div>
   );
