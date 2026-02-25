@@ -58,7 +58,7 @@ export const useUpdateQnA = () => {
     mutationFn: updateQnA,
     onSuccess: (data) => {
       queryClient.invalidateQueries({
-        queryKey: ['qna', data.qnAId],
+        queryKey: ['qna', { qnaId: data.qnAId }],
       });
       // 라이브러리 상세 페이지 (폴더 내 문항 목록) 갱신
       queryClient.invalidateQueries({

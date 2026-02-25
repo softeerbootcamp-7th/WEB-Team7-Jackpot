@@ -45,7 +45,7 @@ const DocumentItem = ({
             }
           : undefined
       }
-      className={`w-full ${hasLink ? 'cursor-pointer hover:bg-gray-50' : ''} transition-opacity ${
+      className={`w-full rounded-lg ${hasLink ? 'cursor-pointer hover:bg-gray-50' : ''} transition-all duration-200 ${
         isSelected ? 'opacity-100' : 'opacity-30 hover:opacity-100'
       }`}
     >

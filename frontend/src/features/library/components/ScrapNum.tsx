@@ -8,7 +8,10 @@ const ScrapNum = () => {
       <p className='text-body-l flex-shrink-0 flex-grow-0 font-bold text-gray-400'>
         지금까지 스크랩된 문항 수
       </p>
-      <div className='inline-flex items-center justify-center gap-1 rounded-[100px] bg-purple-500 px-1.5 pt-px outline outline-2 outline-white'>
+      <div
+        key={data?.scrapCount}
+        className='animate-badge-pop inline-flex items-center justify-center gap-1 rounded-[100px] bg-purple-500 px-1.5 pt-px outline outline-2 outline-white'
+      >
         <div
           aria-live='polite'
           className='text-caption-s justify-start text-center font-bold text-white'

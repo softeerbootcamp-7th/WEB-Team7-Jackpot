@@ -137,6 +137,26 @@ export const useCoverLetterInputHandlers = ({
     ],
   );
 
+  // ISSUE FIX: 첨삭 영역을 포함한 곳 복사 > 붙여넣기 시, 첨삭 영역 늘어남
+  // 기존 copy시에 내부 첨삭 태그까지 함께 복사되었음. > plain text만 뽑아서 copy 되도록 수정
+  const handleCopy = useCallback(
+    (e: ClipboardEvent<HTMLDivElement>) => {
+      e.preventDefault();
+
+      const selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0) return;
+
+      const range = selection.getRangeAt(0);
+      if (!contentRef.current?.contains(range.startContainer)) return;
+
+      let text = range.toString();
+      text = text.replace(/\u200B/g, '');
+      console.log(text);
+      e.clipboardData.setData('text/plain', text);
+    },
+    [contentRef],
+  );
+
   const handlePaste = useCallback(
     (e: ClipboardEvent<HTMLDivElement>) => {
       e.preventDefault();
@@ -155,5 +175,6 @@ export const useCoverLetterInputHandlers = ({
   return {
     handleKeyDown,
     handlePaste,
+    handleCopy,
   };
 };

@@ -11,8 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.Collections;
 import java.util.List;
@@ -46,10 +44,18 @@ public class TextSyncService {
     }
 
     /**
+     * committed 델타를 가져온다.
+     * Review 생성 시 OT 변환을 위해 사용한다.
+     */
+    public List<TextUpdateRequest> getCommittedDeltas(Long qnAId) {
+        return textDeltaRedisRepository.getCommitted(qnAId);
+    }
+
+    /**
      * pending 델타를 DB에 flush한다.
      */
     @Transactional
-    public void flushDeltasToDb(Long qnAId, List<TextUpdateRequest> deltas, long readCount) {
+    public void flushDeltasToDbAndSyncVersion(Long qnAId, List<TextUpdateRequest> deltas, long readCount) {
         if (deltas.isEmpty()) return;
 
         QnA qnA = qnARepository.findByIdOrElseThrow(qnAId);
@@ -57,16 +63,18 @@ public class TextSyncService {
 
         String newAnswer = textMerger.merge(qnA.getAnswer(), applicableDeltas);
         qnA.editAnswer(newAnswer);
-        qnARepository.incrementVersion(qnAId, applicableDeltas.size());
+        long newVersion = qnARepository.incrementVersion(qnAId, applicableDeltas.size());
 
         // 정합성을 위해 DB 커밋과 Redis 커밋을 같은 트랜잭션 경계 내에서 실행한다.
-        movePendingDeltasToCommitDeltas(qnAId, readCount);
+        // pending을 committed로 이동하고 Redis 버전 카운터를 DB 버전으로 원자적으로 갱신한다.
+        movePendingDeltasToCommitDeltas(qnAId, readCount, newVersion);
     }
 
     // getPending()으로 읽은 항목 수인 readCount를 commit()에 전달해 그 이후 유입된 델타를 보존한다.
-    public void movePendingDeltasToCommitDeltas(Long qnAId, long readCount) {
-        long committedDeltaCount = textDeltaRedisRepository.commit(qnAId, readCount);
-        log.info("redis flush 완료: qnAId={}, committed 수={}", qnAId, committedDeltaCount);
+    // DB 버전으로 Redis 버전 카운터를 원자적으로 덮어쓴다.
+    private void movePendingDeltasToCommitDeltas(Long qnAId, long readCount, long newVersion) {
+        long committedDeltaCount = textDeltaRedisRepository.commit(qnAId, readCount, newVersion);
+        log.info("redis flush 완료: qnAId={}, committed 수={}, newVersion={}", qnAId, committedDeltaCount, newVersion);
     }
 
     /**

@@ -32,7 +32,7 @@ const Pagination = ({
         type='button'
         onClick={() => onChange(current - 1)}
         disabled={isFirst}
-        className='cursor-pointer disabled:cursor-default disabled:opacity-80'
+        className='group cursor-pointer disabled:cursor-default disabled:opacity-40 disabled:hover:transform-none'
         aria-label={`이전 ${ariaLabel}`}
       >
         <SI.PaginationIcon direction='left' disabled={isFirst} />
@@ -42,9 +42,7 @@ const Pagination = ({
         <div className='text-title-s line-clamp-1 font-bold text-purple-500'>
           {current + 1}
         </div>
-        <div className='text-title-s line-clamp-1 font-bold text-gray-400'>
-          /
-        </div>
+        <div className='text-title-s font-bold text-gray-400'>/</div>
         <div className='text-title-s line-clamp-1 font-bold text-gray-400'>
           {total}
         </div>
@@ -54,7 +52,7 @@ const Pagination = ({
         type='button'
         onClick={() => onChange(current + 1)}
         disabled={isLast}
-        className='cursor-pointer disabled:cursor-default disabled:opacity-80'
+        className='group cursor-pointer disabled:cursor-default disabled:opacity-40 disabled:hover:transform-none'
         aria-label={`다음 ${ariaLabel}`}
       >
         <SI.PaginationIcon direction='right' disabled={isLast} />

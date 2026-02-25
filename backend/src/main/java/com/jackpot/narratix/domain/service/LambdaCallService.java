@@ -1,7 +1,5 @@
 package com.jackpot.narratix.domain.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jackpot.narratix.domain.exception.UploadErrorCode;
 import com.jackpot.narratix.global.exception.BaseException;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +11,7 @@ import software.amazon.awssdk.services.lambda.LambdaClient;
 import software.amazon.awssdk.services.lambda.model.InvocationType;
 import software.amazon.awssdk.services.lambda.model.InvokeRequest;
 import software.amazon.awssdk.services.lambda.model.InvokeResponse;
+import tools.jackson.databind.ObjectMapper;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -22,7 +21,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class LambdaCallService {
     private final LambdaClient lambdaClient;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     @Value("${aws.lambda.function-name}")
     private String functionName;
@@ -52,9 +51,6 @@ public class LambdaCallService {
 
             log.info("Lambda Invoke Success : fileId={}, statusCode={}", fileId, response.statusCode());
 
-        } catch (JsonProcessingException e) {
-            log.error("Lambda Payload Serialize Fail : fileId={}", fileId, e);
-            throw new BaseException(UploadErrorCode.LAMBDA_CALL_FAILED);
         } catch (BaseException e) {
             throw e;
         } catch (Exception e) {

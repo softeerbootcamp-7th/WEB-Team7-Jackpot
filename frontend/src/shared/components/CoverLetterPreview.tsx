@@ -17,7 +17,7 @@ const CoverLetterPreview = ({
   return (
     <Link
       to={`/cover-letter/edit/${data.coverLetterId}`}
-      className={`focusable-card ${isCoverLetter ? 'h-[11.25rem]' : ''} flex flex-1 cursor-pointer items-center justify-start gap-9 rounded-2xl border border-gray-100 py-6 pr-6 pl-9`}
+      className={`focusable-card ${isCoverLetter ? 'h-[11.25rem]' : ''} hover-float-up flex flex-1 cursor-pointer items-center justify-start gap-9 rounded-2xl border border-gray-100 py-6 pr-6 pl-9`}
     >
       <img src={fileIcon} className='h-16 w-14' alt='' aria-hidden='true' />
       <div className='inline-flex flex-1 flex-col items-start justify-start gap-2'>

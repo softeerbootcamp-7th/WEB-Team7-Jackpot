@@ -25,9 +25,9 @@ interface UseSignUpProps {
 }
 
 export const useSignUp = ({ handleSuccess }: UseSignUpProps) => {
-  const { mutateAsync: checkId } = useCheckId();
-  const { mutateAsync: signUp } = useSignUpMutation();
-  const { mutateAsync: login } = useLogin();
+  const { mutateAsync: checkId, isPending: isCheckingId } = useCheckId();
+  const { mutateAsync: signUp, isPending: isSigningUp } = useSignUpMutation();
+  const { mutateAsync: login, isPending: isLoggingIn } = useLogin();
   const [isSignUpFailed, setIsSignUpFailed] = useState<boolean>(false);
   const { showToast } = useToastMessageContext();
   const { formData, handleInputChange: originalHandleInputChange } =
@@ -48,6 +48,8 @@ export const useSignUp = ({ handleSuccess }: UseSignUpProps) => {
   const [isPasswordMatched, setIsPasswordMatched] = useState<boolean>(false);
   const [isIdDuplicationVerified, setIsIdDuplicationVerified] =
     useState<boolean>(false);
+
+  const isPending = isCheckingId || isSigningUp || isLoggingIn;
 
   const handleInputChange =
     (key: AuthInputKey) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -143,5 +145,6 @@ export const useSignUp = ({ handleSuccess }: UseSignUpProps) => {
     formData: formData,
     handleCheckDuplicateId: handleCheckDuplicateId,
     isActived: isActived,
+    isPending: isPending,
   };
 };

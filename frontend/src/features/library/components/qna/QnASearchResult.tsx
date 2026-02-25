@@ -51,7 +51,7 @@ const QnASearchResult = ({
             navigate(`/library/qna/${encodeURIComponent(libName)}`);
           }}
           aria-label={`${libName} 폴더 열기`}
-          className='inline-flex h-30 w-30 flex-col items-center justify-center gap-2.5 rounded-lg px-3 pt-5 pb-4 transition-colors hover:bg-gray-50'
+          className='inline-flex w-28 shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 rounded-lg px-3 pt-5 pb-4 transition-colors duration-200 hover:bg-gray-100'
         >
           <img
             src={libraryFolder}

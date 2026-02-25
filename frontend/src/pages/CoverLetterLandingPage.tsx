@@ -75,10 +75,10 @@ const CoverLetterLandingPage = () => {
             type='button'
             onClick={handleFilterToggle}
             aria-pressed={isFilterActive}
-            className={`flex h-12 shrink-0 cursor-pointer items-center gap-2 rounded-lg border px-4 transition-colors ${
+            className={`flex h-12 shrink-0 cursor-pointer items-center gap-2 rounded-lg px-4 transition-colors duration-200 ${
               isFilterActive
-                ? 'border-purple-500 bg-purple-50 text-purple-600'
-                : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+                ? 'bg-purple-50 text-purple-600 hover:bg-purple-100'
+                : 'border border-gray-200 text-gray-600 hover:bg-gray-100'
             }`}
           >
             <CI.ReviewWithFriendIcon className='h-5 w-5' />

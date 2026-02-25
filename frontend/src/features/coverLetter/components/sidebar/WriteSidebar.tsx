@@ -59,13 +59,13 @@ const WriteSidebar = ({
       {/* 탭 & 검색 영역 (고정 높이) */}
       <div className='flex flex-none shrink-0 flex-col items-center justify-start gap-3 self-stretch'>
         <div className='flex flex-col items-start justify-start gap-2.5 self-stretch px-3'>
-          <div className='inline-flex h-12 items-center justify-start self-stretch overflow-hidden rounded-lg bg-gray-50 p-1'>
+          <div className='inline-flex h-12 items-center justify-start gap-2 self-stretch overflow-hidden rounded-lg bg-gray-50 p-1'>
             <button
               onClick={() => handleTabChange('scrap')}
-              className={`flex h-11 flex-1 items-center justify-center gap-1.5 rounded-md px-16 py-2.5 transition-all ${
+              className={`flex h-11 flex-1 items-center justify-center gap-1.5 rounded-md px-10 py-2.5 transition-all ${
                 isScrap
                   ? 'cursor-default bg-white shadow-[0px_0px_10px_0px_rgba(41,41,41,0.06)]'
-                  : 'cursor-pointer'
+                  : 'cursor-pointer duration-200 hover:bg-gray-100'
               }`}
             >
               <div
@@ -83,7 +83,7 @@ const WriteSidebar = ({
               className={`flex h-11 flex-1 items-center justify-center rounded-md px-10 py-2.5 transition-all ${
                 !isScrap
                   ? 'cursor-default bg-white shadow-[0px_0px_10px_0px_rgba(41,41,41,0.06)]'
-                  : 'cursor-pointer'
+                  : 'cursor-pointer duration-200 hover:bg-gray-100'
               }`}
             >
               <div

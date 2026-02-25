@@ -10,7 +10,10 @@ interface Props {
 }
 
 const CompanyDocumentList = ({ className }: Props) => {
-  const { companyName } = useParams<{ companyName?: string }>();
+  const { companyName, coverLetterId } = useParams<{
+    companyName?: string;
+    coverLetterId?: string;
+  }>();
   const navigate = useNavigate();
 
   // 1. 무한 스크롤에 필요한 상태와 함수 추가
@@ -54,6 +57,9 @@ const CompanyDocumentList = ({ className }: Props) => {
               navigate(`/library/company/${companyName}/${id}`)
             }
             key={doc.coverLetterId}
+            isSelected={
+              !coverLetterId || doc.coverLetterId === Number(coverLetterId)
+            }
             {...doc}
           />
         )}

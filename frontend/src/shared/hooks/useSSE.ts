@@ -1,79 +1,72 @@
+// src/features/notification/hooks/useSSE.ts
 import { useEffect, useRef } from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';
 
 import { getAccessToken } from '@/features/auth/libs/tokenStore';
-import { sseStream } from '@/shared/api/sseStream';
-import { isNotificationPayload } from '@/shared/libs/checkStreamPayload';
-import { readStream } from '@/shared/libs/readStream';
-import type { SSEPayload } from '@/shared/types/sse';
+// Vite에게 이건 Worker 파일이라고 명시적으로 알려주는 import
+// -> 파일 앞에 ?과 접미사 쿼리 파라미터를 붙여주면 Vite가 이 파일이 브라우저(window) 환경이 아니라 Worker 환경용으로 따로 빌드/처리해야하는 것으로 인식
+// (Worker에서는 window, document, localStorage, sessionStorage 같은 DOM API에 아예 접근할 수 없어서 에러 발생)
+import SharedWorkerURL from '@/workers/sseWorker.ts?sharedworker&url';
+import DedicatedWorkerURL from '@/workers/sseWorker.ts?worker&url';
 
 export const useSSE = () => {
   const token = getAccessToken();
   const queryClient = useQueryClient();
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Worker나 Port를 담아둘 ref
+  const workerRef = useRef<SharedWorker | Worker | null>(null);
+  const portRef = useRef<MessagePort | Worker | null>(null);
 
   useEffect(() => {
     if (!token) return;
 
-    const controller = new AbortController();
+    try {
+      if (window.SharedWorker) {
+        // ?sharedworker&url로 가져온 경로를 사용
+        const worker = new SharedWorker(SharedWorkerURL, { type: 'module' });
+        workerRef.current = worker;
+        portRef.current = worker.port;
+        worker.port.start();
+      } else {
+        throw new Error('SharedWorker를 사용할 수 없습니다.');
+      }
+    } catch {
+      // Shared Worker 지원 시 사용, 미지원 시 Dedicated Worker로 폴백
+      // ?worker&url로 가져온 경로를 사용
+      const worker = new Worker(DedicatedWorkerURL, { type: 'module' });
+      workerRef.current = worker;
+      portRef.current = worker;
+    }
 
-    const connectSSE = async () => {
-      try {
-        const response = await sseStream.connect(controller.signal);
+    const port = portRef.current;
+    if (!port) return;
 
-        await readStream<SSEPayload>(response, (data) => {
-          // data 자체가 notification
-          if (!data || !isNotificationPayload(data)) return;
-
-          queryClient.invalidateQueries({ queryKey: ['notificationCount'] });
-          queryClient.invalidateQueries({ queryKey: ['notificationList'] });
-        });
-
-        // 정상 종료 시에도 즉시 재연결하지 않고 3초 대기
-        if (!controller.signal.aborted) {
-          if (timerRef.current) clearTimeout(timerRef.current);
-
-          timerRef.current = setTimeout(() => {
-            connectSSE();
-          }, 3000);
-        }
-      } catch (error) {
-        // 400 에러 (한 유저 당 최대 SSE 연결 개수 5개 초과 오류) 발생 시 재연결 안함
-        if (error instanceof Error && error.message.includes('400')) {
-          console.error('연결 제한 초과. 재연결 중단.');
-          return;
-        }
-        // AbortError는 사용자가 의도적으로 끊은 것이므로 재연결 안함
-        if (error instanceof Error && error.name === 'AbortError') {
-          return;
-        }
-        // 기존 타이머 제거 후 새로 설정
-        console.error('SSE 에러, 3초 후 재연결...', error);
-        if (timerRef.current) clearTimeout(timerRef.current);
-
-        timerRef.current = setTimeout(() => {
-          // 3초가 지난 시점에 이미 aborted 되었다면 재연결 하지 않음
-          if (!controller.signal.aborted) {
-            connectSSE();
-          }
-        }, 3000);
+    // Worker로부터 오는 메시지(알림) 수신
+    port.onmessage = (e: MessageEvent) => {
+      if (e.data.type === 'NOTIFICATION') {
+        queryClient.invalidateQueries({ queryKey: ['notificationCount'] });
+        queryClient.invalidateQueries({ queryKey: ['notificationList'] });
       }
     };
 
-    connectSSE();
-
-    // cleanup 함수
+    // Worker에 시작 신호 및 토큰 전달
+    port.postMessage({ type: 'START', payload: { token } });
+    // 새로고침, 탭 닫힘 감지 이벤트 추가
     const handleBeforeUnload = () => {
-      controller.abort();
+      port.postMessage({ type: 'STOP' });
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
 
+    // Cleanup: 컴포넌트 언마운트 시 현재 탭의 연결 해제 요청
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      controller.abort();
-      // 대기 중인 재연결 취소
-      if (timerRef.current) clearTimeout(timerRef.current);
+      port.postMessage({ type: 'STOP' });
+      if (port instanceof MessagePort) {
+        port.close();
+      } else {
+        (workerRef.current as Worker).terminate();
+      }
     };
   }, [token, queryClient]);
 };

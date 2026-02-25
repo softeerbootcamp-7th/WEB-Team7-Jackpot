@@ -38,7 +38,7 @@ const CalendarDay = ({
   return (
     <Link
       to={targetPath}
-      className='inline-flex h-26 w-26 cursor-pointer flex-col items-start justify-start gap-2 rounded-lg p-1 transition-colors hover:bg-gray-50'
+      className='inline-flex h-26 w-26 cursor-pointer flex-col items-start justify-start gap-2 rounded-lg p-1 transition-colors duration-200 hover:bg-gray-50'
     >
       <div className='inline-flex items-center justify-start self-stretch'>
         <div className='flex flex-1 items-center justify-between gap-2'>

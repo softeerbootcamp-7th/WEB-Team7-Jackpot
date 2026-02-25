@@ -16,7 +16,7 @@ const Folder = ({ name }: FolderProps) => {
   return (
     <NavLink
       to={`./${tab}/${encodeURIComponent(name)}`}
-      className='inline-flex h-30 w-30 flex-col items-center justify-center gap-2.5 rounded-lg px-3 pt-5 pb-4 transition-colors hover:bg-gray-50'
+      className='inline-flex h-30 w-30 flex-col items-center justify-center gap-2.5 px-3 pt-5 pb-4 hover:bg-gray-100 rounded-lg transition-colors duration-200'
     >
       <img
         src={libraryFolder}
