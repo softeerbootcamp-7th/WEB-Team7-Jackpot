@@ -13,9 +13,15 @@ const CompanyDocumentList = ({ className }: Props) => {
   const { companyName } = useParams<{ companyName?: string }>();
   const navigate = useNavigate();
 
-  const { data, isLoading, isError } = useCompanyListQueries(
-    companyName ?? null,
-  );
+  // 1. 무한 스크롤에 필요한 상태와 함수 추가
+  const {
+    data,
+    isLoading,
+    isError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useCompanyListQueries(companyName ?? null);
 
   const coverLetters =
     data?.pages.flatMap((page) =>
@@ -25,7 +31,7 @@ const CompanyDocumentList = ({ className }: Props) => {
           companyName: item.companyName,
           jobPosition: item.jobPosition,
           applySeason: item.applySeason,
-          deadline: item.modifiedAt, // [박소민] 마감일 달라고 하기
+          deadline: item.modifiedAt, // 마감일 달라고 하기
           questionCount: item.questionCount,
         };
       }),
@@ -51,6 +57,10 @@ const CompanyDocumentList = ({ className }: Props) => {
             {...doc}
           />
         )}
+        // 2. DocumentList에 무한 스크롤 Props 전달
+        hasNextPage={hasNextPage}
+        isFetchingNextPage={isFetchingNextPage}
+        onLoadMore={() => fetchNextPage()}
       />
     </DocumentLayout>
   );

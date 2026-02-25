@@ -1,5 +1,6 @@
 import SearchableSelectInput from '@/shared/components/SearchableSelectInput';
 import { CATEGORY_VALUES } from '@/shared/constants/createCoverLetter';
+import * as SI from '@/shared/icons/index';
 import type { CoverLetterQuestion } from '@/shared/types/coverLetter';
 
 interface Props {
@@ -18,9 +19,9 @@ const Question = ({ displayIndex, data, onChange, onRemove }: Props) => {
         <button
           type='button'
           onClick={onRemove}
-          className='absolute top-3 right-3 text-xs font-medium text-gray-400 opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-500 focus:opacity-100'
+          className='absolute top-3 right-3 h-3 w-3 cursor-pointer text-xs font-medium opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100'
         >
-          삭제
+          <SI.DeleteIcon />
         </button>
       )}
 
