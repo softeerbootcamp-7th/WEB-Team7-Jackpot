@@ -3,15 +3,11 @@ package com.jackpot.narratix.domain.service;
 import com.jackpot.narratix.domain.entity.LabeledQnA;
 import com.jackpot.narratix.domain.entity.UploadFile;
 import com.jackpot.narratix.domain.entity.UploadJob;
-import com.jackpot.narratix.domain.entity.enums.UploadStatus;
 import com.jackpot.narratix.domain.repository.UploadFileRepository;
-import com.jackpot.narratix.domain.repository.UploadJobRepository;
 import com.jackpot.narratix.domain.service.dto.LabeledQnARequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -29,11 +25,7 @@ public class FileProcessService {
 
     private final ObjectMapper objectMapper;
     private final UploadFileRepository uploadFileRepository;
-    private final UploadJobRepository uploadJobRepository;
-    private final NotificationService notificationService;
-
-    @Lazy
-    private final FileProcessService self;
+    private final JobCompletionService jobCompletionService;
 
     private static final int MAX_QNA_SIZE = 10;
 
@@ -106,7 +98,7 @@ public class FileProcessService {
     }
 
     private void checkJobCompletionAndNotify(UploadJob job) {
-        executeAfterCommit(() -> self.checkAndNotifyAfterCommit(job.getId()));
+        executeAfterCommit(() -> jobCompletionService.checkAndNotifyAfterCommit(job.getId()));
     }
 
     private void executeAfterCommit(Runnable runnable) {
@@ -118,30 +110,5 @@ public class FileProcessService {
         });
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void checkAndNotifyAfterCommit(String jobId) {
-
-        long totalCount = uploadFileRepository.countByUploadJobId(jobId);
-        long failCount = uploadFileRepository.countByUploadJobIdAndStatus(jobId, UploadStatus.FAILED);
-        long successCount = uploadFileRepository.countByUploadJobIdAndStatus(jobId, UploadStatus.COMPLETED);
-
-        if (failCount + successCount == totalCount) {
-
-            int updated = uploadJobRepository.markNotificationSentIfNotYet(jobId);
-
-            if (updated == 1) {
-                log.info("All files committed for Job: {}. Sending SSE Notification.", jobId);
-
-                UploadJob job = uploadJobRepository.findByIdOrElseThrow(jobId);
-
-                notificationService.sendLabelingCompleteNotification(
-                        job.getUserId(),
-                        jobId,
-                        successCount,
-                        failCount
-                );
-            }
-        }
-    }
 }
 
