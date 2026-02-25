@@ -247,8 +247,13 @@ export const useTextSelection = ({
     () => [
       ...reviews
         .filter((r) => r.range.start >= 0 && r.range.end > r.range.start)
-        .map((r) => r.range),
-      ...(selection && !editingReview ? [selection.range] : []),
+        .map((r) => ({
+          ...r.range,
+          isActive: editingReview?.id === r.id,
+        })),
+      ...(selection && !editingReview
+        ? [{ ...selection.range, isActive: true }]
+        : []),
     ],
     [reviews, selection, editingReview],
   );

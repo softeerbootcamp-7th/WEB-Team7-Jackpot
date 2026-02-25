@@ -61,14 +61,20 @@ const CoverLetterContent = ({
       }}
     >
       <div className='w-full py-[0.5rem] text-base leading-7 font-normal text-gray-800'>
-        {before.map((chunk: TextChunk, i: number) => (
-          <span
-            key={`before-${i}`}
-            className={chunk.isHighlighted ? 'bg-red-100 font-bold' : ''}
-          >
-            {chunk.text}
-          </span>
-        ))}
+        {before.map((chunk: TextChunk, i: number) => {
+          const classNames = [
+            chunk.isHighlighted && 'bg-red-100',
+            chunk.isActive && 'font-bold',
+          ]
+            .filter(Boolean)
+            .join(' ');
+
+          return (
+            <span key={`before-${i}`} className={classNames}>
+              {chunk.text}
+            </span>
+          );
+        })}
 
         {selection && after.length > 0 && (
           <>
