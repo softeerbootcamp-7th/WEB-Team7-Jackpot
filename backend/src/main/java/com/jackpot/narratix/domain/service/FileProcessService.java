@@ -34,7 +34,7 @@ public class FileProcessService {
 
     @Transactional
     public void processUploadedFile(String fileId, String extractedText, String labelingJson) {
-        UploadFile file = uploadFileRepository.findByIdOrElseThrow(fileId);
+        UploadFile file = uploadFileRepository.findByIdForUpdateOrElseThrow(fileId);
 
         if (file.isFinalized()) {
             log.info("File {} is already processed. Skipping.", fileId);
