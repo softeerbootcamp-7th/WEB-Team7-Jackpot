@@ -159,8 +159,15 @@ const Deadline = ({ label, value, onChange, upload = false }: Props) => {
 
   return (
     <div className='flex w-full flex-col items-start justify-start gap-3'>
-      <div className='text-lg font-bold text-gray-950'>
+      <div className='relative flex w-full items-center text-lg font-bold text-gray-950'>
         {label} <span className='text-red-600'>*</span>
+        <span
+          className={`text-body-s absolute right-0 transition-opacity duration-200 ${
+            isIntegrationError ? 'opacity-100' : 'pointer-events-none opacity-0'
+          } text-red-600`}
+        >
+          유효하지 않은 마감일입니다.
+        </span>
       </div>
 
       <div
@@ -221,13 +228,6 @@ const Deadline = ({ label, value, onChange, upload = false }: Props) => {
           </div>
         </div>
       </div>
-      <span
-        className={`text-body-s block w-full transition-colors duration-200 ${
-          isIntegrationError ? 'text-red-600' : 'text-transparent select-none'
-        }`}
-      >
-        유효하지 않은 마감일입니다.
-      </span>
     </div>
   );
 };
