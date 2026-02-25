@@ -13,11 +13,16 @@ import com.jackpot.narratix.domain.event.ReviewCreatedEvent;
 import com.jackpot.narratix.domain.event.ReviewDeleteEvent;
 import com.jackpot.narratix.domain.event.ReviewEditEvent;
 import com.jackpot.narratix.domain.event.TextReplaceAllEvent;
+import com.jackpot.narratix.domain.exception.OptimisticLockException;
 import com.jackpot.narratix.domain.exception.ReviewErrorCode;
+import com.jackpot.narratix.domain.exception.ReviewSyncRequiredException;
 import com.jackpot.narratix.global.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -44,6 +49,12 @@ public class ReviewFacade {
     private final TransactionTemplate transactionTemplate;
     private final TextMerger textMerger;
 
+    @Retryable(
+            retryFor = {OptimisticLockException.class, ReviewSyncRequiredException.class},
+            maxAttempts = 3,  // 초기 시도 1회 + 재시도 2회
+            backoff = @Backoff(delay = 0),
+            recover = "recoverCreateReview"
+    )
     public void createReview(String reviewerId, Long qnAId, ReviewCreateRequest request) {
         // Transaction 1: QnA/CoverLetter 조회 및 WebSocket 연결 검증
         CoverLetterAndQnAInfo coverLetterAndQnAInfo = getCoverLetterAndQnAInfoAndValidateWebSocketConnected(qnAId, reviewerId);
@@ -71,26 +82,39 @@ public class ReviewFacade {
                 boolean isHistoryRetained = oldestDeltaVersion <= reviewerVersion + 1;
                 boolean hasNoVersionGap = !otDeltas.isEmpty() && otDeltas.get(0).version() == reviewerVersion + 1;
                 if (!isHistoryRetained || !hasNoVersionGap) {
-                    throw new BaseException(ReviewErrorCode.REVIEW_VERSION_TOO_OLD);
+                    log.warn("OT 변환 실패: reviewerVersion={}, oldestDeltaVersion={}, mostRecentDeltaVersion={}, otDeltas={}",
+                            reviewerVersion, oldestDeltaVersion, mostRecentDeltaVersion, otDeltas);
+                    throw new ReviewSyncRequiredException(ReviewErrorCode.REVIEW_VERSION_TOO_OLD, qnAId);
                 }
 
-                int[] transformed = otTransformer.transformRange(transformedStart, transformedEnd, otDeltas);
-                transformedStart = transformed[0];
-                transformedEnd = transformed[1];
+                try {
+                    int[] transformed = otTransformer.transformRange(transformedStart, transformedEnd, otDeltas);
+                    transformedStart = transformed[0];
+                    transformedEnd = transformed[1];
+                } catch (BaseException e) {
+                    if (e.getErrorCode() == ReviewErrorCode.REVIEW_TEXT_MISMATCH) {
+                        log.warn("OT 변환 중 범위 삭제 감지. qnAId={}, start={}, end={}", qnAId, transformedStart, transformedEnd);
+                        throw new ReviewSyncRequiredException(ReviewErrorCode.REVIEW_TEXT_MISMATCH, qnAId);
+                    }
+                    throw e;
+                }
             } else if (reviewerVersion > mostRecentDeltaVersion) {
-                throw new BaseException(ReviewErrorCode.REVIEW_VERSION_AHEAD);
+                log.warn("리뷰 버전이 최신 버전보다 앞서 있습니다. qnAId={}, reviewerVersion={}, mostRecentDeltaVersion={}",
+                        qnAId, reviewerVersion, mostRecentDeltaVersion);
+                throw new ReviewSyncRequiredException(ReviewErrorCode.REVIEW_VERSION_AHEAD, qnAId);
             }
         }
 
         // pending delta까지 병합된 결과에서 리뷰 originText가 유효한지 검증한다.
         String currentAnswer = coverLetterAndQnAInfo.qnAAnswer != null ? coverLetterAndQnAInfo.qnAAnswer : "";
         String mergedAnswer = textMerger.merge(currentAnswer, pendingDeltas);
-        reviewService.validateOriginText(request.originText(), mergedAnswer, transformedStart, transformedEnd);
+        reviewService.validateOriginText(request.originText(), mergedAnswer, transformedStart, transformedEnd, qnAId);
 
         // Transaction 2: Review 생성 및 QnA 업데이트 & 이벤트 발행
         Long coverLetterId = coverLetterAndQnAInfo.coverLetterId;
+        Long expectedVersion = coverLetterAndQnAInfo.qnAVersion;
         createReviewAndUpdateAnswer(
-                reviewerId, qnAId, coverLetterId, request, mergedAnswer, transformedStart, transformedEnd, pendingDeltas.size()
+                reviewerId, qnAId, coverLetterId, request, mergedAnswer, transformedStart, transformedEnd, pendingDeltas.size(), expectedVersion
         );
 
         // Transaction 3: 알림 전송
@@ -108,6 +132,12 @@ public class ReviewFacade {
         eventPublisher.publishEvent(ReviewEditEvent.of(coverLetterId, qnAId, updatedReview));
     }
 
+    @Retryable(
+            retryFor = OptimisticLockException.class,
+            maxAttempts = 3,  // 초기 시도 1회 + 재시도 2회
+            backoff = @Backoff(delay = 0),
+            recover = "recoverDeleteReview"
+    )
     public void deleteReview(String userId, Long qnAId, Long reviewId) {
         // 트랜잭션 전: pending delta 조회
         List<TextUpdateRequest> pendingDeltas = textSyncService.getPendingDeltas(qnAId);
@@ -117,6 +147,7 @@ public class ReviewFacade {
         transactionTemplate.executeWithoutResult(status -> {
             // QnA, Review 조회 및 검증
             QnA qnA = qnAService.findByIdOrElseThrow(qnAId);
+            Long expectedVersion = qnA.getVersion();
             CoverLetter coverLetter = qnA.getCoverLetter();
             Long coverLetterId = coverLetter.getId();
             ReviewRoleType role = qnA.determineReviewRole(userId);
@@ -141,7 +172,7 @@ public class ReviewFacade {
             reviewService.deleteReview(reviewId);
 
             // QnA 업데이트 & pending을 committed로 이동 & pending 조회 이후 유입된 delta는 제거
-            long newVersion = textSyncService.updateAnswerCommitAndClearOldCommitted(qnAId, answerWithoutMarker, pendingDeltaCount);
+            long newVersion = textSyncService.updateAnswerCommitAndClearOldCommitted(qnAId, answerWithoutMarker, pendingDeltaCount, expectedVersion);
 
             // 트랜잭션 커밋 후 이벤트 발행
             eventPublisher.publishEvent(new TextReplaceAllEvent(coverLetterId, qnAId, newVersion, answerWithoutMarker));
@@ -152,6 +183,12 @@ public class ReviewFacade {
     /**
      * 리뷰 승인/취소
      */
+    @Retryable(
+            retryFor = OptimisticLockException.class,
+            maxAttempts = 3,  // 초기 시도 1회 + 재시도 2회
+            backoff = @Backoff(delay = 0),
+            recover = "recoverApproveReview"
+    )
     public void approveReview(String userId, Long qnAId, Long reviewId) {
         // 트랜잭션 전: pending delta 조회
         List<TextUpdateRequest> pendingDeltas = textSyncService.getPendingDeltas(qnAId);
@@ -160,8 +197,9 @@ public class ReviewFacade {
         // Transaction: 모든 작업을 하나의 트랜잭션에서 처리
         transactionTemplate.executeWithoutResult(status -> {
             // QnA, Review 조회 및 웹소켓 유저 검증
-            Review review = reviewService.getReview(reviewId);
             QnA qnA = qnAService.findByIdOrElseThrow(qnAId);
+            Long expectedVersion = qnA.getVersion();
+            Review review = reviewService.getReview(reviewId);
             Long coverLetterId = qnA.getCoverLetter().getId();
             reviewService.validateWebSocketConnected(userId, coverLetterId, ReviewRoleType.WRITER);
 
@@ -181,7 +219,7 @@ public class ReviewFacade {
             reviewService.toggleApproval(review);
 
             // QnA 업데이트 & pending을 committed로 이동 & pending 조회 이후 유입된 delta는 제거
-            long newVersion = textSyncService.updateAnswerCommitAndClearOldCommitted(qnAId, approvedAnswer, pendingDeltaCount);
+            long newVersion = textSyncService.updateAnswerCommitAndClearOldCommitted(qnAId, approvedAnswer, pendingDeltaCount, expectedVersion);
 
             // 트랜잭션 커밋 후 이벤트 발행
             eventPublisher.publishEvent(new TextReplaceAllEvent(coverLetterId, qnAId, newVersion, approvedAnswer));
@@ -232,7 +270,8 @@ public class ReviewFacade {
             String mergedAnswer,
             int transformedStart,
             int transformedEnd,
-            long pendingDeltaCount
+            long pendingDeltaCount,
+            Long expectedVersion
     ) {
         transactionTemplate.executeWithoutResult(transactionStatus -> {
             // Review 생성
@@ -245,11 +284,66 @@ public class ReviewFacade {
             );
 
             // QnA 업데이트 및 pending/committed delta 삭제 (Reviewer를 위한 OT 히스토리 정리)
-            long newVersion = textSyncService.updateAnswerAndClearDeltas(qnAId, wrappedAnswer, pendingDeltaCount);
+            long newVersion = textSyncService.updateAnswerAndClearDeltas(qnAId, wrappedAnswer, pendingDeltaCount, expectedVersion);
 
             // 트랜잭션 커밋 후 이벤트 발행
             eventPublisher.publishEvent(new TextReplaceAllEvent(coverLetterId, qnAId, newVersion, wrappedAnswer));
             eventPublisher.publishEvent(ReviewCreatedEvent.of(coverLetterId, qnAId, review));
+        });
+    }
+
+    @Recover
+    public void recoverCreateReview(OptimisticLockException e, String reviewerId, Long qnAId, ReviewCreateRequest request) {
+        log.warn("리뷰 생성 재시도 실패 (OptimisticLock). 최신 QnA 값으로 TEXT_REPLACE_ALL 이벤트 발행. qnAId={}, reviewerId={}", qnAId, reviewerId);
+        publishLatestQnAStateWithPendingDeltas(qnAId);
+        throw new BaseException(e.getErrorCode());
+    }
+
+    @Recover
+    public void recoverCreateReview(ReviewSyncRequiredException e, String reviewerId, Long qnAId, ReviewCreateRequest request) {
+        log.warn("리뷰 생성 재시도 실패 (정합성 불일치). 최신 QnA 값으로 TEXT_REPLACE_ALL 이벤트 발행. qnAId={}, reviewerId={}, errorCode={}",
+                qnAId, reviewerId, e.getErrorCode());
+        publishLatestQnAStateWithPendingDeltas(qnAId);
+        throw new BaseException(e.getErrorCode());
+    }
+
+    @Recover
+    public void recoverDeleteReview(OptimisticLockException e, String userId, Long qnAId, Long reviewId) {
+        log.warn("리뷰 삭제 재시도 실패. 최신 QnA 값으로 TEXT_REPLACE_ALL 이벤트 발행. qnAId={}, reviewId={}, userId={}", qnAId, reviewId, userId);
+        publishLatestQnAStateWithPendingDeltas(qnAId);
+        throw new BaseException(e.getErrorCode());
+    }
+
+    @Recover
+    public void recoverApproveReview(OptimisticLockException e, String userId, Long qnAId, Long reviewId) {
+        log.warn("리뷰 승인/취소 재시도 실패. 최신 QnA 값으로 TEXT_REPLACE_ALL 이벤트 발행. qnAId={}, reviewId={}, userId={}", qnAId, reviewId, userId);
+        publishLatestQnAStateWithPendingDeltas(qnAId);
+        throw new BaseException(e.getErrorCode());
+    }
+
+    /**
+     * 최신 QnA 상태(DB answer + pending delta 병합)를 조회하여 TEXT_REPLACE_ALL 이벤트를 발행한다.
+     * 낙관적 락 재시도 실패 시 클라이언트를 최신 상태로 동기화하기 위해 사용된다.
+     */
+    private void publishLatestQnAStateWithPendingDeltas(Long qnAId) {
+        // 트랜잭션 외부에서 pending delta 조회 (Redis)
+        List<TextUpdateRequest> pendingDeltas = textSyncService.getPendingDeltas(qnAId);
+
+        // 트랜잭션 내부에서 QnA 조회 및 병합
+        transactionTemplate.executeWithoutResult(status -> {
+            QnA qnA = qnAService.findByIdOrElseThrow(qnAId);
+            Long coverLetterId = qnA.getCoverLetter().getId();
+            Long dbVersion = qnA.getVersion();
+            String dbAnswer = qnA.getAnswer() != null ? qnA.getAnswer() : "";
+
+            // pending delta를 병합하여 최신 상태 생성
+            String latestAnswer = textMerger.merge(dbAnswer, pendingDeltas);
+            Long latestVersion = dbVersion + pendingDeltas.size();
+
+            log.info("최신 QnA 상태 발행 (pending delta 병합): coverLetterId={}, qnAId={}, dbVersion={}, pendingDeltaCount={}, latestVersion={}",
+                    coverLetterId, qnAId, dbVersion, pendingDeltas.size(), latestVersion);
+
+            eventPublisher.publishEvent(new TextReplaceAllEvent(coverLetterId, qnAId, latestVersion, latestAnswer));
         });
     }
 }

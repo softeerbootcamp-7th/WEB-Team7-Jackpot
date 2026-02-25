@@ -241,4 +241,9 @@ public class CoverLetterRepositoryImpl implements CoverLetterRepository {
         return coverLetterJpaRepository.findDistinctJobPositionsByUserId(userId);
     }
 
+    @Override
+    public List<CoverLetter> findAllById(List<Long> ids) {
+        return coverLetterJpaRepository.findAllById(ids);
+    }
+
 }

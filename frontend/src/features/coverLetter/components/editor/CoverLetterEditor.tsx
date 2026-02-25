@@ -181,6 +181,27 @@ const CoverLetterEditor = ({
     [currentQnaId],
   );
 
+  // URL의 qnAId가 이미 유효하면 업데이트하지 않음
+  // 유효하지 않은 경우만 현재 qnAId로 업데이트
+  useEffect(() => {
+    const qnAId = currentQna?.qnAId;
+    if (!qnAId) return;
+    const currentQnAIdParam = new URLSearchParams(window.location.search).get(
+      'qnAId',
+    );
+    // URL에 있는 qnAId가 현재 qnAId와 이미 일치하면 업데이트하지 않음
+    if (currentQnAIdParam === String(qnAId)) return;
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set('qnAId', String(qnAId));
+        return next;
+      },
+      { replace: true },
+    );
+  }, [currentQna?.qnAId, setSearchParams]);
+
+  /* 이전 버전 - URL의 qnAId를 항상 덮어쓰는 로직 (제거됨)
   useEffect(() => {
     const qnAId = currentQna?.qnAId;
     if (!qnAId) return;
@@ -194,6 +215,7 @@ const CoverLetterEditor = ({
       { replace: true },
     );
   }, [currentQna?.qnAId, setSearchParams]);
+  */
 
   if (!currentQna) return null;
 

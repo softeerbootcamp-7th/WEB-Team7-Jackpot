@@ -55,7 +55,7 @@ const RecruitDetail = ({ formData, onUpdate }: Props) => {
   }
 
   return (
-    <div className='flex w-full flex-col gap-5'>
+    <div className='flex flex-col gap-4'>
       <LabeledSelectInput
         label='기업명'
         name='companyName'

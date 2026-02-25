@@ -21,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,16 +32,28 @@ public class SearchService {
     private final CoverLetterRepository coverLetterRepository;
     private final QnARepository qnARepository;
 
+    @Transactional(readOnly = true)
     public SearchScrapResponse searchScrap(
             String userId, String searchWord, Integer size, Long lastQnaId
     ) {
         String keyword = processSearchWord(searchWord);
+        String keywordWithWildcard = addWildCard(keyword);
 
         Slice<QnA> qnas = (keyword != null)
-                ? getSearchScraps(userId, keyword, lastQnaId, size)
+                ? getSearchScraps(userId, keywordWithWildcard, lastQnaId, size)
                 : getAllScraps(userId, lastQnaId, size);
 
-        return SearchScrapResponse.of(qnas.getContent(), qnas.hasNext());
+        List<QnA> qnaList = qnas.getContent();
+
+        List<Long> coverLetterIds = qnaList.stream()
+                .map(qna -> qna.getCoverLetter().getId())
+                .distinct()
+                .toList();
+
+        Map<Long, CoverLetter> coverLetterMap = coverLetterRepository.findAllById(coverLetterIds).stream()
+                .collect(Collectors.toMap(CoverLetter::getId, c -> c));
+
+        return SearchScrapResponse.of(qnaList, coverLetterMap, qnas.hasNext());
     }
 
     private Slice<QnA> getAllScraps(String userId, Long lastQnaId, Integer size) {
@@ -77,12 +91,13 @@ public class SearchService {
         }
 
         String keyword = processSearchWord(searchWord);
+        String keywordWithWildcard = addWildCard(keyword);
 
         List<QuestionCategoryType> questionLibraries = qnARepository.searchQuestionCategory(userId, keyword);
 
-        Slice<QnA> qnAs = qnARepository.searchQnA(userId, keyword, size, lastQnAId);
+        Slice<QnA> qnAs = qnARepository.searchQnA(userId, keywordWithWildcard, size, lastQnAId);
 
-        Long qnACount = qnARepository.countSearchQnA(userId, keyword);
+        Long qnACount = qnARepository.countSearchQnA(userId, keywordWithWildcard);
         return SearchLibraryAndQnAResponse.of(questionLibraries, qnACount, qnAs.getContent(), qnAs.hasNext());
     }
 
@@ -95,6 +110,11 @@ public class SearchService {
             throw new BaseException(SearchErrorCode.INVALID_SEARCH_KEYWORD);
         }
         return keyword;
+    }
+
+    private String addWildCard(String keyword) {
+        if (keyword == null) return null;
+        return keyword + "*";
     }
 }
 

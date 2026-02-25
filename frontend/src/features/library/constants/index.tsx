@@ -14,6 +14,14 @@ export const emptyCaseText = {
     content:
       '자료 업로드 탭에서 자기소개서를 업로드하시면\n나의 다양한 경험들을 기업/문항별로 관리할 수 있어요.',
   },
+  error: {
+    title: '라이브러리를 불러오는 데 실패했어요',
+    content: '잠시 후 다시 시도해 주세요.',
+  },
+  notFound: {
+    title: '저장된 자기소개서를 찾을 수 없어요',
+    content: '해당 자기소개서가 삭제되었거나 존재하지 않는 것 같아요.',
+  },
 };
 
 export const libraryContent: TabContentType<LibraryView>[] = [

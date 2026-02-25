@@ -1,4 +1,4 @@
-import * as SI from '@/shared/icons';
+import libraryFolder from '@/assets/icons/LibraryFolder.svg';
 
 interface LibraryFolderGridProps {
   folderList: string[];
@@ -28,7 +28,7 @@ const LibraryFolderGrid = ({
             aria-label={`${folderName} 폴더 열기`}
             className='inline-flex h-30 w-30 flex-col items-center justify-center gap-2.5 rounded-lg px-3 pt-5 pb-4 transition-colors hover:bg-gray-50'
           >
-            <SI.LibraryFolder />
+            <img src={libraryFolder} alt='' className='h-[54px] w-[77.76px]' />
             <div className='text-caption-l line-clamp-1 w-24 justify-start text-center font-medium text-gray-950'>
               {folderName}
             </div>

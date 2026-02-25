@@ -1,171 +1,187 @@
-import {
-  type ChangeEvent,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { type ChangeEvent, useCallback, useEffect, useState } from 'react';
 
 import { useSearchParams } from 'react-router';
 
 import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
 import { validateSearchKeyword } from '@/shared/utils/validation';
 
-interface UseSearchProps<T> {
+interface UseSearchProps {
   queryKey?: string;
   pageKey?: string;
-  fetchAction?: (keyword: string, page: number) => Promise<T>;
-  isEnabled?: boolean;
+  mode?: 'pagination' | 'infinite';
+  storageKey?: string;
+  activeCondition?: boolean;
 }
 
-export const useSearch = <T>({
+export const useSearch = ({
   queryKey = 'keyword',
   pageKey = 'page',
-  fetchAction,
-  isEnabled = true,
-}: UseSearchProps<T> = {}) => {
+  mode = 'infinite',
+  storageKey,
+  activeCondition = true,
+}: UseSearchProps = {}) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { showToast } = useToastMessageContext();
+  const isPagination = mode === 'pagination';
 
+  // 1. 현재 URL 파라미터와 로컬 스토리지 값을 동기적으로 확인
   const currentQueryParam = searchParams.get(queryKey) || '';
-  const currentPageParam = parseInt(searchParams.get(pageKey) || '1', 10);
+  const savedKeyword =
+    activeCondition && storageKey ? localStorage.getItem(storageKey) || '' : '';
 
-  const initialKeyword = isEnabled ? currentQueryParam : '';
-  const [keyword, setKeyword] = useState(initialKeyword);
+  // 현재 페이지 파라미터 추출
+  const rawPage = Number(searchParams.get(pageKey));
+  const currentPageParam = isPagination
+    ? Number.isInteger(rawPage) && rawPage > 0
+      ? rawPage
+      : 1
+    : undefined;
 
-  const [data, setData] = useState<T | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  // 로컬 스토리지에는 검색어가 있는데, URL에는 아직 없는 상태인가?
+  const isSyncingUrl =
+    activeCondition &&
+    savedKeyword !== '' &&
+    currentQueryParam !== savedKeyword;
 
-  // 💡 포인트: fetchAction의 최신 참조를 유지하기 위한 ref
-  const fetchActionRef = useRef(fetchAction);
+  // 2. 검색어 상태 초기화
+  const [keyword, setKeyword] = useState(() => {
+    if (!activeCondition) return '';
+    if (savedKeyword) return savedKeyword;
+    return currentQueryParam;
+  });
 
-  // fetchAction이 변경될 때마다 ref 값을 최신화합니다.
-  // 이 동작은 렌더링에 영향을 주지 않습니다.
-  useEffect(() => {
-    fetchActionRef.current = fetchAction;
-  }, [fetchAction]);
+  // 3. 탭 전환 감지 및 렌더링 중 상태 덮어쓰기
+  const [prevActiveCondition, setPrevActiveCondition] =
+    useState(activeCondition);
+  const [prevStorageKey, setPrevStorageKey] = useState(storageKey);
 
-  useEffect(() => {
-    if (!isEnabled) {
-      setKeyword('');
-      return;
-    }
-    setKeyword((prevKeyword) => {
-      if (prevKeyword !== currentQueryParam) {
-        return currentQueryParam;
-      }
-      return prevKeyword;
-    });
-  }, [currentQueryParam, isEnabled]);
+  if (
+    activeCondition !== prevActiveCondition ||
+    storageKey !== prevStorageKey
+  ) {
+    setPrevActiveCondition(activeCondition);
+    setPrevStorageKey(storageKey);
+    setKeyword(savedKeyword);
+  }
 
   const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setKeyword(e.target.value);
   }, []);
 
+  // 4. 로컬 스토리지 즉시 삭제 및 추가 파라미터 지원
+  const handleClear = useCallback(() => {
+    setKeyword('');
+
+    // 즉시 로컬 스토리지에서 삭제하여 무한 로딩(isSyncingUrl = true) 방지
+    if (storageKey) {
+      localStorage.removeItem(storageKey);
+    }
+
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete(queryKey);
+        if (isPagination) next.delete(pageKey);
+
+        return next;
+      },
+      { replace: true },
+    );
+  }, [queryKey, pageKey, isPagination, setSearchParams, storageKey]);
+
   const handlePageChange = useCallback(
     (newPage: number) => {
+      if (!isPagination) return;
+      if (!Number.isInteger(newPage) || newPage < 1) return;
+
       setSearchParams((prev) => {
         const next = new URLSearchParams(prev);
         next.set(pageKey, newPage.toString());
         return next;
       });
     },
-    [pageKey, setSearchParams],
+    [isPagination, pageKey, setSearchParams],
   );
 
+  // 5. 외부 시스템(URL, 스토리지) 동기화 Effect (Calling effect 제거됨)
   useEffect(() => {
-    if (!isEnabled) return;
+    if (!activeCondition) {
+      setSearchParams(
+        (prev) => {
+          const hasQuery = prev.has(queryKey);
+          const hasPage = isPagination && prev.has(pageKey);
+          if (!hasQuery && !hasPage) return prev;
+
+          const next = new URLSearchParams(prev);
+          if (hasQuery) next.delete(queryKey);
+          if (hasPage) next.delete(pageKey);
+          return next;
+        },
+        { replace: true },
+      );
+      return;
+    }
 
     const timer = setTimeout(() => {
       const trimmedKeyword = keyword.trim();
 
-      // 사용자가 검색어를 다 지웠을 때 URL 파라미터 삭제 & 데이터 초기화
-      if (trimmedKeyword === '') {
-        if (currentQueryParam !== '') {
-          setSearchParams((prev) => {
-            const next = new URLSearchParams(prev);
-            next.delete(queryKey);
-            next.delete(pageKey);
-            return next;
-          });
+      if (trimmedKeyword !== '') {
+        const { isValid, message } = validateSearchKeyword(trimmedKeyword);
+        if (!isValid && message) {
+          showToast(message);
+          // 유효하지 않은 검색어를 스토리지에서 제거하여 isInitializing 고착 방지
+          if (storageKey) localStorage.removeItem(storageKey);
+          setKeyword('');
+          return;
         }
-        setData(null);
-        return;
       }
 
-      const { isValid, message } = validateSearchKeyword(trimmedKeyword);
-      // 토스트 메시지 띄우기
-      if (!isValid && message) {
-        showToast(message);
-        return;
+      // 로컬 스토리지 동기화
+      if (storageKey) {
+        if (trimmedKeyword) localStorage.setItem(storageKey, trimmedKeyword);
+        else localStorage.removeItem(storageKey);
       }
 
+      // URL 동기화
       if (currentQueryParam !== trimmedKeyword) {
-        setSearchParams((prev) => {
-          const next = new URLSearchParams(prev);
-          next.set(queryKey, trimmedKeyword);
-          next.set(pageKey, '1');
-          return next;
-        });
+        setSearchParams(
+          (prev) => {
+            const next = new URLSearchParams(prev);
+            if (trimmedKeyword) {
+              next.set(queryKey, trimmedKeyword);
+              if (isPagination) next.set(pageKey, '1');
+            } else {
+              next.delete(queryKey);
+              if (isPagination) next.delete(pageKey);
+            }
+            return next;
+          },
+          { replace: true },
+        );
       }
     }, 300);
 
     return () => clearTimeout(timer);
+    // searchParams를 의존성 배열에 포함하면 불필요한 이펙트 재실행이 발생할 수 있기에 삭제하였습니다.
   }, [
     keyword,
-    currentQueryParam,
-    isEnabled,
-    pageKey,
+    activeCondition,
+    storageKey,
     queryKey,
+    pageKey,
+    isPagination,
+    currentQueryParam,
     setSearchParams,
     showToast,
   ]);
 
-  useEffect(() => {
-    // 💡 포인트: 의존성 배열에서 fetchAction을 제거하고, fetchActionRef.current를 사용합니다.
-    if (!isEnabled || !currentQueryParam || !fetchActionRef.current) {
-      setData(null);
-      return;
-    }
-
-    let isMounted = true;
-
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        // fetchActionRef.current는 존재함이 위에서 보장됨
-        const result = await fetchActionRef.current!(
-          currentQueryParam,
-          currentPageParam,
-        );
-        if (isMounted) {
-          setData(result);
-        }
-      } catch (error) {
-        console.error(error);
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    fetchData();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [currentQueryParam, currentPageParam, isEnabled]); // 의존성 배열에서 fetchAction 제거됨
-
   return {
-    keyword,
-    handleChange,
-    data,
-    isLoading,
     page: currentPageParam,
     handlePageChange,
+    keyword,
+    handleChange,
     currentQueryParam,
+    isInitializing: isSyncingUrl,
+    handleClear,
   };
 };
-
-export default useSearch;

@@ -69,11 +69,11 @@ const RecruitFormView = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className='inline-flex min-h-full w-full flex-col items-center justify-start gap-7 px-3 py-6'
+      className='flex min-h-full flex-col items-center justify-start gap-7 px-3 py-6'
     >
       {/* 헤더 영역 */}
       <div className='flex w-full flex-row items-center justify-between'>
-        <div className='inline-flex flex-row items-center gap-2'>
+        <div className='flex flex-row items-center gap-2'>
           {mode === 'EDIT' ? <RCI.RecruitEditIcon /> : <RCI.NewRecruitIcon />}
           <h2 className='text-xl font-bold'>
             {mode === 'EDIT' ? '공고 수정' : '공고 등록'}

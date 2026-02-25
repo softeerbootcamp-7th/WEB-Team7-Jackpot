@@ -6,8 +6,6 @@ import QuestionsSection from '@/shared/components/QuestionsSection';
 import type { CreateCoverLetterRequest } from '@/shared/types/coverLetter';
 import { isQuestionsValid } from '@/shared/utils/coverLetter';
 
-// [박소민] TODO: RecruitFormView와 유사한 구조로 변경 예정, 우선은 디자인 시안에 맞춰 단일 컴포넌트로 구현
-// [박소민] TODO: 카테고리 유효성 검사 추가
 interface Props {
   formData: CreateCoverLetterRequest;
   onChange: <K extends keyof CreateCoverLetterRequest>(

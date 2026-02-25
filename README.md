@@ -324,6 +324,14 @@
 - **Redis 분산 락을 이용한 웹소켓 접속 유저 제한 정책 구현**: 하나의 첨삭 링크에 Writer와 Reviewer 각 1명만 동시 접속이 가능하도록 Redis 분산 락 기반 제한 정책 구현, Lock의 TTL을 10초로 설정하여 비정상 종료 시에도 락이 자동 해제되도록 구현, Lock 갱신 로직에서 Pipeline과 Lua Script를 조합해 단일 네트워크 IO로 모든 세션의 Lock TTL을 4초마다 갱신하도록 구현
 - **SSE 기반 알림 발송 로직 구축**: Server-Sent Events를 활용하여 서버에서 클라이언트로 단방향 실시간 알림을 전송하는 시스템 구현
 
+:page_facing_up: 관련 문서: 
+- [[김승환] ‐ WebSocket vs. SSE ](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EA%B9%80%EC%8A%B9%ED%99%98%5D-%E2%80%90-Websocket-vs.-SSE)
+- [[김승환] ‐ 실시간 첨삭 기능, 어떻게 구현할 것인가? (데이터 구조부터 OT 알고리즘까지)](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B김승환%5D-‐-실시간-첨삭-기능,-어떻게-구현할-것인가%3F-(데이터-구조부터-OT-알고리즘까지))
+- [[김승환] ‐ 동시 편집(OT) 알고리즘 구현 중 만난 버전 충돌 개선기](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B김승환%5D-‐-동시-편집(OT)-알고리즘-구현-중-만난-버전-충돌-개선기)
+- [[김승환] ‐ 트랜잭션 경계 재설계와 낙관적 락을 통한 리뷰 생성 로직 개선](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B김승환%5D-‐-트랜잭션-경계-재설계와-낙관적-락을-통한-리뷰-생성-로직-개선)
+- [[김승환] 웹소켓 환경에서 Redis 분산락과 Pipelining으로 단일 접속 완벽 제어하기](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B김승환%5D-웹소켓-환경에서-Redis-분산락과-Pipelining으로-단일-접속-완벽-제어하기)
+- [[김승환] WebSocket과 달리, SSE에서는 onCompletion이 왜 바로 호출되지 않았을까?](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B김승환%5D-WebSocket과-달리,-SSE에서는-onCompletion이-왜-바로-호출되지-않았을까%3F)
+
 ### 이정민 (Backend & Infra)
 
 - **자료 업로드 관련 기능 및 인프라 구축**:  AWS S3, Lambda, SQS를 조합한 비동기 아키텍처 설계 및 구축, (S3업로드 -> lambda 호출 -> pdf 추출 -> ai라벨링 -> SSE 실시간 알림) 로직 구현
@@ -332,9 +340,11 @@
 - **Auth 로직 구현**: JWT 기반 로그인, 로그아웃 등 전반적인 사용자 인증 관련 로직을 구현
 
 :page_facing_up: 관련 문서: 
-**[pdf업로드 및 AI 라벨링 기능을 위한 이벤트 기반 비동기 파이프라인](<https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EA%B3%A0%EB%AF%BC%5D-pdf%EC%97%85%EB%A1%9C%EB%93%9C-%EB%B0%8F-AI-%EB%9D%BC%EB%B2%A8%EB%A7%81-%EA%B8%B0%EB%8A%A5%EC%9D%84-%EC%9C%84%ED%95%9C-%EC%9D%B4%EB%B2%A4%ED%8A%B8-%EA%B8%B0%EB%B0%98-%EB%B9%84%EB%8F%99%EA%B8%B0-%ED%8C%8C%EC%9D%B4%ED%94%84%EB%9D%BC%EC%9D%B8>)**
+- [[이정민] - pdf업로드 및 AI 라벨링 기능을 위한 이벤트 기반 비동기 파이프라인](<https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EA%B3%A0%EB%AF%BC%5D-pdf%EC%97%85%EB%A1%9C%EB%93%9C-%EB%B0%8F-AI-%EB%9D%BC%EB%B2%A8%EB%A7%81-%EA%B8%B0%EB%8A%A5%EC%9D%84-%EC%9C%84%ED%95%9C-%EC%9D%B4%EB%B2%A4%ED%8A%B8-%EA%B8%B0%EB%B0%98-%EB%B9%84%EB%8F%99%EA%B8%B0-%ED%8C%8C%EC%9D%B4%ED%94%84%EB%9D%BC%EC%9D%B8>)
+- [[이정민] - 검색 최적화 (Full‐Text Search 도입)](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9D%B4%EC%A0%95%EB%AF%BC%5D-%E2%80%90-%EC%8A%A4%ED%81%AC%EB%9E%A9-%EB%82%B4-QnA-%EA%B2%80%EC%83%89-%EC%B5%9C%EC%A0%81%ED%99%94-(Full%E2%80%90Text-Search-%EB%8F%84%EC%9E%85))
+- [[이정민] - 스크랩 검색 에러 해결하기 (ngram의 stopword 설정, LazyInitializationException, n+1문제 개선)](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9D%B4%EC%A0%95%EB%AF%BC%5D-%E2%80%90-%EC%8A%A4%ED%81%AC%EB%9E%A9-%EA%B2%80%EC%83%89-%EC%98%A4%EB%A5%98-%ED%95%B4%EA%B2%B0-(%EB%B6%88%EC%9A%A9%EC%96%B4-%ED%95%84%ED%84%B0%EB%A7%81-%EC%84%A4%EC%A0%95,-LazyInitializationException))
+- [[이정민] ‐ 업로드 완료 알림 중복과 누락 문제 해결하기  (feat. REQUIRES_NEW, CAS)](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9D%B4%EC%A0%95%EB%AF%BC%5D-%E2%80%90-%EC%97%85%EB%A1%9C%EB%93%9C-%EC%99%84%EB%A3%8C-%EC%95%8C%EB%A6%BC-%EC%A4%91%EB%B3%B5%EA%B3%BC-%EB%88%84%EB%9D%BD-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0%ED%95%98%EA%B8%B0--(feat.-REQUIRES_NEW,-CAS))
 
-**[검색 최적화 (Full‐Text Search 도입)](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9D%B4%EC%A0%95%EB%AF%BC%5D-%E2%80%90-%EC%8A%A4%ED%81%AC%EB%9E%A9-%EB%82%B4-QnA-%EA%B2%80%EC%83%89-%EC%B5%9C%EC%A0%81%ED%99%94-(Full%E2%80%90Text-Search-%EB%8F%84%EC%9E%85))**
 
 ## 🚀 기술적 도전 (Top Picks)
 
@@ -349,16 +359,17 @@
 
 ### Backend & Infra
 
-- **[[고민] Refresh Token Rotation (RTR) 및 보안 전략](<https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9D%B4%EC%A0%95%EB%AF%BC%5D-%E2%80%90-Refresh-Token-Rotation-(RTR)-%EB%B0%8F-%EB%B3%B4%EC%95%88-%EC%A0%84%EB%9E%B5>)**
-- [[고민] - WebSocket vs. SSE](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EA%B9%80%EC%8A%B9%ED%99%98%5D-%E2%80%90-Websocket-vs.-SSE)
-	- 실시간 문서 첨삭 기능 구현 시 SSE와 WebSocket의 트레이드오프를 분석하고, 인프라 통합과 향후 기능 확장성을 고려해 STOMP 기반의 WebSocket으로 통신 아키텍처를 통일한 과정입니다.
-
-- **[[정리] - pdf업로드 및 AI 라벨링 기능을 위한 이벤트 기반 비동기 파이프라인](<https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EA%B3%A0%EB%AF%BC%5D-pdf%EC%97%85%EB%A1%9C%EB%93%9C-%EB%B0%8F-AI-%EB%9D%BC%EB%B2%A8%EB%A7%81-%EA%B8%B0%EB%8A%A5%EC%9D%84-%EC%9C%84%ED%95%9C-%EC%9D%B4%EB%B2%A4%ED%8A%B8-%EA%B8%B0%EB%B0%98-%EB%B9%84%EB%8F%99%EA%B8%B0-%ED%8C%8C%EC%9D%B4%ED%94%84%EB%9D%BC%EC%9D%B8>)**
-  - 업로드 관련 로직 최종 정리 버전입니다.
 - **[[고민] 비동기 이벤트 아키텍처 개선기](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EA%B9%80%EC%8A%B9%ED%99%98%5D-%EB%B9%84%EB%8F%99%EA%B8%B0-%EC%9D%B4%EB%B2%A4%ED%8A%B8-%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98-%EA%B0%9C%EC%84%A0%EA%B8%B0)**
-  - 업로드 관련 로직 아키텍처를 구상하고 개선해나간 기록입니다.
-
-- **[검색 최적화 (Full‐Text Search 도입)](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9D%B4%EC%A0%95%EB%AF%BC%5D-%E2%80%90-%EC%8A%A4%ED%81%AC%EB%9E%A9-%EB%82%B4-QnA-%EA%B2%80%EC%83%89-%EC%B5%9C%EC%A0%81%ED%99%94-(Full%E2%80%90Text-Search-%EB%8F%84%EC%9E%85))**
+- **[[고민] - WebSocket vs. SSE](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EA%B9%80%EC%8A%B9%ED%99%98%5D-%E2%80%90-Websocket-vs.-SSE)**
+- **[[고민] ‐ 실시간 첨삭 기능, 어떻게 구현할 것인가? (데이터 구조부터 OT 알고리즘까지)](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B김승환%5D-‐-실시간-첨삭-기능,-어떻게-구현할-것인가%3F-(데이터-구조부터-OT-알고리즘까지))**
+- **[[고민] 웹소켓 환경에서 Redis 분산락과 Pipelining으로 단일 접속 완벽 제어하기](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B김승환%5D-웹소켓-환경에서-Redis-분산락과-Pipelining으로-단일-접속-완벽-제어하기)**
+- **[[정리] - pdf업로드 및 AI 라벨링 기능을 위한 이벤트 기반 비동기 파이프라인](<https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EA%B3%A0%EB%AF%BC%5D-pdf%EC%97%85%EB%A1%9C%EB%93%9C-%EB%B0%8F-AI-%EB%9D%BC%EB%B2%A8%EB%A7%81-%EA%B8%B0%EB%8A%A5%EC%9D%84-%EC%9C%84%ED%95%9C-%EC%9D%B4%EB%B2%A4%ED%8A%B8-%EA%B8%B0%EB%B0%98-%EB%B9%84%EB%8F%99%EA%B8%B0-%ED%8C%8C%EC%9D%B4%ED%94%84%EB%9D%BC%EC%9D%B8>)**
+- **[[최적화] 검색 최적화 (Full‐Text Search 도입)](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9D%B4%EC%A0%95%EB%AF%BC%5D-%E2%80%90-%EC%8A%A4%ED%81%AC%EB%9E%A9-%EB%82%B4-QnA-%EA%B2%80%EC%83%89-%EC%B5%9C%EC%A0%81%ED%99%94-(Full%E2%80%90Text-Search-%EB%8F%84%EC%9E%85))**
+- **[[최적화] ‐ 트랜잭션 경계 재설계와 낙관적 락을 통한 리뷰 생성 로직 개선](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B김승환%5D-‐-트랜잭션-경계-재설계와-낙관적-락을-통한-리뷰-생성-로직-개선)**
+- **[[트러블 슈팅] - 스크랩 검색 에러 해결하기 (ngram의 stopword 설정, LazyInitializationException, n+1문제 개선)](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9D%B4%EC%A0%95%EB%AF%BC%5D-%E2%80%90-%EC%8A%A4%ED%81%AC%EB%9E%A9-%EA%B2%80%EC%83%89-%EC%98%A4%EB%A5%98-%ED%95%B4%EA%B2%B0-(%EB%B6%88%EC%9A%A9%EC%96%B4-%ED%95%84%ED%84%B0%EB%A7%81-%EC%84%A4%EC%A0%95,-LazyInitializationException))**
+- **[[트러블 슈팅] ‐ 업로드 완료 알림 중복과 누락 문제 해결하기  (feat. REQUIRES_NEW, CAS)](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9D%B4%EC%A0%95%EB%AF%BC%5D-%E2%80%90-%EC%97%85%EB%A1%9C%EB%93%9C-%EC%99%84%EB%A3%8C-%EC%95%8C%EB%A6%BC-%EC%A4%91%EB%B3%B5%EA%B3%BC-%EB%88%84%EB%9D%BD-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0%ED%95%98%EA%B8%B0--(feat.-REQUIRES_NEW,-CAS))**
+- **[[트러블 슈팅] ‐ 동시 편집(OT) 알고리즘 구현 중 만난 버전 충돌 개선기](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B김승환%5D-‐-동시-편집(OT)-알고리즘-구현-중-만난-버전-충돌-개선기)**
+- **[[트러블 슈팅] WebSocket과 달리, SSE에서는 onCompletion이 왜 바로 호출되지 않았을까?](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B김승환%5D-WebSocket과-달리,-SSE에서는-onCompletion이-왜-바로-호출되지-않았을까%3F)**
 ---
 
 ## 📚 문서 허브

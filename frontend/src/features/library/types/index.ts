@@ -13,7 +13,7 @@ export interface CoverLetterItem {
   companyName: string;
   jobPosition: string;
   questionCount: number;
-  modifiedAt: string; // [박소민] TODO: 타입 유효성 검사
+  modifiedAt: string;
 }
 
 export type DocumentListResponse =
@@ -25,7 +25,6 @@ export interface CoverLetterListResponse {
   hasNext: boolean;
 }
 
-// [박소민] TODO: 변경된 API에 사용하기에 applySeason optional로 변경, (questionCount 추가)
 export interface QuestionItem {
   id: number;
   companyName: string;

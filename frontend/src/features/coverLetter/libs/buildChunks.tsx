@@ -58,8 +58,8 @@ export const buildChunks = (
     const isSelected = selectedReviewId === matchingReview.id;
     const reviewClassName = [
       'outline-none',
-      isReviewActive && 'cursor-pointer font-bold',
-      isSelected && 'rounded-sm bg-red-100 ring-1 ring-red-200',
+      isReviewActive && 'cursor-pointer bg-red-100',
+      isSelected && 'rounded-sm bg-red-100 font-bold ring-1 ring-red-200',
     ]
       .filter(Boolean)
       .join(' ');

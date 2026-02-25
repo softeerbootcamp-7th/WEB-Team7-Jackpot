@@ -38,21 +38,20 @@ export const useScrap = ({ qnAId, initialScrapState }: UseScrapProps) => {
       if (previousState) {
         // delete 완료될 때까지 대기 (이 동안 다른 클릭 차단됨)
         await deleteScrap(qnAId);
-        showToast('스크랩이 삭제되었습니다.');
+        showToast('스크랩이 삭제되었습니다.', true);
       } else {
         // create 완료될 때까지 대기 (이 동안 다른 클릭 차단됨)
         await createScrap(qnAId);
-        showToast('스크랩 목록에 추가되었습니다.');
+        showToast('스크랩 목록에 추가되었습니다.', true);
       }
       // onSuccess에서 invalidateQueries → useEffect에서 initialScrapState로 동기화
-    } catch (error) {
+    } catch {
       // 실패 시 낙관적 업데이트 롤백
       setIsScraped(previousState);
       showToast('처리에 실패했습니다. 다시 시도해주세요.');
-      console.error('Scrap toggle failed:', error);
     }
   };
-
+  
   return {
     isLoading,
     isScraped,

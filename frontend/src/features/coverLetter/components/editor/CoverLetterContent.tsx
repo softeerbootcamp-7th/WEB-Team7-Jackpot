@@ -8,7 +8,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import { flushSync } from 'react-dom';
 
 import { useCoverLetterCompositionFlow } from '@/features/coverLetter/hooks/useCoverLetterCompositionFlow';
 import { useCoverLetterDeleteFlow } from '@/features/coverLetter/hooks/useCoverLetterDeleteFlow';
@@ -34,6 +33,9 @@ import type { SelectionInfo } from '@/shared/types/selectionInfo';
 import type { WriterMessageType } from '@/shared/types/websocket';
 
 const DUPLICATE_PATCH_WINDOW_MS = 150;
+
+// 노션처럼 띄워쓰기나 delete시, 전송될 수 있도록 시간 조절
+const DEBOUNCE_TIME = 300;
 
 interface CoverLetterContentProps {
   text: string;
@@ -98,6 +100,9 @@ const CoverLetterContent = ({
   );
   const enterDuringCompositionRef = useRef(false);
   const isProcessingReplaceAllRef = useRef(false);
+  // composition 중 TEXT_REPLACE_ALL이 도착했을 때 재적용하기 위해 저장
+  const composingDOMTextRef = useRef<string | null>(null);
+  const composingDOMCaretRef = useRef<number | null>(null);
 
   const handleSelectionChange = useCallback(
     (newSelection: SelectionInfo | null) => {
@@ -157,61 +162,151 @@ const CoverLetterContent = ({
   const undoStack = useRef<{ text: string; caret: number }[]>([]);
   const redoStack = useRef<{ text: string; caret: number }[]>([]);
 
+  const sendDebounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const debounceBaseTextRef = useRef<string | null>(null);
+  const debounceBaseReviewsRef = useRef<Review[] | null>(null);
+
+  // 예약된 버전을 추적하는 ref
+  const reservedVersionRef = useRef<number | null>(null);
+
   const sendTextPatch = useCallback(
-    (oldText: string, newText: string, reviewsForMapping?: Review[]) => {
+    (
+      oldText: string,
+      newText: string,
+      reviewsForMapping?: Review[],
+      options?: { force?: boolean },
+    ) => {
       if (!isConnected) return false;
       if (!shareId || !qnAId) return false;
       if (!onReserveNextVersion) {
-        console.error(
-          '[CoverLetterContent] onReserveNextVersion is required when socket is connected.',
-        );
+        console.error('[CoverLetterContent] onReserveNextVersion is required');
         return false;
       }
       if (oldText === newText) return false;
-      const now = Date.now();
-      const lastSentPatch = lastSentPatchRef.current;
-      // 일부 브라우저/IME 조합에서 동일 input이 연달아 올라올 수 있어
-      // 짧은 시간 내 동일(old/new) 패치는 한 번만 전송한다.
-      if (
-        lastSentPatch &&
-        lastSentPatch.oldText === oldText &&
-        lastSentPatch.newText === newText &&
-        now - lastSentPatch.at < DUPLICATE_PATCH_WINDOW_MS
-      ) {
-        return false;
+
+      // 실제 네트워크 전송 함수
+      const transmit = (
+        fromText: string,
+        toText: string,
+        reviews: Review[],
+        version: number,
+      ) => {
+        const now = Date.now();
+        const lastSentPatch = lastSentPatchRef.current;
+
+        // 중복 체크
+        if (
+          lastSentPatch &&
+          lastSentPatch.oldText === fromText &&
+          lastSentPatch.newText === toText &&
+          now - lastSentPatch.at < DUPLICATE_PATCH_WINDOW_MS
+        ) {
+          return;
+        }
+
+        if (fromText === toText) return;
+
+        const caretAfter = caretOffsetRef.current;
+        const payload = createTextUpdatePayload({
+          oldText: fromText,
+          newText: toText,
+          caretAfter,
+          reviews,
+        });
+
+        sendMessage(`/pub/share/${shareId}/qna/${qnAId}/text-update`, {
+          version,
+          startIdx: payload.startIdx,
+          endIdx: payload.endIdx,
+          replacedText: payload.replacedText,
+        } as WriterMessageType);
+
+        lastSentPatchRef.current = {
+          oldText: fromText,
+          newText: toText,
+          at: now,
+        };
+        onTextUpdateSent?.(new Date().toISOString());
+      };
+
+      // FORCE 경로
+      if (options?.force) {
+        // 1. 진행 중인 debounce가 있다면 취소하고 즉시 flush
+        if (sendDebounceTimerRef.current) {
+          clearTimeout(sendDebounceTimerRef.current);
+          sendDebounceTimerRef.current = null;
+
+          // 대기 중이던 base → current 변경사항이 있다면 먼저 전송
+          const pendingBaseText = debounceBaseTextRef.current;
+          const pendingBaseReviews = debounceBaseReviewsRef.current;
+          const pendingReservedVersion = reservedVersionRef.current;
+
+          if (
+            pendingBaseText !== null &&
+            pendingReservedVersion !== null &&
+            pendingBaseText !== latestTextRef.current
+          ) {
+            transmit(
+              pendingBaseText,
+              latestTextRef.current,
+              pendingBaseReviews ?? reviewsRef.current,
+              pendingReservedVersion,
+            );
+          }
+
+          // refs 초기화
+          debounceBaseTextRef.current = null;
+          debounceBaseReviewsRef.current = null;
+          reservedVersionRef.current = null;
+        }
+
+        // 2. 새로운 버전을 예약하고 즉시 전송
+        const immediateVersion = onReserveNextVersion();
+        transmit(
+          oldText,
+          newText,
+          reviewsForMapping ?? reviewsRef.current,
+          immediateVersion,
+        );
+
+        return true;
       }
 
-      // caretOffsetRef는 sendTextPatch 호출 전에 항상 "작업 후 커서 위치"로 갱신된다.
-      //   - processInput  : caretOffsetRef = getCaretPosition().start (브라우저가 DOM 업데이트 완료 후)
-      //   - insertTextAtCaret (Enter/붙여넣기/composition): caretOffsetRef = start + insertStr.length
-      //   - applyDeleteByDirection (Backspace/Delete): caretOffsetRef = result.caretOffset
-      //
-      // ※ getCaretPosition()을 sendTextPatch 내부에서 재호출하면 안 된다.
-      //   insertTextAtCaret 경로에서는 sendTextPatch가 React 상태 갱신(handleTextChange)보다
-      //   먼저 실행되므로 DOM은 아직 이전 상태다. 이 시점에 getCaretPosition()을 부르면
-      //   "삽입 이전 커서 위치(start)"가 반환된다.
-      //   buildTextPatch는 caretAfter를 "삽입 이후 커서 위치"로 해석해 삽입 위치를 역산하므로
-      //   pre-insert 값을 넘기면 잘못된 startIdx/endIdx가 계산된다.
-      //   예) 전체 복사 후 맨 뒤에 붙여넣기: caretAfter = textLen = insertedLen
-      //       → candidateStart = 0 으로 오판 → startIdx = 0, endIdx = 0 버그 발생.
-      const caretAfter = caretOffsetRef.current;
+      // DEBOUNCE 경로 (기존)
+      if (sendDebounceTimerRef.current) {
+        clearTimeout(sendDebounceTimerRef.current);
+      }
 
-      const mappingReviews = reviewsForMapping ?? reviewsRef.current;
-      const payload = createTextUpdatePayload({
-        oldText,
-        newText,
-        caretAfter,
-        reviews: mappingReviews,
-      });
-      const nextVersion = onReserveNextVersion();
-      sendMessage(`/pub/share/${shareId}/qna/${qnAId}/text-update`, {
-        version: nextVersion,
-        startIdx: payload.startIdx,
-        endIdx: payload.endIdx,
-        replacedText: payload.replacedText,
-      } as WriterMessageType);
-      lastSentPatchRef.current = { oldText, newText, at: now };
-      onTextUpdateSent?.(new Date().toISOString());
+      // 첫 번째 입력에서만 base text와 버전을 예약
+      if (debounceBaseTextRef.current === null) {
+        debounceBaseTextRef.current = oldText;
+        debounceBaseReviewsRef.current = reviewsForMapping ?? null;
+        reservedVersionRef.current = onReserveNextVersion();
+      }
+
+      sendDebounceTimerRef.current = setTimeout(() => {
+        sendDebounceTimerRef.current = null;
+        const baseText = debounceBaseTextRef.current;
+        const baseReviews = debounceBaseReviewsRef.current;
+        const reservedVersion = reservedVersionRef.current;
+
+        // refs 초기화
+        debounceBaseTextRef.current = null;
+        debounceBaseReviewsRef.current = null;
+        reservedVersionRef.current = null;
+
+        if (baseText === null || reservedVersion === null) return;
+
+        transmit(
+          baseText,
+          latestTextRef.current,
+          baseReviews ?? reviewsRef.current,
+          reservedVersion,
+        );
+      }, DEBOUNCE_TIME);
+
       return true;
     },
     [
@@ -230,6 +325,15 @@ const CoverLetterContent = ({
     sendTextPatchRef.current = sendTextPatch;
   }, [sendTextPatch]);
 
+  useEffect(() => {
+    return () => {
+      if (sendDebounceTimerRef.current) {
+        clearTimeout(sendDebounceTimerRef.current);
+        sendDebounceTimerRef.current = null;
+      }
+    };
+  }, []);
+
   const updateText = useCallback(
     (
       newText: string,
@@ -239,6 +343,7 @@ const CoverLetterContent = ({
         reviewsForMapping?: Review[];
         removeWholeReviewIds?: number[];
         forceParentSync?: boolean;
+        forceSocket?: boolean;
       },
     ) => {
       const handleTextChange = onTextChangeRef.current;
@@ -250,8 +355,12 @@ const CoverLetterContent = ({
       if (hasChanged || options?.forceParentSync) {
         const change = calculateTextChange(currentText, newText);
         const sentBySocket =
-          !options?.skipSocket && hasChanged && !isComposingRef.current
-            ? sendTextPatch(currentText, newText, options?.reviewsForMapping)
+          !options?.skipSocket &&
+          hasChanged &&
+          (!isComposingRef.current || options?.forceSocket)
+            ? sendTextPatch(currentText, newText, options?.reviewsForMapping, {
+                force: options?.forceSocket,
+              })
             : false;
 
         if (!isComposingRef.current || options?.forceParentSync) {
@@ -263,13 +372,19 @@ const CoverLetterContent = ({
         if (hasChanged) {
           const reviewsForNextMapping =
             options?.reviewsForMapping ?? reviewsRef.current;
-          reviewsRef.current = updateReviewRanges(
+          let nextReviews = updateReviewRanges(
             reviewsForNextMapping,
             change.changeStart,
             change.oldLength,
             change.newLength,
             newText,
           );
+          if (options?.removeWholeReviewIds?.length) {
+            nextReviews = nextReviews.filter(
+              (r) => !options.removeWholeReviewIds!.includes(r.id),
+            );
+          }
+          reviewsRef.current = nextReviews;
           undoStack.current.push({
             text: currentText,
             caret: caretOffsetRef.current,
@@ -329,17 +444,18 @@ const CoverLetterContent = ({
     return result;
   }, []);
 
-  const { applyDeleteByDirection } = useCoverLetterDeleteFlow({
-    contentRef,
-    isComposingRef,
-    latestTextRef,
-    caretOffsetRef,
-    reviewsRef,
-    reviewLastKnownRangesRef,
-    syncDOMToState,
-    updateText,
-    onDeleteReviewsByText,
-  });
+  const { applyDeleteByDirection, applyDeleteRange, flushPendingDeletes } =
+    useCoverLetterDeleteFlow({
+      contentRef,
+      isComposingRef,
+      latestTextRef,
+      caretOffsetRef,
+      reviewsRef,
+      reviewLastKnownRangesRef,
+      syncDOMToState,
+      updateText,
+      onDeleteReviewsByText,
+    });
 
   const insertTextAtCaret = useCallback(
     (insertStr: string) => {
@@ -356,13 +472,10 @@ const CoverLetterContent = ({
         currentText.slice(0, start) + insertStr + currentText.slice(end);
 
       // sendTextPatch 내부에서 caretOffsetRef를 caretAfter로 사용하므로,
-      // DOM 업데이트(flushSync) 이전에 "삽입 후 커서 위치"를 미리 기록해 둔다.
+      // DOM 업데이트 이전에 "삽입 후 커서 위치"를 미리 기록해 둔다.
       caretOffsetRef.current = start + insertStr.length;
 
-      // flushSync: Enter 직후 한글 입력 시 React re-render가 IME 조합 중에 발생해 조합이 깨지는 문제를 방지한다.
-      flushSync(() => {
-        updateText(newText);
-      });
+      updateText(newText);
     },
     [updateText],
   );
@@ -432,6 +545,7 @@ const CoverLetterContent = ({
     clearComposingFlushTimer,
     processInput,
     normalizeCaretAtReviewBoundary,
+    applyDeleteRange,
   });
 
   const handleInput = useCallback(
@@ -448,7 +562,22 @@ const CoverLetterContent = ({
           isComposingRef.current = true;
         }
         if (contentRef.current) {
-          onComposingLengthChange?.(collectText(contentRef.current).length);
+          // TEXT_REPLACE_ALL이 composition 중에 도착하면 React가 DOM을 덮어써서
+          // 조합 문자가 사라진다. input 이벤트마다 현재 DOM text·caret을 저장해두고
+          // replaceAll 처리 후 재적용한다.
+          const domText = collectText(contentRef.current);
+          if (domText !== composingDOMTextRef.current) {
+            composingDOMTextRef.current = domText;
+            composingDOMCaretRef.current = getCaretPosition(
+              contentRef.current,
+            ).start;
+            onComposingLengthChange?.(domText.length);
+          }
+          composingDOMTextRef.current = domText;
+          composingDOMCaretRef.current = getCaretPosition(
+            contentRef.current,
+          ).start;
+          onComposingLengthChange?.(domText.length);
         }
         return;
       }
@@ -458,7 +587,10 @@ const CoverLetterContent = ({
   );
 
   const handleCompositionEnd = useCallback(() => {
+    flushPendingDeletes();
     rawHandleCompositionEnd();
+    composingDOMTextRef.current = null;
+    composingDOMCaretRef.current = null;
     onComposingLengthChange?.(null);
 
     if (enterDuringCompositionRef.current) {
@@ -478,6 +610,7 @@ const CoverLetterContent = ({
     rawHandleCompositionEnd,
     onComposingLengthChange,
     normalizeCaretAtReviewBoundary,
+    flushPendingDeletes,
     insertTextAtCaret,
   ]);
 
@@ -489,6 +622,19 @@ const CoverLetterContent = ({
     isProcessingReplaceAllRef.current = true;
 
     const wasFocused = contentRef.current.contains(document.activeElement);
+
+    // composition 중에 TEXT_REPLACE_ALL이 도착한 경우, input 이벤트에서 저장해둔
+    // DOM text와 caret을 꺼낸다. React가 DOM을 덮어쓰기 전(useLayoutEffect 시점)이라
+    // DOM에서 직접 읽을 수 없으므로 ref에 저장된 값을 사용한다.
+    const pendingDOMText = isComposingRef.current
+      ? composingDOMTextRef.current
+      : null;
+    const pendingCaretOffset = isComposingRef.current
+      ? composingDOMCaretRef.current
+      : null;
+    composingDOMTextRef.current = null;
+    composingDOMCaretRef.current = null;
+
     const boundedOffset = Math.min(caretOffsetRef.current, text.length);
 
     isComposingRef.current = false;
@@ -496,12 +642,21 @@ const CoverLetterContent = ({
     clearComposingFlushTimer();
     latestTextRef.current = text;
 
+    // composition 중 덮어쓰기가 발생했다면, 저장된 조합 문자를 재적용한다.
+    // ex) "ㄱㅁ" (TEXT_REPLACE_ALL) + pendingDOMText="ㄱㅐㅅ" → "ㄱㅐㅅ" 로 복원
+    let targetCaretOffset = boundedOffset;
+    if (pendingDOMText !== null && pendingDOMText !== text) {
+      targetCaretOffset = pendingCaretOffset ?? boundedOffset;
+      caretOffsetRef.current = targetCaretOffset;
+      updateText(pendingDOMText, { forceParentSync: true, forceSocket: true });
+    }
+
     let rafId: number | undefined;
     if (wasFocused) {
       contentRef.current.blur();
       rafId = window.requestAnimationFrame(() => {
         if (!contentRef.current) return;
-        restoreCaret(contentRef.current, boundedOffset);
+        restoreCaret(contentRef.current, targetCaretOffset);
         // DOM 업데이트 및 커서 복원 후, selectionchange 리스너가 다시 동작하도록 플래그를 해제합니다.
         // 혹시 모를 race condition을 방지하기 위해 microtask로 처리합니다.
         queueMicrotask(() => {
@@ -513,8 +668,9 @@ const CoverLetterContent = ({
     }
     return () => {
       if (rafId !== undefined) window.cancelAnimationFrame(rafId);
+      isProcessingReplaceAllRef.current = false;
     };
-  }, [replaceAllSignal, text, clearComposingFlushTimer]);
+  }, [replaceAllSignal, text, clearComposingFlushTimer, updateText]);
 
   useEffect(() => {
     return bindUndoRedoShortcuts({
@@ -543,6 +699,7 @@ const CoverLetterContent = ({
       isComposingRef,
       lastCompositionEndAtRef,
       normalizeCaretAtReviewBoundary,
+      applyDeleteRange,
       insertPlainTextAtCaret: insertTextAtCaret,
       applyDeleteByDirection,
       contentRef,
@@ -591,9 +748,16 @@ const CoverLetterContent = ({
   // 컨테이너 높이에 따라 스페이서 설정
   useEffect(() => {
     if (!containerRef.current) return;
-    const containerHeight = containerRef.current.clientHeight;
     const lineHeight = 28;
-    setSpacerHeight(Math.max(0, containerHeight - lineHeight));
+    const el = containerRef.current;
+    const update = () => {
+      const containerHeight = el.clientHeight;
+      setSpacerHeight(Math.max(0, containerHeight - lineHeight));
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
   }, [containerRef]);
 
   // chunkPositions 계산

@@ -6,10 +6,15 @@ import {
   useSuspenseQueries,
 } from '@tanstack/react-query';
 
-import { searchCoverLetters } from '@/shared/api/coverLetterApi';
-import { getQnA, getQnAIdList, updateQnA } from '@/shared/api/qnaApi';
+import {
+  getQnA,
+  getQnAIdList,
+  searchLibrary,
+  updateQnA,
+} from '@/shared/api/qnaApi';
 import { libraryKeys } from '@/shared/hooks/queries/libraryKeys';
 import type { QnA } from '@/shared/types/qna';
+import { flattenInfiniteQnAData } from '@/shared/utils/coverLetter';
 
 // CoverLetterId로 문항 ID 리스트 가져오기
 export const useQnAIdListQuery = (coverLetterId: number | null) => {
@@ -20,6 +25,7 @@ export const useQnAIdListQuery = (coverLetterId: number | null) => {
   });
 };
 
+// 문항 상세 정보 가져오기 (여러 개)
 export const useQnAList = (qnaIds: number[]) => {
   return useSuspenseQueries({
     queries: qnaIds.map((qnaId) => ({
@@ -44,6 +50,7 @@ export const useQnAList = (qnaIds: number[]) => {
   });
 };
 
+// 자기소개서 answer 수정
 export const useUpdateQnA = () => {
   const queryClient = useQueryClient();
 
@@ -61,21 +68,32 @@ export const useUpdateQnA = () => {
       queryClient.invalidateQueries({
         queryKey: libraryKeys.lists('QUESTION'),
       });
+      queryClient.invalidateQueries({ queryKey: ['search'] }); // ['search'] 전체 무효화
+      queryClient.invalidateQueries({ queryKey: ['coverletter', 'scrap'] }); // ['scrap'] 전체 무효화
+      queryClient.invalidateQueries({
+        queryKey: ['qna', { qnaId: data.qnAId }],
+      });
     },
   });
 };
 
-// 라이브러리 전체 검색 (무한 스크롤 버전)
-export const useInfiniteCoverLetterSearch = (searchWord = '', size = 9) => {
+// (문항) 라이브러리 검색 (무한 스크롤)
+export const useInfiniteQnASearch = (searchWord = '', size = 10) => {
   return useSuspenseInfiniteQuery({
-    queryKey: ['coverletter', 'search', 'infinite', { searchWord, size }],
+    queryKey: ['search', 'qna', { searchWord, size }],
     queryFn: ({ pageParam }) =>
-      searchCoverLetters({ searchWord, size, page: pageParam as number }),
-    initialPageParam: 1,
+      searchLibrary(searchWord, pageParam as number | undefined, size),
+
+    initialPageParam: undefined as number | undefined,
+
     getNextPageParam: (lastPage) => {
-      const { number, totalPage } = lastPage.page;
-      return number < totalPage ? number + 1 : undefined;
+      const lastItem = lastPage.qnAs?.at(-1);
+      if (!lastPage.hasNext || !lastItem) return undefined;
+      return lastItem.qnAId;
     },
     staleTime: 5 * 60 * 1000,
+
+    // 데이터를 컴포넌트로 전달하기 전에 평탄화
+    select: (data) => flattenInfiniteQnAData(data),
   });
 };

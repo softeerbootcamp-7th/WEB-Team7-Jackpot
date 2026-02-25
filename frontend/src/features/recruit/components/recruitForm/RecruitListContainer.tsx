@@ -94,7 +94,7 @@ const RecruitListContainer = ({
   );
 
   return (
-    <div className='flex h-full w-full flex-col'>
+    <div className='flex h-full w-full flex-col overflow-y-auto'>
       <DocumentList
         items={formattedDocuments}
         isLoading={isLoading}

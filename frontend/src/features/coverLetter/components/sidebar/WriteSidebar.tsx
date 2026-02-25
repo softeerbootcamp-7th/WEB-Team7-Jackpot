@@ -1,21 +1,13 @@
-import { Suspense } from 'react';
-
 import { useLocation, useNavigate } from 'react-router';
 
-import LibraryFolderGrid from '@/features/coverLetter/components/sidebar/LibraryFolderGrid';
-import LibraryQnAList from '@/features/coverLetter/components/sidebar/LibraryQnAList';
 import LibrarySearchResult from '@/features/coverLetter/components/sidebar/LibrarySearchResult';
 import SidebarCardSection from '@/features/coverLetter/components/sidebar/SidebarCardSection';
-import { useLibraryNavigation } from '@/features/coverLetter/hooks/useLibraryNavigation';
-import { useLibraryListQueries } from '@/features/library/hooks/queries/useLibraryListQueries';
-import { searchLibrary } from '@/shared/api/qnaApi';
-import ErrorBoundary from '@/shared/components/ErrorBoundary';
 import SearchInput from '@/shared/components/SearchInput';
-import SectionError from '@/shared/components/SectionError';
-import { SidebarSkeleton } from '@/shared/components/SidebarSkeleton';
-import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
-import useInfiniteSearch from '@/shared/hooks/useInfiniteSearch';
-import { useDeleteScrapMutation } from '@/shared/hooks/useScrapQueries';
+import SidebarSkeleton from '@/shared/components/SidebarSkeleton'; // 💡 스켈레톤 추가
+import { useSearch } from '@/shared/hooks/useSearch';
+
+const SCRAP_STORAGE_KEY = 'WRITE_SCRAP_SEARCH_KEYWORD';
+const LIBRARY_STORAGE_KEY = 'WRITE_LIBRARY_SEARCH_KEYWORD';
 
 const WriteSidebar = ({
   currentSidebarTab,
@@ -26,60 +18,40 @@ const WriteSidebar = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { showToast } = useToastMessageContext();
-
-  // 라이브러리 검색 네비게이션 상태 관리
-  const {
-    selectedItem,
-    selectedLibrary,
-    selectLibrary,
-    selectItem,
-    goBackToLibraryList,
-    goBackToSearchResult,
-  } = useLibraryNavigation();
-
-  // 라이브러리 폴더 리스트 가져오기
-  const { data: libraryData } = useLibraryListQueries('QUESTION');
-  const folderList = libraryData?.folderList ?? [];
-
   const isScrap = currentSidebarTab === 'scrap';
 
+  // 1. 탭 상태에 따라 알아서 스토리지를 갈아끼우는 useSearch
   const {
     keyword,
     handleChange,
     currentQueryParam,
-    data: searchResults,
-    isLoading,
-    isFetchingNextPage,
-    hasNextPage,
-    fetchNextPage,
-  } = useInfiniteSearch({
-    queryKey: 'keyword',
-    fetchAction: searchLibrary,
-    isEnabled: !isScrap, // 라이브러리 탭일 때만 검색 활성화
+    isInitializing, // 탭 전환 틈을 막아줄 방어막
+  } = useSearch({
+    queryKey: 'search',
+    storageKey: isScrap ? SCRAP_STORAGE_KEY : LIBRARY_STORAGE_KEY,
   });
 
-  // 삭제 API 훅 가져오기
-  const { mutate: deleteScrapMutation } = useDeleteScrapMutation();
-
+  // 2. 탭 전환 시 선제적 동기화 라우팅
   const handleTabChange = (tab: 'scrap' | 'library') => {
     onTabChange(tab);
+
+    // 이동하려는 탭의 로컬 스토리지 값을 미리 확인
+    const nextStorageKey =
+      tab === 'scrap' ? SCRAP_STORAGE_KEY : LIBRARY_STORAGE_KEY;
+    const savedKeyword = localStorage.getItem(nextStorageKey) || '';
+
     const params = new URLSearchParams(location.search);
     params.set('tab', tab);
-    params.delete('search');
-    navigate({ search: params.toString() });
-  };
 
-  // 스크랩 삭제 함수 구현
-  const deleteScrap = (id: number) => {
-    deleteScrapMutation(id, {
-      onSuccess: () => {
-        showToast('스크랩이 삭제되었습니다.');
-      },
-      onError: () => {
-        showToast('처리에 실패했습니다. 다시 시도해주세요.');
-      },
-    });
+    // 무조건 삭제하는 것이 아니라, 저장된 값이 있으면 살리고 없으면 지우기
+    if (savedKeyword) {
+      params.set('search', savedKeyword);
+    } else {
+      params.delete('search');
+    }
+
+    // 즉시 URL을 갈아끼웁니다.
+    navigate({ search: params.toString() }, { replace: true });
   };
 
   return (
@@ -128,73 +100,26 @@ const WriteSidebar = ({
         </div>
         <SearchInput
           onChange={handleChange}
+          keyword={keyword}
           placeholder={
             isScrap
               ? '질문 또는 답변을 입력해주세요'
               : '문항 유형을 입력해주세요'
           }
-          keyword={keyword}
         />
       </div>
 
       {/* 콘텐츠 영역 (내부 스크롤) */}
       <div className='min-h-0 w-full flex-1 overflow-y-auto'>
-        {!isScrap && selectedLibrary ? (
-          // 라이브러리 탭 + 폴더 선택됨 → 문항 리스트 표시
-          <LibraryQnAList
-            libraryName={selectedLibrary}
-            selectedItem={selectedItem}
-            onSelectItem={selectItem}
-            onBackToLibraryList={goBackToLibraryList}
-            onBack={goBackToSearchResult}
-          />
-        ) : !isScrap && keyword && keyword.length >= 2 ? (
-          // 라이브러리 탭 + 검색어 2자 이상 → 검색 결과 표시
-          <LibrarySearchResult
-            keyword={keyword}
-            data={searchResults}
-            isLoading={isLoading}
-            isFetchingNextPage={isFetchingNextPage}
-            hasNextPage={hasNextPage}
-            fetchNextPage={fetchNextPage}
-            className='w-full'
-            selectedItem={selectedItem}
-            selectedLibrary={selectedLibrary}
-            onSelectItem={selectItem}
-            onSelectLibrary={selectLibrary}
-            onBackToLibraryList={goBackToLibraryList}
-            onBackToSearchResult={goBackToSearchResult}
-          />
-        ) : !isScrap ? (
-          // 라이브러리 탭 + 검색어 없음 → 폴더 그리드 표시
-          <LibraryFolderGrid
-            folderList={folderList}
-            onSelectFolder={selectLibrary}
-          />
-        ) : (
+        {/* 3. 깜빡임 틈(URL과 State가 맞춰지는 1프레임)을 메워주는 스켈레톤 로딩 */}
+        {isInitializing ? (
+          <SidebarSkeleton len={5} />
+        ) : isScrap ? (
           // 스크랩 탭 → 스크랩 목록 표시
-          <ErrorBoundary
-            key={`${currentSidebarTab}-${currentQueryParam}`}
-            fallback={(reset) => (
-              <SectionError
-                onRetry={reset}
-                text={
-                  isScrap
-                    ? '스크랩 목록을 표시할 수 없습니다'
-                    : '자기소개서 목록을 표시할 수 없습니다'
-                }
-              />
-            )}
-          >
-            <div className='w-full pt-3'>
-              <Suspense fallback={<SidebarSkeleton />}>
-                <SidebarCardSection
-                  searchWord={currentQueryParam}
-                  deleteScrap={deleteScrap}
-                />
-              </Suspense>
-            </div>
-          </ErrorBoundary>
+          <SidebarCardSection searchWord={currentQueryParam} />
+        ) : (
+          // 라이브러리 탭 → LibrarySearchResult가 처리
+          <LibrarySearchResult keyword={currentQueryParam} className='w-full' />
         )}
       </div>
     </div>

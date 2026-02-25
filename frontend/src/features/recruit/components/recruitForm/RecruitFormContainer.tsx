@@ -31,10 +31,10 @@ const RecruitFormContainer = ({ recruitId, onClose }: Props) => {
     }
   }, [recruitId, data, setFormData]);
 
-  // 5. 로딩 처리 (데이터 패칭 중일 때 깜빡임 방지용 로더)
+  // 5. 로딩 처리 (데이터 패칭 중일 때 깜빡임 방지용 로더) [박소민]TODO: 로딩 UI 개선
   if (recruitId && isLoading) {
     return (
-      <div className='flex h-full items-center justify-center text-gray-400'>
+      <div className='flex h-full w-full items-center justify-center text-gray-400'>
         불러오는 중...
       </div>
     );
