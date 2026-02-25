@@ -33,8 +33,10 @@ const calculateModalInfo = (
   container: HTMLElement,
   range: Range,
   selectionText: string,
+  precomputedIndices?: { start: number; end: number },
 ): SelectionInfo | null => {
-  const { start, end } = rangeToTextIndices(container, range);
+  const { start, end } =
+    precomputedIndices ?? rangeToTextIndices(container, range);
   const rects = range.getClientRects();
   if (rects.length === 0) return null;
 
@@ -96,8 +98,6 @@ export const useTextSelection = ({
 
       const rects = range.getClientRects();
       if (rects.length === 0) {
-        const modalInfo = calculateModalInfo(containerRef.current, range, text);
-        if (modalInfo) onSelectionChange(modalInfo);
         selectionTimeoutRef.current = null;
         return;
       }
@@ -227,6 +227,7 @@ export const useTextSelection = ({
       containerRef.current,
       domRange,
       text.slice(start, end),
+      { start, end },
     );
     if (!modalInfo) return;
     const { modalTop, modalLeft } = modalInfo;

@@ -8,6 +8,11 @@ import {
 } from '@/features/upload/hooks/useUploadQueries';
 import type { FileState } from '@/features/upload/types/upload';
 
+const ALLOWED_TYPES = [
+  //이력서 pdf만 받도록 수정
+  'application/pdf',
+];
+
 interface UploadFileAreaProps {
   setIsContent: (state: boolean) => void;
   setUploadedFiles: (
@@ -35,11 +40,6 @@ const UploadFileArea = ({
   const uploadInProgressRef = useRef<Set<number>>(new Set());
 
   const validateFile = (newFile: File | null) => {
-    const ALLOWED_TYPES = [
-      //이력서 pdf만 받도록 수정
-      'application/pdf',
-    ];
-
     // 파일 크기 검사
     if (newFile && newFile.size > MAX_BYTES) {
       return 'error';

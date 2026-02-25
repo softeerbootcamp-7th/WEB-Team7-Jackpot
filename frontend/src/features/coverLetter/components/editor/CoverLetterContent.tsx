@@ -166,12 +166,7 @@ const CoverLetterContent = ({
   const debounceBaseReviewsRef = useRef<Review[] | null>(null);
 
   const sendTextPatch = useCallback(
-    (
-      oldText: string,
-      newText: string,
-      reviewsForMapping?: Review[],
-      force = false,
-    ) => {
+    (oldText: string, newText: string, reviewsForMapping?: Review[]) => {
       if (!isConnected) return false;
       if (!shareId || !qnAId) return false;
       if (!onReserveNextVersion) {
@@ -236,23 +231,6 @@ const CoverLetterContent = ({
         };
         onTextUpdateSent?.(new Date().toISOString());
       };
-
-      if (force) {
-        // 강제 전송: pending debounce를 취소하고 base text부터 현재까지 합산해서 즉시 전송
-        if (sendDebounceTimerRef.current) {
-          clearTimeout(sendDebounceTimerRef.current);
-          sendDebounceTimerRef.current = null;
-        }
-        const effectiveOldText = debounceBaseTextRef.current ?? oldText;
-        const effectiveReviews =
-          debounceBaseReviewsRef.current ??
-          reviewsForMapping ??
-          reviewsRef.current;
-        debounceBaseTextRef.current = null;
-        debounceBaseReviewsRef.current = null;
-        transmit(effectiveOldText, newText, effectiveReviews);
-        return true;
-      }
 
       // 1초 debounce 전송: 마지막 변경 후 1초 뒤에 base → 최신 텍스트를 한 번에 전송
       if (sendDebounceTimerRef.current) {
@@ -504,7 +482,6 @@ const CoverLetterContent = ({
     clearComposingFlushTimer,
     processInput,
     normalizeCaretAtReviewBoundary,
-    syncDOMToState,
     applyDeleteRange,
   });
 

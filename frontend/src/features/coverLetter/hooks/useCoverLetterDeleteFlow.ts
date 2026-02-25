@@ -118,7 +118,9 @@ export const useCoverLetterDeleteFlow = ({
       if (deletedReviewIds.length > 0) {
         if (isComposingRef.current) {
           const current = new Set(pendingDeletedReviewIdsRef.current);
-          deletedReviewIds.forEach((id) => current.add(id));
+          deletedReviewIds.forEach((id) => {
+            current.add(id);
+          });
           pendingDeletedReviewIdsRef.current = Array.from(current);
         } else {
           onDeleteReviewsByText?.(deletedReviewIds);

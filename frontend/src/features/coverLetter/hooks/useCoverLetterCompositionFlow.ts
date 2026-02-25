@@ -12,7 +12,6 @@ interface UseCoverLetterCompositionFlowParams {
   clearComposingFlushTimer: () => void;
   processInput: (forceSync?: boolean) => void;
   normalizeCaretAtReviewBoundary: () => boolean;
-  syncDOMToState: () => void;
   applyDeleteRange: (start: number, end: number, textToInsert?: string) => void;
 }
 
