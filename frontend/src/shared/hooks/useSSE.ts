@@ -45,8 +45,7 @@ export const useSSE = () => {
     // Worker로부터 오는 메시지(알림) 수신
     port.onmessage = (e: MessageEvent) => {
       if (e.data.type === 'NOTIFICATION') {
-        queryClient.invalidateQueries({ queryKey: ['notificationCount'] });
-        queryClient.invalidateQueries({ queryKey: ['notificationList'] });
+        queryClient.invalidateQueries({ queryKey: ['notification'] });
       }
     };
 
