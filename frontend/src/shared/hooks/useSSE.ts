@@ -20,21 +20,27 @@ export const useSSE = () => {
 
   useEffect(() => {
     if (!token) return;
-    // Shared Worker 지원 시 사용, 미지원 시 Dedicated Worker로 폴백
-    if (window.SharedWorker) {
-      // ?sharedworker&url 로 가져온 경로를 사용
-      const worker = new SharedWorker(SharedWorkerURL, { type: 'module' });
-      workerRef.current = worker;
-      portRef.current = worker.port;
-      worker.port.start();
-    } else {
-      // ?worker&url 로 가져온 경로를 사용
+
+    try {
+      if (window.SharedWorker) {
+        // ?sharedworker&url로 가져온 경로를 사용
+        const worker = new SharedWorker(SharedWorkerURL, { type: 'module' });
+        workerRef.current = worker;
+        portRef.current = worker.port;
+        worker.port.start();
+      } else {
+        throw new Error('SharedWorker를 사용할 수 없습니다.');
+      }
+    } catch {
+      // Shared Worker 지원 시 사용, 미지원 시 Dedicated Worker로 폴백
+      // ?worker&url로 가져온 경로를 사용
       const worker = new Worker(DedicatedWorkerURL, { type: 'module' });
       workerRef.current = worker;
       portRef.current = worker;
     }
 
     const port = portRef.current;
+    if (!port) return;
 
     // Worker로부터 오는 메시지(알림) 수신
     port.onmessage = (e: MessageEvent) => {

@@ -33,7 +33,16 @@ let retryCount = 0;
 // 연결된 모든 탭(port)에 메시지 브로드캐스트
 const broadcast = (data: unknown) => {
   if (isSharedWorkerScope(self)) {
-    ports.forEach((port) => port.postMessage(data));
+    // 네트워크 연결이 끊기는 상황에 실패한 포트를 정리하면서 나머지 탭에 메시지를 전달
+    // 유효한 포트만 남도록 배열 업데이트
+    ports = ports.filter((port) => {
+      try {
+        port.postMessage(data);
+        return true;
+      } catch {
+        return false;
+      }
+    });
   } else {
     // Dedicated Worker
     self.postMessage(data);
@@ -96,10 +105,17 @@ const scheduleReconnect = () => {
   isConnected = false;
   if (reconnectTimer) clearTimeout(reconnectTimer);
 
-  // 지수 백오프 알고리즘 적용 (최대 2^4 = 16초)
+  // Shared Worker 환경에서 활성 포트가 없으면 재연결 스케줄링 중단
+  if (isSharedWorkerScope(self) && ports.length === 0) {
+    reconnectTimer = null;
+    return;
+  }
+
+  // 토큰이 없으면 연결할 수 없으므로 재시도 불필요
+  if (!token) return;
+
   const maxRetries = 4;
   const currentRetry = Math.min(retryCount, maxRetries);
-  const delay = 1000 * 2 ** currentRetry;
 
   retryCount++;
 
