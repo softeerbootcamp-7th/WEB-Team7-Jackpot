@@ -10,7 +10,7 @@ const CheckDuplicationButton = ({
   isActived,
 }: CheckDuplicationButtonProps) => {
   const buttonActiveStyle: string = isActived
-    ? 'bg-gray-900 text-white cursor-pointer'
+    ? 'bg-gray-900 text-white cursor-pointer transition-colors duration-200 hover:bg-gray-700'
     : 'bg-gray-100 text-gray-400';
 
   return (
@@ -18,7 +18,7 @@ const CheckDuplicationButton = ({
       type='button'
       disabled={!isActived}
       onClick={onClick}
-      className={`rounded-md px-3 py-1.5 text-sm font-bold transition-colors duration-200 hover:bg-gray-800 ${
+      className={`rounded-md px-3 py-1.5 text-sm font-bold ${
         buttonActiveStyle
       }`}
     >
