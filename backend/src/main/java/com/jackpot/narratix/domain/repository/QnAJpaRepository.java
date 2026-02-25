@@ -47,38 +47,37 @@ public interface QnAJpaRepository extends JpaRepository<QnA, Long> {
             Pageable pageable
     );
 
-    @Query("""
-                SELECT q
-                FROM QnA q
-                WHERE q.userId = :userId
-                  AND (
-                        q.question LIKE CONCAT('%', :keyword, '%')
-                        OR q.answer LIKE CONCAT('%', :keyword, '%')
-                  )
-                  AND (
-                        :lastQnaId IS NULL
-                        OR q.modifiedAt < (SELECT sub.modifiedAt FROM QnA sub WHERE sub.id = :lastQnaId)
-                  )
-                ORDER BY q.modifiedAt DESC
-            """)
-    Slice<QnA> searchQnA(@Param("userId") String userId,
-                         @Param("keyword") String keyword,
-                         @Param("lastQnaId") Long lastQnAId,
-                         Pageable pageable
+
+    @Query(value = """
+            SELECT q.*
+            FROM qna q
+            WHERE q.user_id = :userId
+            AND MATCH(q.question, q.answer) AGAINST(:keyword IN BOOLEAN MODE)
+            AND (
+                :lastQnaId IS NULL 
+                OR q.modified_at < (SELECT q2.modified_at FROM qna q2 WHERE q2.id = :lastQnaId)
+            )
+            ORDER BY q.modified_at DESC
+            """,
+            nativeQuery = true)
+    Slice<QnA> searchQnA(
+            @Param("userId") String userId,
+            @Param("keyword") String keyword,
+            @Param("lastQnaId") Long lastQnaId,
+            Pageable pageable
     );
 
-    @Query("""
-                SELECT COUNT(q)
-                FROM QnA q
-                WHERE q.userId = :userId
-                  AND (
-                        q.question LIKE CONCAT('%', :keyword, '%')
-                        OR q.answer LIKE CONCAT('%', :keyword, '%')
-                  )
-            """)
+    @Query(value = """
+            SELECT COUNT(*)
+            FROM qna q
+            WHERE q.user_id = :userId
+            AND MATCH(q.question, q.answer) AGAINST(:keyword IN BOOLEAN MODE)
+            """,
+            nativeQuery = true)
     Long countSearchQnA(
             @Param("userId") String userId,
-            @Param("keyword") String keyword);
+            @Param("keyword") String keyword
+    );
 
     @Query("SELECT qna.coverLetter.id FROM QnA qna WHERE qna.id = :qnAId")
     Optional<Long> getCoverLetterIdByQnAId(@Param("qnAId") Long qnAId);
