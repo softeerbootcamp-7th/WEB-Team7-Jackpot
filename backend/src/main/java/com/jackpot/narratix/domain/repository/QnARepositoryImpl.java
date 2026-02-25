@@ -2,6 +2,7 @@ package com.jackpot.narratix.domain.repository;
 
 import com.jackpot.narratix.domain.entity.QnA;
 import com.jackpot.narratix.domain.entity.enums.QuestionCategoryType;
+import com.jackpot.narratix.domain.exception.OptimisticLockException;
 import com.jackpot.narratix.domain.exception.QnAErrorCode;
 import com.jackpot.narratix.domain.repository.dto.QnACountProjection;
 import com.jackpot.narratix.global.exception.BaseException;
@@ -13,7 +14,6 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -98,6 +98,19 @@ public class QnARepositoryImpl implements QnARepository {
     @Override
     public long incrementVersion(Long qnAId, int size) {
         qnAJpaRepository.incrementVersion(qnAId, size);
+        return qnAJpaRepository.findVersionById(qnAId)
+                .orElseThrow(() -> new BaseException(QnAErrorCode.QNA_NOT_FOUND));
+    }
+
+    @Override
+    public long incrementVersionWithOptimisticLock(Long qnAId, int delta, Long expectedVersion) {
+        int updatedRows = qnAJpaRepository.incrementVersionWithOptimisticLock(qnAId, delta, expectedVersion);
+
+        if (updatedRows == 0) {
+            // 버전 불일치 - 다른 트랜잭션이 먼저 업데이트함
+            throw new OptimisticLockException();
+        }
+
         return qnAJpaRepository.findVersionById(qnAId)
                 .orElseThrow(() -> new BaseException(QnAErrorCode.QNA_NOT_FOUND));
     }

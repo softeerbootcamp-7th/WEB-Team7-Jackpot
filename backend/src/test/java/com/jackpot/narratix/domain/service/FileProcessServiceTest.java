@@ -36,7 +36,6 @@ class FileProcessServiceTest {
     @InjectMocks
     private FileProcessService fileProcessService;
 
-    // 💡 추가됨: 단위 테스트 환경에서 강제로 트랜잭션 동기화를 활성화합니다.
     @BeforeEach
     void setUp() {
         if (!TransactionSynchronizationManager.isSynchronizationActive()) {
@@ -44,7 +43,6 @@ class FileProcessServiceTest {
         }
     }
 
-    // 💡 추가됨: 다음 테스트에 영향을 주지 않도록 트랜잭션 동기화를 초기화합니다.
     @AfterEach
     void tearDown() {
         TransactionSynchronizationManager.clear();
