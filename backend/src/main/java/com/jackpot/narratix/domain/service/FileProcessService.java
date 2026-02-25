@@ -36,6 +36,11 @@ public class FileProcessService {
     public void processUploadedFile(String fileId, String extractedText, String labelingJson) {
         UploadFile file = uploadFileRepository.findByIdOrElseThrow(fileId);
 
+        if (file.isFinalized()) {
+            log.info("File {} is already processed. Skipping.", fileId);
+            return;
+        }
+
         file.successExtract(limitText(extractedText));
         log.info("Extract success saved. FileId = {}", fileId);
 
