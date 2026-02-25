@@ -89,7 +89,7 @@ public class FileProcessService {
 
     @Transactional
     public void processFailedFile(String fileId, String errorMessage) {
-        UploadFile file = uploadFileRepository.findByIdOrElseThrow(fileId);
+        UploadFile file = uploadFileRepository.findByIdForUpdateOrElseThrow(fileId);
 
         file.failExtract();
         log.warn("Extract fail saved. FileId={}, error: {}", fileId, errorMessage);
