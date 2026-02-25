@@ -9,7 +9,9 @@ import com.jackpot.narratix.domain.repository.UploadJobRepository;
 import com.jackpot.narratix.domain.service.dto.LabeledQnARequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -29,6 +31,9 @@ public class FileProcessService {
     private final UploadFileRepository uploadFileRepository;
     private final UploadJobRepository uploadJobRepository;
     private final NotificationService notificationService;
+
+    @Lazy
+    private final FileProcessService self;
 
     private static final int MAX_QNA_SIZE = 10;
 
@@ -101,23 +106,7 @@ public class FileProcessService {
     }
 
     private void checkJobCompletionAndNotify(UploadJob job) {
-
-        uploadFileRepository.flush();
-        long totalCount = uploadFileRepository.countByUploadJobId(job.getId());
-        long failCount = uploadFileRepository.countByUploadJobIdAndStatus(job.getId(), UploadStatus.FAILED);
-        long successCount = uploadFileRepository.countByUploadJobIdAndStatus(job.getId(), UploadStatus.COMPLETED);
-
-        if (failCount + successCount == totalCount) {
-            int updated = uploadJobRepository.markNotificationSentIfNotYet(job.getId());
-
-            if (updated == 1) {
-                log.info("All files completed for Job: {}. Sending SSE Notification.", job.getId());
-                executeAfterCommit(() -> notificationService.sendLabelingCompleteNotification(
-                        job.getUserId(), job.getId(), successCount, failCount
-                ));
-            }
-        }
-
+        executeAfterCommit(() -> self.checkAndNotifyAfterCommit(job.getId()));
     }
 
     private void executeAfterCommit(Runnable runnable) {
@@ -127,6 +116,33 @@ public class FileProcessService {
                 runnable.run();
             }
         });
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void checkAndNotifyAfterCommit(String jobId) {
+
+        long totalCount = uploadFileRepository.countByUploadJobId(jobId);
+        long failCount = uploadFileRepository.countByUploadJobIdAndStatus(jobId, UploadStatus.FAILED);
+        long successCount = uploadFileRepository.countByUploadJobIdAndStatus(jobId, UploadStatus.COMPLETED);
+
+        if (failCount + successCount == totalCount) {
+
+            int updated = uploadJobRepository.markNotificationSentIfNotYet(jobId);
+
+            if (updated == 1) {
+                log.info("All files committed for Job: {}. Sending SSE Notification.", jobId);
+
+                UploadJob job = uploadJobRepository.findById(jobId)
+                        .orElseThrow(() -> new IllegalStateException("Job not found"));
+
+                notificationService.sendLabelingCompleteNotification(
+                        job.getUserId(),
+                        jobId,
+                        successCount,
+                        failCount
+                );
+            }
+        }
     }
 }
 
