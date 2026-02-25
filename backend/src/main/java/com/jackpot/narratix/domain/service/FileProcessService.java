@@ -98,7 +98,8 @@ public class FileProcessService {
     }
 
     private void checkJobCompletionAndNotify(UploadJob job) {
-        executeAfterCommit(() -> jobCompletionService.checkAndNotifyAfterCommit(job.getId()));
+        String jobId = job.getId();
+        executeAfterCommit(() -> jobCompletionService.checkAndNotify(jobId));
     }
 
     private void executeAfterCommit(Runnable runnable) {
@@ -109,6 +110,5 @@ public class FileProcessService {
             }
         });
     }
-
 }
 

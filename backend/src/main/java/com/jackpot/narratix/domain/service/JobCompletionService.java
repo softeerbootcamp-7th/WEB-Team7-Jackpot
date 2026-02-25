@@ -1,6 +1,5 @@
 package com.jackpot.narratix.domain.service;
 
-
 import com.jackpot.narratix.domain.entity.UploadJob;
 import com.jackpot.narratix.domain.entity.enums.UploadStatus;
 import com.jackpot.narratix.domain.repository.UploadFileRepository;
@@ -21,7 +20,8 @@ public class JobCompletionService {
     private final NotificationService notificationService;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void checkAndNotifyAfterCommit(String jobId) {
+    public void checkAndNotify(String jobId) {
+
         long totalCount = uploadFileRepository.countByUploadJobId(jobId);
         long failCount = uploadFileRepository.countByUploadJobIdAndStatus(jobId, UploadStatus.FAILED);
         long successCount = uploadFileRepository.countByUploadJobIdAndStatus(jobId, UploadStatus.COMPLETED);
