@@ -82,7 +82,7 @@ const CompanyDetailView = () => {
     <DetailView
       companyName={currentDocument.companyName}
       jobPosition={currentDocument.jobPosition}
-      applySeason={currentDocument.applySeason ?? ''} // [박소민] TODO: 지원시기 정보가 없을 때 어떻게 할지 처리
+      applySeason={currentDocument.applySeason ?? ''}
       modifiedAt={modifiedAt}
       question={currentQnA.question}
       answer={currentQnA.answer}

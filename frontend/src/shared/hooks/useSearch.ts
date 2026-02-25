@@ -151,6 +151,7 @@ export const useSearch = ({
     }, 300);
 
     return () => clearTimeout(timer);
+    // searchParams를 의존성 배열에 포함하면 불필요한 이펙트 재실행이 발생할 수 있기에 삭제하였습니다.
   }, [
     keyword,
     activeCondition,
@@ -159,7 +160,6 @@ export const useSearch = ({
     pageKey,
     isPagination,
     currentQueryParam,
-    searchParams, // 이 부분은 유지
     setSearchParams,
     showToast,
   ]);

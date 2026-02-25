@@ -72,7 +72,7 @@ export const useUpdateQnA = () => {
       queryClient.invalidateQueries({ queryKey: ['coverletter', 'scrap'] }); // ['scrap'] 전체 무효화
       queryClient.invalidateQueries({
         queryKey: ['qna', { qnaId: data.qnAId }],
-      }); // ['coverLetters'] 전체 무효화
+      });
     },
   });
 };

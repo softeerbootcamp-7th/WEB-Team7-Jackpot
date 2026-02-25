@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 
 import { parseTaggedText } from '@/shared/hooks/useReviewState/helpers';
 
-// [박소민] TODO: 공통 인터페이스로 줄이기
 interface Props {
   companyName: string;
   jobPosition: string;

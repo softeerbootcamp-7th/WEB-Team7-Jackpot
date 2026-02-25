@@ -33,11 +33,8 @@ export const flattenInfiniteQnAData = (
     libraryCount: data.pages[0]?.libraryCount ?? 0,
     libraries: data.pages[0]?.libraries ?? [],
 
-    // 2. 모든 페이지의 QnA 개수와 배열 누적
-    qnACount: data.pages.reduce(
-      (total, page) => total + (page.qnACount ?? 0),
-      0,
-    ),
+    // 2. 전체 QnA 개수(첫 페이지의 총 개수 사용) 및 배열 누적
+    qnACount: data.pages[0]?.qnACount ?? 0,
     qnAs: data.pages.flatMap((page) => page.qnAs ?? []),
 
     // 3. 마지막 페이지의 hasNext 상태

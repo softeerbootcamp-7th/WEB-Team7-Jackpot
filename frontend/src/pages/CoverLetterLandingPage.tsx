@@ -32,6 +32,11 @@ const CoverLetterLandingPage = () => {
 
   // 2. 메인 콘텐츠 렌더링 함수 분리 (가독성 및 방어 로직)
   const renderContent = () => {
+    const normalizedPage =
+      Number.isInteger(searchPage) && (searchPage as number) > 0
+        ? (searchPage as number)
+        : 1;
+
     // URL과 상태가 동기화되는 찰나의 1프레임 동안 스켈레톤 표시 (깜빡임 완벽 차단)
     if (isInitializing) {
       return <CoverLetterOverviewSkeleton len={9} />;
@@ -52,7 +57,7 @@ const CoverLetterLandingPage = () => {
             <OverviewSection
               searchWord={currentQueryParam}
               isFilterActive={isFilterActive}
-              page={searchPage || 1}
+              page={normalizedPage}
               onPageChange={handleSearchPageChange}
             />
           </div>

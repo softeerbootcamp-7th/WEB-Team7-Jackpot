@@ -14,7 +14,6 @@ export interface StepDataType {
   loadingSubTitle: string;
 }
 
-// [박소민] TODO: year 유효성 검사
 export interface ContentItemType {
   companyName: string;
   jobPosition: string;
@@ -106,7 +105,6 @@ interface QnAInSaveCoverLetter {
   answer: string;
   questionCategory?: QuestionCategoryValue;
 }
-
 
 interface EachCoverLetterInSaveCoverLetter {
   companyName: string;
