@@ -34,6 +34,9 @@ import type { WriterMessageType } from '@/shared/types/websocket';
 
 const DUPLICATE_PATCH_WINDOW_MS = 150;
 
+// 노션처럼 띄워쓰기나 delete시, 전송될 수 있도록 시간 조절
+const DEBOUNCDE_TIME = 300;
+
 interface CoverLetterContentProps {
   text: string;
   reviews: Review[];
@@ -252,7 +255,7 @@ const CoverLetterContent = ({
           latestTextRef.current,
           baseReviews ?? reviewsRef.current,
         );
-      }, 1000);
+      }, DEBOUNCDE_TIME);
 
       // 아직 전송 전이지만 skipVersionIncrement 처리를 위해 true 반환
       return true;
