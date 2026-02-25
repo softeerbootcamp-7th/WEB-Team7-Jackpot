@@ -15,8 +15,6 @@ const PageGlobalHeader = () => {
   const { userInfo, isLoading } = useAuth();
   const { mutate: logout } = useLogout();
 
-  if (isLoading) return null;
-
   const handleLogout = () => {
     setIsProfileOpen(false);
     logout();
@@ -59,13 +57,21 @@ const PageGlobalHeader = () => {
         <div className='relative'>
           <button
             type='button'
-            className='flex cursor-pointer items-center gap-2 transition-colors duration-200 hover:bg-gray-100 rounded-lg p-1.5'
+            className='flex cursor-pointer items-center gap-2 rounded-lg p-1.5 transition-colors duration-200 hover:bg-gray-100'
             onClick={() => setIsProfileOpen(!isProfileOpen)}
           >
             <SI.UserAvatarIcon />
-            <span className='text-base font-medium text-gray-600'>
-              {userInfo?.nickname || '사용자'}
-            </span>
+            {isLoading ? (
+              <div className='h-5 w-16 animate-pulse rounded bg-gray-200' />
+            ) : userInfo?.nickname ? (
+              <span className='text-base font-medium text-gray-600'>
+                {userInfo.nickname}
+              </span>
+            ) : (
+              <span className='text-base font-medium text-gray-600'>
+                사용자
+              </span>
+            )}
           </button>
           {isProfileOpen && (
             <>
@@ -76,7 +82,7 @@ const PageGlobalHeader = () => {
               <div className='absolute right-0 z-20 mt-2 flex w-24 flex-col rounded-md bg-white shadow-[0_0_20px_rgba(0,0,0,0.1)] select-none'>
                 <button
                   type='button'
-                  className='w-full px-4 py-2 text-center text-sm font-bold text-red-600 transition-colors duration-200 cursor-pointer hover:bg-red-50'
+                  className='w-full cursor-pointer px-4 py-2 text-center text-sm font-bold text-red-600 transition-colors duration-200 hover:bg-red-50'
                   onClick={handleLogout}
                 >
                   로그아웃
