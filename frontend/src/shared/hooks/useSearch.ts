@@ -30,8 +30,11 @@ export const useSearch = ({
     activeCondition && storageKey ? localStorage.getItem(storageKey) || '' : '';
 
   // 현재 페이지 파라미터 추출
+  const rawPage = Number(searchParams.get(pageKey));
   const currentPageParam = isPagination
-    ? parseInt(searchParams.get(pageKey) || '1', 10)
+    ? Number.isInteger(rawPage) && rawPage > 0
+      ? rawPage
+      : 1
     : undefined;
 
   // 로컬 스토리지에는 검색어가 있는데, URL에는 아직 없는 상태인가?
@@ -103,10 +106,13 @@ export const useSearch = ({
     if (!activeCondition) {
       setSearchParams(
         (prev) => {
-          if (!prev.has(queryKey)) return prev;
+          const hasQuery = prev.has(queryKey);
+          const hasPage = isPagination && prev.has(pageKey);
+          if (!hasQuery && !hasPage) return prev;
+
           const next = new URLSearchParams(prev);
-          next.delete(queryKey);
-          if (isPagination) next.delete(pageKey);
+          if (hasQuery) next.delete(queryKey);
+          if (hasPage) next.delete(pageKey);
           return next;
         },
         { replace: true },
