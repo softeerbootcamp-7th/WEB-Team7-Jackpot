@@ -15,7 +15,7 @@ export const issuePresignedUrlApi = (request: PresignedUrlRequest) =>
     body: request,
   });
 
-// S3 파일 업로드 (순수 fetch 사용)
+// S3 파일 업로드
 export const fileUploadToS3Api = async (request: FileUploadRequest) => {
   const response = await fetch(request.presignedUrl, {
     method: 'PUT',
@@ -24,7 +24,6 @@ export const fileUploadToS3Api = async (request: FileUploadRequest) => {
   });
 
   if (!response.ok) throw new Error(`S3 업로드 실패: ${response.status}`);
-  return response;
 };
 
 // AI 라벨링 시작
@@ -43,4 +42,3 @@ export const saveCoverLetterApi = ({
     endpoint: `/coverletter/upload/${uploadJobId}`,
     body: { coverLetters },
   });
-

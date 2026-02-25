@@ -31,6 +31,10 @@ export const NOTIFICATION_MESSAGES = {
     LOADING: '로딩 중...',
     ERROR: '에러 발생',
   },
+  NOTIFICATION: {
+    ALREADY_SAVED: '이미 저장된 자기소개서입니다.',
+    ERROR: '데이터를 확인하는 중 오류가 발생했습니다.',
+  },
 } as const;
 
 export const NOTIFICATION_LIMITS = {

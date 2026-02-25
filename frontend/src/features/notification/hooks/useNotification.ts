@@ -16,6 +16,7 @@ import {
 } from '@/features/notification/api/notificationApi';
 import { NOTIFICATION_QUERY_KEYS } from '@/features/notification/hooks/queries/notificationKeys';
 import type {
+  NotificationCountResponse,
   NotificationResponse,
   NotificationType,
 } from '@/features/notification/types/notification';
@@ -45,7 +46,7 @@ export const useGetNotificationCount = () => {
     queryFn: getNotificationCountApi,
     staleTime: 0,
     enabled: !!getAccessToken(),
-    select: (data) => data.unreadNotificationCount,
+    select: (data: NotificationCountResponse) => data.unreadNotificationCount,
   });
 };
 
@@ -115,5 +116,17 @@ export const useLabeledQnAList = (uploadJobId: string) => {
     queryKey: NOTIFICATION_QUERY_KEYS.qna(uploadJobId),
     queryFn: () => getLabeledQnAListApi(uploadJobId),
     enabled: !!uploadJobId,
+    select: (data) => {
+      // qnAs가 존재하고 최소 1개 이상의 데이터가 있는 커버레터만 남김
+      const validCoverLetters = data.coverLetters.filter(
+        (letter) => letter.qnAs && letter.qnAs.length > 0,
+      );
+
+      // 가공된 배열을 덮어씌워서 반환
+      return {
+        ...data,
+        coverLetters: validCoverLetters,
+      };
+    },
   });
 };

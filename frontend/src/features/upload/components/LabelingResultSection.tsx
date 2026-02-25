@@ -25,12 +25,8 @@ const LabelingResultSection = () => {
   const { contents, updateContents } = useCoverLetterState();
 
   const { editedData, handleUpdateQnA } = useEditableQnA(labeledData);
-
-  // jobId 변경 시 상태 초기화
-  useEffect(() => {
-    // 라벨링 결과 화면에서 다른 알림을 누르면 내용이 그대로 유지되는 문제를 해결하기 위해
-    // useCoverLetterState가 jobId 기반으로 초기화
-  }, [jobId]);
+  // 전체 실패 판별 로직 -> 필터링을 거친 커버레터가 하나도 없을 때
+  const isTotalFailure = labeledData && labeledData.coverLetters.length === 0;
 
   const originalCoverLetter =
     labeledData?.coverLetters?.[currentCoverLetterIdx];
@@ -38,25 +34,38 @@ const LabelingResultSection = () => {
 
   const isInitialQuestionFailure =
     originalQnA && originalQnA.question.trim() === '';
-
   const isInitialAnswerFailure =
     originalQnA && originalQnA.answer.trim() === '';
+  const isCurrentQnAFailure =
+    isInitialQuestionFailure && isInitialAnswerFailure;
 
-  const isNoQnAData =
-    !originalCoverLetter?.qnAs || originalCoverLetter.qnAs.length === 0;
-
-  const isInitialTotalFailure =
-    isNoQnAData || (isInitialAnswerFailure && isInitialQuestionFailure);
-
+  // jobId 변경 시 상태 초기화
+  useEffect(() => {
+    if (
+      labeledData &&
+      !isTotalFailure &&
+      (!originalCoverLetter || !originalQnA)
+    ) {
+      navigate(`/upload/labeling/${jobId}/0/0`, { replace: true });
+    }
+  }, [
+    labeledData,
+    isTotalFailure,
+    originalCoverLetter,
+    originalQnA,
+    jobId,
+    navigate,
+  ]);
   useEffect(() => {
     if (!labeledData) return;
-    if (isInitialTotalFailure) {
+
+    if (isTotalFailure || isCurrentQnAFailure) {
       navigate('/upload/complete', {
         state: { isFailed: true },
         replace: true,
       });
     }
-  }, [isInitialTotalFailure, labeledData, navigate]);
+  }, [isTotalFailure, isCurrentQnAFailure, labeledData, navigate]);
 
   const handleNextStep = () => {
     navigate('/upload/complete', { replace: true });
@@ -78,8 +87,17 @@ const LabelingResultSection = () => {
     return <div>데이터를 찾을 수 없습니다.</div>;
   }
 
-  if (isInitialTotalFailure) return null;
-  const qnACount = originalCoverLetter?.qnAs?.length ?? 0;
+  // 실패로 인해 리다이렉트 되기 직전 화면이 깜빡이는 것을 방지
+  if (
+    isTotalFailure ||
+    isCurrentQnAFailure ||
+    !originalCoverLetter ||
+    !originalQnA
+  ) {
+    return null;
+  }
+
+  const qnACount = originalCoverLetter.qnAs.length;
 
   return (
     <div className='flex flex-col gap-6'>
