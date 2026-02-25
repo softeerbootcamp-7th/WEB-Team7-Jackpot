@@ -153,6 +153,7 @@ const LabelingResultItem = ({
               value={currentData.deadline}
               onChange={(value) => updateContents(tabState, 'deadline', value)}
               upload={true}
+              errorMessage='유효하지 않은 제출일입니다.'
             />
 
             <LabeledSelectInput
