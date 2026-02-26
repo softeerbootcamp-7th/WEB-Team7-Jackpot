@@ -342,7 +342,7 @@ const CoverLetterContent = ({
 
   const handleSelectionChange = useCallback(
     (newSelection: SelectionInfo | null) => {
-      if (isComposingRef.current) return;
+      if (isComposingRef.current || isProcessingReplaceAllRef.current) return;
       onSelectionChange(newSelection);
     },
     [onSelectionChange],
