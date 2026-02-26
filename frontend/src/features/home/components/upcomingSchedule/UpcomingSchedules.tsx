@@ -19,20 +19,21 @@ const UpcomingSchedules = () => {
   return (
     <div className='inline-flex flex-1 flex-col items-start justify-start gap-6'>
       {/* 헤더 영역 */}
-      <div className='inline-flex w-full cursor-pointer items-center justify-between rounded-lg p-2 transition-colors duration-200 hover:bg-gray-100'>
-        <div className='flex items-center justify-start gap-2.5'>
-          <div className='relative h-7 w-7'>
-            <HI.AlarmIcon />
+      <Link to={'/recruit'} aria-label={UPCOMING_SCHEDULES_ARIA_LABEL}
+      className='block w-full'>
+        <div className='inline-flex w-full cursor-pointer items-center justify-between rounded-lg p-2 transition-colors duration-200 hover:bg-gray-100'>
+          <div className='flex items-center justify-start gap-2.5'>
+            <div className='relative h-7 w-7'>
+              <HI.AlarmIcon />
+            </div>
+            <h2 className='justify-start text-xl leading-9 font-bold text-gray-950'>
+              {UPCOMING_SCHEDULES_TITLE}
+            </h2>
           </div>
-          <h2 className='justify-start text-xl leading-9 font-bold text-gray-950'>
-            {UPCOMING_SCHEDULES_TITLE}
-          </h2>
-        </div>
-        <Link to={'/recruit'} aria-label={UPCOMING_SCHEDULES_ARIA_LABEL}>
-          <SI.RightArrow size='lg' aria-hidden='true' />
-        </Link>
-      </div>
 
+          <SI.RightArrow size='lg' aria-hidden='true' />
+        </div>
+      </Link>
       {/* 컨텐츠 영역 */}
       {!isEmpty ? (
         <div className='inline-flex w-full items-center justify-start gap-3 overflow-x-auto'>
