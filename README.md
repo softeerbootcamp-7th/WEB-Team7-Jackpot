@@ -162,7 +162,8 @@
 ├─ frontend/   # React + TypeScript + Vite
 │  ├─ src/pages                # 페이지 라우트 진입점
 │  ├─ src/features             # 도메인별 기능 모듈
-│  └─ src/shared               # 공통 컴포넌트/API/훅/유틸
+│  ├─ src/shared               # 공통 컴포넌트/API/훅/유틸
+│  └─ src/workers              # Web Worker 환경에 대한 워커 관리
 └─ backend/    # Spring Boot
    └─ src/main/java/com/jackpot/narratix/
      ├─ domain/              # 도메인별 비즈니스 로직
@@ -313,7 +314,9 @@
   - [[윤종근] ‐ SSE 기반 실시간 알림의 연결이 자동 해제가 되는 문제 해결 이야기](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9C%A4%EC%A2%85%EA%B7%BC%5D-%E2%80%90-SSE-%EA%B8%B0%EB%B0%98-%EC%8B%A4%EC%8B%9C%EA%B0%84-%EC%95%8C%EB%A6%BC%EC%9D%98-%EC%97%B0%EA%B2%B0%EC%9D%B4-%EC%9E%90%EB%8F%99-%ED%95%B4%EC%A0%9C%EA%B0%80-%EB%90%98%EB%8A%94-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0-%EC%9D%B4%EC%95%BC%EA%B8%B0)
   - [[윤종근] ‐ 웹소켓 연결에 관한 정보](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9C%A4%EC%A2%85%EA%B7%BC%5D-%E2%80%90-%EC%9B%B9%EC%86%8C%EC%BC%93-%EC%97%B0%EA%B2%B0%EC%97%90-%EA%B4%80%ED%95%9C-%EC%A0%95%EB%B3%B4)
   - [[윤종근] ‐ 인메모리 기반 액세스 토큰 관리 및 Silent Refresh 소개](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9C%A4%EC%A2%85%EA%B7%BC%5D-%E2%80%90-%EC%9D%B8%EB%A9%94%EB%AA%A8%EB%A6%AC-%EA%B8%B0%EB%B0%98-%EC%95%A1%EC%84%B8%EC%8A%A4-%ED%86%A0%ED%81%B0-%EA%B4%80%EB%A6%AC-%EB%B0%8F-Silent-Refresh-%EC%86%8C%EA%B0%9C)
-  - [[윤종근] ‐ 자료 업로드 시 사용자 입력에 관한 검증 로직 구현](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9C%A4%EC%A2%85%EA%B7%BC%5D-%E2%80%90-%EC%9E%90%EB%A3%8C-%EC%97%85%EB%A1%9C%EB%93%9C-%EC%8B%9C-%EC%82%AC%EC%9A%A9%EC%9E%90-%EC%9E%85%EB%A0%A5%EC%97%90-%EA%B4%80%ED%95%9C-%EA%B2%80%EC%A6%9D-%EB%A1%9C%EC%A7%81-%EA%B5%AC%ED%98%84)
+  - [[윤종근] ‐ SSE 기반 실시간 알림의 연결이 자동 해제가 되는 문제 해결 이야기 (SSE 연결 이야기 1편)](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9C%A4%EC%A2%85%EA%B7%BC%5D-%E2%80%90-SSE-%EA%B8%B0%EB%B0%98-%EC%8B%A4%EC%8B%9C%EA%B0%84-%EC%95%8C%EB%A6%BC%EC%9D%98-%EC%97%B0%EA%B2%B0%EC%9D%B4-%EC%9E%90%EB%8F%99-%ED%95%B4%EC%A0%9C%EA%B0%80-%EB%90%98%EB%8A%94-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0-%EC%9D%B4%EC%95%BC%EA%B8%B0-(SSE-%EC%97%B0%EA%B2%B0-%EC%9D%B4%EC%95%BC%EA%B8%B0-1%ED%8E%B8))
+  - [[윤종근] - SSE 기반 실시간 알림이 연속된 새로고침에서 재연결이 발생하는 문제점 (SSE 연결 이야기 2편)](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EC%9C%A4%EC%A2%85%EA%B7%BC%5D-%E2%80%90-SSE-%EA%B8%B0%EB%B0%98-%EC%8B%A4%EC%8B%9C%EA%B0%84-%EC%95%8C%EB%A6%BC%EC%9D%B4-%EC%97%B0%EC%86%8D%EB%90%9C-%EC%83%88%EB%A1%9C%EA%B3%A0%EC%B9%A8%EC%97%90%EC%84%9C-%EC%9E%AC%EC%97%B0%EA%B2%B0%EC%9D%B4-%EB%B0%9C%EC%83%9D%ED%95%98%EB%8A%94-%EB%AC%B8%EC%A0%9C%EC%A0%90-(SSE-%EC%97%B0%EA%B2%B0-%EC%9D%B4%EC%95%BC%EA%B8%B0-2%ED%8E%B8))
+
 
 
 ### 김승환 (Backend & Infra)
