@@ -15,6 +15,6 @@ export const useInfiniteCoverLetterFilter = (params: FilterRequest) => {
       if (!lastItem || !lastPage.hasNext) return undefined;
       return lastItem.coverLetterId;
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
   });
 };
