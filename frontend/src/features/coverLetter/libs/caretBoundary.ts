@@ -44,101 +44,79 @@ export const moveCaretIntoAdjacentReview = ({
   direction: 'left' | 'right';
 }): boolean => {
   const selection = window.getSelection();
-  if (!selection || selection.rangeCount === 0 || !selection.isCollapsed) {
-    return false;
-  }
+  if (!selection || !selection.isCollapsed) return false;
 
   const range = selection.getRangeAt(0);
-  if (!contentEl.contains(range.startContainer)) return false;
-
   const { startContainer, startOffset } = range;
+
+  // 에디터 외부라면 무시
+  if (!contentEl.contains(startContainer)) return false;
 
   let reviewGroupEl: HTMLElement | null = null;
 
-  if (startContainer.nodeType === Node.ELEMENT_NODE) {
-    const candidate =
-      direction === 'left'
-        ? ((startContainer as Element).childNodes[startOffset - 1] ?? null)
-        : ((startContainer as Element).childNodes[startOffset] ?? null);
-    if (isReviewGroup(candidate)) {
-      reviewGroupEl = candidate;
+  // [구조 분석] 인접한 ReviewGroup 찾기
+  if (startContainer.nodeType === Node.TEXT_NODE) {
+    const textNode = startContainer as Text;
+    const parentSpan = textNode.parentElement;
+
+    if (direction === 'right' && startOffset >= textNode.length) {
+      const next = parentSpan?.nextSibling ?? null;
+      if (isReviewGroup(next)) reviewGroupEl = next as HTMLElement;
+    } else if (direction === 'left' && startOffset <= 0) {
+      const prev = parentSpan?.previousSibling ?? null;
+      if (isReviewGroup(prev)) reviewGroupEl = prev as HTMLElement;
     }
-  } else if (startContainer.nodeType === Node.TEXT_NODE) {
-    const text = startContainer as Text;
-    if (direction === 'left' && startOffset === 0) {
-      // 텍스트 노드의 부모(span[data-chunk]) 앞 형제가 review-group인지 확인
-      const parent = text.parentNode;
-      const prev =
-        parent && parent !== contentEl
-          ? (parent as Element).previousSibling
-          : null;
-      if (isReviewGroup(prev)) {
-        reviewGroupEl = prev;
-      }
-    } else if (direction === 'right' && startOffset === text.length) {
-      // 텍스트 노드의 부모(span[data-chunk]) 뒤 형제가 review-group인지 확인
-      const parent = text.parentNode;
-      const next =
-        parent && parent !== contentEl ? (parent as Element).nextSibling : null;
-      if (isReviewGroup(next)) {
-        reviewGroupEl = next;
-      }
+  } else if (startContainer.nodeType === Node.ELEMENT_NODE) {
+    const candidate =
+      direction === 'right'
+        ? (startContainer.childNodes[startOffset] ?? null)
+        : (startContainer.childNodes[startOffset - 1] ?? null);
+
+    if (isReviewGroup(candidate)) {
+      reviewGroupEl = candidate as HTMLElement;
     }
   }
 
   if (!reviewGroupEl) return false;
 
-  const reviewContentEl =
+  // 진입 대상: 내부의 contenteditable="true" 인 span
+  const editableSpan =
     reviewGroupEl.querySelector<HTMLElement>('[data-review-id]');
-  if (!reviewContentEl) return false;
+  if (!editableSpan) return false;
 
   const newRange = document.createRange();
-  const walker = document.createTreeWalker(
-    reviewContentEl,
-    NodeFilter.SHOW_TEXT,
-  );
+  const walker = document.createTreeWalker(editableSpan, NodeFilter.SHOW_TEXT);
 
-  if (direction === 'left') {
-    // 리뷰 텍스트 끝으로 진입
+  if (direction === 'right') {
+    const firstText = walker.nextNode() as Text | null;
+    if (firstText) {
+      // ㄷㄷㄷㄷ(커서) -> 오른쪽 -> ㄷ(커서)ㄷㅈㄷ... 형태를 위해 offset 1 부여
+      // 만약 첫 글자 앞으로 가고 싶다면 0으로 수정
+      const offset = Math.min(firstText.length, 1);
+      newRange.setStart(firstText, offset);
+    } else {
+      newRange.setStart(editableSpan, 0);
+    }
+  } else {
+    // 왼쪽 진입 시: 마지막 글자 바로 앞으로 점프
     let lastText: Text | null = null;
     let node: Node | null;
     while ((node = walker.nextNode())) {
       lastText = node as Text;
     }
     if (lastText) {
-      const txt = lastText.textContent ?? '';
-      let offset = txt.length;
-      while (
-        offset > 0 &&
-        (txt[offset - 1] === '\u200B' || txt[offset - 1] === '\u2060')
-      ) {
-        offset--;
-      }
+      const offset = Math.max(0, lastText.length - 1);
       newRange.setStart(lastText, offset);
     } else {
-      newRange.setStart(reviewContentEl, reviewContentEl.childNodes.length);
-    }
-  } else {
-    // 리뷰 텍스트 처음으로 진입
-    const firstText = walker.nextNode() as Text | null;
-    if (firstText) {
-      const txt = firstText.textContent ?? '';
-      let offset = 0;
-      while (
-        offset < txt.length &&
-        (txt[offset] === '\u200B' || txt[offset] === '\u2060')
-      ) {
-        offset++;
-      }
-      newRange.setStart(firstText, offset);
-    } else {
-      newRange.setStart(reviewContentEl, 0);
+      newRange.setStart(editableSpan, editableSpan.childNodes.length);
     }
   }
 
   newRange.collapse(true);
   selection.removeAllRanges();
   selection.addRange(newRange);
+
+  editableSpan.focus();
   return true;
 };
 
