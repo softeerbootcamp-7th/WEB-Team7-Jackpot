@@ -322,28 +322,29 @@ public class ReviewFacade {
     }
 
     /**
-     * 최신 QnA 상태(DB answer + pending delta 병합)를 조회하여 TEXT_REPLACE_ALL 이벤트를 발행한다.
+     * 최신 QnA 상태(DB answer + pending delta 병합)를 DB에 반영하고 Redis를 동기화한 뒤 TEXT_REPLACE_ALL 이벤트를 발행한다.
      * 낙관적 락 재시도 실패 시 클라이언트를 최신 상태로 동기화하기 위해 사용된다.
      */
     private void publishLatestQnAStateWithPendingDeltas(Long qnAId) {
         // 트랜잭션 외부에서 pending delta 조회 (Redis)
         List<TextUpdateRequest> pendingDeltas = textSyncService.getPendingDeltas(qnAId);
+        long readCount = pendingDeltas.size();
 
-        // 트랜잭션 내부에서 QnA 조회 및 병합
+        // 트랜잭션 내부에서 DB와 Redis를 동기화하고 이벤트 발행
         transactionTemplate.executeWithoutResult(status -> {
+            // pending delta를 DB에 flush하고 Redis를 동기화 (pending -> committed 이동)
+            textSyncService.flushDeltasToDbAndSyncVersion(qnAId, pendingDeltas, readCount);
+
+            // 업데이트된 QnA 상태로 이벤트 발행
             QnA qnA = qnAService.findByIdOrElseThrow(qnAId);
             Long coverLetterId = qnA.getCoverLetter().getId();
-            Long dbVersion = qnA.getVersion();
-            String dbAnswer = qnA.getAnswer() != null ? qnA.getAnswer() : "";
+            String answer = qnA.getAnswer() != null ? qnA.getAnswer() : "";
+            Long version = qnA.getVersion();
 
-            // pending delta를 병합하여 최신 상태 생성
-            String latestAnswer = textMerger.merge(dbAnswer, pendingDeltas);
-            Long latestVersion = dbVersion + pendingDeltas.size();
+            log.info("최신 QnA 상태 발행 (pending delta flush 및 Redis 동기화 완료): coverLetterId={}, qnAId={}, version={}",
+                    coverLetterId, qnAId, version);
 
-            log.info("최신 QnA 상태 발행 (pending delta 병합): coverLetterId={}, qnAId={}, dbVersion={}, pendingDeltaCount={}, latestVersion={}",
-                    coverLetterId, qnAId, dbVersion, pendingDeltas.size(), latestVersion);
-
-            eventPublisher.publishEvent(new TextReplaceAllEvent(coverLetterId, qnAId, latestVersion, latestAnswer));
+            eventPublisher.publishEvent(new TextReplaceAllEvent(coverLetterId, qnAId, version, answer));
         });
     }
 }
