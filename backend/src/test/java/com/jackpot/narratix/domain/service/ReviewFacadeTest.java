@@ -1105,7 +1105,7 @@ class ReviewFacadeTest {
     }
 
     @Test
-    @DisplayName("recover 메서드는 최신 QnA 상태(pending delta 병합)로 TEXT_REPLACE_ALL 이벤트를 발행한다")
+    @DisplayName("recover 메서드는 최신 QnA 상태(pending delta flush 및 Redis 동기화)로 TEXT_REPLACE_ALL 이벤트를 발행한다")
     void recoverMethods_PublishLatestQnAStateWithPendingDeltas() {
         // given
         Long qnAId = 1L;
@@ -1126,9 +1126,15 @@ class ReviewFacadeTest {
         );
         given(textSyncService.getPendingDeltas(qnAId)).willReturn(pendingDeltas);
 
-        // Transaction 내부에서 QnA 조회 및 병합
-        given(qnAService.findByIdOrElseThrow(qnAId)).willReturn(qnA);
-        given(textMerger.merge("DB답변", pendingDeltas)).willReturn("DB답변추가");
+        // flushDeltasToDbAndSyncVersion 이후 QnA의 answer와 version이 업데이트됨
+        QnA updatedQnA = QnAFixture.createQnAWithId(
+                qnAId, coverLetter, writerId, "질문?", QuestionCategoryType.MOTIVATION
+        );
+        updatedQnA.editAnswer("DB답변추가");
+        // version은 QnAFixture의 기본값(0)에서 1 증가하여 1이 됨
+
+        // flush 이후 업데이트된 QnA 조회
+        given(qnAService.findByIdOrElseThrow(qnAId)).willReturn(updatedQnA);
 
         // when: recover 메서드 직접 호출 (예외가 던져져야 함)
         assertThatThrownBy(() -> reviewFacade.recoverCreateReview(
@@ -1143,18 +1149,20 @@ class ReviewFacadeTest {
         // then: pending delta 조회 확인
         verify(textSyncService, times(1)).getPendingDeltas(qnAId);
 
-        // QnA 조회 및 병합 확인
-        verify(qnAService, atLeastOnce()).findByIdOrElseThrow(qnAId);
-        verify(textMerger, times(1)).merge("DB답변", pendingDeltas);
+        // flushDeltasToDbAndSyncVersion 호출 확인 (pending을 DB에 반영하고 Redis 동기화)
+        verify(textSyncService, times(1)).flushDeltasToDbAndSyncVersion(qnAId, pendingDeltas, 1L);
 
-        // TEXT_REPLACE_ALL 이벤트가 최신 상태(pending delta 병합)로 발행되어야 함
+        // flush 이후 QnA 재조회 확인
+        verify(qnAService, times(1)).findByIdOrElseThrow(qnAId);
+
+        // TEXT_REPLACE_ALL 이벤트가 최신 상태(DB + Redis 동기화 완료)로 발행되어야 함
         ArgumentCaptor<TextReplaceAllEvent> eventCaptor = ArgumentCaptor.forClass(TextReplaceAllEvent.class);
         verify(eventPublisher, times(1)).publishEvent(eventCaptor.capture());
 
         TextReplaceAllEvent capturedEvent = eventCaptor.getValue();
         assertThat(capturedEvent.qnAId()).isEqualTo(qnAId);
         assertThat(capturedEvent.coverLetterId()).isEqualTo(coverLetterId);
-        assertThat(capturedEvent.version()).isEqualTo(1L); // dbVersion(0) + pendingDeltaCount(1)
+        assertThat(capturedEvent.version()).isEqualTo(0L); // flush 이후 QnA의 버전 (QnAFixture 기본값)
         assertThat(capturedEvent.content()).isEqualTo("DB답변추가");
     }
 }
