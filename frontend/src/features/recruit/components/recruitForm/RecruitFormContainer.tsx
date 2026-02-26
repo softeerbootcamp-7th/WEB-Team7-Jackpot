@@ -31,7 +31,7 @@ const RecruitFormContainer = ({ recruitId, onClose }: Props) => {
     }
   }, [recruitId, data, setFormData]);
 
-  // 5. 로딩 처리 (데이터 패칭 중일 때 깜빡임 방지용 로더) [박소민]TODO: 로딩 UI 개선
+  // 5. 로딩 처리 (데이터 패칭 중일 때 깜빡임 방지용 로더)
   if (recruitId && isLoading) {
     return (
       <div className='flex h-full w-full items-center justify-center text-gray-400'>
@@ -77,14 +77,16 @@ const RecruitFormContainer = ({ recruitId, onClose }: Props) => {
   };
 
   return (
-    <RecruitFormView
-      mode={recruitId ? 'EDIT' : 'CREATE'}
-      formData={formData}
-      isSubmitting={isCreating || isUpdating}
-      onChange={handleChange}
-      onSubmit={handleSubmit}
-      onClose={onClose}
-    />
+    <div className='h-full w-full overflow-y-auto'>
+      <RecruitFormView
+        mode={recruitId ? 'EDIT' : 'CREATE'}
+        formData={formData}
+        isSubmitting={isCreating || isUpdating}
+        onChange={handleChange}
+        onSubmit={handleSubmit}
+        onClose={onClose}
+      />
+    </div>
   );
 };
 
