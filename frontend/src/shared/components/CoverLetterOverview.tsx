@@ -14,6 +14,24 @@ interface CoverLetterOverviewProps {
   onPageChange?: (page: number) => void;
 }
 
+const WritingCoverLetterTitle = ({ isHome }: { isHome: boolean }) => {
+  return (
+    <div
+      className={`inline-flex w-full items-center justify-between self-stretch rounded-lg p-2 ${isHome ? 'cursor-pointer transition-colors duration-200 hover:bg-gray-100' : ''}`}
+    >
+      <div className='flex items-center justify-start gap-2.5'>
+        <div className='h-7 w-7'>
+          <SI.WritingCoverLetterIcon />
+        </div>
+        <div className='text-title-l justify-start font-bold text-gray-950'>
+          작성 중인 자기소개서
+        </div>
+      </div>
+      {isHome && <SI.RightArrow />}
+    </div>
+  );
+};
+
 const CoverLetterOverview = ({
   coverLetters,
   isCoverLetter = false,
@@ -24,20 +42,17 @@ const CoverLetterOverview = ({
 }: CoverLetterOverviewProps) => {
   return (
     <div className='inline-flex w-full flex-col items-start justify-start gap-6'>
-      <Link to={'/cover-letter'} aria-label='자기소개서 작성 페이지로 이동' className='block w-full'>
-        <div className='inline-flex w-full cursor-pointer items-center justify-between self-stretch rounded-lg p-2 transition-colors duration-200 hover:bg-gray-100'>
-          <div className='flex items-center justify-start gap-2.5'>
-            <div className='h-7 w-7'>
-              <SI.WritingCoverLetterIcon />
-            </div>
-            <div className='text-title-l justify-start font-bold text-gray-950'>
-              작성 중인 자기소개서
-            </div>
-          </div>
-          <SI.RightArrow />
-        </div>
-      </Link>
-
+      {isHome ? (
+        <Link
+          to={'/cover-letter'}
+          aria-label='자기소개서 작성 페이지로 이동'
+          className='block w-full'
+        >
+          <WritingCoverLetterTitle isHome={isHome} />
+        </Link>
+      ) : (
+        <WritingCoverLetterTitle isHome={isHome} />
+      )}
       <div className='grid w-full grid-cols-3 gap-3'>
         {coverLetters.map((coverLetter) => (
           <CoverLetterPreview

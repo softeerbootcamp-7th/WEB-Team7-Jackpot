@@ -127,11 +127,11 @@ export const useSearch = ({
 
       if (trimmedKeyword !== '') {
         const { isValid, message } = validateSearchKeyword(trimmedKeyword);
+
         if (!isValid && message) {
           showToast(message);
           // 유효하지 않은 검색어를 스토리지에서 제거하여 isInitializing 고착 방지
           if (storageKey) localStorage.removeItem(storageKey);
-          setKeyword('');
           return;
         }
       }
