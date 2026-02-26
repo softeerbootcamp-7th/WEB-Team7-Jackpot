@@ -21,7 +21,7 @@ const MyApplicationCalendar = () => {
         aria-label={MY_APPLICATION_CALENDAR_ARIA_LABEL}
         className='block w-full'
       >
-        <div className='inline-flex w-full cursor-pointer items-center justify-between self-stretch rounded-lg p-2 transition-colors hover:bg-gray-100'>
+        <div className='inline-flex w-full cursor-pointer items-center justify-between self-stretch rounded-lg p-2 transition-colors duration-200 hover:bg-gray-100'>
           <div className='flex items-center justify-start gap-2.5'>
             <div className='h-7 w-7'>
               <HI.CalendarIcon />

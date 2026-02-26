@@ -118,12 +118,28 @@ export const useCoverLetterInputHandlers = ({
 
       if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
         if (contentRef.current) {
+          // 1. 첨삭 영역(Review) 바로 앞/뒤라면 강제로 점프해서 진입
           const moved = moveCaretIntoAdjacentReview({
             contentEl: contentRef.current,
             direction: e.key === 'ArrowLeft' ? 'left' : 'right',
           });
-          if (moved) e.preventDefault();
+
+          if (moved) {
+            // 수동 이동에 성공했다면 브라우저의 기본 이동(1단계 멈춤)을 완전히 차단
+            e.preventDefault();
+            return;
+          }
         }
+
+        // 2. 첨삭 영역 진입 상황이 아닐 때 (일반 텍스트 사이 이동 등)
+        // 브라우저가 이동을 마친 직후, 캐럿이 첨삭 영역 '경계'에 걸렸는지 확인하여 보정
+        window.requestAnimationFrame(() => {
+          if (!contentRef.current) return;
+
+          // 주의: normalizeCaretAtReviewBoundary 호출 시 필요한 인자들을 전달해야 합니다.
+          normalizeCaretAtReviewBoundary();
+        });
+
         return;
       }
 

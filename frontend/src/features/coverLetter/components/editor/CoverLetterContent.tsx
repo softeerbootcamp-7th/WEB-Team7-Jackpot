@@ -84,41 +84,54 @@ const CoverLetterContent = ({
   onComposingLengthChange,
 }: CoverLetterContentProps) => {
   const [spacerHeight, setSpacerHeight] = useState(0);
+
+  // 현재 contentEditable DOM 요소
   const contentRef = useRef<HTMLDivElement>(null);
-  const isInputtingRef = useRef(false);
+
+  // 현재 커서 위치를 기록
   const caretOffsetRef = useRef(0);
+
+  // 실제 DOM/State 업데이트 상태
+  const isInputtingRef = useRef(false);
+
+  // IME 조합 상태
   const isComposingRef = useRef(false);
-  const lastCompositionEndAtRef = useRef(0);
-  const composingLastSentTextRef = useRef<string | null>(null);
+
+  // 이전에 보낸 패치(oldText, newText)와 동일한지 중복 전송 체크용
   const lastSentPatchRef = useRef<{
     oldText: string;
     newText: string;
     at: number;
   } | null>(null);
-  const composingFlushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
+
+  // IME 종료 시점 타이머
+  const lastCompositionEndAtRef = useRef(0);
+
+  // Enter 눌렀음 플래그
+  // IME 중 Enter 키를 눌렀을 때, compositionEnd 직후 줄바꿈을 삽입하도록 플래그를 설정하는 용도
   const enterDuringCompositionRef = useRef(false);
+
+  // TEXT_REPLACE_ALL 이벤트 처리 중임을 나타내는 플래그 역할
   const isProcessingReplaceAllRef = useRef(false);
+  // replaceAllSignal 값의 이전 상태를 기억하는 ref
+  const prevReplaceAllSignalRef = useRef(replaceAllSignal);
+
   // composition 중 TEXT_REPLACE_ALL이 도착했을 때 재적용하기 위해 저장
   const composingDOMTextRef = useRef<string | null>(null);
   const composingDOMCaretRef = useRef<number | null>(null);
 
-  const handleSelectionChange = useCallback(
-    (newSelection: SelectionInfo | null) => {
-      if (isComposingRef.current) return;
-      onSelectionChange(newSelection);
-    },
-    [onSelectionChange],
-  );
-
-  const prevReplaceAllSignalRef = useRef(replaceAllSignal);
+  // 현재 커버레터 DOM과 React 상태를 기준으로 한 최신 텍스트를 저장하는 ref
   const latestTextRef = useRef(text);
+
+  // 현재 커버레터에 적용된 모든 Review 객체들의 최신 상태를 저장하는 ref
   const reviewsRef = useRef(reviews);
+
+  // 각 리뷰의 “마지막으로 알려진 텍스트 범위(start, end)”를 저장하는 ref
   const reviewLastKnownRangesRef = useRef<
     Record<number, { start: number; end: number }>
   >({});
 
+  // 첨삭 리뷰(Review)의 범위를 “추적하고 동기화”하는 역할
   useEffect(() => {
     reviewsRef.current = reviews;
     const { nextLastKnownRanges } = reconcileReviewTrackingState({
@@ -133,21 +146,14 @@ const CoverLetterContent = ({
     // qnA 전환/버전 동기화 시 조합 상태를 항상 정리한다.
     // 포커스/커서 복원은 replaceAllSignal 경로에서만 처리한다.
     isComposingRef.current = false;
-    if (composingFlushTimerRef.current) {
-      clearTimeout(composingFlushTimerRef.current);
-      composingFlushTimerRef.current = null;
-    }
   }, [currentVersion, qnAId]);
 
+  // 외부에서 text가 업데이트될 때 IME(한글 조합) 상태를 관리하는 역할
   useEffect(() => {
     const hasExternalTextUpdate = text !== latestTextRef.current;
 
     if (hasExternalTextUpdate && isComposingRef.current) {
       isComposingRef.current = false;
-      if (composingFlushTimerRef.current) {
-        clearTimeout(composingFlushTimerRef.current);
-        composingFlushTimerRef.current = null;
-      }
     }
 
     latestTextRef.current = text;
@@ -334,6 +340,14 @@ const CoverLetterContent = ({
     };
   }, []);
 
+  const handleSelectionChange = useCallback(
+    (newSelection: SelectionInfo | null) => {
+      if (isComposingRef.current || isProcessingReplaceAllRef.current) return;
+      onSelectionChange(newSelection);
+    },
+    [onSelectionChange],
+  );
+
   const updateText = useCallback(
     (
       newText: string,
@@ -419,6 +433,7 @@ const CoverLetterContent = ({
     });
   };
 
+  // DOM 텍스트 ↔ Ref 동기화용, 상태 갱신 없이 최신 텍스트 추적
   // compositionEnd 직후 등 DOM과 latestTextRef가 불일치할 수 있으므로 ref만 동기화.
   // undo 스택에 중간 상태를 남기지 않기 위해 updateText 대신 ref를 직접 갱신한다.
   const syncDOMToState = useCallback(() => {
@@ -429,12 +444,7 @@ const CoverLetterContent = ({
     }
   }, []);
 
-  const clearComposingFlushTimer = useCallback(() => {
-    if (!composingFlushTimerRef.current) return;
-    clearTimeout(composingFlushTimerRef.current);
-    composingFlushTimerRef.current = null;
-  }, []);
-
+  // caret을 리뷰 경계에서 안전하게 정규화하는 함수
   const normalizeCaretAtReviewBoundary = useCallback((): boolean => {
     if (!contentRef.current) return false;
     const result = normalizeCaretAtReviewBoundaryUtil({
@@ -491,6 +501,9 @@ const CoverLetterContent = ({
 
     if (isComposingRef.current) return;
 
+    // contentEditable 내부에서 chunk 외의 불필요 노드 제거
+    // - 브라우저가 자동으로 삽입한 text node 제거
+    // - restoreCaret에서 올바른 커서 위치 계산 가능
     const children = Array.from(el.childNodes);
     for (const child of children) {
       if (
@@ -538,11 +551,8 @@ const CoverLetterContent = ({
     handleCompositionEnd: rawHandleCompositionEnd,
   } = useCoverLetterCompositionFlow({
     contentRef,
-    latestTextRef,
     isComposingRef,
     lastCompositionEndAtRef,
-    composingLastSentTextRef,
-    clearComposingFlushTimer,
     processInput,
     normalizeCaretAtReviewBoundary,
     applyDeleteRange,
@@ -555,6 +565,8 @@ const CoverLetterContent = ({
       // processInput 호출을 막는다 (DOM을 건드리지 않아 IME 조합이 유지됨).
       const nativeIsComposing = (e.nativeEvent as InputEvent).isComposing;
 
+      // nativeIsComposing: 브라우저 InputEvent에서 조합 중 여부
+      // isComposingRef.current: React 상태 기반 플래그
       if (isComposingRef.current || nativeIsComposing) {
         if (nativeIsComposing && !isComposingRef.current) {
           // compositionStart가 input보다 늦게 발화 → ref를 미리 설정해
@@ -638,8 +650,6 @@ const CoverLetterContent = ({
     const boundedOffset = Math.min(caretOffsetRef.current, text.length);
 
     isComposingRef.current = false;
-    composingLastSentTextRef.current = null;
-    clearComposingFlushTimer();
     latestTextRef.current = text;
 
     // composition 중 덮어쓰기가 발생했다면, 저장된 조합 문자를 재적용한다.
@@ -670,7 +680,7 @@ const CoverLetterContent = ({
       if (rafId !== undefined) window.cancelAnimationFrame(rafId);
       isProcessingReplaceAllRef.current = false;
     };
-  }, [replaceAllSignal, text, clearComposingFlushTimer, updateText]);
+  }, [replaceAllSignal, text, updateText]);
 
   useEffect(() => {
     return bindUndoRedoShortcuts({
@@ -706,36 +716,6 @@ const CoverLetterContent = ({
       caretOffsetRef,
       enterDuringCompositionRef,
     });
-
-  const handleKeyDownWrapper = useCallback(
-    (e: React.KeyboardEvent<HTMLDivElement>) => {
-      handleKeyDown(e); // 기존 핸들러 호출
-
-      // 방향키, Home/End 등 네비게이션 키 입력 시, 브라우저가 커서를 이동시킨 후
-      // requestAnimationFrame을 사용해 새로운 커서 위치를 추적한다.
-      if (
-        [
-          'ArrowUp',
-          'ArrowDown',
-          'ArrowLeft',
-          'ArrowRight',
-          'Home',
-          'End',
-          'PageUp',
-          'PageDown',
-        ].includes(e.key)
-      ) {
-        window.requestAnimationFrame(() => {
-          if (!contentRef.current) return;
-          const { start } = getCaretPosition(contentRef.current);
-          if (Number.isFinite(start)) {
-            caretOffsetRef.current = start;
-          }
-        });
-      }
-    },
-    [handleKeyDown],
-  );
 
   const { containerRef, before, after } = useTextSelection({
     text,
@@ -842,8 +822,7 @@ const CoverLetterContent = ({
   };
 
   const handleMouseUp = () => {
-    // 드래그해서 selection을 만드는 로직은 reviewer에게만 필요.
-    // 여기서는 클릭/드래그 후 caret 위치를 추적하고 경계를 정규화한다.
+    // 클릭/드래그 후 caret 위치를 추적하고 경계를 정규화
     window.requestAnimationFrame(() => {
       if (isComposingRef.current || !contentRef.current) return;
 
@@ -873,7 +852,7 @@ const CoverLetterContent = ({
           aria-label='자기소개서 내용'
           suppressContentEditableWarning
           onInput={handleInput}
-          onKeyDown={handleKeyDownWrapper}
+          onKeyDown={handleKeyDown}
           onCopy={handleCopy}
           onPaste={handlePaste}
           onCompositionStart={handleCompositionStart}

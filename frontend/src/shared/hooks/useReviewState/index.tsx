@@ -474,7 +474,15 @@ export const useReviewState = ({
           (review) => review.id !== payload.reviewId,
         ),
       }));
+
       setEditingId((prev) => (prev === payload.reviewId ? null : prev));
+
+      setSelection((prev) => {
+        if (!prev) return null;
+        if ('reviewId' in prev && prev.reviewId === payload.reviewId)
+          return null;
+        return prev;
+      });
     },
     [getLatestReviews, qnaId],
   );
