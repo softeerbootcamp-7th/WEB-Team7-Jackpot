@@ -6,8 +6,6 @@ interface NormalizeCaretAtReviewBoundaryParams {
   reviews: Review[];
 }
 
-type BoundaryMoveDirection = 'left' | 'right';
-
 const isBoundaryElement = (node: Node | null): node is HTMLElement =>
   Boolean(
     node &&
@@ -15,22 +13,6 @@ const isBoundaryElement = (node: Node | null): node is HTMLElement =>
     ((node as HTMLElement).hasAttribute('data-review-boundary') ||
       (node as HTMLElement).hasAttribute('data-review-tail')),
   );
-
-const setCaretRelativeTo = (
-  selection: Selection,
-  node: Node,
-  direction: BoundaryMoveDirection,
-) => {
-  const range = document.createRange();
-  if (direction === 'left') {
-    range.setStartBefore(node);
-  } else {
-    range.setStartAfter(node);
-  }
-  range.collapse(true);
-  selection.removeAllRanges();
-  selection.addRange(range);
-};
 
 const ensureEditableTextAnchorInNode = (node: Node): Text | null => {
   if (node.nodeType === Node.TEXT_NODE) return node as Text;
@@ -45,47 +27,6 @@ const ensureEditableTextAnchorInNode = (node: Node): Text | null => {
   const anchor = document.createTextNode('');
   element.appendChild(anchor);
   return anchor;
-};
-
-const findBoundaryAtCaret = (
-  range: Range,
-  direction: BoundaryMoveDirection,
-): HTMLElement | null => {
-  const { startContainer, startOffset } = range;
-
-  if (isBoundaryElement(startContainer)) {
-    return startContainer;
-  }
-
-  if (startContainer.nodeType === Node.TEXT_NODE) {
-    if (isBoundaryElement(startContainer.parentNode)) {
-      return startContainer.parentNode as HTMLElement;
-    }
-    const textNode = startContainer as Text;
-    if (direction === 'right' && startOffset === textNode.length) {
-      return isBoundaryElement(textNode.nextSibling)
-        ? textNode.nextSibling
-        : null;
-    }
-    if (direction === 'left' && startOffset === 0) {
-      return isBoundaryElement(textNode.previousSibling)
-        ? textNode.previousSibling
-        : null;
-    }
-    return null;
-  }
-
-  if (startContainer.nodeType === Node.ELEMENT_NODE) {
-    const element = startContainer as Element;
-    const childNodes = element.childNodes;
-    const candidate =
-      direction === 'right'
-        ? (childNodes[startOffset] ?? null)
-        : (childNodes[startOffset - 1] ?? null);
-    return isBoundaryElement(candidate) ? candidate : null;
-  }
-
-  return null;
 };
 
 const isReviewGroup = (node: Node | null): node is HTMLElement =>
@@ -198,28 +139,6 @@ export const moveCaretIntoAdjacentReview = ({
   newRange.collapse(true);
   selection.removeAllRanges();
   selection.addRange(newRange);
-  return true;
-};
-
-export const moveCaretAcrossReviewBoundaryMarker = ({
-  contentEl,
-  direction,
-}: {
-  contentEl: HTMLDivElement;
-  direction: BoundaryMoveDirection;
-}): boolean => {
-  const selection = window.getSelection();
-  if (!selection || selection.rangeCount === 0 || !selection.isCollapsed) {
-    return false;
-  }
-
-  const range = selection.getRangeAt(0);
-  if (!contentEl.contains(range.startContainer)) return false;
-
-  const boundary = findBoundaryAtCaret(range, direction);
-  if (!boundary) return false;
-
-  setCaretRelativeTo(selection, boundary, direction);
   return true;
 };
 

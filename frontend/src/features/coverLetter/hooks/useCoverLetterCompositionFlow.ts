@@ -1,15 +1,12 @@
-import { type RefObject, useCallback, useEffect } from 'react';
+import { type RefObject, useCallback } from 'react';
 import { flushSync } from 'react-dom';
 
 import { getCaretPosition } from '@/features/coverLetter/libs/caret';
 
 interface UseCoverLetterCompositionFlowParams {
   contentRef: RefObject<HTMLDivElement | null>;
-  latestTextRef: RefObject<string>;
   isComposingRef: RefObject<boolean>;
   lastCompositionEndAtRef: RefObject<number>;
-  composingLastSentTextRef: RefObject<string | null>;
-  clearComposingFlushTimer: () => void;
   processInput: (forceSync?: boolean) => void;
   normalizeCaretAtReviewBoundary: () => boolean;
   applyDeleteRange: (start: number, end: number, textToInsert?: string) => void;
@@ -17,11 +14,8 @@ interface UseCoverLetterCompositionFlowParams {
 
 export const useCoverLetterCompositionFlow = ({
   contentRef,
-  latestTextRef,
   isComposingRef,
   lastCompositionEndAtRef,
-  composingLastSentTextRef,
-  clearComposingFlushTimer,
   processInput,
   normalizeCaretAtReviewBoundary,
   applyDeleteRange,
@@ -65,15 +59,10 @@ export const useCoverLetterCompositionFlow = ({
     // 선택 범위 삭제(있었다면) 이후에 composing 플래그 설정
     isComposingRef.current = true;
     normalizeCaretAtReviewBoundary();
-    clearComposingFlushTimer();
-    composingLastSentTextRef.current = latestTextRef.current;
   }, [
     applyDeleteRange,
-    clearComposingFlushTimer,
-    composingLastSentTextRef,
     contentRef,
     isComposingRef,
-    latestTextRef,
     normalizeCaretAtReviewBoundary,
   ]);
 
@@ -82,26 +71,9 @@ export const useCoverLetterCompositionFlow = ({
 
     isComposingRef.current = false;
 
-    clearComposingFlushTimer();
-
     lastCompositionEndAtRef.current = Date.now();
-    composingLastSentTextRef.current = null;
-
     processInput(true);
-  }, [
-    clearComposingFlushTimer,
-    composingLastSentTextRef,
-    isComposingRef,
-    lastCompositionEndAtRef,
-    processInput,
-  ]);
-
-  useEffect(
-    () => () => {
-      clearComposingFlushTimer();
-    },
-    [clearComposingFlushTimer],
-  );
+  }, [isComposingRef, lastCompositionEndAtRef, processInput]);
 
   return {
     handleInput,
