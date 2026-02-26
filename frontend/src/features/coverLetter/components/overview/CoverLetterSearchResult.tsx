@@ -28,6 +28,7 @@ const CoverLetterSearchResult = ({
       <CoverLetterOverview
         coverLetters={data.coverLetters}
         isCoverLetter={true}
+        isHome={false}
         currentPage={page - 1} // UI는 0-based
         totalPage={data.page.totalPage}
         onPageChange={(zeroBasedPage) => onPageChange(zeroBasedPage + 1)}
