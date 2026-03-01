@@ -250,7 +250,7 @@ const CoverLetterContent = ({
 
       updateText(newText, {
         forceParentSync: forceSync,
-        skipVersionIncrement: forceSync ? true : undefined,
+        skipVersionIncrement: forceSync || undefined,
       });
     },
     [updateText],
