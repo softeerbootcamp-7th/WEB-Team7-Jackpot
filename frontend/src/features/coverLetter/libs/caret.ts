@@ -63,6 +63,31 @@ export const getCaretPosition = (
   return { start, end };
 };
 
+/**
+ * data-chunk 속성이 없는 비정상 자식 노드(텍스트 노드, 래핑되지 않은 엘리먼트)를
+ * contentEditable div에서 제거하거나 언래핑한다.
+ * caret 복원 useLayoutEffect에서 React 렌더 사이클 외부에서 DOM이 오염됐을 때 정리하는 용도.
+ */
+export const cleanupNonChunkNodes = (el: HTMLElement): void => {
+  const children = Array.from(el.childNodes);
+  for (const child of children) {
+    if (
+      child.nodeType === Node.TEXT_NODE ||
+      (child.nodeType === Node.ELEMENT_NODE &&
+        !(child as Element).hasAttribute('data-chunk'))
+    ) {
+      if (child.nodeType === Node.ELEMENT_NODE) {
+        while (child.firstChild) {
+          el.insertBefore(child.firstChild, child);
+        }
+        el.removeChild(child);
+      } else {
+        el.removeChild(child);
+      }
+    }
+  }
+};
+
 // caret 복원
 export const restoreCaret = (el: HTMLElement, offset: number) => {
   const sel = window.getSelection();

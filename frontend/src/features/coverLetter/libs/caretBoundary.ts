@@ -36,6 +36,47 @@ const isReviewGroup = (node: Node | null): node is HTMLElement =>
     (node as HTMLElement).hasAttribute('data-review-group'),
   );
 
+/**
+ * 마우스 클릭 이벤트가 리뷰 요소 위에서 발생했는지 판단하고, 해당 reviewId를 반환한다.
+ * 리뷰가 아닌 영역 클릭이거나 isReviewActive가 false면 null을 반환한다.
+ * React 의존성 없이 순수 DOM 타입만 사용한다.
+ */
+export const findClickedReviewId = (
+  target: EventTarget | null,
+  clientX: number,
+  clientY: number,
+  isReviewActive: boolean,
+): number | null => {
+  if (!isReviewActive) return null;
+
+  let node = target as Node | null;
+  if (node?.nodeType === Node.TEXT_NODE && (node as Text).parentElement) {
+    node = (node as Text).parentElement;
+  }
+  if (!node || node.nodeType !== Node.ELEMENT_NODE) return null;
+
+  const reviewEl = (node as Element).closest('[data-review-id]');
+  const reviewIdStr = reviewEl?.getAttribute('data-review-id');
+  if (!reviewIdStr) return null;
+
+  const textSpan = reviewEl?.querySelector('span:not([data-review-id])');
+  const checkElement = textSpan || reviewEl;
+  if (!checkElement) return null;
+
+  const isDirectlyOverReview = Array.from(checkElement.getClientRects()).some(
+    (rect) =>
+      clientX >= rect.left &&
+      clientX <= rect.right &&
+      clientY >= rect.top &&
+      clientY <= rect.bottom,
+  );
+
+  if (!isDirectlyOverReview) return null;
+
+  const reviewId = Number(reviewIdStr);
+  return isNaN(reviewId) ? null : reviewId;
+};
+
 export const moveCaretIntoAdjacentReview = ({
   contentEl,
   direction,
