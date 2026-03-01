@@ -1,12 +1,12 @@
 import { useRef } from 'react';
 
-import { useScrapCoverLetters } from '@/features/coverLetter/hooks/useCoverLetterQueries';
-import type { ScrapItem } from '@/features/coverLetter/types/coverLetter';
 import SidebarCard from '@/shared/components/sidebar/SidebarCard';
 import { SidebarSkeleton } from '@/shared/components/SidebarSkeleton';
 import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
+import { useScrapCoverLetters } from '@/shared/hooks/useCoverLetterQueries';
 import useInfiniteScroll from '@/shared/hooks/useInfiniteScroll';
 import { useDeleteScrapMutation } from '@/shared/hooks/useScrapQueries';
+import type { ScrapItem } from '@/shared/types/coverLetter';
 
 interface ScrapListProps {
   searchWord: string;

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useLocation, useNavigate } from 'react-router';
 
-import type { TextChangeResult } from '@/features/coverLetter/types/coverLetter';
 import type { ApiReview } from '@/shared/api/reviewApi';
 import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
 import {
@@ -14,6 +13,9 @@ import {
   updateReviewRanges,
   updateSelectionForTextChange,
 } from '@/shared/hooks/useReviewState/helpers';
+import { useReviewEditing } from '@/shared/hooks/useReviewState/useReviewEditing';
+import { useSocketEventQueue } from '@/shared/hooks/useReviewState/useSocketEventQueue';
+import type { TextChangeResult } from '@/shared/types/coverLetter';
 import type { MinimalQnA } from '@/shared/types/qna';
 import type { Review } from '@/shared/types/review';
 import type { SelectionInfo } from '@/shared/types/selectionInfo';
@@ -35,6 +37,18 @@ interface TaggedRange {
   start: number;
   end: number;
 }
+
+/** Review 배열을 buildReviewsFromApi가 받는 ApiReview 형태로 변환한다. */
+const toApiReviewSource = (reviews: Review[]): ApiReview[] =>
+  reviews.map((review) => ({
+    id: review.id,
+    sender: review.sender ?? { id: '', nickname: '' },
+    originText: review.originText,
+    suggest: review.suggest ?? null,
+    comment: review.comment ?? '',
+    createdAt: review.createdAt ?? '',
+    isApproved: Boolean(review.isApproved),
+  }));
 
 interface ReviewDispatchers {
   handleTextUpdateEvent: (
@@ -81,8 +95,6 @@ export interface UseReviewStateResult {
 }
 
 /**
- * TODO: WebSocket 통합 시 상태 반영 정책
- *
  * 즉시 반영 (낙관적 업데이트):
  *   - Writer 텍스트 수정: handleTextChange로 로컬 즉시 반영, WebSocket으로 상대방에게 발송
  *   - 리뷰 수정: handleUpdateReview로 수정자 로컬 즉시 반영, 상대방은 WebSocket 수신
@@ -157,8 +169,6 @@ export const useReviewState = ({
       );
     })();
 
-    // 입력 경로별 로컬 상태 업데이트 타이밍 차이가 있어도
-    // 현재 본문 기준으로 viewStatus를 항상 최신으로 유지한다.
     return applyViewStatus(baseReviews, currentText);
   }, [qnaId, apiReviews, parsed, reviewsForCurrentQna, currentText]);
 
@@ -184,37 +194,9 @@ export const useReviewState = ({
   }, [qnaId, originalText]);
 
   const lastTaggedRangesRef = useRef<Record<number, TaggedRange[]>>({});
-  const socketEventQueueRef = useRef<Array<() => void>>([]);
-  const isSocketQueueScheduledRef = useRef(false);
 
-  const flushSocketEventQueue = useCallback(function flushQueuedSocketEvents() {
-    try {
-      while (socketEventQueueRef.current.length > 0) {
-        const job = socketEventQueueRef.current.shift();
-        try {
-          job?.();
-        } catch (e) {
-          console.error('[useReviewState] socket event handler error:', e);
-        }
-      }
-    } finally {
-      isSocketQueueScheduledRef.current = false;
-      if (socketEventQueueRef.current.length > 0) {
-        isSocketQueueScheduledRef.current = true;
-        queueMicrotask(flushQueuedSocketEvents);
-      }
-    }
-  }, []);
-
-  const enqueueSocketEvent = useCallback(
-    (job: () => void) => {
-      socketEventQueueRef.current.push(job);
-      if (isSocketQueueScheduledRef.current) return;
-      isSocketQueueScheduledRef.current = true;
-      queueMicrotask(flushSocketEventQueue);
-    },
-    [flushSocketEventQueue],
-  );
+  // WebSocket 이벤트 마이크로태스크 큐
+  const { enqueueSocketEvent } = useSocketEventQueue();
 
   const getLatestReviews = useCallback(
     (prev: Record<number, Review[]>, id: number): Review[] => {
@@ -227,14 +209,19 @@ export const useReviewState = ({
 
   const [selection, setSelection] = useState<SelectionInfo | null>(null);
 
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const editingReview = useMemo(
-    () =>
-      editingId !== null
-        ? (currentReviews.find((r) => r.id === editingId) ?? null)
-        : null,
-    [editingId, currentReviews],
-  );
+  // 리뷰 편집 상태 관리
+  const {
+    editingReview,
+    handleEditReview,
+    handleCancelEdit,
+    handleUpdateReview,
+    setEditingId,
+  } = useReviewEditing({
+    qnaId,
+    currentReviews,
+    getLatestReviews,
+    setReviewsByQnaId,
+  });
 
   const getCurrentTextByQnaId = useCallback(
     (targetQnaId: number) =>
@@ -251,31 +238,6 @@ export const useReviewState = ({
     [qnaId, qnaVersion],
   );
 
-  const getApiReviewSource = useCallback(
-    (_targetQnaId: number, baseReviews: Review[]): ApiReview[] => {
-      // baseReviews(로컬 상태)를 그대로 변환해 반환한다.
-      // 삭제된 리뷰가 stale 상태인 apiReviews 캐시를 통해 부활하지 않도록
-      // apiReviews와의 병합은 하지 않는다.
-      return baseReviews.map((review) => ({
-        id: review.id,
-        sender: review.sender ?? { id: '', nickname: '' },
-        originText: review.originText,
-        suggest: review.suggest ?? null,
-        comment: review.comment ?? '',
-        createdAt: review.createdAt ?? '',
-        isApproved: Boolean(review.isApproved),
-      }));
-    },
-    [],
-  );
-
-  const revalidateReviewsByCurrentText = useCallback(
-    (reviews: Review[], currentDocumentText: string): Review[] => {
-      return applyViewStatus(reviews, currentDocumentText);
-    },
-    [],
-  );
-
   const handleTextUpdateEvent = useCallback(
     (targetQnaId: number, payload: TextUpdateResponseType['payload']) => {
       if (targetQnaId !== qnaId) return;
@@ -284,12 +246,7 @@ export const useReviewState = ({
       const currentVersionForQna = getCurrentVersionByQnaId(targetQnaId);
       if (version <= currentVersionForQna) return;
 
-      // 서버 인덱스(startIdx, endIdx)는 태그 포함 본문 기준이므로
-      // 현재 clean text에서 tagged text를 복원하고 delta를 적용한 뒤 다시 파싱한다.
-      const currentCleanText =
-        editedAnswersRef.current[targetQnaId] ??
-        originalTextByQnaIdRef.current[targetQnaId] ??
-        '';
+      const currentCleanText = getCurrentTextByQnaId(targetQnaId);
       const reviewsForTagging = currentReviewsRef.current;
 
       const taggedText = reconstructTaggedText(
@@ -301,7 +258,6 @@ export const useReviewState = ({
       const { cleaned: newCleanText, taggedRanges } =
         parseTaggedText(newTaggedText);
 
-      // 다음 소켓 이벤트가 render 이전에 와도 최신 기준으로 계산되도록 ref를 즉시 동기화한다.
       editedAnswersRef.current = {
         ...editedAnswersRef.current,
         [targetQnaId]: newCleanText,
@@ -317,13 +273,12 @@ export const useReviewState = ({
 
       setReviewsByQnaId((prevReviews) => {
         const baseReviews = getLatestReviews(prevReviews, targetQnaId);
-        const sourceReviews = getApiReviewSource(targetQnaId, baseReviews);
         return {
           ...prevReviews,
           [targetQnaId]: buildReviewsFromApi(
             newCleanText,
             taggedRanges,
-            sourceReviews,
+            toApiReviewSource(baseReviews),
           ),
         };
       });
@@ -340,7 +295,7 @@ export const useReviewState = ({
         );
       });
     },
-    [getCurrentVersionByQnaId, getLatestReviews, getApiReviewSource, qnaId],
+    [getCurrentVersionByQnaId, getCurrentTextByQnaId, getLatestReviews, qnaId],
   );
 
   const handleTextReplaceAllEvent = useCallback(
@@ -348,12 +303,10 @@ export const useReviewState = ({
       if (targetQnaId !== qnaId) return;
 
       const { version, content } = payload;
-      // TEXT_REPLACE_ALL은 서버의 전체 상태 스냅샷이므로 버전 비교 없이 항상 적용한다.
-      // Writer가 투기적으로 올린 로컬 버전이 서버 버전보다 높더라도 덮어쓴다.
       const { cleaned, taggedRanges } = parseTaggedText(content);
       const oldText = getCurrentTextByQnaId(targetQnaId);
       lastTaggedRangesRef.current[targetQnaId] = taggedRanges;
-      // 다음 소켓 이벤트가 render 이전에 와도 최신 기준으로 계산되도록 ref를 즉시 동기화한다.
+
       editedAnswersRef.current = {
         ...editedAnswersRef.current,
         [targetQnaId]: cleaned,
@@ -369,28 +322,25 @@ export const useReviewState = ({
       setReviewsByQnaId((prevReviews) => {
         const baseReviews = getLatestReviews(prevReviews, targetQnaId);
         if (taggedRanges.length === 0) {
-          const nextReviews = updateReviewRanges(
-            baseReviews,
-            change.changeStart,
-            change.oldLength,
-            change.newLength,
-            cleaned,
-          );
           return {
             ...prevReviews,
-            [targetQnaId]: nextReviews,
+            [targetQnaId]: updateReviewRanges(
+              baseReviews,
+              change.changeStart,
+              change.oldLength,
+              change.newLength,
+              cleaned,
+            ),
           };
         }
 
-        const sourceReviews = getApiReviewSource(targetQnaId, baseReviews);
-        const nextReviews = buildReviewsFromApi(
-          cleaned,
-          taggedRanges,
-          sourceReviews,
-        );
         return {
           ...prevReviews,
-          [targetQnaId]: nextReviews,
+          [targetQnaId]: buildReviewsFromApi(
+            cleaned,
+            taggedRanges,
+            toApiReviewSource(baseReviews),
+          ),
         };
       });
 
@@ -410,7 +360,7 @@ export const useReviewState = ({
         [targetQnaId]: (prev[targetQnaId] ?? 0) + 1,
       }));
     },
-    [getCurrentTextByQnaId, getLatestReviews, getApiReviewSource, qnaId],
+    [getCurrentTextByQnaId, getLatestReviews, qnaId],
   );
 
   const handleShareLinkDeactivatedEvent = useCallback(
@@ -484,7 +434,7 @@ export const useReviewState = ({
         return prev;
       });
     },
-    [getLatestReviews, qnaId],
+    [getLatestReviews, qnaId, setEditingId],
   );
 
   const handleReviewUpdatedEvent = useCallback(
@@ -504,8 +454,6 @@ export const useReviewState = ({
           const previousOriginText = review.originText;
           const previousSuggest = review.suggest ?? null;
 
-          // 승인/되돌리기 토글에서는 origin/suggest가 서로 뒤집혀 들어온다.
-          // originText === suggest인 경우 swap 감지가 불가하므로 제외
           const isSwapToggleEvent =
             previousSuggest !== null &&
             incomingOriginText !== incomingSuggest &&
@@ -531,23 +479,13 @@ export const useReviewState = ({
           };
         });
 
-        const nextReviews = revalidateReviewsByCurrentText(
-          patchedReviews,
-          currentDocumentText,
-        );
-
         return {
           ...prevReviews,
-          [targetQnaId]: nextReviews,
+          [targetQnaId]: applyViewStatus(patchedReviews, currentDocumentText),
         };
       });
     },
-    [
-      getCurrentTextByQnaId,
-      getLatestReviews,
-      qnaId,
-      revalidateReviewsByCurrentText,
-    ],
+    [getCurrentTextByQnaId, getLatestReviews, qnaId],
   );
 
   const handleTextChange = useCallback(
@@ -559,8 +497,7 @@ export const useReviewState = ({
 
       const oldText = getCurrentTextByQnaId(qnaId);
       const change = calculateTextChange(oldText, newText);
-      // 같은 tick 내 연속 입력/삭제(특히 IME 경계)에서도
-      // 다음 계산이 최신 텍스트를 기준으로 동작하도록 ref를 즉시 동기화한다.
+
       editedAnswersRef.current = {
         ...editedAnswersRef.current,
         [qnaId]: newText,
@@ -586,10 +523,7 @@ export const useReviewState = ({
           ...versionByQnaIdRef.current,
           [qnaId]: nextVersion,
         };
-        setVersionByQnaId((prev) => ({
-          ...prev,
-          [qnaId]: nextVersion,
-        }));
+        setVersionByQnaId((prev) => ({ ...prev, [qnaId]: nextVersion }));
       }
 
       setSelection((prev) => {
@@ -604,7 +538,6 @@ export const useReviewState = ({
       });
       return change;
     },
-
     [qnaId, getCurrentTextByQnaId, getCurrentVersionByQnaId, getLatestReviews],
   );
 
@@ -615,29 +548,9 @@ export const useReviewState = ({
       ...versionByQnaIdRef.current,
       [qnaId]: nextVersion,
     };
-    setVersionByQnaId((prev) => ({
-      ...prev,
-      [qnaId]: nextVersion,
-    }));
+    setVersionByQnaId((prev) => ({ ...prev, [qnaId]: nextVersion }));
     return nextVersion;
   }, [qnaId, getCurrentVersionByQnaId]);
-
-  const handleUpdateReview = useCallback(
-    (id: number, suggest: string, comment: string) => {
-      if (qnaId === undefined) return;
-      setReviewsByQnaId((prev) => ({
-        ...prev,
-        [qnaId]: getLatestReviews(prev, qnaId).map((r) =>
-          r.id === id ? { ...r, suggest, comment } : r,
-        ),
-      }));
-      setEditingId(null);
-    },
-    [qnaId, getLatestReviews],
-  );
-
-  const handleEditReview = useCallback((id: number) => setEditingId(id), []);
-  const handleCancelEdit = useCallback(() => setEditingId(null), []);
 
   const dispatchers = useMemo<ReviewDispatchers>(
     () => ({

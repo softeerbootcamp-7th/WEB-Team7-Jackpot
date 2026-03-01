@@ -1,6 +1,6 @@
 import * as CI from '@/features/coverLetter/icons';
-import type { ScrapItem } from '@/features/coverLetter/types/coverLetter';
 import * as SI from '@/shared/icons';
+import type { ScrapItem } from '@/shared/types/coverLetter';
 
 interface CardDetailProps {
   scrap: ScrapItem;

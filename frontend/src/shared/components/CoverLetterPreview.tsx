@@ -39,12 +39,6 @@ const CoverLetterPreview = ({
           </div>
         </div>
 
-        {isCoverLetter && (
-          <div className='text-caption-l line-clamp-2 h-10 max-h-14 justify-start self-stretch font-normal text-gray-400'>
-            {/* TODO: 백엔드 API에서 previewText 제공 시 표시 */}
-            {/* 현재는 API 응답에 답변 미리보기가 없어서 임시로 빈 상태 */}
-          </div>
-        )}
         <div className='flex flex-row items-center justify-between self-stretch'>
           <div className='text-caption-l font-normal text-gray-400'>
             총 {data.questionCount}문항

@@ -263,7 +263,6 @@ export const updateReviewRanges = <T extends Review>(
 };
 
 // 텍스트 변경에 따라 selection 범위를 업데이트
-// TODO: websocket 연결 시 서버에서 전달하는 OT operation을 직접 적용하는 방식으로 교체 고려
 export const updateSelectionForTextChange = (
   selection: SelectionInfo,
   changeStart: number,

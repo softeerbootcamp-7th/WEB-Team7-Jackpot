@@ -1,7 +1,9 @@
 import CoverLetterApiMode from '@/features/coverLetter/components/editor/CoverLetterApiMode';
 import CoverLetterLiveMode from '@/features/coverLetter/components/editor/CoverLetterLiveMode';
-import { useSharedLink } from '@/features/coverLetter/hooks/useCoverLetterQueries';
-import { useCoverLetterWithQnAIds } from '@/shared/hooks/useCoverLetterQueries';
+import {
+  useCoverLetterWithQnAIds,
+  useSharedLink,
+} from '@/shared/hooks/useCoverLetterQueries';
 
 interface CoverLetterSectionProps {
   id: number;

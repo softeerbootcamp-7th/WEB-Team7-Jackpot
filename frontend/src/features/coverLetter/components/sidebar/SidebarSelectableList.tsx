@@ -1,7 +1,7 @@
 import { type ReactNode, useState } from 'react';
 
 import SidebarCardDetail from '@/features/coverLetter/components/sidebar/SidebarCardDetail';
-import type { ScrapItem } from '@/features/coverLetter/types/coverLetter';
+import type { ScrapItem } from '@/shared/types/coverLetter';
 
 interface SidebarSelectableListProps {
   renderList: (onSelect: (item: ScrapItem) => void) => ReactNode;

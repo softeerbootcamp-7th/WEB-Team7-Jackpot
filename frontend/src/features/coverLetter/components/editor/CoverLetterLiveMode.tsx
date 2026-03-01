@@ -82,12 +82,6 @@ const CoverLetterLiveMode = ({
     setIsReviewActive: setIsReviewActive,
   });
 
-  // TODO: WebSocket 구독 관리
-  // - 마운트 시: /sub/share/{shareId}/qna/{currentQnAId}/review 구독
-  // - currentQnAId 변경 시: 기존 구독 해제 → 새 구독
-  // - 텍스트 변경 시: /pub/share/{shareId}/qna/{currentQnAId}/text-update 발송
-  // - 언마운트 시: 구독 해제
-
   if (qnaIds.length === 0) {
     return (
       <div className='flex h-full items-center justify-center text-gray-400'>
