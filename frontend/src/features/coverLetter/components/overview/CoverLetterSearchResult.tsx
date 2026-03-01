@@ -1,7 +1,7 @@
 import { emptyCaseText } from '@/features/coverLetter/constants';
-import { useCoverLetterSearch } from '@/features/coverLetter/hooks/useCoverLetterQueries';
 import CoverLetterOverview from '@/shared/components/CoverLetterOverview';
 import EmptyCase from '@/shared/components/EmptyCase';
+import { useCoverLetterSearch } from '@/shared/hooks/useCoverLetterQueries';
 
 interface CoverLetterSearchResultProps {
   searchWord: string;

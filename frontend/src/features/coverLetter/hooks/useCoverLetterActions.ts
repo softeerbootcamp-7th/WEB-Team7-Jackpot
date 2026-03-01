@@ -2,12 +2,12 @@ import { useCallback, useRef, useState } from 'react';
 
 import { useNavigate } from 'react-router';
 
+import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
 import {
+  useDeleteCoverLetter,
   useSharedLink,
   useSharedLinkToggle,
-} from '@/features/coverLetter/hooks/useCoverLetterQueries';
-import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
-import { useDeleteCoverLetter } from '@/shared/hooks/useCoverLetterQueries';
+} from '@/shared/hooks/useCoverLetterQueries';
 import { useUpdateQnA } from '@/shared/hooks/useQnAQueries';
 import { reconstructTaggedText } from '@/shared/hooks/useReviewState/helpers';
 import type { Review } from '@/shared/types/review';
@@ -168,7 +168,6 @@ const useCoverLetterActions = ({
     handleToggleReview,
     isPending,
     isShareDisabled: isLoading || !sharedLink?.active,
-    // 모달 관련 state와 actions
     deletingId,
     isDeleting,
     closeDeleteModal,

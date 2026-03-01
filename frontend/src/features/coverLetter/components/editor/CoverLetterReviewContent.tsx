@@ -3,7 +3,7 @@ import { Suspense, useEffect } from 'react';
 import { useOutletContext, useParams } from 'react-router';
 
 import CoverLetterSection from '@/features/coverLetter/components/editor/CoverLetterSection';
-import { useSharedLink } from '@/features/coverLetter/hooks/useCoverLetterQueries';
+import { useSharedLink } from '@/shared/hooks/useCoverLetterQueries';
 import type { OutletContext } from '@/features/coverLetter/types/outletContext';
 import SectionError from '@/shared/components/SectionError';
 import SkeletonCard from '@/shared/components/SkeletonCard';
