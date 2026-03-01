@@ -5,7 +5,6 @@ import { useOutletContext, useParams } from 'react-router';
 import CoverLetterSection from '@/features/coverLetter/components/editor/CoverLetterSection';
 import { useSharedLink } from '@/features/coverLetter/hooks/useCoverLetterQueries';
 import type { OutletContext } from '@/features/coverLetter/types/outletContext';
-import ErrorBoundary from '@/shared/components/ErrorBoundary';
 import SectionError from '@/shared/components/SectionError';
 import SkeletonCard from '@/shared/components/SkeletonCard';
 
@@ -29,19 +28,13 @@ const CoverLetterReviewContent = () => {
   }
 
   return (
-    <ErrorBoundary
-      fallback={(reset) => (
-        <SectionError onRetry={reset} text='QnA를 표시할 수 없습니다' />
-      )}
-    >
-      <Suspense fallback={<SkeletonCard />}>
-        <CoverLetterSection
-          id={id}
-          isReviewActive={isReviewActive}
-          setIsReviewActive={setIsReviewActive}
-        />
-      </Suspense>
-    </ErrorBoundary>
+    <Suspense fallback={<SkeletonCard />}>
+      <CoverLetterSection
+        id={id}
+        isReviewActive={isReviewActive}
+        setIsReviewActive={setIsReviewActive}
+      />
+    </Suspense>
   );
 };
 
