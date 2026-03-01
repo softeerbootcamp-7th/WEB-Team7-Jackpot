@@ -5,7 +5,6 @@ import LibraryFolderGrid from '@/features/coverLetter/components/sidebar/Library
 import LibraryQnAList from '@/features/coverLetter/components/sidebar/LibraryQnAList';
 import SidebarSelectableList from '@/features/coverLetter/components/sidebar/SidebarSelectableList';
 import { useLibraryNavigation } from '@/features/coverLetter/hooks/useLibraryNavigation';
-import type { ScrapItem } from '@/features/coverLetter/types/coverLetter';
 import { useLibraryListQueries } from '@/features/library/hooks/queries/useLibraryListQueries';
 import type { QnAsSearchResponse } from '@/features/library/types';
 import ErrorBoundary from '@/shared/components/ErrorBoundary';
@@ -14,6 +13,7 @@ import SectionError from '@/shared/components/SectionError';
 import SidebarCard from '@/shared/components/sidebar/SidebarCard';
 import { SidebarSkeleton } from '@/shared/components/SidebarSkeleton';
 import { useInfiniteQnASearch } from '@/shared/hooks/useQnAQueries';
+import type { ScrapItem } from '@/shared/types/coverLetter';
 
 const toScrapItem = (qna: QnAsSearchResponse): ScrapItem => ({
   id: qna.qnAId,

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import type { ScrapItem } from '@/features/coverLetter/types/coverLetter';
+import type { ScrapItem } from '@/shared/types/coverLetter';
 
 interface LibraryNavigationState {
   selectedItem: ScrapItem | null;

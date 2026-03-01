@@ -1,11 +1,11 @@
 import { useNavigate } from 'react-router';
 
 import libraryFolder from '@/assets/icons/LibraryFolder.svg';
-import type { ScrapItem } from '@/features/coverLetter/types/coverLetter';
 import type { QnAsSearchResponse } from '@/features/library/types';
 import SearchResultDisplay from '@/shared/components/SearchResultDisplay';
 import SidebarCard from '@/shared/components/sidebar/SidebarCard';
 import { useInfiniteQnASearch } from '@/shared/hooks/useQnAQueries';
+import type { ScrapItem } from '@/shared/types/coverLetter';
 
 interface QnASearchResultProps {
   searchWord: string;

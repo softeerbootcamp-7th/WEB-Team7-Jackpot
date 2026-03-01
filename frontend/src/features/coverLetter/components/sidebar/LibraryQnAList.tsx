@@ -1,11 +1,11 @@
 import { useRef } from 'react';
 
 import SidebarCardDetail from '@/features/coverLetter/components/sidebar/SidebarCardDetail';
-import type { ScrapItem } from '@/features/coverLetter/types/coverLetter';
 import { useQnAListQueries } from '@/features/library/hooks/queries/useLibraryListQueries';
 import { SidebarSkeleton } from '@/shared/components/SidebarSkeleton';
 import useInfiniteScroll from '@/shared/hooks/useInfiniteScroll';
 import * as SI from '@/shared/icons';
+import type { ScrapItem } from '@/shared/types/coverLetter';
 
 interface LibraryQnAListProps {
   libraryName: string;

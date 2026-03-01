@@ -24,11 +24,11 @@ import {
 } from '@/features/coverLetter/libs/caretBoundary';
 import { reconcileReviewTrackingState } from '@/features/coverLetter/libs/reviewTracking';
 import { bindUndoRedoShortcuts } from '@/features/coverLetter/libs/undoRedo';
-import type { TextChangeResult } from '@/features/coverLetter/types/coverLetter';
 import {
   calculateTextChange,
   updateReviewRanges,
 } from '@/shared/hooks/useReviewState/helpers';
+import type { TextChangeResult } from '@/shared/types/coverLetter';
 import type { Review } from '@/shared/types/review';
 import type { SelectionInfo } from '@/shared/types/selectionInfo';
 
@@ -235,23 +235,26 @@ const CoverLetterContent = ({
   );
 
   // 일반 입력 처리
-  const processInput = useCallback((forceSync = false) => {
-    if (!contentRef.current) return;
+  const processInput = useCallback(
+    (forceSync = false) => {
+      if (!contentRef.current) return;
 
-    const newText = collectText(contentRef.current);
+      const newText = collectText(contentRef.current);
 
-    if (newText === '') {
-      caretOffsetRef.current = 0;
-    } else {
-      const { start } = getCaretPosition(contentRef.current);
-      caretOffsetRef.current = start;
-    }
+      if (newText === '') {
+        caretOffsetRef.current = 0;
+      } else {
+        const { start } = getCaretPosition(contentRef.current);
+        caretOffsetRef.current = start;
+      }
 
-    updateText(newText, {
-      forceParentSync: forceSync,
-      skipVersionIncrement: forceSync ? true : undefined,
-    });
-  }, [updateText]);
+      updateText(newText, {
+        forceParentSync: forceSync,
+        skipVersionIncrement: forceSync ? true : undefined,
+      });
+    },
+    [updateText],
+  );
 
   // DOM 텍스트 ↔ Ref 동기화용
   const syncDOMToState = useCallback(() => {
@@ -507,7 +510,12 @@ const CoverLetterContent = ({
   }, [normalizeCaretAtReviewBoundary]);
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const reviewId = findClickedReviewId(e.target, e.clientX, e.clientY, isReviewActive);
+    const reviewId = findClickedReviewId(
+      e.target,
+      e.clientX,
+      e.clientY,
+      isReviewActive,
+    );
     if (reviewId !== null) onReviewClick(reviewId);
     trackAndNormalizeCaret();
   };

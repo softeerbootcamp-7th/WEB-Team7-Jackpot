@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-import type { GetScrapsResponse } from '@/features/coverLetter/types/coverLetter';
 import { apiClient } from '@/shared/api/apiClient';
+import type { GetScrapsResponse } from '@/shared/types/coverLetter';
 import type {
   CoverLetterType,
   CreateCoverLetterRequest,

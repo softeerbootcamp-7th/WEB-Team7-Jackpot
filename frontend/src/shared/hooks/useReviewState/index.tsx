@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useLocation, useNavigate } from 'react-router';
 
-import type { TextChangeResult } from '@/features/coverLetter/types/coverLetter';
 import type { ApiReview } from '@/shared/api/reviewApi';
 import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
 import {
@@ -16,6 +15,7 @@ import {
 } from '@/shared/hooks/useReviewState/helpers';
 import { useReviewEditing } from '@/shared/hooks/useReviewState/useReviewEditing';
 import { useSocketEventQueue } from '@/shared/hooks/useReviewState/useSocketEventQueue';
+import type { TextChangeResult } from '@/shared/types/coverLetter';
 import type { MinimalQnA } from '@/shared/types/qna';
 import type { Review } from '@/shared/types/review';
 import type { SelectionInfo } from '@/shared/types/selectionInfo';
@@ -336,7 +336,11 @@ export const useReviewState = ({
 
         return {
           ...prevReviews,
-          [targetQnaId]: buildReviewsFromApi(cleaned, taggedRanges, toApiReviewSource(baseReviews)),
+          [targetQnaId]: buildReviewsFromApi(
+            cleaned,
+            taggedRanges,
+            toApiReviewSource(baseReviews),
+          ),
         };
       });
 
