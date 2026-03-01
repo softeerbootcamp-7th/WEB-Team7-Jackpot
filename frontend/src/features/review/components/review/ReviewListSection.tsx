@@ -1,4 +1,4 @@
-import emptyReview from '@/assets/icons/EmptyReview.svg';
+import emptyReview from '@/assets/icons/emptyReview.svg';
 import ReviewCard from '@/features/review/components/review/ReviewCard';
 import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
 import { useDeleteReview } from '@/shared/hooks/useReviewQueries';
