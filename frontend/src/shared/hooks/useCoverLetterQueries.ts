@@ -196,16 +196,9 @@ export const useSharedLinkToggle = () => {
         });
       }
 
-      const qnaIdList = queryClient.getQueryData<number[]>([
-        'qnaIdList',
-        coverLetterId,
-      ]);
-
-      if (qnaIdList) {
-        queryClient.invalidateQueries({
-          queryKey: ['qnaIdList', coverLetterId],
-        });
-      }
+      queryClient.invalidateQueries({
+        queryKey: coverLetterQueryKeys.qnaIdList(coverLetterId),
+      });
 
       queryClient.invalidateQueries({ queryKey: ['qna'] });
 
