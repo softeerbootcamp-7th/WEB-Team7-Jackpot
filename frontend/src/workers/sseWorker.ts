@@ -59,17 +59,7 @@ const connectSSE = async () => {
   abortController = new AbortController();
 
   try {
-    const response = await apiClient.get<Response>({
-      endpoint: '/sse/connect',
-      isStream: true,
-      options: {
-        signal: abortController.signal,
-        headers: {
-          Accept: 'text/event-stream',
-          'Cache-Control': 'no-cache',
-        },
-      },
-    });
+    const response = await sseStream.connect(abortController.signal);
 
     isConnected = true;
     // 연결 완료 했다는 의미
