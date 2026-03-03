@@ -76,10 +76,14 @@ public class ShareLinkLockManager {
         }
 
         String sessionKey = getSessionKey(sessionId);
-        redisTemplate.execute(UNLOCK_REDIS_SCRIPT, List.of(entry.getLockKey(), sessionKey), sessionId);
-        log.info("Lock released: sessionId={}, lockKey={}", sessionId, entry.getLockKey());
-    }
+        Long unlocked = redisTemplate.execute(UNLOCK_REDIS_SCRIPT, List.of(entry.getLockKey(), sessionKey), sessionId);
 
+        if (Long.valueOf(1L).equals(unlocked)) {
+            log.info("Lock released: sessionId={}, lockKey={}", sessionId, entry.getLockKey());
+        } else {
+            log.warn("Unlock skipped: sessionId={}, lockKey={},", sessionId, entry.getLockKey());
+        }
+    }
     /**
      * 모든 활성 세션의 분산락 TTL 갱신 (10초마다 호출)
      * 1. 좀비 세션(20초 무응답) 사전 필터링 및 제거
