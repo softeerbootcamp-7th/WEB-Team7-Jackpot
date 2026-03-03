@@ -49,6 +49,10 @@ public class StompChannelInterceptor implements ChannelInterceptor {
             return MessageBuilder.createMessage(message.getPayload(), accessor.getMessageHeaders());
         }
 
+        if (accessor.getSessionId() != null) {
+            shareLinkService.updateActivity(accessor.getSessionId());
+        }
+
         return message;
     }
 
@@ -65,7 +69,7 @@ public class StompChannelInterceptor implements ChannelInterceptor {
             suffixEndPoint = WRITER_SUBSCRIBE_ENDPOINT;
         } else if (role == ReviewRoleType.REVIEWER) {
             suffixEndPoint = REVIEWER_SUBSCRIBE_ENDPOINT;
-        } else{
+        } else {
             throw new BaseException(WebSocketErrorCode.ROLE_NOT_FOUND);
         }
 

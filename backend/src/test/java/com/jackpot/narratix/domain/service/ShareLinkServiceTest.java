@@ -49,7 +49,7 @@ class ShareLinkServiceTest {
     private ShareLinkRepository shareLinkRepository;
 
     @Mock
-    private ShareLinkSessionRegistry shareLinkSessionRegistry;
+    private ShareLinkLockManager shareLinkLockManager;
 
     @Mock
     private TextSyncService textSyncService;
@@ -287,7 +287,7 @@ class ShareLinkServiceTest {
 
         given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(mockQnA);
         given(mockQnA.determineReviewRole(userId)).willReturn(ReviewRoleType.REVIEWER);
-        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(userId, shareId, ReviewRoleType.REVIEWER)).willReturn(true);
+        given(shareLinkLockManager.isConnectedUserInCoverLetter(userId, shareId, ReviewRoleType.REVIEWER)).willReturn(true);
         given(shareLinkRepository.findByShareId(shareId)).willReturn(Optional.of(mockShareLink));
         given(mockShareLink.isValid()).willReturn(true);
         given(mockShareLink.getCoverLetterId()).willReturn(coverLetterId);
@@ -322,7 +322,7 @@ class ShareLinkServiceTest {
         // getQnAWithVersion은 qnA 조회 → WebSocket 검증 → shareLink 검증 순서로 실행된다
         given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(mockQnA);
         given(mockQnA.determineReviewRole(userId)).willReturn(ReviewRoleType.REVIEWER);
-        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(userId, shareId, ReviewRoleType.REVIEWER)).willReturn(true);
+        given(shareLinkLockManager.isConnectedUserInCoverLetter(userId, shareId, ReviewRoleType.REVIEWER)).willReturn(true);
         given(shareLinkRepository.findByShareId(shareId)).willReturn(Optional.empty());
 
         // when & then
@@ -345,7 +345,7 @@ class ShareLinkServiceTest {
 
         given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(mockQnA);
         given(mockQnA.determineReviewRole(userId)).willReturn(ReviewRoleType.REVIEWER);
-        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(userId, shareId, ReviewRoleType.REVIEWER)).willReturn(true);
+        given(shareLinkLockManager.isConnectedUserInCoverLetter(userId, shareId, ReviewRoleType.REVIEWER)).willReturn(true);
         given(shareLinkRepository.findByShareId(shareId)).willReturn(Optional.of(mockShareLink));
         given(mockShareLink.isValid()).willReturn(false);
 
@@ -372,7 +372,7 @@ class ShareLinkServiceTest {
 
         given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(mockQnA);
         given(mockQnA.determineReviewRole(userId)).willReturn(ReviewRoleType.REVIEWER);
-        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(userId, shareId, ReviewRoleType.REVIEWER)).willReturn(true);
+        given(shareLinkLockManager.isConnectedUserInCoverLetter(userId, shareId, ReviewRoleType.REVIEWER)).willReturn(true);
         given(shareLinkRepository.findByShareId(shareId)).willReturn(Optional.of(mockShareLink));
         given(mockShareLink.isValid()).willReturn(true);
         given(mockShareLink.getCoverLetterId()).willReturn(shareLinkCoverLetterId);
@@ -402,7 +402,7 @@ class ShareLinkServiceTest {
         given(mockShareLink.getCoverLetterId()).willReturn(coverLetterId);
         given(coverLetterRepository.findByIdOrElseThrow(coverLetterId)).willReturn(mockCoverLetter);
         given(mockCoverLetter.determineReviewRole(userId)).willReturn(ReviewRoleType.REVIEWER);
-        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(userId, shareId, ReviewRoleType.REVIEWER)).willReturn(true);
+        given(shareLinkLockManager.isConnectedUserInCoverLetter(userId, shareId, ReviewRoleType.REVIEWER)).willReturn(true);
         given(mockCoverLetter.getId()).willReturn(coverLetterId);
         given(qnARepository.findIdsByCoverLetterId(coverLetterId)).willReturn(List.of(1L, 2L));
         given(mockCoverLetter.getCompanyName()).willReturn("테스트 기업");
@@ -466,7 +466,7 @@ class ShareLinkServiceTest {
 
         given(qnARepository.findByIdOrElseThrow(qnAId)).willReturn(mockQnA);
         given(mockQnA.determineReviewRole(userId)).willReturn(ReviewRoleType.REVIEWER);
-        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(userId, shareId, ReviewRoleType.REVIEWER)).willReturn(false);
+        given(shareLinkLockManager.isConnectedUserInCoverLetter(userId, shareId, ReviewRoleType.REVIEWER)).willReturn(false);
 
         // when & then
         assertThatThrownBy(() -> shareLinkService.getQnAWithVersion(userId, shareId, qnAId))
@@ -493,7 +493,7 @@ class ShareLinkServiceTest {
         given(mockShareLink.getCoverLetterId()).willReturn(coverLetterId);
         given(coverLetterRepository.findByIdOrElseThrow(coverLetterId)).willReturn(mockCoverLetter);
         given(mockCoverLetter.determineReviewRole(userId)).willReturn(ReviewRoleType.REVIEWER);
-        given(shareLinkSessionRegistry.isConnectedUserInCoverLetter(userId, shareId, ReviewRoleType.REVIEWER)).willReturn(false);
+        given(shareLinkLockManager.isConnectedUserInCoverLetter(userId, shareId, ReviewRoleType.REVIEWER)).willReturn(false);
 
         // when & then
         assertThatThrownBy(() -> shareLinkService.getCoverLetterAndQnAIds(userId, shareId))

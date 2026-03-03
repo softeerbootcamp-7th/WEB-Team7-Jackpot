@@ -35,7 +35,7 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final UserRepository userRepository;
     private final QnARepository qnARepository;
-    private final ShareLinkSessionRegistry shareLinkSessionRegistry;
+    private final ShareLinkService shareLinkService;
 
     @Transactional
     public Review createReview(String reviewerId, Long qnAId, ReviewCreateRequest request) {
@@ -191,7 +191,7 @@ public class ReviewService {
     }
 
     public void validateWebSocketConnected(String userId, Long coverLetterId, ReviewRoleType role) {
-        if (!shareLinkSessionRegistry.isConnectedUserInCoverLetter(userId, coverLetterId, role)) {
+        if (!shareLinkService.isConnectedUserInCoverLetterId(userId, coverLetterId, role)) {
             throw new BaseException(GlobalErrorCode.FORBIDDEN);
         }
     }

@@ -12,7 +12,7 @@ public class ShareLinkLockRenewalScheduler {
 
     private final ShareLinkLockManager shareLinkLockManager;
 
-    private static final long LOCK_RENEWAL_TIME = 4 * 1000L;
+    private static final long LOCK_RENEWAL_TIME = 10 * 1000L;
 
     @Scheduled(fixedRate = LOCK_RENEWAL_TIME)
     public void renewActiveLocks() {
@@ -21,6 +21,5 @@ public class ShareLinkLockRenewalScheduler {
         } catch (Exception e) {
             log.error("락 갱신 중 예외 발생", e);
         }
-
     }
 }
