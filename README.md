@@ -332,6 +332,7 @@
 
 :page_facing_up: 관련 문서:
 
+- [[김승환] - 비동기 이벤트 아키텍처 개선기](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EA%B9%80%EC%8A%B9%ED%99%98%5D-%EB%B9%84%EB%8F%99%EA%B8%B0-%EC%9D%B4%EB%B2%A4%ED%8A%B8-%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98-%EA%B0%9C%EC%84%A0%EA%B8%B0)
 - [[김승환] ‐ WebSocket vs. SSE ](https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B%EA%B9%80%EC%8A%B9%ED%99%98%5D-%E2%80%90-Websocket-vs.-SSE)
 - [[김승환] ‐ 실시간 첨삭 기능, 어떻게 구현할 것인가? (데이터 구조부터 OT 알고리즘까지)](<https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B김승환%5D-‐-실시간-첨삭-기능,-어떻게-구현할-것인가%3F-(데이터-구조부터-OT-알고리즘까지)>)
 - [[김승환] ‐ 동시 편집(OT) 알고리즘 구현 중 만난 버전 충돌 개선기](<https://github.com/softeerbootcamp-7th/WEB-Team7-Jackpot/wiki/%5B김승환%5D-‐-동시-편집(OT)-알고리즘-구현-중-만난-버전-충돌-개선기>)
