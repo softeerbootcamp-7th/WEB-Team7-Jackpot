@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class TextDeltaService {
 
-    private static final int FLUSH_THRESHOLD = 100;
+    private static final int FLUSH_THRESHOLD = 20;
 
     private final TextDeltaRedisRepository textDeltaRedisRepository;
     private final QnARepository qnARepository;
