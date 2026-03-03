@@ -85,12 +85,11 @@ public class ShareLinkLockManager {
     }
 
     public void unlock(String sessionId) {
-        SessionEntry entry = sessionRegistry.unregister(sessionId);
+        SessionEntry entry = sessionRegistry.getSessionEntry(sessionId);
         if (entry == null) {
             log.warn("No lock found for session: sessionId={}", sessionId);
             return;
         }
-
         String sessionKey = getSessionKey(sessionId);
         Long unlocked = redisTemplate.execute(UNLOCK_REDIS_SCRIPT, List.of(entry.getLockKey(), sessionKey), sessionId);
 
@@ -99,6 +98,9 @@ public class ShareLinkLockManager {
         } else {
             log.warn("Unlock skipped: sessionId={}, lockKey={},", sessionId, entry.getLockKey());
         }
+
+        // Redis 락이 먼저 해제되고 인 메모리에서 지워야 좀비 락 방지가 가능함
+        sessionRegistry.unregister(sessionId);
     }
 
     /**

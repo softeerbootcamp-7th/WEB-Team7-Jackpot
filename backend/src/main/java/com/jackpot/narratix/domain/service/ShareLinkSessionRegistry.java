@@ -22,10 +22,13 @@ public class ShareLinkSessionRegistry {
     // key: sessionId, value: SessionEntry(lockKey, userId, lastActiveTime)
     private final Map<String, SessionEntry> sessionEntries = new ConcurrentHashMap<>();
 
+    public SessionEntry getSessionEntry(String sessionId) {
+        return sessionEntries.get(sessionId);
+    }
+
     public void register(String sessionId, String lockKey, String userId) {
         sessionEntries.put(sessionId, new SessionEntry(lockKey, userId));
     }
-
 
     public SessionEntry unregister(String sessionId) {
         return sessionEntries.remove(sessionId);
