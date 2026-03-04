@@ -1,7 +1,10 @@
 // 해당 파일이 일반 브라우저(DOM) 환경이 아닌 Web Worker 환경에서 사용되는 것을 알려주는 지시어
 /// <reference lib="webworker" />
 
-import { setAccessToken } from '@/features/auth/libs/tokenStore';
+import {
+  removeAccessToken,
+  setAccessToken,
+} from '@/features/auth/libs/tokenStore';
 import { sseStream } from '@/shared/api/sseStream';
 import { SSE_MESSAGE_TYPE, SSE_RECONNECT_CONFIG } from '@/shared/constants/sse';
 import { isNotificationPayload } from '@/shared/libs/checkStreamPayload';
@@ -40,6 +43,7 @@ const broadcast = (data: unknown) => {
         port.postMessage(data);
         return true;
       } catch {
+        port.close();
         return false;
       }
     });
@@ -162,12 +166,23 @@ const handleMessage = (e: MessageEvent, port?: MessagePort) => {
       if (ports.length === 0) {
         abortController?.abort();
         if (reconnectTimer) clearTimeout(reconnectTimer);
+        reconnectTimer = null;
         isConnected = false;
+        isConnecting = false;
+        retryCount = SSE_RECONNECT_CONFIG.INITIAL_BACKOFF_EXPONENT;
+        token = null;
+        removeAccessToken();
       }
     } else {
       // Dedicated Worker 종료
       abortController?.abort();
       if (reconnectTimer) clearTimeout(reconnectTimer);
+      reconnectTimer = null;
+      isConnected = false;
+      isConnecting = false;
+      retryCount = SSE_RECONNECT_CONFIG.INITIAL_BACKOFF_EXPONENT;
+      token = null;
+      removeAccessToken();
     }
   }
 };
