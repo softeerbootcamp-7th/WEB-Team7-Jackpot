@@ -8,7 +8,7 @@ export const sseStream = {
       // 원본 Response 객체 반환
       isStream: true,
       options: {
-        signal: signal,
+        signal,
         headers: {
           // Content-Type
           // 클라이언트가 받을 수 있는 응답 타입 (SSE 형식의 응답 요청)
