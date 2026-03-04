@@ -7,12 +7,6 @@ import SockJS from 'sockjs-client';
 
 import { getAccessToken } from '@/features/auth/libs/tokenStore';
 import { refreshAccessToken } from '@/shared/api/apiClient';
-import {
-  SOCKET_ERROR_CODE,
-  SOCKET_ERROR_MESSAGE,
-  SOCKET_REDIRECT_PATH,
-  STOMP_CONFIG,
-} from '@/shared/constants/websocket';
 import { useToastMessageContext } from '@/shared/hooks/toastMessage/useToastMessageContext';
 
 const SOCKET_URL = `${import.meta.env.VITE_SOCKET_URL}`;
@@ -34,8 +28,7 @@ export const useStompClient = ({ shareId }: UseStompClientProps) => {
     const client = new Client({
       // 소켓 재연결을 위해 새 소켓을 만들 수 있는 콜백 함수
       // 이미 만들어진 소켓 객체를 넘겨주면 재사용이 불가
-      webSocketFactory: () =>
-        new SockJS(`${SOCKET_URL}${STOMP_CONFIG.CONNECT_ENDPOINT}`),
+      webSocketFactory: () => new SockJS(`${SOCKET_URL}/ws/connect`),
       connectHeaders: {},
       beforeConnect: async () => {
         let token = getAccessToken();
@@ -70,33 +63,31 @@ export const useStompClient = ({ shareId }: UseStompClientProps) => {
         console.error('Additional details', frame.body);
 
         // 인증 오류는 재연결해도 해결되지 않으므로 즉시 비활성화
-        const isAuthError = SOCKET_ERROR_MESSAGE.AUTH_KEYWORDS.some((keyword) =>
-          errorMessage.toLowerCase().includes(keyword),
-        );
+        const isAuthError =
+          errorMessage.toLowerCase().includes('auth') ||
+          errorMessage.toLowerCase().includes('unauthorized');
         const isExpiredError =
-          errorCode === SOCKET_ERROR_CODE.EXPIRED_OR_FULL ||
-          errorMessage.includes(SOCKET_ERROR_MESSAGE.EXPIRED_KEYWORD);
+          errorCode === '410' || errorMessage.includes('만료');
         const isFullError =
-          errorCode === SOCKET_ERROR_CODE.EXPIRED_OR_FULL ||
-          errorMessage.includes(SOCKET_ERROR_MESSAGE.FULL_KEYWORD);
+          errorCode === '410' || errorMessage.includes('초과');
         if (isAuthError || isExpiredError || isFullError) {
           // force: true로 즉시 세션을 종료하고 재연결을 막음
           client.deactivate({ force: true });
 
           if (isExpiredError) {
-            showToast(SOCKET_ERROR_MESSAGE.TOAST.EXPIRED, false);
-            navigate(SOCKET_REDIRECT_PATH, { replace: true });
+            showToast('첨삭 링크가 만료되었습니다.', false);
+            navigate('/home', { replace: true });
           } else if (isFullError) {
-            showToast(SOCKET_ERROR_MESSAGE.TOAST.FULL, false);
-            navigate(SOCKET_REDIRECT_PATH, { replace: true });
+            showToast('접근 가능한 인원 수가 초과되었습니다.', false);
+            navigate('/home', { replace: true });
           }
         }
       },
-      reconnectDelay: STOMP_CONFIG.RECONNECT_DELAY,
+      reconnectDelay: 5000,
       // 서버에게 연결이 끊긴지 확인하는 수신 주기
-      heartbeatIncoming: STOMP_CONFIG.HEARTBEAT.INCOMING,
+      heartbeatIncoming: 4000,
       // 서버에게 연결이 안 끊겼다고 보내는 송신 주기
-      heartbeatOutgoing: STOMP_CONFIG.HEARTBEAT.OUTGOING,
+      heartbeatOutgoing: 4000,
     });
     client.activate();
     clientRef.current = client;

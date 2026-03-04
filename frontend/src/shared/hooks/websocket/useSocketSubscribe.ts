@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react';
 
 import type { Client, IMessage, StompSubscription } from '@stomp/stompjs';
 
-import { SOCKET_PATH_TEMPLATE } from '@/shared/constants/websocket';
 interface UseSocketSubscribeProps {
   shareId: string;
   qnaId?: string;
@@ -32,7 +31,7 @@ export const useSocketSubscribe = ({
     // 리뷰에 대한 데이터만 받기 위해 review SUB URL 구독
     if (qnaId) {
       subscriptionRef.current = clientRef.current.subscribe(
-        SOCKET_PATH_TEMPLATE.REVIEW(shareId, qnaId),
+        `/sub/share/${shareId}/qna/${qnaId}/review`,
         (message: IMessage) => {
           if (message.body) {
             const parsedBody = JSON.parse(message.body);

@@ -1,15 +1,12 @@
 // 해당 파일이 일반 브라우저(DOM) 환경이 아닌 Web Worker 환경에서 사용되는 것을 알려주는 지시어
 /// <reference lib="webworker" />
 
-import {
-  removeAccessToken,
-  setAccessToken,
-} from '@/features/auth/libs/tokenStore';
-import { sseStream } from '@/shared/api/sseStream';
-import { SSE_MESSAGE_TYPE, SSE_RECONNECT_CONFIG } from '@/shared/constants/sse';
+import { setAccessToken } from '@/features/auth/libs/tokenStore';
+import { apiClient } from '@/shared/api/apiClient';
 import { isNotificationPayload } from '@/shared/libs/checkStreamPayload';
 import { readStream } from '@/shared/libs/readStream';
 import type { SSEPayload } from '@/shared/types/sse';
+
 // SharedWorker 환경인지 확인하는 타입 가드
 const isSharedWorkerScope = (
   self: Window | SharedWorkerGlobalScope | DedicatedWorkerGlobalScope,
@@ -31,7 +28,7 @@ let isConnected = false;
 // isConnected가 여러번 호출되는 race condition 방지하기 위한 플래그 (연결 시도를 한다는 플래그)
 let isConnecting = false;
 // 지수 백오프용 카운트
-let retryCount = SSE_RECONNECT_CONFIG.INITIAL_BACKOFF_EXPONENT;
+let retryCount = 2;
 
 // 연결된 모든 탭(port)에 메시지 브로드캐스트
 const broadcast = (data: unknown) => {
@@ -43,7 +40,6 @@ const broadcast = (data: unknown) => {
         port.postMessage(data);
         return true;
       } catch {
-        port.close();
         return false;
       }
     });
@@ -63,18 +59,28 @@ const connectSSE = async () => {
   abortController = new AbortController();
 
   try {
-    const response = await sseStream.connect(abortController.signal);
+    const response = await apiClient.get<Response>({
+      endpoint: '/sse/connect',
+      isStream: true,
+      options: {
+        signal: abortController.signal,
+        headers: {
+          Accept: 'text/event-stream',
+          'Cache-Control': 'no-cache',
+        },
+      },
+    });
 
     isConnected = true;
     // 연결 완료 했다는 의미
     isConnecting = false;
     // 연결 성공 시 백오프 카운트 초기화
-    retryCount = SSE_RECONNECT_CONFIG.INITIAL_BACKOFF_EXPONENT;
+    retryCount = 0;
 
     await readStream<SSEPayload>(response, (data) => {
       if (!data || !isNotificationPayload(data)) return;
       // 데이터가 오면 UI 스레드로 전송
-      broadcast({ type: SSE_MESSAGE_TYPE.NOTIFICATION, payload: data });
+      broadcast({ type: 'NOTIFICATION', payload: data });
     });
 
     // 스트림이 정상 종료되면 재연결 시도
@@ -114,15 +120,15 @@ const scheduleReconnect = () => {
 
   // 지수 백오프 알고리즘 (4초 ~ 최대 2^4 = 16초)
   // Jitter 적용: 지수 값이 중간 값이 되도록 딜레이 설정
-  const maxRetries = SSE_RECONNECT_CONFIG.MAX_BACKOFF_EXPONENT;
+  const maxRetries = 4;
   const currentRetry = Math.min(retryCount, maxRetries);
 
   // 기준이 되는 지수 값 (중간값) (4, 8, 16)
-  const baseDelay = SSE_RECONNECT_CONFIG.BASE_DELAY * Math.pow(2, currentRetry);
+  const baseDelay = 1000 * Math.pow(2, currentRetry);
 
   // 중간값(baseDelay)을 기준으로 앞뒤로 50%씩 범위를 잡음
   // baseDelay가 4s라면, 2s ~ 6s 사이의 랜덤값 발생
-  const spread = baseDelay * SSE_RECONNECT_CONFIG.JITTER_RATIO;
+  const spread = baseDelay * 0.5;
   const min = baseDelay - spread;
   const max = baseDelay + spread;
 
@@ -137,17 +143,12 @@ const scheduleReconnect = () => {
 
 // 메인 스레드로부터 메시지 수신 처리
 const handleMessage = (e: MessageEvent, port?: MessagePort) => {
-  if (!e.data || typeof e.data !== 'object' || !('type' in e.data)) return;
+  const { type, payload } = e.data;
 
-  const { type, payload } = e.data as {
-    type: string;
-    payload?: { token?: string };
-  };
-
-  if (type === SSE_MESSAGE_TYPE.START) {
+  if (type === 'START') {
     // 메인 스레드에서 받아온 토큰을 Worker 환경의 tokenStore에 저장
     // 이렇게 해둬야 apiClient가 내부에서 getAccessToken()을 호출할 때 값을 가져올 수 있음
-    if (payload?.token) {
+    if (payload.token) {
       token = payload.token;
       setAccessToken(payload.token);
     }
@@ -159,30 +160,19 @@ const handleMessage = (e: MessageEvent, port?: MessagePort) => {
 
     // 아직 연결 전이라면 연결 시작
     if (!isConnected) connectSSE();
-  } else if (type === SSE_MESSAGE_TYPE.STOP) {
+  } else if (type === 'STOP') {
     if (port) {
       ports = ports.filter((p) => p !== port);
       // 더 이상 연결된 탭이 없으면 완전 종료
       if (ports.length === 0) {
         abortController?.abort();
         if (reconnectTimer) clearTimeout(reconnectTimer);
-        reconnectTimer = null;
         isConnected = false;
-        isConnecting = false;
-        retryCount = SSE_RECONNECT_CONFIG.INITIAL_BACKOFF_EXPONENT;
-        token = null;
-        removeAccessToken();
       }
     } else {
       // Dedicated Worker 종료
       abortController?.abort();
       if (reconnectTimer) clearTimeout(reconnectTimer);
-      reconnectTimer = null;
-      isConnected = false;
-      isConnecting = false;
-      retryCount = SSE_RECONNECT_CONFIG.INITIAL_BACKOFF_EXPONENT;
-      token = null;
-      removeAccessToken();
     }
   }
 };
